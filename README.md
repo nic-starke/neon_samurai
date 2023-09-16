@@ -14,6 +14,8 @@ IMPORTANT - If you use this software you must accept the License, most important
 The overall intention for the project is to remove some of the limitations of the original firmware, such as fixed midi channels, however there is the possibility of adding new features.
 See below regarding feature requests.
 
+See [Features](Features.MD) for more information.
+
 ## Feature Requests and Bug Reports
 
 Please use the [issues](https://github.com/bxzn/MuffinTwister/issues) page of the repository to request new features, or to submit a bug.
