@@ -125,5 +125,5 @@ typedef enum
 } eUSBEndpoint;
 
 #if (NUM_USB_ENDPOINTS - 1) > ENDPOINT_TOTAL_ENDPOINTS
-#error There are not enough available endpoints to support all functions. Please disable one or more of the following: Mouse Keys, Extra Keys, Console, NKRO, MIDI, Serial, Steno
+#error There are not enough available USB endpoints.
 #endif
