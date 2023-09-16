@@ -1,6 +1,5 @@
 ---
 title: Muffin Twister Wiki
-toc: true
 ---
 
 ## Heading 1
