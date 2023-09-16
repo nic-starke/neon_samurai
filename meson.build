@@ -52,15 +52,27 @@ subdir('src/LUFA/')
 extra_args = [
     '-DMIDI_ENABLE',
     # '-DHID_ENABLE',
-    # '-DVSER_ENABLE',
+    '-DVSER_ENABLE',
 ]
+
+# Sub Projects
+cmake = import('cmake')
+qcbor_options = cmake.subproject_options()
+qcbor_options.append_compile_args(
+    'c', 
+    extra_args 
+    + ['-DUSEFULBUF_CONFIG_LITTLE_ENDIAN']
+    + ['-DUSEFULBUF_CONFIG_BSWAP']
+    + ['-DQCBOR_DISABLE_FLOAT_HW_USE'])
+qcbor_subproject = cmake.subproject('QCBOR', options: qcbor_options)
+qcbor = qcbor_subproject.dependency('qcbor')
 
 muffin = executable(
 	meson.project_name() + '.elf',
 	[project_src],
     c_args : extra_args,
 	include_directories : [project_inc, configuration_inc],
-    dependencies : [lufa],
+    dependencies : [lufa, qcbor],
 )
 
 hex = custom_target(

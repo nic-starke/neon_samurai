@@ -1,5 +1,5 @@
 /*
- * File: CommDefines.h ( 25th March 2022 )
+ * File: CommsTypes.h ( 25th March 2022 )
  * Project: Muffin
  * Copyright 2022 bxzn (mail@bxzn.one)
  * -----
@@ -27,32 +27,33 @@
 #define MAX_MUFFIN_CONNS     (8)
 #define MAX_EDITOR_CONNS     (1)
 #define MAX_CONNECTIONS      (MAX_MUFFIN_CONNS + MAX_EDITOR_CONNS)
-#define UNASSIGNED_ID        (MAX_CONNECTIONS + 1)
-#define BROADCAST_ID         (UNASSIGNED_ID)
-#define DISCOVERY_TIMEOUT_MS (3000)
-
-#define MSG_START (0x77)
-#define MSG_END   (0x88)
+#define UNASSIGNED_ADDRESS   (MAX_CONNECTIONS + 1)
+#define BROADCAST_ADDRESS    (UNASSIGNED_ADDRESS)
 
 typedef enum
 {
-    STATE_INIT,
-    STATE_DISCONNECTED,
+    STATE_UNINITIALISED,
+    STATE_LISTEN,
     STATE_DISCOVERY,
-    STATE_READY,
+    STATE_CONNECTED,
+    STATE_CLOSING,
+    STATE_CLOSED,
+    STATE_ERROR,
 
-    NUM_NETWORK_STATES,
-} eNetworkState;
-
-typedef enum
-{
-    TRANSPORT_USBMIDI,
-
-    NUM_TRANSPORT_PROTOCOLS,
-} eTransportProtocol;
+    NUM_CONNECTION_STATES,
+} eConnectionState;
 
 typedef enum
 {
+    PROTOCOL_USBMIDI,
+    NUM_COMMS_PROTOCOLS,
+
+    PROTOCOL_BROADCAST,  // send a message on every protocol (Broadcast)
+} eCommsProtocol;
+
+typedef enum
+{
+    CLIENT_BROADCAST,
     CLIENT_MUFFIN,
     CLIENT_EDITOR,
 
@@ -61,31 +62,17 @@ typedef enum
 
 typedef enum
 {
-    MSG_NETWORK,
     MSG_DEFAULT,
+    MSG_REALTIME,
 
     NUM_MESSAGE_TYPES,
 } eMessageType;
 
-typedef enum
-{
-    DISCOVERY_REQUEST,
-    DISCOVERY_REPLY,
-
-    NUM_NETWORK_MESSAGE_TYPES,
-} eNetworkMessage;
-
-typedef union
-{
-    eMuffinModuleID MuffinModule;
-    eEditorModuleID EditorModule;
-} uModuleID;
-
 typedef struct
 {
     eClientType ClientType;
-    uint8_t     ClientID;
-    uModuleID   ModuleID;
+    uint8_t     ClientAddress;
+    eModuleID   ModuleID;
 } sNetworkAddress;
 
 typedef struct
@@ -93,15 +80,16 @@ typedef struct
     sNetworkAddress Source;
     sNetworkAddress Destination;
     eMessageType    Type;
-    union
-    {
-        eNetworkMessage Network;
-    } SubType;
+    u8              ModuleParameter;
+    eCommsProtocol Protocol;
 } sMessageHeader;
+
 
 typedef struct
 {
     sMessageHeader Header;
+    uint32_t Value;
+
     uint8_t*       pData;
     uint16_t       DataSize;
 } sMessage;
@@ -122,28 +110,16 @@ typedef struct
     sMessage*       pMessage;
 } sEncodedMessage;
 
-// typedef struct {
-//     sMessage Message;
-//     union {
 
-//         uint8_t* pData;
-//     }
-// } sIncomingMessage;
+// Function pointers - protocols must register all of these:
+typedef bool (*fpProtocol_SendMessageHandler)(sMessage* pMessage);
+typedef bool (*fpProtocol_UpdateHandler)(sMessage* pMessage);
 
 typedef struct
 {
-    uint8_t       LocalID;
-    eNetworkState State;
-    bool          MuffinEditorConnection;
-    struct
-    {
-        uint8_t Peer0 : 1;
-        uint8_t Peer1 : 1;
-        uint8_t Peer2 : 1;
-        uint8_t Peer3 : 1;
-        uint8_t Peer4 : 1;
-        uint8_t Peer5 : 1;
-        uint8_t Peer6 : 1;
-        uint8_t Peer7 : 1;
-    } MuffinConnections;
-} sCommsState;
+    fpProtocol_SendMessageHandler fpSendHandler;
+    fpProtocol_UpdateHandler fpUpdateHandler;
+} sProtocolRegister;
+
+// Function prototypes - modules must implement these:
+typedef bool (*fpMessageHandler)(sMessage* pMessage);

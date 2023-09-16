@@ -1,5 +1,5 @@
 /*
- * File: Comms.c ( 25th March 2022 )
+ * File: Comms.c ( 10th April 2022 )
  * Project: Muffin
  * Copyright 2022 bxzn (mail@bxzn.one)
  * -----
@@ -18,187 +18,207 @@
  */
 
 #include "Comms.h"
-#include "DataTypes.h"
-#include "MIDI.h"
+#include "Network.h"
 #include "SoftTimer.h"
+#include "Display.h"
 
 #define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
-#define MAX_INCOMING_MSGS (50)
-#define MAX_DATA_SIZE     (100)
+#define MAX_INCOMING_MSGS       (5)
+#define MAX_MSG_DATA_SIZE       (128) // bytes
 
-typedef struct
-{
-    eTransportProtocol Protocol;
-    sMessage*          pMessage;
-} sInternalMessage;
-
-static sCommsState mComms      = {0};
-static uint8_t     mAssignedID = UNASSIGNED_ID;
-static sSoftTimer  timer       = {0};
-
-static sInternalMessage mOutgoingMessage;
-
-static uint8_t  mNumMessages = 0;
-static sMessage mIncomingMessages[MAX_INCOMING_MSGS];
-static uint8_t  mIncomingDataBuffers[MAX_INCOMING_MSGS][MAX_DATA_SIZE];
-
-bool mTransmitting = false;
-
-static sMessage MSG_NetworkDiscovery = {
-    .Header.Source.ClientID = BROADCAST_ID,
-    .Header.Source.ModuleID = INVALID_MODULE_ID,
-
-    .Header.Destination.ClientID = BROADCAST_ID,
-
-    .Header.Type            = MSG_NETWORK,
-    .Header.SubType.Network = DISCOVERY_REQUEST,
+const sMessage MSG_BroadcastTemplate = {
+    .Header = {
+        .Source = {
+            .ClientAddress = BROADCAST_ADDRESS,
+            .ClientType = CLIENT_MUFFIN,
+            .ModuleID = MODULE_NETWORK,
+        },
+        .Destination = {
+            .ClientAddress = BROADCAST_ADDRESS,
+            .ClientType = CLIENT_BROADCAST,
+            .ModuleID = MODULE_NETWORK,
+        },
+        .Type = MSG_DEFAULT,
+        .ModuleParameter = 0,
+        .Protocol = PROTOCOL_BROADCAST,
+    },
+    .DataSize = 0,
+    .pData = NULL,
 };
 
-static void AttemptNetworkDiscovery(void);
-static void TransmitMessages(void);
-static void ProcessMessages(void);
+static u8 mLocalAddress = UNASSIGNED_ADDRESS;
+
+static bool ProcessMessage(sMessage* pMessage);
+
+struct _protocols {
+    bool Registered;
+    fpProtocol_SendMessageHandler fpSendHandler;
+    fpProtocol_UpdateHandler fpUpdateHandler;
+} static mProtocols[NUM_COMMS_PROTOCOLS] = {0};
+
+struct _modules {
+    fpMessageHandler fpMessageHandler;
+} static mModules[NUM_MODULE_IDS] = {0};
 
 void Comms_Init(void)
 {
-    if (mComms.State == STATE_INIT)
-    {
-        // do first-time init stuff here
-        mComms.State = STATE_DISCONNECTED;
-    }
+    Comms_RegisterModule(MODULE_NETWORK, MessageHandler_Network);
 
-    if (mComms.State == STATE_DISCONNECTED)
-    {
-        AttemptNetworkDiscovery();
-    }
+
+    // switch(mComms.State)
+    // {
+    //     case STATE_UNITIALISED:{
+
+    //      break;   
+    //     }
+
+    //     case STATE_DISCONNECTED:{
+
+    //      break;   
+    //     }
+
+    //     case STATE_DISCOVERY:{
+
+    //      break;   
+    //     }
+
+    //     case STATE_READY:{
+
+    //      break;   
+    //     }
+
+    //     default:
+    //     break;
+
+    // }
 }
 
 void Comms_Update(void)
 {
-    switch (mComms.State)
+    if (mLocalAddress == UNASSIGNED_ADDRESS)
     {
-        case STATE_INIT:
-        {
-            break;
-        }
+        Network_Discovery();
+    }
+    
+    for(eCommsProtocol protocol = 0; protocol < NUM_COMMS_PROTOCOLS; protocol++)
+    {
 
-        case STATE_DISCONNECTED:
-        {
-            break;
-        }
-
-        case STATE_DISCOVERY:
-        {
-            if (SoftTimer_Elapsed(&timer) >= DISCOVERY_TIMEOUT_MS)
-            {
-                SoftTimer_Stop(&timer);
-                mComms.State = STATE_DISCONNECTED;
-            }
-
-            break;
-        }
-
-        case STATE_READY:
-        {
-            break;
-        }
-
-        default: break;
     }
 }
 
-bool Comms_SendMessage(sMessage* pMessage)
+static bool SendMessage(sMessage* pMessage, eCommsProtocol Protocol)
 {
-    if (!pMessage)
+    // if(!mProtocols[Protocol].Registered || mProtocols[Protocol].fpSendHandler == NULL || pMessage == NULL)
+    // {
+    //     Serial_Print("SendMessage error\r\n");
+    //     return false;
+    // }
+
+    if(!mProtocols[Protocol].Registered)
+    {
+        Serial_Print("Protocol not registered\r\n");
+        return false;
+    } else if (mProtocols[Protocol].fpSendHandler == NULL) {
+        Serial_Print("NoSendHandler\r\n");
+        return false;
+    } else if (pMessage == NULL) {
+        Serial_Print("pMessage null\r\n");
+    }
+
+    char buf[128] = "";
+    sprintf(buf, "SendMSG SourceMod[%d] DestClient[%d] DestMod[%d] Param[%d] Val[%ld]\r\n", 
+        pMessage->Header.Source.ModuleID,
+        pMessage->Header.Destination.ClientAddress,
+        pMessage->Header.Destination.ModuleID,
+        pMessage->Header.ModuleParameter,
+        pMessage->Value);
+
+    Serial_Print(buf);
+
+    pMessage->Header.Source.ClientAddress = mLocalAddress;
+    pMessage->Header.Source.ClientType = CLIENT_MUFFIN;
+
+    return mProtocols[Protocol].fpSendHandler(pMessage);
+}
+
+void Comms_RegisterLocalAddress(u8 Address)
+{
+    mLocalAddress = Address;
+}
+
+bool Comms_SendMessage(sMessage* pMessage, eCommsProtocol Protocol)
+{
+    if (pMessage == NULL)
     {
         return false;
     }
 
-    switch (pMessage->Header.Type)
+    if (Protocol == PROTOCOL_BROADCAST)
     {
-        case MSG_NETWORK:
+        Serial_Print("Broadcast\r\n");
+        bool success = true;
+        for(eCommsProtocol protocol = 0; protocol < NUM_COMMS_PROTOCOLS; protocol++)
         {
-            break;
+            success &= SendMessage(pMessage, protocol);
         }
-
-        case MSG_DEFAULT:
-        {
-            if (mComms.State != STATE_READY)
-            {
-                return false;
-            }
-
-            // Ensure source id and type is valid.
-            pMessage->Header.Source.ClientID   = mAssignedID;
-            pMessage->Header.Source.ClientType = CLIENT_MUFFIN;
-            break;
-        }
-
-        default: return false;
+        return success;
+    }
+    else
+    {
+        return SendMessage(pMessage, Protocol);
     }
 
-    mOutgoingMessage.pMessage = pMessage;
-    mOutgoingMessage.Protocol = TRANSPORT_USBMIDI;
+    return false;
+}
 
-    TransmitMessages();
+bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_UpdateHandler UpdateHandler, fpProtocol_SendMessageHandler SendHandler)
+{
+    if(Protocol >= NUM_COMMS_PROTOCOLS || mProtocols[Protocol].Registered) {
+        return false;
+    } 
+
+    mProtocols[Protocol].Registered = true;
+    
+    if(UpdateHandler)
+        mProtocols[Protocol].fpUpdateHandler = UpdateHandler;
+
+    if(SendHandler)
+        mProtocols[Protocol].fpSendHandler = SendHandler;
+
     return true;
 }
 
-bool Comms_ReceiveMessage(sMessage* pMessage)
+bool Comms_RegisterModule(eModuleID ID, fpMessageHandler MessageHandler)
 {
-    if (!pMessage || mNumMessages >= MAX_INCOMING_MSGS)
+    if (MessageHandler == NULL)
     {
         return false;
     }
 
-    memcpy(&mIncomingMessages[mNumMessages], pMessage, sizeof(sMessage));
-
-    if (pMessage->pData && pMessage->DataSize <= MAX_DATA_SIZE)
-    {
-        memcpy(&mIncomingDataBuffers[mNumMessages++][0], pMessage->pData, pMessage->DataSize);
-    }
-
+    mModules[ID].fpMessageHandler = MessageHandler;
     return true;
 }
 
-static void AttemptNetworkDiscovery(void)
+static bool ProcessMessage(sMessage* pMessage)
 {
-    mOutgoingMessage.pMessage = &MSG_NetworkDiscovery;
-
-    if (Comms_SendMessage(&MSG_NetworkDiscovery))
+    if(pMessage->Header.Destination.ClientAddress != mLocalAddress)
     {
-        mComms.State = STATE_DISCOVERY;
-        SoftTimer_Start(&timer);
-    }
-}
-
-static void TransmitMessages(void)
-{
-    // block here?
-    while (mTransmitting) {}
-
-    mTransmitting = true;
-
-    // At this stage, if there were multiple protocols, send on the correct protocol
-    // to the destination address.
-    switch (mOutgoingMessage.Protocol)
-    {
-        case TRANSPORT_USBMIDI:
-        {
-            MIDI_SendCommsMessage(mOutgoingMessage.pMessage);
-        }
-
-        default:
-        {
-            Serial_Print("Invalid message protocol\r\n");
-            break;
-        }
+        return true; // no need to handle this message - ignore.
     }
 
-    mTransmitting = false;
+    if(pMessage->Header.Type == MSG_REALTIME)
+    {
+        // realtime handling
+    }
+
+    if(IsValidModuleID(pMessage->Header.Destination.ModuleID))
+    {
+        if (mModules[pMessage->Header.Destination.ModuleID].fpMessageHandler != NULL)
+        return mModules[pMessage->Header.Destination.ModuleID].fpMessageHandler(pMessage);
+    }
+
+    return false;
 }
 
-static void ProcessMessages(void)
-{
-}

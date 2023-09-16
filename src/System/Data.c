@@ -168,22 +168,18 @@ void Data_Init(void)
     gData.DataVersion  = eeprom_read_word(&_EEPROM_DATA_.DataVersion);
     gData.FactoryReset = ((gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed());
 
-    u8 displayFlashCount = 0;
-
     if (gData.FactoryReset)
     {
         Data_WriteDefaultsToEEPROM();
-        displayFlashCount  = 5;
         gData.FactoryReset = false;
+        Display_Flash(200, 3);
     }
     else
     {
         Data_RecallEEPROMSettings();
-        displayFlashCount = 2;
     }
 
     IRQ_EnableInterrupts(flags);
-    Display_Flash(200, displayFlashCount);
 }
 
 // Disable interrupts before calling

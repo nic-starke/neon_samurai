@@ -1,5 +1,6 @@
 folders = [
     'Comms',
+    'Comms/Modules',
 	'Display',
     'Input',
     'MIDI',
@@ -18,6 +19,8 @@ project_src += files(
     'main.c',
 
     'Comms/Comms.c',
+    'Comms/CBOR.c',
+    'Comms/Network.c',
 
     'Display/Colour.c',
     'Display/Display.c',

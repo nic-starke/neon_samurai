@@ -95,6 +95,7 @@ _MCU_ = MCU
 
 [built-in options]
 warning_level='1'
+buildtype='release'
 
 c_args = [
   '-I' + AVR_LIBC_PATH,
@@ -110,7 +111,7 @@ c_args = [
   '-DF_CPU=' + F_CPU,
   '-DBOARD=' + USR_BOARD,
   '-DUSE_LUFA_CONFIG_HEADER',
-  # '-DRELEASE',
+  '-DRELEASE',
   # '-DNDEBUG',
   '-fdata-sections',
   '-ffunction-sections',

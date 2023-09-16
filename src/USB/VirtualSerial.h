@@ -26,9 +26,11 @@
 void _Serial_Init(void);
 void _Serial_Update(void);
 void _Serial_Print(char* s);
+bool _Serial_HostReady(void);
 
-#define Serial_Init()   _Serial_Init()
-#define Serial_Update() _Serial_Update()
+#define Serial_Init()      _Serial_Init()
+#define Serial_Update()    _Serial_Update()
+#define Serial_HostReady() _Serial_HostReady()
 #ifdef ENABLE_SERIAL
 #define Serial_Print(s) _Serial_Print(s)
 #else
@@ -37,6 +39,7 @@ void _Serial_Print(char* s);
 #else
 #define Serial_Init()
 #define Serial_Update()
+#define Serial_HostReady()
 #define Serial_Print(s)
 #endif
 

@@ -1,0 +1,3 @@
+[submodule "subprojects/qcbor"]
+	path = subprojects/qcbor
+	url = https://github.com/laurencelundblade/QCBOR.git

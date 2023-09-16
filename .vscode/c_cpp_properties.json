@@ -23,6 +23,19 @@
             "compilerArgs": [
                 "-D__AVR_ATxmega128A4U__"
             ]
+        },
+        {
+            "name": "AVR",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/avr/avr/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/local/avr/bin/avr-gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": []
         }
     ],
     "version": 4

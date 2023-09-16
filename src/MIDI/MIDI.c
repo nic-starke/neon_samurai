@@ -22,7 +22,6 @@
 
 #include <avr/pgmspace.h>
 
-#include "CommDefines.h"
 #include "Comms.h"
 #include "Config.h"
 #include "DataTypes.h"
@@ -60,6 +59,9 @@ static const u8 MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01};
 static const u8 FMLY_ID[2] PROGMEM = {0x00, 0x00};
 static const u8 PROD_ID[2] PROGMEM = {0x00, 0x01};
 static const u8 VRSN_ID[4] PROGMEM = {0x00, 0x00, 0x00, VERSION};
+
+static bool Msg_SendHandler(sMessage* pMessage);
+static bool Msg_UpdateHandler(sMessage* pMessage);
 
 // static const u8 SYSEX_HEADER[] = {
 //     0xF0,             // start of sysex
@@ -205,7 +207,7 @@ void MIDI_MirrorInput(bool Enable)
 
 void MIDI_Init(void)
 {
-    // nothing :)
+    Comms_RegisterProtocol(PROTOCOL_USBMIDI, Msg_UpdateHandler, Msg_SendHandler);
 }
 
 // Must be called prior to LUFAs master usb task - USB_USBTask()
@@ -292,16 +294,14 @@ static inline void EncodeAndTransmitSysexBlock(u8* pData, u16 DataLen)
 
     u16 blocksDone = 0;
 
+    // for(int block = 0; (block < blocksPerTransfer) && (blocksDone < totalBlocks); i++)
+    // {
+    //     // EncodeToSysex();
+    // }
 
-    for(int block = 0; (block < blocksPerTransfer) && (blocksDone < totalBlocks); i++)
+    for (int i = 0; i < totalBlocks; i++)
     {
-        EncodeToSysex()
-    }
-
-
-    for(int i = 0; i < totalBlocks; i++)
-    {
-        if(blocksDone < blocksPerTransfer)
+        if (blocksDone < blocksPerTransfer)
         {
             // encode
         }
@@ -476,11 +476,11 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
                 case PARSER_SYSEX_NONRT:
                 {
                     //Check if this is a comms message, then start streaming.
-                    if (pMsg->Data[0] == MSG_START)
-                    {
-                        // static sMessage msg = {0};
-                        // Comms_ReceiveMessage(&msg);
-                    }
+                    // if (pMsg->Data[0] == MSG_START)
+                    // {
+                    //     // static sMessage msg = {0};
+                    //     // Comms_ReceiveMessage(&msg);
+                    // }
                 }
 
                 // parser is in an invalid state!
@@ -527,4 +527,16 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
             break;
         }
     }
+}
+
+static bool Msg_SendHandler(sMessage* pMessage)
+{
+    Serial_Print("MidiSend\r\n");
+    return true;
+}
+
+static bool Msg_UpdateHandler(sMessage* pMessage)
+{
+    Serial_Print("MidiUpdate\r\n");
+    return true;
 }

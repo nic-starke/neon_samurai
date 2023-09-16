@@ -25,6 +25,7 @@
 #include <Drivers/USB/USB.h>
 #include <avr/wdt.h>
 
+#include "Comms.h"
 #include "Config.h"
 #include "DMA.h"
 #include "Data.h"
@@ -37,7 +38,7 @@
 #include "USART.h"
 #include "USB.h"
 
-// #define ENABLE_SERIAL
+#define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
 static sSoftTimer timer = {0};
@@ -68,19 +69,58 @@ static inline void BootAnimation(void)
     // }
 }
 
+#include "CBOR.h"
+static inline void CBORTest(void)
+{
+    sEncoderState initial = {0};
+    sEncoderState decoded = {0};
+
+    initial.CurrentValue  = 50;
+    initial.PreviousValue = 100;
+
+    // What is a correct stack size of this thing?
+    UsefulBuf_MAKE_STACK_UB(buff, sizeof(sEncoderState));
+    UsefulBufC encodedThing;
+    QCBORError err;
+
+    encodedThing = CBOREncode_Encoder(&initial, buff);
+    if (UsefulBuf_IsNULLC(encodedThing))
+    {
+        Serial_Print("Failed to encode\r\n");
+    }
+
+    err = CBORDecode_Encoder(encodedThing, &decoded);
+    if (err)
+    {
+        Serial_Print("Failed to decode\r\n");
+    }
+
+    Serial_Print("Size of encoded cbor is: ");
+    char buf[128] = "";
+    sprintf(buf, "%d bytes, bufsize is %d", encodedThing.len, sizeof(__pBufbuff));
+    Serial_Print(buf);
+    Serial_Print("\r\n");
+
+    if (decoded.CurrentValue == initial.CurrentValue)
+    {
+        Serial_Print("Success - encode == decode\r\n");
+    }
+}
+
 int main(void)
 {
     // Do not adjust the order of these init functions!
-
     System_Init();
     DMA_Init();
     USART_Init();
     SoftTimer_Init();
+
+
+    Comms_Init(); // Modules that register with comms should be initialised after this point.
+    MIDI_Init();
     Input_Init();
     Encoder_Init();
-
     USB_Init();
-    MIDI_Init();
     Serial_Init();
     Display_Init();
 
@@ -111,6 +151,18 @@ int main(void)
     Data_Init();
     EncoderDisplay_UpdateAllColours();
 
+    // Poll the USB and serial for a bit so that host is immediately ready for serial comms
+#ifdef VSER_ENABLE
+    SoftTimer_Stop(&timer);
+    SoftTimer_Start(&timer);
+    while (SoftTimer_Elapsed(&timer) < 2500)
+    {
+        Serial_Update();
+        USB_USBTask();
+    }
+    SoftTimer_Stop(&timer);
+#endif
+
     while (1)
     {
         Input_Update();
@@ -123,6 +175,7 @@ int main(void)
                 Encoder_Update();
                 // SideSwitch_Update();
                 MIDI_Update();
+                Comms_Update();
                 break;
             }
 

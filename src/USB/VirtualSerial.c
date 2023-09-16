@@ -18,8 +18,11 @@
  */
 
 #include "VirtualSerial.h"
+#include "DataTypes.h"
 #include "Descriptors.h"
 #include "USB.h"
+
+static bool mHostReady = false;
 
 void _Serial_Init(void)
 {
@@ -43,6 +46,11 @@ void _Serial_Print(char* pString)
     CDC_Device_Flush(&gCDC_Interface);
 }
 
+bool _Serial_HostReady(void)
+{
+    return mHostReady;
+}
+
 void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo)
 {
     /* You can get changes to the virtual CDC lines in this callback; a common
@@ -51,6 +59,5 @@ void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const C
 	   application blocking while waiting for a host to become ready and read
 	   in the pending data from the USB endpoints.
 	*/
-    bool HostReady = (CDCInterfaceInfo->State.ControlLineStates.HostToDevice & CDC_CONTROL_LINE_OUT_DTR) != 0;
-    (void)HostReady;
+    mHostReady = (CDCInterfaceInfo->State.ControlLineStates.HostToDevice & CDC_CONTROL_LINE_OUT_DTR) != 0;
 }

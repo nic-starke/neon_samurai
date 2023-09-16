@@ -1,5 +1,5 @@
 /*
- * File: MessageDataDefines.h ( 26th March 2022 )
+ * File: CBOR.h ( 8th April 2022 )
  * Project: Muffin
  * Copyright 2022 bxzn (mail@bxzn.one)
  * -----
@@ -19,9 +19,11 @@
 
 #pragma once
 
-#include "Display.h"
 
-union _MessageData
-{
-    DisplayFrame Frame;
-};
+#include <subprojects/QCBOR/inc/qcbor/qcbor_common.h>
+#include <subprojects/QCBOR/inc/qcbor/qcbor_encode.h>
+#include <subprojects/QCBOR/inc/qcbor/qcbor_decode.h>
+#include "Encoder.h"
+
+UsefulBufC CBOREncode_Encoder(const sEncoderState* pEncoder, UsefulBuf Buffer);
+QCBORError CBORDecode_Encoder(UsefulBufC EncodedStruct, sEncoderState* pDest);

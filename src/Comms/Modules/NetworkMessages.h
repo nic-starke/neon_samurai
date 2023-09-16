@@ -1,5 +1,5 @@
 /*
- * File: ModuleIDs.h ( 26th March 2022 )
+ * File: NetworkMessages.h ( 10th April 2022 )
  * Project: Muffin
  * Copyright 2022 bxzn (mail@bxzn.one)
  * -----
@@ -16,21 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
-
 #pragma once
 
-#define INVALID_MODULE_ID (0xFF)
-
 typedef enum
 {
-    MUFFINMOD_NETWORK,
+    DISCOVERY_REQUEST,
+    DISCOVERY_REPLY,
 
-    NUM_MUFFIN_MODULE_IDS,
-} eMuffinModuleID;
-
-typedef enum
-{
-    EDITORMOD_NETWORK,
-
-    NUM_EDITOR_MODULE_IDS,
-} eEditorModuleID;
+    NUM_NETWORK_MESSAGE_TYPES,
+} eNetworkMessages;
