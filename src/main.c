@@ -76,23 +76,24 @@ int main(void)
 
     while (1)
     {
-        // Display_Update();
         Input_Update();
 
         switch (gData.OperatingMode)
         {
             case DEFAULT_MODE:
-                EncoderDisplay_Test();
+            {
+                Display_Update();                
+                Encoder_Update();
                 // SideSwitch_Update();
                 // Encoder_Update();
                 // USBMidi_Update();
                 break;
+            }
 
             case TEST_MODE: RunTest(); break;
 
             default: break;
         }
-
         USB_USBTask();
     }
 }

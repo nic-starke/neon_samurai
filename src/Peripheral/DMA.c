@@ -82,7 +82,6 @@ void DMA_InitChannel(const sDMA_ChannelConfig* pConfig)
     // Source
     pConfig->pChannel->SRCADDR0 = (pConfig->SrcAddress >> 0) & 0xFF;
     pConfig->pChannel->SRCADDR1 = (pConfig->SrcAddress >> 8) & 0xFF;
-    // pConfig->pChannel->SRCADDR2 = (pConfig->SrcAddress >> 16) & 0xFF;
     pConfig->pChannel->SRCADDR2 = 0; //(pConfig->SrcAddress >> 16) & 0xFF;
 
     CLR_REG(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCDIR_gm);
@@ -94,7 +93,6 @@ void DMA_InitChannel(const sDMA_ChannelConfig* pConfig)
     // Destination
     pConfig->pChannel->DESTADDR0 = (pConfig->DstAddress >> 0) & 0xFF;
     pConfig->pChannel->DESTADDR1 = (pConfig->DstAddress >> 8) & 0xFF;
-    // pConfig->pChannel->DESTADDR2 = (pConfig->DstAddress >> 16) & 0xFF;
     pConfig->pChannel->DESTADDR2 = 0; //(pConfig->DstAddress >> 16) & 0xFF;
 
     CLR_REG(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTDIR_gm);

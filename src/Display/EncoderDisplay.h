@@ -19,4 +19,8 @@
 
 #pragma once
 
+#include "Encoder.h"
+#include "Display.h"
+
 void EncoderDisplay_Test(void);
+void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex);

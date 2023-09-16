@@ -68,12 +68,7 @@ static inline bool DMA_ChannelBusy(u8 ChannelNumber)
     vu8 busy = DMA.STATUS;
 
     busy &= (1 << ChannelNumber) | (1 << (ChannelNumber + 4));
-    if (busy)
-    {
-        return true;
-    }
-
-    return false;
+    return (bool)busy;
 }
 
 static inline void DMA_SetChannelSourceAddress(DMA_CH_t* pDMA, uintptr_t Address)

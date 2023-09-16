@@ -145,6 +145,11 @@ void Input_Update(void)
     mSideSwitchStates.bfChangedStates    = mSideSwitchStates.bfDebouncedStates ^ prevSideSwitchStates;
 }
 
+bool Input_IsResetPressed(void)
+{
+    return (bool)EncoderSwitchWasPressed(SWITCH_MASK(0));
+}
+
 u8 Encoder_GetDirection(u8 EncoderIndex)
 {
     return mEncoderRotationStates[EncoderIndex] & 0x30;
@@ -222,11 +227,10 @@ static inline void UpdateEncoderQuadratureStates(void)
         GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
     }
 }
-
+#include "Display.h"
 ISR(TCC1_CCA_vect)
 {
     INPUT_TIMER.CCA = INPUT_SCAN_RATE + INPUT_TIMER.CNT;
-
     GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, HIGH);
     UpdateSideSwitchStates();
     UpdateEncoderSwitchStates();

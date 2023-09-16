@@ -41,8 +41,8 @@ typedef volatile int32_t vs32;
 
 typedef enum
 {
-    MSB_FIRST,
-    LSB_FIRST,
+    DO_MSB_FIRST,
+    DO_LSB_FIRST,
 } eDataOrder;
 
 typedef enum

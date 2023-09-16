@@ -74,6 +74,10 @@ typedef enum
     MIDIMODE_CC,
     MIDIMODE_REL_CC,
     MIDIMODE_NOTE,
+    // Switch only modes
+    MIDIMODE_SW_CC_TOGGLE,
+    MIDIMODE_SW_NOTE_HOLD,
+    MIDIMODE_SW_NOTE_TOGGLE,
 
     NUM_MIDI_MODES,
 } eMidiMode;
@@ -82,10 +86,7 @@ typedef enum
 typedef enum
 {
     SWITCH_DISABLED,
-    SWITCH_MIDI_CC_HOLD,
-    SWITCH_MIDI_CC_TOGGLE,
-    SWITCH_MIDI_NOTE_HOLD,
-    SWITCH_MIDI_NOTE_TOGGLE,
+    SWITCH_MIDI,
     SWITCH_RESET_VALUE_ON_PRESS,
     SWITCH_RESET_VALUE_ON_RELEASE,
     SWITCH_FINE_ADJUST_HOLD,
@@ -183,6 +184,7 @@ typedef struct
     sVirtualUber    PrimaryUber;
     sVirtualUber    SecondaryUber;
     sVirtualSwitch  Switch;
+    bool            PrimaryEnabled;
 } sEncoderState;
 
 typedef struct
@@ -194,12 +196,7 @@ typedef struct
     u32 Bits;
 } sHardwareEncoder;
 
-static inline bool Encoder_IsSecondaryEnabled(sEncoderState* pEncoder)
-{
-    return ((bool)pEncoder->Switch.State == true &&
-            (pEncoder->Switch.Mode == SWITCH_SECONDARY_TOGGLE || pEncoder->Switch.Mode == SWITCH_SECONDARY_HOLD));
-}
-
 void Encoder_Init(void);
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder);
 void Encoder_FactoryReset(void);
+void Encoder_Update(void);

@@ -29,6 +29,8 @@
 #include "Settings.h"
 #include "GPIO.h"
 #include "SoftTimer.h"
+#include "EncoderDisplay.h"
+#include "Data.h"
 
 #define DISPLAY_DMA_CH  (0)
 #define DISPLAY_USART   (USARTD0)
@@ -43,7 +45,7 @@
 #define PIN_SR_RESET  (5)
 
 volatile DisplayFrame DisplayBuffer[DISPLAY_BUFFER_SIZE][NUM_ENCODERS];
-static vu8            mCurrentFrame;
+static vu8            mCurrentFrame = 0;
 
 static inline void EnableDisplay(void)
 {
@@ -64,7 +66,8 @@ void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames)
 
     for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
     {
-        DisplayBuffer[frame][EncoderIndex] = pFrames[frame];
+        // Encoder index is offset so that 0 will be the top left encoder display
+        DisplayBuffer[frame][NUM_ENCODERS - 1 - EncoderIndex] = pFrames[frame];
     }
 }
 
@@ -131,8 +134,8 @@ void Display_Init(void)
         .pChannel = DMA_GetChannelPointer(DISPLAY_DMA_CH),
 
         .BurstLength          = DMA_CH_BURSTLEN_1BYTE_gc,
-        .BytesPerTransfer     = DISPLAY_BUFFER_SIZE,  // 1 byte per SR
-        .DoubleBufferMode     = DMA_DBUFMODE_CH01_gc, // Channels 0 and 1 in double buffer mode
+        .BytesPerTransfer     = NUM_LED_SHIFT_REGISTERS, // 1 byte per SR
+        .DoubleBufferMode     = DMA_DBUFMODE_CH01_gc,    // Channels 0 and 1 in double buffer mode
         .DstAddress           = (u16)(uintptr_t)&DISPLAY_USART.DATA,
         .DstAddressingMode    = DMA_CH_DESTDIR_FIXED_gc,
         .DstReloadMode        = DMA_CH_DESTRELOAD_NONE_gc,
@@ -152,7 +155,7 @@ void Display_Init(void)
     const sUSART_ModuleConfig usartConfig = {
         .pUSART    = &DISPLAY_USART,
         .BaudRate  = USART_BAUD,
-        .DataOrder = MSB_FIRST,
+        .DataOrder = DO_LSB_FIRST,
         .SPIMode   = SPI_MODE_0,
     };
 
@@ -167,7 +170,7 @@ void Display_Init(void)
 
     Timer_Type0Init(&timerConfig);
     Timer_EnableChannelInterrupt(timerConfig.pTimer, TIMER_CHANNEL_A, PRIORITY_HI);
-    timerConfig.pTimer->CCA = (u16)DISPLAY_REFRESH_RATE;
+    DISPLAY_TIMER.CCA = (u16)DISPLAY_REFRESH_RATE;
 
     // EncoderDisplays_Invalidate()
 
@@ -179,13 +182,21 @@ void Display_Init(void)
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_RESET, HIGH);
 }
 
+void Display_Update(void)
+{
+    for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+    {
+        EncoderDisplay_Render(&gData.EncoderStates[gData.CurrentBank][encoder], encoder);
+    }
+}
+
 // Display Interrupt
 ISR(TCC0_CCA_vect)
 {
     // Increment the timer
     DISPLAY_TIMER.CCA = DISPLAY_REFRESH_RATE + DISPLAY_TIMER.CNT;
 
-    // Latch the SR so the data that has been previously transmitted gets set to  the SR outputs
+    // Latch the SR so the data that has been previously transmitted gets set to the SR outputs
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, HIGH);
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, LOW);
 

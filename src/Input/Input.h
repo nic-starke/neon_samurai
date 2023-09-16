@@ -32,6 +32,7 @@
 
 void Input_Init(void);
 void Input_Update(void);
+bool Input_IsResetPressed(void);
 
 u8  Encoder_GetDirection(u8 EncoderIndex);
 u16 Encoder_GetSwitchState(u16 Mask); // mask can be (SWITCH_MASK(0) | SWITCH_MASK(3)| ...);

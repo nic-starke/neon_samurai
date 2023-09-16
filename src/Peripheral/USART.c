@@ -74,7 +74,7 @@ static inline void SetClockPhase(USART_t* pUSART, eSPI_Mode Mode)
 
 static inline void SetDataOrder(USART_t* pUSART, eDataOrder DataOrder)
 {
-    if (DataOrder == LSB_FIRST)
+    if (DataOrder == DO_LSB_FIRST)
     {
         SET_REG(pUSART->CTRLC, USART_DORD_bm);
     }
@@ -158,7 +158,7 @@ static inline void ConfigureGPIO(USART_t* pUSART, eSPI_Mode SPIMode)
     GPIO_SetPinDirection(pPort, sckPin, GPIO_OUTPUT);
     GPIO_SetPinDirection(pPort, rxPin, GPIO_INPUT);
     GPIO_SetPinDirection(pPort, txPin, GPIO_OUTPUT);
-    // GPIO_SetPinLevel(pPort, sckPin, HIGH);
+    GPIO_SetPinLevel(pPort, sckPin, HIGH);
 }
 
 // ----------------- //
@@ -195,15 +195,12 @@ void USART_InitModule(const sUSART_ModuleConfig* pConfig)
     const u8 flags = IRQ_DisableInterrupts();
 
     EnablePower(pConfig->pUSART);
-
     USART_DisableRX(pConfig->pUSART);
-    USART_EnableTX(pConfig->pUSART);
-
     ConfigureGPIO(pConfig->pUSART, pConfig->SPIMode);
     SetMode(pConfig->pUSART, USART_CMODE_MSPI_gc);
     SetClockPhase(pConfig->pUSART, pConfig->SPIMode);
     SetDataOrder(pConfig->pUSART, pConfig->DataOrder);
     SetBaudRate(pConfig->pUSART, pConfig->BaudRate, CPU_GetMainClockSpeed());
-
+    USART_EnableTX(pConfig->pUSART);
     IRQ_EnableInterrupts(flags);
 }

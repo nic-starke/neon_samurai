@@ -25,7 +25,7 @@
 #define LED_OFF              (0xFF)
 #define LEDS_ON              (0x0000)
 #define LEDS_OFF             (0xFFFF)
-#define LEDMASK(x)           (1u << x)
+#define LEDMASK(x)           (1u << (x))
 #define LEDMASK_DET          (0xC000)
 #define LEDMASK_RGB          (0x3800)
 #define LEDMASK_IND          (0xFFE0)
@@ -35,11 +35,42 @@
 #define DISPLAY_BUFFER_SIZE  (32)    // Number of frames in display buffer
 #define MAGIC_BRIGHTNESS_VAL ((u8)8) // Precalculated - (MAX_BRIGHTNESS / DISPLAY_BUFFER_SIZE)
 
+typedef enum
+{
+    LED_TYPE_INDICATOR,
+    LED_TYPE_DETENT,
+    LED_TYPE_RGB,
+} eLEDType;
+
+// LEDs in order of the shift register pinout
+typedef enum
+{
+    LED_DET_BLUE,
+    LED_DET_RED,
+    LED_RGB_BLUE,
+    LED_RGB_RED,
+    LED_RGB_GREEN,
+    LED_IND_11,
+    LED_IND_10,
+    LED_IND_9,
+    LED_IND_8,
+    LED_IND_7,
+    LED_IND_6,
+    LED_IND_5,
+    LED_IND_4,
+    LED_IND_3,
+    LED_IND_2,
+    LED_IND_1,
+
+    NUM_ENCODER_LEDS,
+} eEncoderLED;
+
 /* A display frame is a bitfield. Each bit corresponds to the state of a single
  * LED There are 16 LEDS per encoder therefore uint16_t is used. */
 typedef u16 DisplayFrame;
 
 void Display_Init(void);
+void Display_Update(void);
 void Display_ClearAll(void);
 void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames);
 void Display_Test(void);

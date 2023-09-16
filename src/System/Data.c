@@ -25,6 +25,7 @@
 #include "Display.h"
 #include "Encoder.h"
 #include "Colour.h"
+#include "Input.h"
 
 #define EE_DATA_VERSION (0xDEAF)
 
@@ -38,6 +39,7 @@ sData gData = {
     .IndicatorBrightness  = BRIGHTNESS_MAX,
     .FineAdjustConstant   = FINE_ADJUST_CONST,
     .AccelerationConstant = ACCEL_CONST,
+    .CurrentBank          = 0,
 };
 
 typedef struct
@@ -95,7 +97,7 @@ static inline void EE_WriteVirtualEncoder(sVirtualEncoder* pSrc, sEEVirtualEncod
     RGB2Hue(&data.DetentHue, &pSrc->DetentColour);
     RGB2Hue(&data.RGBHue, &pSrc->RGBColour);
 
-    eeprom_write_block(&data, pDest, sizeof(sEEVirtualEncoder));
+    eeprom_update_block(&data, pDest, sizeof(sEEVirtualEncoder));
 }
 
 static inline void EE_ReadVirtualUber(sVirtualUber* pDest, sEEVirtualUber* pSrc)
@@ -108,7 +110,7 @@ static inline void EE_ReadVirtualUber(sVirtualUber* pDest, sEEVirtualUber* pSrc)
 
 static inline void EE_WriteVirtualUber(sVirtualUber* pSrc, sEEVirtualUber* pDest)
 {
-    eeprom_write_block(pSrc, pDest, sizeof(sEEVirtualUber));
+    eeprom_update_block(pSrc, pDest, sizeof(sEEVirtualUber));
 }
 
 static inline void EE_ReadVirtualSwitch(sVirtualSwitch* pDest, sEEVirtualSwitch* pSrc)
@@ -127,7 +129,7 @@ static inline void EE_WriteVirtualSwitch(sVirtualSwitch* pSrc, sEEVirtualSwitch*
     data.Mode       = pSrc->Mode;
     data.MidiConfig = pSrc->MidiConfig;
 
-    eeprom_write_block(&data, pDest, sizeof(sEEVirtualSwitch));
+    eeprom_update_block(&data, pDest, sizeof(sEEVirtualSwitch));
 }
 
 void Data_Init(void)
@@ -138,13 +140,14 @@ void Data_Init(void)
 
     // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
     gData.DataVersion  = eeprom_read_word(&mEEData.DataVersion);
-    gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION);
+    gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
 
     if (gData.FactoryReset)
     {
         Data_FactoryReset();
+        Data_RecallUserSettings();
         gData.FactoryReset = false;
-        Display_Flash(200, 5);
+        Display_Flash(100, 5);
     }
     else
     {
@@ -155,14 +158,14 @@ void Data_Init(void)
 
 void Data_FactoryReset(void)
 {
-    eeprom_write_word(&mEEData.DataVersion, (u16)EE_DATA_VERSION);
+    eeprom_update_word(&mEEData.DataVersion, (u16)EE_DATA_VERSION);
 
-    // At this point in execution gData should not have been modified and should be initialised 
+    // At this point in execution gData should not have been modified and should be initialised
     // with the default values (see top of this file)
-    eeprom_write_byte(&mEEData.RGBBrightness, gData.RGBBrightness);
-    eeprom_write_byte(&mEEData.DetentBrightness, gData.DetentBrightness);
-    eeprom_write_byte(&mEEData.IndicatorBrightness, gData.IndicatorBrightness);
-    eeprom_write_byte(&mEEData.OperatingMode, gData.OperatingMode);
+    eeprom_update_byte(&mEEData.RGBBrightness, gData.RGBBrightness);
+    eeprom_update_byte(&mEEData.DetentBrightness, gData.DetentBrightness);
+    eeprom_update_byte(&mEEData.IndicatorBrightness, gData.IndicatorBrightness);
+    eeprom_update_byte(&mEEData.OperatingMode, gData.OperatingMode);
 
     Encoder_FactoryReset(); // firstly reset the encoder states in SRAM, then write this to EEPROM
     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
