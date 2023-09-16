@@ -29,15 +29,22 @@
 #include "Input.h"
 #include "fast_hsv2rgb.h"
 
-#define INDVAL_2_INDCOUNT(x) (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS)
+// Converts an integer range to a number of indicator LEDs
+#define INDVAL_2_INDCOUNT(x) (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS) // FIXME - there is no division hardware, consider fixed point multiplication.
 #define SET_FRAME(f, x)      ((f) &= ~(x))
 #define UNSET_FRAME(f, x)    ((f) |= (x))
-#define PWM_CHECK(f, br)     ((f * MAGIC_BRIGHTNESS_VAL) < (br))
+#define PWM_CHECK(f, br)     ((f * MAGIC_BRIGHTNESS_VAL) < (br)) // Check if this frame needs to be rendered based on a brightness value.
 
-// Render the RGB LEDs on a single frame.
-static inline void RenderFrame_RGB(DisplayFrame* pFrame, int FrameIndex, sEncoderState* pEncoder)
+/**
+ * @brief Renders a single display frame for RGB leds only.
+ * 
+ * @param pFrame A pointer to a display frame to store the rendered frame data.
+ * @param FrameIndex The frame index (within its parent frame buffer)
+ * @param pEncoder A pointer to the encode state information.
+ */
+static inline void RenderFrame_RGB(DisplayFrame* pFrame, int FrameIndex, sEncoderState* pEncoder) // FIXME - should this be inline?
 {
-    float brightnessCoeff = gData.RGBBrightness / (float)BRIGHTNESS_MAX;
+    float brightnessCoeff = gData.RGBBrightness / (float)BRIGHTNESS_MAX; // FIXME: floating point division! this is expensive, replace with something else!
 
     if (PWM_CHECK(FrameIndex, pEncoder->RGBColour.Red * brightnessCoeff))
     {
@@ -55,8 +62,14 @@ static inline void RenderFrame_RGB(DisplayFrame* pFrame, int FrameIndex, sEncode
     }
 }
 
-// Render the Detent Red/Blue LEDs on a single frame
-static inline void RenderFrame_Detent(DisplayFrame* pFrame, int FrameIndex, sEncoderState* pEncoder)
+/**
+ * @brief Renders a single frame for the detent led.
+ * 
+ * @param pFrame A pointer to a display frame to store the rendered frame data.
+ * @param FrameIndex The frame index (within its parent frame buffer)
+ * @param pEncoder A pointer to the encode state information.
+ */
+static inline void RenderFrame_Detent(DisplayFrame* pFrame, int FrameIndex, sEncoderState* pEncoder) // FIXME - should this be inline?
 {
     if (PWM_CHECK(FrameIndex, gData.DetentBrightness))
     {
@@ -75,7 +88,12 @@ static inline void RenderFrame_Detent(DisplayFrame* pFrame, int FrameIndex, sEnc
     UNSET_FRAME(*pFrame, LEDMASK(LED_IND_6));
 }
 
-static inline void Render_Test(int EncoderIndex)
+/**
+ * @brief Render a test frame for a specific encoder.
+ * 
+ * @param EncoderIndex The encoder to test.
+ */
+static inline void Render_Test(int EncoderIndex) // FIXME - should this be inline?
 {
     DisplayFrame frames[DISPLAY_BUFFER_SIZE] = {0};
 
@@ -88,9 +106,15 @@ static inline void Render_Test(int EncoderIndex)
     Display_SetEncoderFrames(EncoderIndex, &frames[0]);
 }
 
-static inline void RenderEncoder_Dot(sEncoderState* pEncoder, int EncoderIndex)
+/**
+ * @brief Render all frames for an encoder - renders in the Dot display style.
+ * 
+ * @param pEncoder A pointer to the encode state information.
+ * @param EncoderIndex The encoder index.
+ */
+static inline void RenderEncoder_Dot(sEncoderState* pEncoder, int EncoderIndex) // FIXME - should this be inline?
 {
-    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS;
+    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
     u8    indicatorCountInt   = ceilf(indicatorCountFloat);
 
     // Always draw the first indicator if in detent mode, the last one is always drawn based on above calculations.
@@ -121,9 +145,15 @@ static inline void RenderEncoder_Dot(sEncoderState* pEncoder, int EncoderIndex)
     Display_SetEncoderFrames(EncoderIndex, &frames[0]);
 }
 
-static inline void RenderEncoder_Bar(sEncoderState* pEncoder, int EncoderIndex)
+/**
+ * @brief Render all frames for an encoder - renders in the Bar display style.
+ * 
+ * @param pEncoder A pointer to the encode state information.
+ * @param EncoderIndex The encoder index.
+ */
+static inline void RenderEncoder_Bar(sEncoderState* pEncoder, int EncoderIndex) // FIXME - should this be inline?
 {
-    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS;
+    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
     u8    indicatorCountInt   = ceilf(indicatorCountFloat);
     bool  drawDetent          = (indicatorCountInt == 6);
     bool  clearLeft           = (indicatorCountInt >= 6);
@@ -175,9 +205,15 @@ static inline void RenderEncoder_Bar(sEncoderState* pEncoder, int EncoderIndex)
     Display_SetEncoderFrames(EncoderIndex, &frames[0]);
 }
 
-static inline void RenderEncoder_BlendedBar(sEncoderState* pEncoder, int EncoderIndex)
+/**
+ * @brief Render all frames for an encoder - renders in the Blended Bar display style.
+ * 
+ * @param pEncoder A pointer to the encode state information.
+ * @param EncoderIndex The encoder index.
+ */
+static inline void RenderEncoder_BlendedBar(sEncoderState* pEncoder, int EncoderIndex) // FIXME - should this be inline?
 {
-    float indicatorCountFloat        = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS;
+    float indicatorCountFloat        = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
     u8    indicatorCountInt          = floorf(indicatorCountFloat);
     u8    partialIndicatorBrightness = (u8)((indicatorCountFloat - indicatorCountInt) * BRIGHTNESS_MAX);
     u8    partialIndicatorIndex      = NUM_ENCODER_LEDS - indicatorCountInt - 1;
@@ -231,6 +267,9 @@ static inline void RenderEncoder_BlendedBar(sEncoderState* pEncoder, int Encoder
     Display_SetEncoderFrames(EncoderIndex, &frames[0]);
 }
 
+/**
+ * @brief A display test function. 
+ */
 void EncoderDisplay_Test(void)
 {
     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
@@ -250,6 +289,12 @@ void EncoderDisplay_Test(void)
     }
 }
 
+/**
+ * @brief Render a complete display buffer of frames for a specific encoder.
+ * 
+ * @param pEncoder A pointer to the encoder state to render.
+ * @param EncoderIndex The encoder index.
+ */
 void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex)
 {
     if (pEncoder->DisplayInvalid == false)
@@ -271,7 +316,10 @@ void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex)
     pEncoder->DisplayInvalid = false;
 }
 
-// Invalidates all encoder displays in all banks
+/**
+ * @brief Invalidate all encoder displays - they will all be re-rendered on the next main loop.
+ * 
+ */
 void EncoderDisplay_InvalidateAll(void)
 {
     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
@@ -283,29 +331,56 @@ void EncoderDisplay_InvalidateAll(void)
     }
 }
 
+/**
+ * @brief Set the RGB LED colour for an encoder based on HSV colour.
+ * 
+ * @param pEncoder A pointer to the encoder state.
+ * @param pNewColour A pointer to the new colour to set to.
+ */
 void EncoderDisplay_SetRGBColour(sEncoderState* pEncoder, sHSV* pNewColour)
 {
     fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->RGBColour.Red, &pEncoder->RGBColour.Green,
                       &pEncoder->RGBColour.Blue);
 }
 
-void EncoderDisplay_SetRGBColour_Hue(sEncoderState* pEncoder, u16 RGBHue)
+/**
+ * @brief Set the RGB LED colour for an encoder based on an HSV hue.
+ * 
+ * @param pEncoder A pointer to the encoder state.
+ * @param HSVHue The new hue to set to.
+ */
+void EncoderDisplay_SetRGBColour_Hue(sEncoderState* pEncoder, u16 HSVHue)
 {
-    Hue2RGB(RGBHue, &pEncoder->RGBColour);
+    Hue2RGB(HSVHue, &pEncoder->RGBColour);
 }
 
+/**
+ * @brief Set the detent LED colour for an encoder based on an HSV colour.
+ * 
+ * @param pEncoder A pointer to the encoder state.
+ * @param pNewColour A pointer to the new colour to set to.
+ */
 void EncoderDisplay_SetDetentColour(sEncoderState* pEncoder, sHSV* pNewColour)
 {
     fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->DetentColour.Red,
                       &pEncoder->DetentColour.Green, &pEncoder->DetentColour.Blue);
 }
 
-void EncoderDisplay_SetDetentColour_Hue(sEncoderState* pEncoder, u16 DetentHue)
+/**
+ * @brief Set the detent LED colour for an encoder based on a HSV hue.
+ * 
+ * @param pEncoder A pointer to the encoder state.
+ * @param HSVHue The new hue to set to.
+ */
+void EncoderDisplay_SetDetentColour_Hue(sEncoderState* pEncoder, u16 HSVHue)
 {
-    Hue2RGB(DetentHue, &pEncoder->DetentColour);
+    Hue2RGB(HSVHue, &pEncoder->DetentColour);
 }
 
-// Initialises the colour structs for the Detent and RGB LEDS for all encoders
+/**
+ * @brief Sets the RGB and Detent LED colour structs for all encoders to the corresponding Hue values in the encoder states in RAM.
+ * 
+ */
 void EncoderDisplay_UpdateAllColours(void)
 {
     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
@@ -322,12 +397,24 @@ void EncoderDisplay_UpdateAllColours(void)
     }
 }
 
+/**
+ * @brief Sets an encoders' indicator value (which is its current value).
+ * 
+ * @param EncoderIndex The index of the encoder to update.
+ * @param Value The new encoder value - automatic conversion from an 8-bit value.
+ */
 void EncoderDisplay_SetIndicatorValueU8(u8 EncoderIndex, u8 Value)
 {
     gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue   = (Value << 8);
     gData.EncoderStates[gData.CurrentBank][EncoderIndex].DisplayInvalid = true;
 }
 
+/**
+ * @brief Sets an encoders' indicator value (which is its current value).
+ * 
+ * @param EncoderIndex The index of the encoder to update.
+ * @param Value The new encoder value.
+ */
 void EncoderDisplay_SetIndicatorValueU16(u8 EncoderIndex, u16 Value)
 {
     gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue   = Value;

@@ -49,16 +49,25 @@
 volatile DisplayFrame DisplayBuffer[DISPLAY_BUFFER_SIZE][NUM_ENCODERS];
 static vu8            mCurrentFrame = 0;
 
+/**
+ * @brief Enable the display (LEDs)
+ */
 static inline void EnableDisplay(void)
 {
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_ENABLE, LOW);
 }
 
+/**
+ * @brief Disable the display (LEDs)
+ */
 static inline void DisableDisplay(void)
 {
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_ENABLE, HIGH);
 }
 
+/**
+ * @brief Flushes the display shift registers.
+ */
 static inline void FlushDisplayRegisters(void)
 {
     for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
@@ -68,7 +77,13 @@ static inline void FlushDisplayRegisters(void)
     }
 }
 
-void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames)
+/**
+ * @brief Set the display frames for a specific encoder.
+ * 
+ * @param EncoderIndex The encoder to set the display frames for.
+ * @param pFrames A pointer to an array of display frames.
+ */
+void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame (*pFrames)[DISPLAY_BUFFER_SIZE])
 {
     if (pFrames == NULL)
     {
@@ -82,11 +97,18 @@ void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames)
     }
 }
 
+/**
+ * @brief Sets the display buffer to for all encoders to LED_OFF.
+ * Effectively turns off the display. 
+ */
 void Display_ClearAll(void)
 {
     memset(&DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
 }
 
+/**
+ * @brief A test function to that iterates through each encoder and enables its leds. 
+ */
 void Display_Test(void)
 {
     static int testEncoder = 0;
@@ -102,7 +124,13 @@ void Display_Test(void)
     testEncoder = (testEncoder + 1) % NUM_ENCODERS;
 }
 
-void Display_Flash(int intervalMS, int Count)
+/**
+ * @brief Flash all LEDs a set number of times with a pause between each flash.
+ * WARNING - this is a blocking function.
+ * @param intervalMS The pause interval between flashes.
+ * @param Count The number of times to flash.
+ */
+void Display_Flash(int intervalMS, int Count) // TODO - convert to non-blocking when animation system is in place.
 {
     sSoftTimer timer = {0};
     SoftTimer_Start(&timer);
@@ -131,6 +159,13 @@ void Display_Flash(int intervalMS, int Count)
     } while (--Count > 0);
 }
 
+/**
+ * @brief A helper function that will enable or disable all LEDs for a specified encoder.
+ * Not to be used for for default operation.
+ * 
+ * @param EncoderIndex The encoder to set. 
+ * @param State The state to set the LEDs to.
+ */
 void Display_SetEncoder(int EncoderIndex, bool State)
 {
     for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
@@ -139,6 +174,13 @@ void Display_SetEncoder(int EncoderIndex, bool State)
     }
 }
 
+/**
+ * @brief Initialises the display system.
+ * Initialises the shift registers for all the LEDs.
+ * Configures the USART peripheral for tranmission of display frames.
+ * Configures the DMA peripheral for data transfer between application and USART peripheral.
+ * Configures a timer peripheral as an interrupt to provide controlled timing of the DMA transactions.
+ */
 void Display_Init(void)
 {
     Display_ClearAll();
@@ -198,6 +240,11 @@ void Display_Init(void)
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_RESET, HIGH);
 }
 
+/**
+ * @brief Renders the display based on the current encoder data.
+ * This should be called in the main loop.
+ * WARNING - rendering is expensive, dont do it if not required!.
+ */
 void Display_Update(void)
 {
     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
@@ -206,26 +253,47 @@ void Display_Update(void)
     }
 }
 
+/**
+ * @brief Set the brightness of all detent LEDs 
+ * 
+ * @param Brightness The brightness to set to.
+ */
 void Display_SetDetentBrightness(u8 Brightness)
 {
-    NVM.CMD                = 0x00;
+    // NVM.CMD                = NVM_CMD_NO_OPERATION_gc;
     gData.DetentBrightness = pgm_read_byte(&gamma_lut[Brightness]);
     EncoderDisplay_InvalidateAll();
 }
 
+/**
+ * @brief Sets the brightness of all RGB LEDs.
+ * 
+ * @param Brightness The brightness to set to.
+ */
 void Display_SetRGBBrightness(u8 Brightness)
 {
+    // NVM.CMD                   = NVM_CMD_NO_OPERATION_gc;
     gData.RGBBrightness = pgm_read_byte(&gamma_lut[Brightness]);
     EncoderDisplay_InvalidateAll();
 }
 
+/**
+ * @brief Sets the brightness of all indicator LEDs.
+ * 
+ * @param Brightness The brightness to set to.
+ */
 void Display_SetIndicatorBrightness(u8 Brightness)
 {
-    NVM.CMD                   = 0x00;
+    // NVM.CMD                   = NVM_CMD_NO_OPERATION_gc;
     gData.IndicatorBrightness = pgm_read_byte(&gamma_lut[Brightness]);
     EncoderDisplay_InvalidateAll();
 }
 
+/**
+ * @brief Set the brightness for all LEDs.
+ * 
+ * @param Brightness The brightness to set to.
+ */
 void Display_SetMaxBrightness(u8 Brightness)
 {
     Display_SetDetentBrightness(Brightness);
@@ -233,7 +301,9 @@ void Display_SetMaxBrightness(u8 Brightness)
     Display_SetIndicatorBrightness(Brightness);
 }
 
-// Display Interrupt
+/**
+ * @brief The timer interrupt to handle the display DMA transactions.
+ */
 ISR(TCC0_CCA_vect)
 {
     // Increment the timer
@@ -243,15 +313,16 @@ ISR(TCC0_CCA_vect)
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, HIGH);
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, LOW);
 
+    // Enable the DMA channel - this will start the transactions.
     DMA_EnableChannel(DMA_GetChannelPointer(DISPLAY_DMA_CH));
 
     // Reset the source address if we are at the end of the display buffer
     if (mCurrentFrame++ >= (DISPLAY_BUFFER_SIZE - 1))
     {
-        while (DMA_ChannelBusy(DISPLAY_DMA_CH)) {}
+        while (DMA_ChannelBusy(DISPLAY_DMA_CH)) {} // TODO - is blocking here a good idea? maybe the address increment should be automatically handled.
         u8 flags = IRQ_DisableInterrupts();
         DMA_SetChannelSourceAddress(DMA_GetChannelPointer(DISPLAY_DMA_CH), (u16)(uintptr_t)DisplayBuffer);
-        IRQ_EnableInterrupts(flags);
         mCurrentFrame = 0;
+        IRQ_EnableInterrupts(flags);
     }
 }

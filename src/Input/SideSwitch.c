@@ -18,3 +18,5 @@
  */
 
 #include "SideSwitch.h"
+
+// TODO - implement side switch API.

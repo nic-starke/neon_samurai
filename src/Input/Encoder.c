@@ -31,8 +31,8 @@
 #include "USB.h"
 #include "Utility.h"
 
-static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
-    // TODO move to progmem.
+// A default configuration for LAYER A of an encoder.
+static const sVirtualEncoderLayer DEFAULT_LAYER_A = {     // TODO move to progmem.
     .StartPosition           = ENCODER_MIN_VAL,
     .StopPosition            = ENCODER_MID_VAL - 1,
     .MinValue                = ENCODER_MIN_VAL,
@@ -44,8 +44,8 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
     .Enabled                 = true,
 };
 
-static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
-    // TODO move to progmem.
+// A default configuration for LAYER B of an encoder.
+static const sVirtualEncoderLayer DEFAULT_LAYER_B = {     // TODO move to progmem.
     .StartPosition           = ENCODER_MID_VAL,
     .StopPosition            = ENCODER_MAX_VAL,
     .MinValue                = ENCODER_MAX_VAL,
@@ -58,6 +58,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
 };
 
 // clang-format off
+// A default configuration for an encoder switch
 static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = { // TODO move to progmem.
     .State               = 0,
     .Mode                = SWITCH_LAYER_CYCLE,
@@ -70,6 +71,7 @@ static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = { // TODO move to progmem.
 };
 // clang-format on
 
+// A default configuration for an encoder.
 static const sEncoderState DEFAULT_ENCODERSTATE = {
     // TODO move to progmem.
     .CurrentValue            = 0,
@@ -88,11 +90,24 @@ static const sEncoderState DEFAULT_ENCODERSTATE = {
     .Switch                  = DEFAULT_ENCODER_SWITCH,
 };
 
+/**
+ * @brief Check if an encoder layer is currently active.
+ * Will return false if midi is disabled for this layer.
+ * 
+ * @param pLayer A pointer to the virtual layer.
+ * @return True if active, false if not active.
+ */
 static inline bool IsLayerActive(sVirtualEncoderLayer* pLayer)
 {
     return (pLayer->Enabled && (pLayer->MidiConfig.Mode != MIDIMODE_DISABLED));
 }
 
+/**
+ * @brief Check if any encoder layer is active.
+ * 
+ * @param pEncoderState A pointer to the encoder state.
+ * @return True if any layer is active, false otherwise.
+ */
 static inline bool IsAnyLayerActive(sEncoderState* pEncoderState)
 {
     for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
@@ -106,17 +121,30 @@ static inline bool IsAnyLayerActive(sEncoderState* pEncoderState)
     return false;
 }
 
+/**
+ * @brief Initialise the encoder module.
+ * Resets all encoders to a default state.
+ * WARNING - Must be called before Data_Init() to avoid overwriting user data.
+ */
 void Encoder_Init(void)
 {
     Encoders_ResetToDefaultConfig();
 }
 
+/**
+ * @brief Sets an encoder state to the default encoder configuration.
+ * 
+ * @param pEncoder A pointer to the encoder to reset to default configuration.
+ */
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder)
 {
     *pEncoder = DEFAULT_ENCODERSTATE;
 }
 
-// Sets the encoder states in SRAM to a default configuration (does not do anything with EEPROM)
+/**
+ * @brief Sets all encoder states in RAM to the default configuration.
+ * 
+ */
 void Encoders_ResetToDefaultConfig(void)
 {
     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
@@ -129,6 +157,14 @@ void Encoders_ResetToDefaultConfig(void)
     }
 }
 
+/**
+ * @brief Checks if a hardware encoder has been rotated - updates an encoder state based on this.
+ * 
+ * @param EncoderIndex The hardware encoder index.
+ * @param pHardwareEncoder A pointer to the hardware encoder state.
+ * @param pEncoderState A pointer to the encoder state (from one of the virtual banks)
+ * @return True if a hardware encoder has been rotated - false otherwise.
+ */
 static inline bool UpdateEncoderRotary(int EncoderIndex, sHardwareEncoder* pHardwareEncoder, sEncoderState* pEncoderState)
 {
     pEncoderState->PreviousValue = pEncoderState->CurrentValue;
@@ -151,6 +187,7 @@ static inline bool UpdateEncoderRotary(int EncoderIndex, sHardwareEncoder* pHard
             move = -1;
         }
 
+// TODO - Encoder acceleration algorithm
 #define ACC_ENABLED 0
 #if (ACC_ENABLED == 1)
         pHardwareEncoder->CurrentVelocity = move * Acceleration(pHardwareEncoder, move, pVE->FineAdjust);
@@ -182,6 +219,12 @@ static inline bool UpdateEncoderRotary(int EncoderIndex, sHardwareEncoder* pHard
     return false;
 }
 
+/**
+ * @brief Updates the switch state for an encoder based on the current switch hardware state
+ * 
+ * @param EncoderIndex The hardware encoder index to check.
+ * @param pEncoderState A pointer to the encoder state to be updated.
+ */
 static inline void UpdateEncoderSwitch(int EncoderIndex, sEncoderState* pEncoderState)
 {
     // Process Encoder Switch
@@ -285,6 +328,11 @@ static inline void UpdateEncoderSwitch(int EncoderIndex, sEncoderState* pEncoder
     }
 }
 
+/**
+ * @brief Update state for all virtual layers for a particular encoder.
+ * 
+ * @param pEncoderState The encoder state to update.
+ */
 static inline void ProcessEncoderLayers(sEncoderState* pEncoderState)
 {
     for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
@@ -318,6 +366,10 @@ static inline void ProcessEncoderLayers(sEncoderState* pEncoderState)
     }
 }
 
+/**
+ * @brief The encoder update function - to be called in the main poll.
+ * 
+ */
 void Encoder_Update(void)
 {
     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)

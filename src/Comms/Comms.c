@@ -158,7 +158,7 @@ bool Comms_SendMessage(sMessage* pMessage)
     if (pMessage->Header.Protocol == PROTOCOL_BROADCAST)
     {
         Serial_Print("Broadcast\r\n");
-        bool success = true; // FIXME - this provides not information on which protocol failed, what should be done to recover from failure?
+        bool success = true; // FIXME - this provides no information on which protocol failed, what should be done to recover from failure?
         for(eCommsProtocol protocol = 0; protocol < NUM_COMMS_PROTOCOLS; protocol++)
         {
             if (SendMessage((u8*) encodedMessage.ptr, encodedMessage.len, protocol) == false)
@@ -230,6 +230,12 @@ bool Comms_RegisterModule(eModuleID ID, fpMessageHandler MessageHandler)
 }
 
 
+/**
+ * @brief Processes an incoming message and passes to the appropriate module message handler.
+ * 
+ * @param pMessage A pointer to the message to process.
+ * @return True if module message handler processed the message, false otherwise.
+ */
 static bool ProcessMessage(sMessage* pMessage)
 {
     if(pMessage->Header.Destination.ClientAddress != BROADCAST_ADDRESS || pMessage->Header.Destination.ClientAddress != Network_GetLocalAddress())

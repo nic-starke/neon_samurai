@@ -20,10 +20,11 @@
 #pragma once
 
 #include "Comms.h"
+#include "DataTypes.h"
 
 void Network_Init(void);
 void Network_Update(void);
 void Network_ConnectToEditor(void);
-void Network_StartDiscovery(void);
+void Network_StartDiscovery(bool AssignNewAddress);
 
 u16 Network_GetLocalAddress(void);

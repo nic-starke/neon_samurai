@@ -19,10 +19,17 @@
 
 #include "Colour.h"
 #include "Data.h"
+#include "DataTypes.h"
 
-static inline u16 ClampHue(u16 Hue)
+/**
+ * @brief Clamp the hue to the maximum hue value.
+ * 
+ * @param Hue The value to be clamped.
+ * @return u16 The clamped value.
+ */
+static inline u16 ClampHue(u16 Hue) // TODO - maybe this should just be a define?
 {
-    if (Hue >= HUE_MAX)
+    if (Hue >= HUE_MAX)  
     {
         return HUE_MAX;
     }
@@ -32,8 +39,14 @@ static inline u16 ClampHue(u16 Hue)
     }
 }
 
+/**
+ * @brief Converts a hue value to an RGB struct.
+ * 
+ * @param Hue The hue value to convert.
+ * @param pRGB A pointer to an RGB struct that will contain the converted values.
+ */
 void Hue2RGB(u16 Hue, sRGB* pRGB)
 {
-    Hue = ClampHue(Hue);
+    Hue = ClampHue(Hue); //TODO - does not currently handle saturation or value.
     fast_hsv2rgb_8bit(Hue, SATURATION_MAX, VALUE_MAX, &pRGB->Red, &pRGB->Green, &pRGB->Blue);
 }

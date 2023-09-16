@@ -17,11 +17,7 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-/*
- * Rotory decoder based on
- * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
- * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
- */
+
 
 #include "Input.h"
 #include "Data.h"
@@ -43,6 +39,10 @@
 
 #define INPUT_TIMER (TCC1)
 
+/*
+    Switch masks are used for special input combinations.
+    For example - the bootloader can be entered during powerup by holding in encoder switches 0, 3, 12 and 15. (all 4 corners)
+*/
 #define BOOTLOADER_SWITCH_MASK     (SWITCH_MASK(0) | SWITCH_MASK(3) | SWITCH_MASK(12) | SWITCH_MASK(15))
 #define BOOTLOADER_SWITCH_VAL      (0x9009)
 #define ALT_BOOTLOADER_SWITCH_MASK (SWITCH_MASK(15) | SWITCH_MASK(11))
@@ -82,6 +82,11 @@ typedef enum
 
 // clang-format off
 
+/*
+ * Rotory decoder based on
+ * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
+ * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
+ */
 static const eEncoderRotationState EncoderRotLUT[NUM_ENCODER_ROTARY_STATES][4] = {
 		{R_START_M,            R_CW_BEGIN,     R_CCW_BEGIN,  R_START},					// R_START (00)
 		{R_START_M | DIR_CCW,  R_START,        R_CCW_BEGIN,  R_START},					// R_CCW_BEGIN
@@ -98,9 +103,15 @@ static vu16 mEncoderSR_CH_A;
 static vu16 mEncoderSR_CH_B;
 static u8   mEncoderRotationStates[NUM_ENCODERS];
 
+// the current states of switches
 static volatile sEncoderSwitches mEncoderSwitchStates;
 static volatile sSideSwitches    mSideSwitchStates;
 
+/**
+ * @brief The init function for the input module.
+ * Initialises the GPIO for the encoder shift registers
+ * Initialises the timer peripheral used to generate an interrupt for input scanning.
+ */
 void Input_Init(void)
 {
     for (int sidesw = 0; sidesw < NUM_SIDE_SWITCHES; sidesw++)
@@ -128,6 +139,10 @@ void Input_Init(void)
     timerConfig.pTimer->CCA = (u16)INPUT_SCAN_RATE;
 }
 
+/**
+ * @brief The input update function - to be called in the main loop.
+ * 
+ */
 void Input_Update(void)
 {
     // Update encoder rotations
@@ -157,12 +172,22 @@ void Input_Update(void)
     mSideSwitchStates.bfChangedStates    = mSideSwitchStates.bfDebouncedStates ^ prevSideSwitchStates;
 }
 
+/**
+ * @brief Check if the "RESET" input combination was pressed by the user
+ * 
+ * @return true or false
+ */
 bool Input_IsResetPressed(void)
 {
     u16 state = mEncoderSwitchStates.bfDebouncedStates;
     return ((state & RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
 }
 
+/**
+ * @brief Checks special switch combinations (except "RESET").
+ * Should be called during powerup.
+ * 
+ */
 void Input_CheckSpecialSwitchCombos(void)
 {
     u16 state = mEncoderSwitchStates.bfDebouncedStates;
@@ -177,41 +202,87 @@ void Input_CheckSpecialSwitchCombos(void)
     }
 }
 
+/**
+ * @brief Get the current direction of rotation for a specific encoder.
+ * 
+ * @param EncoderIndex The hardware index of the encoder.
+ * @return u8 The direction - DIR_STATIONARY / DIR_CW (clockwise) / DIR_CCW (counter clockwise)
+ */
 u8 Encoder_GetDirection(u8 EncoderIndex)
 {
     return mEncoderRotationStates[EncoderIndex] & 0x30;
 }
 
+/**
+ * @brief Check if an encoder switch was pressed.
+ * This can check all encoders, or a specific set by using a mask.
+ * @param Mask - Can be used to mask which encoder to check
+ * @return u16 A bitfield of the current encoder switch states.
+ */
 u16 EncoderSwitchWasPressed(u16 Mask)
 {
     return (mEncoderSwitchStates.bfChangedStates & mEncoderSwitchStates.bfDebouncedStates) & Mask;
 }
 
+/**
+ * @brief Check if an encoder switch was released.
+ * This can check all encoders, or a specific set by using a mask.
+ * @param Mask - Can be used to mask which encoder to check
+ * @return u16 A bitfield of the current encoder switch states.
+ */
 u16 EncoderSwitchWasReleased(u16 Mask)
 {
     return (mEncoderSwitchStates.bfChangedStates & (~mEncoderSwitchStates.bfDebouncedStates)) & Mask;
 }
 
+/**
+ * @brief CGet the current encoder switch state.
+ * This can check all encoders, or a specific set by using a mask.
+ * @param Mask - Can be used to mask which encoder to check
+ * @return u16 A bitfield of the current encoder switch states.
+ */
 u16 EncoderSwitchCurrentState(u16 Mask)
 {
     return mEncoderSwitchStates.bfDebouncedStates & Mask;
 }
 
+/**
+ * @brief Check if a side switch was pressed.
+ * This can check all side switches, or a specific set by using a mask.
+ * @param Mask - Can be used to mask which side switch to check
+ * @return u8 A bitfield of the current side switch states. Note - there are only 6 side switches.
+ */
 u8 SideSwitchWasPressed(u8 Mask)
 {
     return (mSideSwitchStates.bfChangedStates & mSideSwitchStates.bfDebouncedStates) & Mask;
 }
 
+/**
+ * @brief Check if a side switch was released.
+ * This can check all side switches, or a specific set by using a mask.
+ * @param Mask - Can be used to mask which side switch to check
+ * @return u8 A bitfield of the current side switch states. Note - there are only 6 side switches.
+ */
 u8 SideSwitchWasReleased(u8 Mask)
 {
     return (mSideSwitchStates.bfChangedStates & (~mSideSwitchStates.bfDebouncedStates)) & Mask;
 }
 
+/**
+ * @brief Get the current state of a side switch.
+ * This can check all side switches, or a specific set by using a mask.
+ * @param Mask - Can be used to mask which side switch to check
+ * @return u8 A bitfield of the current side switch states. Note - there are only 6 side switches.
+ */
 u8 SideSwitchCurrentState(u8 Mask)
 {
     return mSideSwitchStates.bfDebouncedStates & Mask;
 }
 
+/**
+ * @brief The update function for side switches.
+ * This performs debouncing by averaging samples over time.
+ */
 static inline void UpdateSideSwitchStates(void)
 {
     mSideSwitchStates.Buffer[mSideSwitchStates.Index] = 0;
@@ -224,6 +295,11 @@ static inline void UpdateSideSwitchStates(void)
     mSideSwitchStates.Index = (mSideSwitchStates.Index + 1) % DEBOUNCE_BUF_LEN;
 }
 
+/**
+ * @brief The update function for encoder switches.
+ * This performs debouncing by averaging samples over time.
+ * This clocks the encoder shift registers to obtain the current state.
+ */
 static inline void UpdateEncoderSwitchStates(void)
 {
     mEncoderSwitchStates.Buffer[mEncoderSwitchStates.Index] = 0;
@@ -238,6 +314,11 @@ static inline void UpdateEncoderSwitchStates(void)
     mEncoderSwitchStates.Index = (mEncoderSwitchStates.Index + 1) % DEBOUNCE_BUF_LEN;
 }
 
+/**
+ * @brief The update function for encoder rotation.
+ * This performs debouncing by averaging samples over time.
+ * This clocks the encoder shift registers to obtain the current quadrature states.
+ */
 static inline void UpdateEncoderQuadratureStates(void)
 {
     mEncoderSR_CH_A = mEncoderSR_CH_B = 0;
@@ -253,6 +334,11 @@ static inline void UpdateEncoderQuadratureStates(void)
     }
 }
 
+/**
+ * @brief The timer interrupt for input scanning.
+ * Latches the encoder shift registers to read data.
+ * Calls input scanning/update functions for side switches, encoder switches, encoder quadrature outputs.
+ */
 ISR(TCC1_CCA_vect)
 {
     INPUT_TIMER.CCA = INPUT_SCAN_RATE + INPUT_TIMER.CNT;

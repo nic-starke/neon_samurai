@@ -42,7 +42,7 @@ static inline PrintIfError(QCBOREncodeContext* _pContext)
 }
 
 /**
- * @brief Encodes an sMessage but excludes any data.
+ * @brief Encodes an sMessage, any additional raw data must be pre-encoded.
  * Any attached data must be valid CBOR encoded.
  * Note that this encoding uses tags for each item.
  * 
@@ -101,7 +101,9 @@ UsefulBufC CBOR_Encode_Message(const sMessage* const pMessage, UsefulBuf Buffer)
     }
     else
     {
+        Serial_Print("QCBOR enc err:");
         Serial_PrintValue(err);
+        Serial_Print("\r\n");
     }
 
     return NULLUsefulBufC;
