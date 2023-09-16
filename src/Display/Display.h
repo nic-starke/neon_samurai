@@ -19,8 +19,26 @@
 
 #pragma once
 
-#include "System/Types.h"
+#include "Types.h"
 
-typedef u16 DisplayFrame;
+#define BRIGHTNESS_MIN (0)
+#define BRIGHTNESS_MAX (255) // if this changes then recalculate MAGIC_BRIGHTNESS_VAL
+
+#define LED_ON	 (0x00)
+#define LED_OFF	 (0xFF)
+#define LEDS_ON	 (0x0000)
+#define LEDS_OFF (0xFFFF)
+
+#define LEDMASK(x)			 (1u << x)
+#define LEDMASK_DET			 (0xC000)
+#define LEDMASK_RGB			 (0x3800)
+#define LEDMASK_IND			 (0xFFE0)
+#define LEDMASK_IND_NODETENT (0xFFBF)
+
+#define DISPLAY_BUF_SIZE (32)
+
+#define MAGIC_BRIGHTNESS_VAL ((u8)8) // fixed calculation actual calculation is MAX_BRIGHTNESS/DISPLAY_BUF_SIZE
+
+typedef u16 Frame; // A frame is 16 bits - 1 bit per LED (16 LEDs per encoder)
 
 void Display_Init(void);

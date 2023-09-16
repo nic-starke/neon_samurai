@@ -32,9 +32,9 @@ project(
 
 assert(meson.is_cross_build(), 'Not a valid cross-compilation environment')
 
-AVRDUDE_PATH			= '/usr/bin/'
-PROGRAMMER        = 'avrispmkII'
-PROGRAMMER_PORT   = 'usb'
+AVRDUDE_PATH        ='/usr/bin/'
+PROGRAMMER          = 'avrispmkII'
+PROGRAMMER_PORT     = 'usb'
 
 conf_data = configuration_data()
 conf_data.set('version', meson.project_version())
@@ -43,26 +43,16 @@ configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configurat
 configuration_inc = include_directories('.')
 # vcs_tag(input : 'src/Utility/Version.h.in', output : 'Version.h')
 
-project_src = []
 project_inc = []
+project_src = []
 
-folders = [
-	'src',
-	'src/Display',
-	'src/Peripheral',
-	'src/System',
-    'src/Utility',
-]
-
-foreach f : folders
-subdir(f)
-project_inc += include_directories(f)
-endforeach
+subdir('src')
 
 muffin = executable(
 	meson.project_name() + '.elf',
 	[project_src],
-	include_directories : [project_inc, configuration_inc]
+	include_directories : [project_inc, configuration_inc],
+    depdendencies : ['lufa'],
 )
 
 hex = custom_target(

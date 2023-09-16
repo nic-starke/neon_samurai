@@ -117,6 +117,7 @@ c_args = [
 c_link_args = [
   '-mmcu=' + MCU,
   '-lm',
+  '-Wl,-Map=Muffin.Map',
   '-Wl,--gc-sections',
   '-B' + LIB_XMEGA7_PATH,
   ]
