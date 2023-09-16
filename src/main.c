@@ -131,8 +131,6 @@ int main(void)
             default: break;
         }
 
-        Serial_Print("HELLO!\r\n");
-
         Serial_Update();
         USB_USBTask();
     }
