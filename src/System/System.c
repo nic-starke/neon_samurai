@@ -25,5 +25,5 @@ void System_Init(void)
 {
 	// System clocks first....
 	DMA_Init();
-    USART_Init();
+	USART_Init();
 }

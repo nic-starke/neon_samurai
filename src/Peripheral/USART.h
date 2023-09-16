@@ -7,12 +7,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
@@ -27,19 +27,18 @@
 
 typedef enum
 {
-    SPI_MODE_0,  // clock low, phase low
-    SPI_MODE_1,  // clock low, phase high
-    SPI_MODE_2,  // clock high, phase low
-    SPI_MODE_3,  // clock high, phase high
+	SPI_MODE_0, // clock low, phase low
+	SPI_MODE_1, // clock low, phase high
+	SPI_MODE_2, // clock high, phase low
+	SPI_MODE_3, // clock high, phase high
 } eSPI_Mode;
-
 
 typedef struct
 {
-    USART_t* pUSART;
-    u32 BaudRate;
-    eSPI_Mode SPIMode;
-    eDataOrder DataOrder;
+	USART_t*   pUSART;
+	u32		   BaudRate;
+	eSPI_Mode  SPIMode;
+	eDataOrder DataOrder;
 } sUSART_ModuleConfig;
 
 void USART_Init(void);

@@ -28,8 +28,7 @@ void Display_Init(void)
 {
 	memset(DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
 
-	sDMA_ChannelConfig dmaConfig = 
-    {
+	sDMA_ChannelConfig dmaConfig = {
 		.pChannel = DMA_GetChannelPointer(0),
 
 		.BurstLength		  = DMA_CH_BURSTLEN_1BYTE_gc,
@@ -49,13 +48,12 @@ void Display_Init(void)
 
 	DMA_InitChannel(&dmaConfig);
 
-    sUSART_ModuleConfig usartConfig = 
-    {
-        .pUSART     = &USARTD0,
-        .BaudRate   = 4000000,
-        .DataOrder = MSB_FIRST,
-        .SPIMode = SPI_MODE_0,
-    };
+	sUSART_ModuleConfig usartConfig = {
+		.pUSART	   = &USARTD0,
+		.BaudRate  = 4000000,
+		.DataOrder = MSB_FIRST,
+		.SPIMode   = SPI_MODE_0,
+	};
 
-    USART_InitModule(&usartConfig);
+	USART_InitModule(&usartConfig);
 }

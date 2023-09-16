@@ -38,15 +38,14 @@ typedef volatile int8_t	 vs8;
 typedef volatile int16_t vs16;
 typedef volatile int32_t vs32;
 
-
 typedef enum
 {
-    MSB_FIRST,
-    LSB_FIRST
+	MSB_FIRST,
+	LSB_FIRST
 } eDataOrder;
 
 typedef enum
 {
-    LOW,
-    HIGH,
+	LOW,
+	HIGH,
 } eLogicLevel;
