@@ -1,7 +1,7 @@
 /*
  * File: Comms.c ( 10th April 2022 )
  * Project: Muffin
- * Copyright 2022 bxzn (mail@bxzn.one)
+ * Copyright 2022 Nicolaus Starke  
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

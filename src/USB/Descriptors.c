@@ -1,7 +1,7 @@
 /*
  * File: Descripts.c ( 19th March 2022 )
  * Project: Muffin
- * Copyright 2022 bxzn (mail@bxzn.one)
+ * Copyright 2022 Nicolaus Starke  
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 // clang-format off
 
 static const USB_Descriptor_String_t PROGMEM LanguageString     = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
-static const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR(L"www.bxzn.one");
+static const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR(L"www.Nicolaus Starke.one");
 static const USB_Descriptor_String_t PROGMEM ProductString      = USB_STRING_DESCRIPTOR(L"Muffin Twister");
 static const USB_Descriptor_String_t PROGMEM SerialString       = USB_STRING_DESCRIPTOR(L"666");
 

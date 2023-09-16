@@ -47,7 +47,7 @@ I setup a new development environment within a virtual machine (using software c
 
 
 
-I have released this development environment as a seperate project which can be used as a generic AVR-GCC dev environment, available here <https://github.com/bxzn/AVRGCC_DevelopmentEnvironment>.
+I have released this development environment as a seperate project which can be used as a generic AVR-GCC dev environment, available here <https://github.com/Nicolaus Starke/AVRGCC_DevelopmentEnvironment>.
 
 
 Once I had the development environment configured I began to write drivers for the various peripherals, and also began to actually code the firmware for the controller itself.

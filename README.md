@@ -4,7 +4,7 @@
 
 ---
 
-## [LINK TO PROJECT WIKI](https://man.sr.ht/~bxzn/Muffin/)
+## [LINK TO PROJECT WIKI](https://man.sr.ht/~Nicolaus Starke/Muffin/)
 
 ---
 
@@ -23,7 +23,7 @@ Muffin is still in development, when its ready I'll create a release and make do
 
 ## Mailing List
 
-To get periodic updates on the project status you can sign up [here](https://lists.sr.ht/~bxzn/muffin-announce).
+To get periodic updates on the project status you can sign up [here](https://lists.sr.ht/~Nicolaus Starke/muffin-announce).
 
 ## Planned Features
 
@@ -31,7 +31,7 @@ The overall intention for the project is to remove some of the limitations of th
 See below regarding feature requests.
 ## Feature Requests and Bug Reports
 
-Please use the [issues](https://todo.sr.ht/~bxzn/Muffin) page of the repository to request new features, or to submit a bug.
+Please use the [issues](https://todo.sr.ht/~Nicolaus Starke/Muffin) page of the repository to request new features, or to submit a bug.
 
 ## Why Muffin?
 
@@ -43,7 +43,7 @@ Please use the [issues](https://todo.sr.ht/~bxzn/Muffin) page of the repository 
 
 I have created a virtual machine development environment that can be used to quickly get going with the project.
 
-It is available [here](https://git.sr.ht/~bxzn/AVR_VM), its a generic Ubuntu VM configured with the latest AVR-GCC.
+It is available [here](https://git.sr.ht/~Nicolaus Starke/AVR_VM), its a generic Ubuntu VM configured with the latest AVR-GCC.
 
 It uses a [Vagrant](www.vagrantup.com) configuration script so you don't have to configure anything.
 

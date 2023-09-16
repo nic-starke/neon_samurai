@@ -1,39 +1,47 @@
 {
     "psi-header.config": {
-		"license": "Custom"
-	},
-	"psi-header.templates": [
-		{
-			"language": "*",
-			"template": [
-				"File: <<filename>> ( <<filecreated('Do MMMM YYYY')>> )" ,
-				"Project: <<projectname>>",
-				"Copyright <<year>> <<author>> (<<authoremail>>)",
-				"-----",
-        "This program is free software: you can redistribute it and/or modify",
-        "it under the terms of the GNU General Public License as published by",
-        "the Free Software Foundation, either version 3 of the License, or",
-        "(at your option) any later version.",
-        "",
-        "This program is distributed in the hope that it will be useful,",
-        "but WITHOUT ANY WARRANTY; without even the implied warranty of",
-        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
-        "GNU General Public License for more details.",
-        "",
-        "You should have received a copy of the GNU General Public License",
-        "along with this program. If not, see http://www.gnu.org/licenses/."
-      ]
-		}
-	],
-	"psi-header.variables": [
-    ["author", "bxzn"],
-    ["authoremail", "mail@bxzn.one"],
-    ["projectname", "Muffin"],
-	],
-    "psi-header.changes-tracking": {	
-            "isActive": true,	
-
-            "autoHeader": "manualSave"	
+        "license": "Custom"
+    },
+    "psi-header.templates": [
+        {
+            "language": "*",
+            "template": [
+                "File: <<filename>> ( <<filecreated('Do MMMM YYYY')>> )",
+                "Project: <<projectname>>",
+                "Copyright <<year>> <<author>> (<<authoremail>>)",
+                "-----",
+                "This program is free software: you can redistribute it and/or modify",
+                "it under the terms of the GNU General Public License as published by",
+                "the Free Software Foundation, either version 3 of the License, or",
+                "(at your option) any later version.",
+                "",
+                "This program is distributed in the hope that it will be useful,",
+                "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+                "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+                "GNU General Public License for more details.",
+                "",
+                "You should have received a copy of the GNU General Public License",
+                "along with this program. If not, see http://www.gnu.org/licenses/."
+            ]
+        }
+    ],
+    "psi-header.variables": [
+        [
+            "author",
+            "Nicolaus Starke"
+        ],
+        [
+            "authoremail",
+            "mail@Nicolaus Starke.one"
+        ],
+        [
+            "projectname",
+            "Muffin"
+        ],
+    ],
+    "psi-header.changes-tracking": {
+        "isActive": true,
+        "autoHeader": "manualSave"
     },
     "files.eol": "\n",
     "C_Cpp.errorSquiggles": "Disabled",
@@ -43,4 +51,5 @@
         "type_traits": "c"
     },
     "docwriter.progress.trackFunctions": false,
+    "cmake.configureOnOpen": false,
 }

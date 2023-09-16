@@ -32,14 +32,14 @@ Previously I was using GitHub for the project, but I decided to try out SourceHu
 One major benefit to the project is that collaborators and/or users of the software don't need to register, they can comment/add issues just with an email address.
 
 - Wiki -
-The project now has a wiki, available here - https://man.sr.ht/~bxzn/Muffin/
+The project now has a wiki, available here - https://man.sr.ht/~Nicolaus Starke/Muffin/
 
 - Mailing List - 
 The project now has a mailing list - if you got this update your on it!
-You can check find previous updates and sign up here - https://lists.sr.ht/~bxzn/muffin-announce
+You can check find previous updates and sign up here - https://lists.sr.ht/~Nicolaus Starke/muffin-announce
 
 - MuffinEditor -
-I have started working on the desktop configuration tool for Muffin - https://git.sr.ht/~bxzn/MuffinEditor
+I have started working on the desktop configuration tool for Muffin - https://git.sr.ht/~Nicolaus Starke/MuffinEditor
 At the moment it is just a bare-bones project in JUCE, but in the future it will have similar functionality to the official MidiFighter Utility.
 
 - Muffin Changelog -
@@ -80,7 +80,7 @@ The midi configuration of each layer is unique, so you could have one layer send
 To accommodate for this amount of flexibility I had to drop the Super Knobs from the original firmware - but in return you get two completely independent
 and customisable midi controls per encoder.
 
-The full list of options for each layer is in the User Manual - https://man.sr.ht/~bxzn/Muffin/wiki/UserManual.md
+The full list of options for each layer is in the User Manual - https://man.sr.ht/~Nicolaus Starke/Muffin/wiki/UserManual.md
 
 [5] Other
 Maximum brightness for all LEDs has been added.
