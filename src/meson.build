@@ -11,7 +11,7 @@ foreach f : folders
 project_inc += include_directories(f)
 endforeach
 
-project_src = files(
+project_src += files(
     'main.c',
 
     'Display/Display.c',

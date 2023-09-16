@@ -47,12 +47,13 @@ project_inc = []
 project_src = []
 
 subdir('src')
+subdir('src/LUFA/')
 
 muffin = executable(
 	meson.project_name() + '.elf',
 	[project_src],
 	include_directories : [project_inc, configuration_inc],
-    depdendencies : ['lufa'],
+    dependencies : [lufa],
 )
 
 hex = custom_target(
