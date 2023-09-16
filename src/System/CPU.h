@@ -23,25 +23,7 @@
 #include <avr/interrupt.h>
 #include <avr/cpufunc.h>
 
-static inline void EnableInterrupts(void)
+static inline u32 CPU_GetMainClockSpeed(void)
 {
-	sei();
-}
-
-static inline void DisableInterrupts(void)
-{
-	cli();
-}
-
-static inline volatile uint8_t IRQ_Save(void)
-{
-	volatile uint8_t irqFlags = SREG;
-	DisableInterrupts();
-	return irqFlags;
-}
-
-static inline void IRQ_Restore(volatile uint8_t IRQFlags)
-{
-	_MemoryBarrier();
-	SREG = IRQFlags;
+	return F_CPU; // 32 MHz
 }

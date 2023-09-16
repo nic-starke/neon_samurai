@@ -17,8 +17,6 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#pragma once
-
 #include "DMA.h"
 #include "Types.h"
 
@@ -58,7 +56,7 @@ static inline void DMA_SetDoubleBufferMode(DMA_DBUFMODE_t Mode)
  */
 void DMA_Init(void)
 {
-	u8 flags = IRQ_DisableInterrupts();
+	const u8 flags = IRQ_DisableInterrupts();
 
 	DMA_EnablePower();
 	DMA_ResetController();
@@ -73,14 +71,14 @@ void DMA_Init(void)
  *
  * @param pConfig Pointer to DMA channel configuration.
  */
-void DMA_InitChannel(sDMA_ChannelConfig* pConfig)
+void DMA_InitChannel(const sDMA_ChannelConfig* pConfig)
 {
-	u8 flags = IRQ_DisableInterrupts();
+	const u8 flags = IRQ_DisableInterrupts();
 
 	// Source
-	pConfig->pChannel->SRCADDR0 = (pConfig->SrcAddress >> 0) & 0XFF;
-	pConfig->pChannel->SRCADDR1 = (pConfig->SrcAddress >> 8) & 0XFF;
-	pConfig->pChannel->SRCADDR2 = (pConfig->SrcAddress >> 16) & 0XFF;
+	pConfig->pChannel->SRCADDR0 = (pConfig->SrcAddress >> 0) & 0xFF;
+	pConfig->pChannel->SRCADDR1 = (pConfig->SrcAddress >> 8) & 0xFF;
+	pConfig->pChannel->SRCADDR2 = (pConfig->SrcAddress >> 16) & 0xFF;
 
 	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCDIR_gm);
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->SrcAddressingMode);
@@ -89,9 +87,9 @@ void DMA_InitChannel(sDMA_ChannelConfig* pConfig)
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->SrcReloadMode);
 
 	// Destination
-	pConfig->pChannel->DESTADDR0 = (pConfig->DstAddress >> 0) & 0XFF;
-	pConfig->pChannel->DESTADDR1 = (pConfig->DstAddress >> 8) & 0XFF;
-	pConfig->pChannel->DESTADDR2 = (pConfig->DstAddress >> 16) & 0XFF;
+	pConfig->pChannel->DESTADDR0 = (pConfig->DstAddress >> 0) & 0xFF;
+	pConfig->pChannel->DESTADDR1 = (pConfig->DstAddress >> 8) & 0xFF;
+	pConfig->pChannel->DESTADDR2 = (pConfig->DstAddress >> 16) & 0xFF;
 
 	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTDIR_gm);
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->DstAddressingMode);

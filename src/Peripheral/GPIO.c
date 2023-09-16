@@ -1,5 +1,5 @@
 /*
- * File: Interrupt.h ( 20th November 2021 )
+ * File: GPIO.c ( 20th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -17,30 +17,4 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#pragma once
-
-#include <avr/interrupt.h>
-#include <avr/cpufunc.h>
-
-#include "Types.h"
-
-typedef enum
-{
-    PRIORITY_OFF,
-    PRIORITY_LOW,
-    PRIORITY_MED,
-    PRIORITY_HI,
-} eInterruptPriority;
-
-static inline u8 IRQ_DisableInterrupts(void)
-{
-	u8 flags = SREG;
-	cli();
-	return flags;
-}
-
-static inline void IRQ_EnableInterrupts(vu8 Flags)
-{
-	_MemoryBarrier();
-	SREG = Flags;
-}
+#include "GPIO.h"

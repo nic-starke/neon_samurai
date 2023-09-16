@@ -1,5 +1,5 @@
 /*
- * File: Interrupt.h ( 20th November 2021 )
+ * File: GPIO.h ( 20th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -19,28 +19,47 @@
 
 #pragma once
 
-#include <avr/interrupt.h>
-#include <avr/cpufunc.h>
+#include <avr/io.h>
 
 #include "Types.h"
+#include "Utility.h"
 
 typedef enum
 {
-    PRIORITY_OFF,
-    PRIORITY_LOW,
-    PRIORITY_MED,
-    PRIORITY_HI,
-} eInterruptPriority;
+	GPIO_INPUT,
+	GPIO_OUTPUT,
+} eGPIO_Direction;
 
-static inline u8 IRQ_DisableInterrupts(void)
+#define PIN_MASK(x) (1u << (x & 0x07))
+
+static inline void GPIO_SetPinDirection(PORT_t* Port, u8 Pin, eGPIO_Direction Direction)
 {
-	u8 flags = SREG;
-	cli();
-	return flags;
+	if (Direction == GPIO_INPUT)
+	{
+		Port->DIRCLR = PIN_MASK(Pin);
+	}
+	else if (Direction == GPIO_OUTPUT)
+	{
+		Port->DIRSET = PIN_MASK(Pin);
+	}
 }
 
-static inline void IRQ_EnableInterrupts(vu8 Flags)
+static inline void GPIO_SetPinLevel(PORT_t* Port, u8 Pin, eLogicLevel Level)
 {
-	_MemoryBarrier();
-	SREG = Flags;
+	if (Level == HIGH)
+	{
+		Port->OUTSET = PIN_MASK(Pin);
+	}
+	else if (Level == LOW)
+	{
+		Port->OUTCLR = PIN_MASK(Pin);
+	}
+}
+
+static inline void GPIO_SetPinMode(PORT_t* pPort, u8 Pin, PORT_OPC_t Mode)
+{
+	vu8* regCTRL = (&pPort->PIN0CTRL + PIN_MASK(Pin));
+
+	*regCTRL &= PORT_ISC_gm;
+	SET_BIT(*regCTRL, Mode);
 }

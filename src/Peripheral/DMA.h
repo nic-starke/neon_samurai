@@ -45,7 +45,7 @@ typedef struct
 
 static inline DMA_CH_t* DMA_GetChannelPointer(u8 ChannelNumber)
 {
-	(DMA_CH_t*)((uintptr_t)(&DMA.CH0) + (sizeof(DMA_CH_t) * ChannelNumber));
+	return (DMA_CH_t*)((uintptr_t)(&DMA.CH0) + (sizeof(DMA_CH_t) * ChannelNumber));
 }
 
 /**
@@ -79,4 +79,4 @@ static inline void DMA_ResetChannel(DMA_CH_t* pDMA)
 }
 
 void DMA_Init(void);
-void DMA_InitChannel(sDMA_ChannelConfig* pConfig);
+void DMA_InitChannel(const sDMA_ChannelConfig* pConfig);

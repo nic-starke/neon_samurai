@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 #include <stdint-gcc.h>
+#include <stddef.h>
 
 typedef uint8_t	 u8;
 typedef uint16_t u16;
@@ -41,7 +42,7 @@ typedef volatile int32_t vs32;
 typedef enum
 {
 	MSB_FIRST,
-	LSB_FIRST
+	LSB_FIRST,
 } eDataOrder;
 
 typedef enum

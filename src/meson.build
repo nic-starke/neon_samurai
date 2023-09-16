@@ -13,8 +13,13 @@ endforeach
 
 project_src += files(
     'main.c',
+
+    'Display/Display.c',
     
     'Peripheral/DMA.c',
+    'Peripheral/GPIO.c',
+    'Peripheral/Timer.c',
+    'Peripheral/USART.c',
 
     'System/System.c',
 

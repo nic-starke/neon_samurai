@@ -22,8 +22,20 @@
 #include <avr/io.h>
 
 #include "Types.h"
+#include "Utility.h"
 
 // This implementation is fixed to USART in Master SPI Mode (additional modes exist but are not implemented).
+
+typedef enum
+{
+	UART_Module_C0,
+	UART_Module_C1,
+	UART_Module_D0,
+	UART_Module_D1,
+	UART_Module_E0,
+
+	NUM_UART_MODULES,
+} eUART_Module;
 
 typedef enum
 {
@@ -41,5 +53,25 @@ typedef struct
 	eDataOrder DataOrder;
 } sUSART_ModuleConfig;
 
+static inline void USART_DisableTX(USART_t* pUSART)
+{
+	CLR_BIT(pUSART->CTRLB, USART_TXEN_bm);
+}
+
+static inline void USART_EnableTX(USART_t* pUSART)
+{
+	SET_BIT(pUSART->CTRLB, USART_TXEN_bm);
+}
+
+static inline void USART_DisableRX(USART_t* pUSART)
+{
+	CLR_BIT(pUSART->CTRLB, USART_RXEN_bm);
+}
+
+static inline void USART_EnableRX(USART_t* pUSART)
+{
+	SET_BIT(pUSART->CTRLB, USART_RXEN_bm);
+}
+
 void USART_Init(void);
-void USART_InitModule(sUSART_ModuleConfig* pConfig);
+void USART_InitModule(const sUSART_ModuleConfig* pConfig);
