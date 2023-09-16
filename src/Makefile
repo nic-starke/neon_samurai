@@ -15,8 +15,8 @@
 
 TARGET 						= muffin
 VERSION						= 0.1
-AVR_GCC_PATH			= /opt/avr/avr-linux/bin/
-AVR_LIBC_INC			= /opt/avr/avr-libc/avr/include/
+AVR_GCC_PATH			= /usr/local/avr/bin/
+AVR_LIBC_INC			= /usr/local/avr/avr/include/
 AVRDUDE_PATH			= /usr/bin/
 PROGRAMMER				= avrispmkII
 PROGRAMMER_PORT		= usb
@@ -24,7 +24,7 @@ MCU 							= atxmega128a4u
 PACKAGES					= src \
 
 VPATH							= $(PACKAGES)
-LIBRARY_PATH			= /opt/avr/avr-libc/avr/lib/avrxmega7
+LIBRARY_PATH			= /usr/local/avr/avr/lib/avrxmega7
 BUILD_ROOT				= build/
 BUILD_DIR					= $(BUILD_ROOT)$(TARGET)/
 
