@@ -29,3 +29,6 @@ void EncoderDisplay_InvalidateAll(void);
 void EncoderDisplay_SetRGBColour(sEncoderState* pEncoder, sHSV* pNewColour);
 void EncoderDisplay_SetDetentColour(sEncoderState* pEncoder, sHSV* pNewColour);
 void EncoderDisplay_UpdateAllColours(void);
+
+void EncoderDisplay_SetValueU8(u8 EncoderIndex, u8 Value);
+void EncoderDisplay_SetValueU16(u8 EncoderIndex, u16 Value);

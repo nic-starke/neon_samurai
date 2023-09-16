@@ -311,3 +311,15 @@ void EncoderDisplay_UpdateAllColours(void)
         pEncoder->DisplayInvalid = true;
     }
 }
+
+void EncoderDisplay_SetValueU8(u8 EncoderIndex, u8 Value)
+{
+    gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue = (Value << 8);
+    gData.EncoderStates[gData.CurrentBank][EncoderIndex].DisplayInvalid = true;
+}
+
+void EncoderDisplay_SetValueU16(u8 EncoderIndex, u16 Value)
+{
+    gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue = Value;
+    gData.EncoderStates[gData.CurrentBank][EncoderIndex].DisplayInvalid = true;
+}

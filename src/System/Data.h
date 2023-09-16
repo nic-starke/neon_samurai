@@ -36,7 +36,7 @@ typedef enum
 
 typedef struct
 {
-    eOperatingMode OperatingMode;
+    u8 OperatingMode;
 
     u8   FirmwareVersion;
     u16  DataVersion;
@@ -72,5 +72,5 @@ static inline void Data_PGMReadBlock(void* pDest, const void* pSrc, u8 size)
 }
 
 void Data_Init(void);
-// void Data_FactoryReset(void);
-// void Data_RecallUserSettings(void);
+void Data_WriteDefaultsToEEPROM(void);
+void Data_RecallEEPROMSettings(void);

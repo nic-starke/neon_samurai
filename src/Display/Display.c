@@ -198,14 +198,33 @@ void Display_Update(void)
     }
 }
 
-void Display_SetMaxBrightness(u8 Brightness)
+void Display_SetDetentBrightness(u8 Brightness)
 {
-    gData.DetentBrightness    = pgm_read_byte(&gamma_lut[Brightness]);
-    gData.RGBBrightness       = pgm_read_byte(&gamma_lut[Brightness]);
-    gData.IndicatorBrightness = pgm_read_byte(&gamma_lut[Brightness]);
-
+    NVM.CMD = 0x00;
+    gData.DetentBrightness = pgm_read_byte(&gamma_lut[Brightness]);
     EncoderDisplay_InvalidateAll();
 }
+
+void Display_SetRGBBrightness(u8 Brightness)
+{
+    gData.RGBBrightness = pgm_read_byte(&gamma_lut[Brightness]);
+    EncoderDisplay_InvalidateAll();
+}
+
+void Display_SetIndicatorBrightness(u8 Brightness)
+{
+    NVM.CMD = 0x00;
+    gData.IndicatorBrightness = pgm_read_byte(&gamma_lut[Brightness]);
+    EncoderDisplay_InvalidateAll();
+}
+
+void Display_SetMaxBrightness(u8 Brightness)
+{
+    Display_SetDetentBrightness(Brightness);
+    Display_SetRGBBrightness(Brightness);
+    Display_SetIndicatorBrightness(Brightness);
+}
+
 
 // Display Interrupt
 ISR(TCC0_CCA_vect)

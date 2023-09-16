@@ -26,15 +26,17 @@
 #include "Encoder.h"
 #include "Colour.h"
 #include "Input.h"
+#include "Interrupt.h"
+#include "EncoderDisplay.h"
 
-#define EE_DATA_VERSION (0xDEAF)
+#define EE_DATA_VERSION (0xAF03)
 
 sData gData = {
     .DataVersion          = 0,
     .FirmwareVersion      = VERSION,
     .FactoryReset         = false,
     .OperatingMode        = DEFAULT_MODE,
-    .RGBBrightness        = BRIGHTNESS_MAX,
+    .RGBBrightness        = (u8)BRIGHTNESS_MAX,
     .DetentBrightness     = BRIGHTNESS_MAX,
     .IndicatorBrightness  = BRIGHTNESS_MAX,
     .FineAdjustConstant   = FINE_ADJUST_CONST,
@@ -56,19 +58,20 @@ typedef struct
     sEE_Encoder Encoders[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
 } sEEData; // Data stored in EEPROM
 
-// "mEEData" is stored in eeprom - access only via eeprom read/write functions
+// "_EEPROM_DATA_" is stored in eeprom - access only via eeprom read/write functions - THIS IS NOT IN RAM
+// so dont try (_EEPROM_DATA_.SOMETHING = xxx)
 // The initialised values will be present within the .eep file - which has to manually written to
 // cpu via AVRdude, standard users cannot do this, therefore the default values can also be written
-// by calling the Data_FactoryReset function in this file.
-sEEData mEEData EEMEM = {
-    .Reserved            = 0xFF, // do not change this value!
-    .DataVersion         = EE_DATA_VERSION,
-    .OperatingMode       = DEFAULT_MODE,
-    .RGBBrightness       = BRIGHTNESS_MAX,
-    .DetentBrightness    = BRIGHTNESS_MAX,
-    .IndicatorBrightness = BRIGHTNESS_MAX,
-    .Encoders            = {0},
-};
+// by calling the Data_WriteDefaultsToEEPROM function in this file.
+sEEData _EEPROM_DATA_ EEMEM; // = {
+//     .Reserved            = 0xFF, // do not change this value!
+//     .DataVersion         = EE_DATA_VERSION,
+//     .OperatingMode       = DEFAULT_MODE,
+//     .RGBBrightness       = BRIGHTNESS_MAX,
+//     .DetentBrightness    = BRIGHTNESS_MAX,
+//     .IndicatorBrightness = BRIGHTNESS_MAX,
+//     .Encoders            = {0},
+// };
 
 // static inline void EE_ReadVirtualEncoder(sVirtualEncoder* pDest, sEEVirtualEncoder* pSrc)
 // {
@@ -143,81 +146,93 @@ sEEData mEEData EEMEM = {
 
 void Data_Init(void)
 {
-    NVM.CMD = 0x00; // Set NVM command register to NOP as per pgmspace.
-
     while (!eeprom_is_ready()) {} // wait for eeprom ready
 
-    u16 hue = eeprom_read_word(&mEEData.Encoders[0][0].DetentHue);
+    const vu8 flags = IRQ_DisableInterrupts();
+    // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
+    gData.DataVersion  = eeprom_read_word(&_EEPROM_DATA_.DataVersion);
+    gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
 
-    hue = hue + 1;
+    u8 displayFlashCount = 0;
 
-    eeprom_update_word(&mEEData.Encoders[0][0].DetentHue, hue);
+    if (gData.FactoryReset)
+    {
+        Data_WriteDefaultsToEEPROM();
+        Data_RecallEEPROMSettings();
+        displayFlashCount = 5;
+        gData.FactoryReset = false;
+    }
+    else
+    {
+        Data_RecallEEPROMSettings();
+        displayFlashCount = 2;        
+    }
 
-    // // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
-    // gData.DataVersion  = eeprom_read_word(&mEEData.DataVersion);
-    // gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
-
-    // if (gData.FactoryReset)
-    // {
-    //     Data_FactoryReset();
-    //     Data_RecallUserSettings();
-    //     gData.FactoryReset = false;
-    //     Display_Flash(100, 5);
-    // }
-    // else
-    // {
-    //     Data_RecallUserSettings();
-    //     Display_Flash(200, 2);
-    // }
+    IRQ_EnableInterrupts(flags);
+    Display_Flash(200, displayFlashCount);
 }
 
-// void Data_FactoryReset(void)
-// {
-//     eeprom_update_word(&mEEData.DataVersion, (u16)EE_DATA_VERSION);
+// Disable interrupts before calling
+void Data_WriteDefaultsToEEPROM(void)
+{
+    eeprom_update_word(&_EEPROM_DATA_.DataVersion, (u16)EE_DATA_VERSION);
 
-//     // At this point in execution gData should not have been modified and should be initialised
-//     // with the default values (see top of this file)
-//     eeprom_update_byte(&mEEData.RGBBrightness, gData.RGBBrightness);
-//     eeprom_update_byte(&mEEData.DetentBrightness, gData.DetentBrightness);
-//     eeprom_update_byte(&mEEData.IndicatorBrightness, gData.IndicatorBrightness);
-//     eeprom_update_byte(&mEEData.OperatingMode, gData.OperatingMode);
+    // At this point in execution gData should not have been modified and should be initialised
+    // with the default values (see top of this file)
+    eeprom_update_byte(&_EEPROM_DATA_.RGBBrightness, (u8)gData.RGBBrightness);
+    eeprom_update_byte(&_EEPROM_DATA_.DetentBrightness, (u8)gData.DetentBrightness);
+    eeprom_update_byte(&_EEPROM_DATA_.IndicatorBrightness, (u8)gData.IndicatorBrightness);
+    eeprom_update_byte(&_EEPROM_DATA_.OperatingMode, (u8)gData.OperatingMode);
 
-//     Encoder_FactoryReset(); // firstly reset the encoder states in SRAM, then write this to EEPROM
-//     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
-//     {
-//         for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
-//         {
-//             sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
+    // Encoder_FactoryReset(); // firstly reset the encoder states in SRAM, then write this to EEPROM
+    // for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
+    // {
+    //     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+    //     {
+    //         sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
 
-//             EE_WriteVirtualEncoder(&pEncoder->Primary, &mEEData.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
-//             EE_WriteVirtualEncoder(&pEncoder->Secondary, &mEEData.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
-//             EE_WriteVirtualUber(&pEncoder->PrimaryUber, &mEEData.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
-//             EE_WriteVirtualUber(&pEncoder->SecondaryUber, &mEEData.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
-//             EE_WriteVirtualSwitch(&pEncoder->Switch, &mEEData.VirtualSwitches[bank][encoder]);
-//         }
-//     }
+    //         EE_WriteVirtualEncoder(&pEncoder->Primary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
+    //         EE_WriteVirtualEncoder(&pEncoder->Secondary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
+    //         EE_WriteVirtualUber(&pEncoder->PrimaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
+    //         EE_WriteVirtualUber(&pEncoder->SecondaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
+    //         EE_WriteVirtualSwitch(&pEncoder->Switch, &_EEPROM_DATA_.VirtualSwitches[bank][encoder]);
+    //     }
+    // }
 
-//     gData.DataVersion = EE_DATA_VERSION;
-// }
+    gData.DataVersion = EE_DATA_VERSION;
+}
 
-// void Data_RecallUserSettings(void)
-// {
-//     gData.RGBBrightness       = eeprom_read_byte(&mEEData.RGBBrightness);
-//     gData.DetentBrightness    = eeprom_read_byte(&mEEData.DetentBrightness);
-//     gData.IndicatorBrightness = eeprom_read_byte(&mEEData.IndicatorBrightness);
-//     gData.OperatingMode       = eeprom_read_byte(&mEEData.OperatingMode);
+static inline void DisplayDataOnLEDS(void)
+{
+    EncoderDisplay_SetValueU8(0, eeprom_read_byte((const u8*)&_EEPROM_DATA_.RGBBrightness));
+    EncoderDisplay_SetValueU8(1, gData.RGBBrightness);
+    EncoderDisplay_SetValueU8(4, eeprom_read_byte((const u8*)&_EEPROM_DATA_.DetentBrightness));
+    EncoderDisplay_SetValueU8(5, gData.DetentBrightness);
+    EncoderDisplay_SetValueU8(9, gData.IndicatorBrightness);
+    EncoderDisplay_SetValueU8(8, eeprom_read_byte((const u8*)&_EEPROM_DATA_.IndicatorBrightness));
+    EncoderDisplay_SetValueU8(12, eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode));
+    EncoderDisplay_SetValueU8(13, gData.OperatingMode);
+}
 
-//     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
-//     {
-//         for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
-//         {
-//             sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
+// Disable interrupts before calling
+void Data_RecallEEPROMSettings(void)
+{
+    Display_SetRGBBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.RGBBrightness));
+    Display_SetDetentBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.DetentBrightness));
+    Display_SetIndicatorBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.IndicatorBrightness));
+    gData.OperatingMode = eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode);
 
-//             EE_ReadVirtualEncoder(&pEncoder->Primary, &mEEData.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
-//             EE_ReadVirtualEncoder(&pEncoder->Secondary, &mEEData.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
-//             EE_ReadVirtualUber(&pEncoder->PrimaryUber, &mEEData.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
-//             EE_ReadVirtualUber(&pEncoder->SecondaryUber, &mEEData.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
-//             EE_ReadVirtualSwitch(&pEncoder->Switch, &mEEData.VirtualSwitches[bank][encoder]);
-//         }
-//     }
-// }
+    // for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
+    // {
+    //     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+    //     {
+    //         sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
+
+    //         EE_ReadVirtualEncoder(&pEncoder->Primary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
+    //         EE_ReadVirtualEncoder(&pEncoder->Secondary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
+    //         EE_ReadVirtualUber(&pEncoder->PrimaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
+    //         EE_ReadVirtualUber(&pEncoder->SecondaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
+    //         EE_ReadVirtualSwitch(&pEncoder->Switch, &_EEPROM_DATA_.VirtualSwitches[bank][encoder]);
+    //     }
+    // }
+}

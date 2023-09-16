@@ -54,11 +54,11 @@ static inline void RunTest(void)
 
 static inline void BootAnimation(void)
 {
-
+    // Display_SetMaxBrightness(0);
     for (u16 br = 0; br < BRIGHTNESS_MAX; br += 3)
     {
-        Display_SetMaxBrightness(br);
-        Display_Update();
+        // Display_SetMaxBrightness(br);
+        // Display_Update();
         //Delay_MS(10);
     }
 }
@@ -77,22 +77,19 @@ int main(void)
     USB_Init();
     USBMidi_Init();
 
-    Display_SetMaxBrightness(0);
     Display_Init();
 
+
     GlobalInterruptEnable();
-
-    // When eeprom/user settings are working correctly reinstate data init and remove factory reset.
-    Data_Init();
-    Encoder_FactoryReset();
-
+    
+    
     // Update inputs, check special input combinations
     for (int i = 0; i < 100; i++)
     {
         Input_Update();
         Input_CheckSpecialSwitchCombos();
     }
-
+    
     switch (gData.OperatingMode)
     {
         case TEST_MODE: SetupTest(); break;
@@ -101,7 +98,10 @@ int main(void)
 
         case DEFAULT_MODE:
         default: BootAnimation(); break;
-    }
+    }   
+    
+    Encoder_FactoryReset();
+    Data_Init();
 
     while (1)
     {
