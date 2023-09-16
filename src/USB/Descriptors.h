@@ -21,10 +21,6 @@
 
 #include "Drivers/USB/USB.h"
 
-#define MIDI_ENABLE
-// #define HID_ENABLE   // shared mouse and keyboard
-#define VSER_ENABLE
-
 #define HID_EPSIZE              32
 //#define KEYBOARD_EPSIZE 8
 //#define MOUSE_EPSIZE 8
@@ -32,7 +28,7 @@
 #define CDC_NOTIFICATION_EPSIZE 8
 #define CDC_EPSIZE              16
 
-#define MIDI_POLLING_INTERVAL 0x00
+#define MIDI_POLLING_INTERVAL 0x05
 
 typedef struct
 {
@@ -66,8 +62,8 @@ typedef struct
 
 #ifdef VSER_ENABLE
     // Virtual Serial
-    USB_Descriptor_Interface_Association_t CDC_Interface_Association;
     // CDC Control Interface
+    USB_Descriptor_Interface_Association_t CDC_Interface_Association;
     USB_Descriptor_Interface_t             CDC_CCI_Interface;
     USB_CDC_Descriptor_FunctionalHeader_t  CDC_Functional_Header;
     USB_CDC_Descriptor_FunctionalACM_t     CDC_Functional_ACM;
@@ -79,7 +75,6 @@ typedef struct
     USB_Descriptor_Endpoint_t              CDC_DataInEndpoint;
 #endif
 } USB_Descriptor_Configuration_t;
-
 
 typedef enum {
 #ifdef MIDI_ENABLE
@@ -96,7 +91,8 @@ typedef enum {
     CDI_INTERFACE,
 #endif
 
-    NUM_USB_INTERFACES} eUSBInterface;
+    NUM_USB_INTERFACES
+} eUSBInterface;
 
 typedef enum
 {

@@ -23,6 +23,7 @@
 #include "Input.h"
 #include "MIDI.h"
 #include "Display.h"
+#include "VirtualSerial.h"
 
 // clang-format off
 #ifdef MIDI_ENABLE
@@ -31,13 +32,13 @@ USB_ClassInfo_MIDI_Device_t gMIDI_Interface = {
     {
         .DataINEndpoint = 
         {
-            .Address = (ENDPOINT_DIR_IN | 2),
+            .Address = (MIDI_STREAM_IN_EPNUM | ENDPOINT_DIR_IN),
             .Size    = MIDI_STREAM_EPSIZE,
             .Banks   = 1,
         },
         .DataOUTEndpoint = 
         {
-            .Address = (ENDPOINT_DIR_OUT | 1),
+            .Address = (MIDI_STREAM_OUT_EPNUM | ENDPOINT_DIR_OUT),
             .Size    = MIDI_STREAM_EPSIZE,
             .Banks   = 1,
         }
@@ -87,21 +88,19 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 #ifdef MIDI_ENABLE
     ConfigSuccess &= MIDI_Device_ConfigureEndpoints(&gMIDI_Interface);
     // ConfigSuccess &= Endpoint_ConfigureEndpoint((MIDI_STREAM_OUT_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
-    // ConfigSuccess &= Endpoint_ConfigureEndpoint((MIDI_STREAM_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
+    // ConfigSuccess &= Endpoint_ConfigureEndpoint((MIDI_STREAM_IN_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
 #endif
+
 #ifdef HID_ENABLE
     ConfigSuccess &= Endpoint_ConfigureEndpoint((SHARED_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, SHARED_EPSIZE, 1);
 #endif
+
 #ifdef VSER_ENABLE
-    ConfigSuccess &= CDC_Device_ConfigureEndpoints(&gCDC_Interface);
-    // ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
-    // ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1);
-    // ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, CDC_EPSIZE, 1);
+    // ConfigSuccess &= CDC_Device_ConfigureEndpoints(&gCDC_Interface);
+    ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
+    ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1);
+    ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, CDC_EPSIZE, 1);
 #endif
-    if (ConfigSuccess)
-    {
-        Display_Flash(200,2);
-    }
 }
 
 /** Event handler for the library USB Control Request reception event. */

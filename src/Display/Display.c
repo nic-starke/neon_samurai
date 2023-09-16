@@ -131,6 +131,14 @@ void Display_Flash(int intervalMS, int Count)
     } while (--Count > 0);
 }
 
+void Display_SetEncoder(int EncoderIndex, bool State)
+{
+    for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
+    {
+        DisplayBuffer[frame][NUM_ENCODERS - EncoderIndex - 1] = State ? LEDS_ON : LEDS_OFF;
+    }
+}
+
 void Display_Init(void)
 {
     Display_ClearAll();

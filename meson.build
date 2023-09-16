@@ -31,7 +31,7 @@ project(
 
 assert(meson.is_cross_build(), 'Not a valid cross-compilation environment')
 
-AVRDUDE_PATH        ='/usr/bin/'
+AVRDUDE_PATH        = '/usr/bin/'
 PROGRAMMER          = 'avrispmkII'
 PROGRAMMER_PORT     = 'usb'
 
@@ -49,9 +49,16 @@ project_src = []
 subdir('src')
 subdir('src/LUFA/')
 
+extra_args = [
+    '-DMIDI_ENABLE',
+    # '-DHID_ENABLE',
+    '-DVSER_ENABLE',
+]
+
 muffin = executable(
 	meson.project_name() + '.elf',
 	[project_src],
+    c_args : extra_args,
 	include_directories : [project_inc, configuration_inc],
     dependencies : [lufa],
 )

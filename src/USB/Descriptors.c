@@ -266,8 +266,9 @@ static const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
             .Size               = sizeof(USB_CDC_Descriptor_FunctionalACM_t),
             .Type               = CDC_DTYPE_CSInterface
         },
-        .Subtype                = 0x02,
-        .Capabilities           = 0x02,
+        // .Subtype                = 0x02,
+        // .Capabilities           = 0x02,
+        .Capabilities           = 0x06,
     },
     .CDC_Functional_Union = {
         .Header = {
@@ -349,36 +350,34 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex
         case DTYPE_Device:
             Address = &DeviceDescriptor;
             Size    = sizeof(USB_Descriptor_Device_t);
-
             break;
+            
         case DTYPE_Configuration:
             Address = &ConfigurationDescriptor;
             Size    = sizeof(USB_Descriptor_Configuration_t);
-
             break;
+
         case DTYPE_String:
             switch (DescriptorIndex)
             {
                 case 0x00:
                     Address = &LanguageString;
                     Size    = pgm_read_byte(&LanguageString.Header.Size);
-
                     break;
+
                 case 0x01:
                     Address = &ManufacturerString;
                     Size    = pgm_read_byte(&ManufacturerString.Header.Size);
-
                     break;
+                    
                 case 0x02:
                     Address = &ProductString;
                     Size    = pgm_read_byte(&ProductString.Header.Size);
-
                     break;
 
                 case 0x03:
                     Address = &SerialString;
                     Size    = pgm_read_byte(&SerialString.Header.Size);
-
                     break;
             }
 

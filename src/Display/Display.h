@@ -76,6 +76,10 @@ void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames);
 void Display_Test(void);
 void Display_Flash(int intervalMS, int Count);
 
+// Sets all the LEDs for a specified encoder on or off based on State.
+//  EncoderIndex range is 0 to 15
+void Display_SetEncoder(int EncoderIndex, bool State);
+
 void Display_SetDetentBrightness(u8 Brightness);
 void Display_SetRGBBrightness(u8 Brightness);
 void Display_SetIndicatorBrightness(u8 Brightness);

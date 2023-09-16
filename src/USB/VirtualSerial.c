@@ -21,22 +21,23 @@
 #include "Descriptors.h"
 #include "USB.h"
 
-// static FILE mSerialStream;
-
-void Serial_Init(void)
+void _Serial_Init(void)
 {
-    // CDC_Device_CreateStream(&gCDC_Interface, &mSerialStream);
+    gCDC_Interface.State.ControlLineStates.DeviceToHost = CDC_CONTROL_LINE_IN_DSR;
+    CDC_Device_SendControlLineStateChange(&gCDC_Interface);
 }
 
-void Serial_Update(void)
+void _Serial_Update(void)
 {
-    /* Must throw away unused bytes from the host, or it will lock up while waiting for the device */
-    CDC_Device_ReceiveByte(&gCDC_Interface);
-
-    CDC_Device_USBTask(&gCDC_Interface);
+    if (USB_IsInitialized)
+    {
+        /* Must throw away unused bytes from the host, or it will lock up while waiting for the device */
+        CDC_Device_ReceiveByte(&gCDC_Interface);
+        CDC_Device_USBTask(&gCDC_Interface);
+    }
 }
 
-void Serial_Print(char* pString)
+void _Serial_Print(char* pString)
 {
     CDC_Device_SendString(&gCDC_Interface, pString);
     CDC_Device_Flush(&gCDC_Interface);
@@ -51,6 +52,5 @@ void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t *const C
 	   in the pending data from the USB endpoints.
 	*/
 	bool HostReady = (CDCInterfaceInfo->State.ControlLineStates.HostToDevice & CDC_CONTROL_LINE_OUT_DTR) != 0;
-
 	(void)HostReady;
 }

@@ -21,6 +21,8 @@
 #warning "This project has only been tested on the XMEGA 128A4U, continue at your own risk"
 #endif
 
+#define ENABLE_SERIAL
+
 #include <Common/Common.h>
 #include <Drivers/USB/USB.h>
 #include <avr/wdt.h>
@@ -84,6 +86,8 @@ int main(void)
 
     GlobalInterruptEnable();
 
+    Serial_Print("Booted\r\n");
+
     // Update inputs, check special input combinations
     for (int i = 0; i < 100; i++)
     {
@@ -127,8 +131,10 @@ int main(void)
             default: break;
         }
 
+        Serial_Print("HELLO!\r\n");
+
         Serial_Update();
-        Serial_Print("Test\r\n");
         USB_USBTask();
     }
 }
+
