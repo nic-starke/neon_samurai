@@ -47,7 +47,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
     .StopPosition            = ENCODER_MAX_VAL,
     .MinValue                = ENCODER_MAX_VAL,
     .MaxValue                = ENCODER_MIN_VAL,
-    .MidiConfig.Channel      = 0,
+    .MidiConfig.Channel      = 1,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 1,
     .RGBColour               = HSV_BLUE,
@@ -59,7 +59,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_C = {
     .StopPosition            = ENCODER_MAX_VAL,
     .MinValue                = ENCODER_MIN_VAL,
     .MaxValue                = ENCODER_MAX_VAL,
-    .MidiConfig.Channel      = 0,
+    .MidiConfig.Channel      = 2,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 2,
     .RGBColour               = HSV_GREEN,
@@ -131,11 +131,6 @@ void Encoder_FactoryReset(void)
         {
             sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
             Encoder_SetDefaultConfig(pEncoder);
-
-            for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
-            {
-                pEncoder->Layers[layer].MidiConfig.Channel = encoder;
-            }
         }
     }
 
@@ -324,7 +319,7 @@ static inline void ProcessEncoderLayers(sEncoderState* pEncoderState)
                     virtualValue = (u16)((1.0f - percent) * pLayer->MinValue);
                 }
 
-                USBMidi_ProcessLayer(pEncoderState, pLayer, virtualValue);
+                USBMidi_ProcessLayer(pEncoderState, pLayer, virtualValue >> 9); // TODO - 7-bit lazy conversion is bad, what about NRPN/14-bit?
             }
         }
     }
