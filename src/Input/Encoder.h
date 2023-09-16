@@ -173,11 +173,11 @@ typedef sVirtualUber sEEVirtualUber; // Stored state of an uber encoder.
 
 typedef struct
 {
-	sVirtualEncoder* pPrimary;
-	sVirtualEncoder* pSecondary;
-	sVirtualUber*	 pPrimaryUber;
-	sVirtualUber*	 pSecondaryUber;
-	sVirtualSwitch*	 pSwitch;
+	sVirtualEncoder Primary;
+	sVirtualEncoder Secondary;
+	sVirtualUber	PrimaryUber;
+	sVirtualUber	SecondaryUber;
+	sVirtualSwitch	Switch;
 
 	u8 SecondaryEnabled : 1;
 	u8 Reserved			: 7;

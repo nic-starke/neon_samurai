@@ -1,5 +1,5 @@
 /*
- * File: Data.h ( 28th November 2021 )
+ * File: Colour.c ( 28th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -17,39 +17,14 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#pragma once
+#include "Colour.h"
 
-#include "Types.h"
-#include "Encoder.h"
-#include "HardwareDescription.h"
-
-typedef enum
+void Hue2RGB(u16 Hue, sRGB* pRGB)
 {
-	DEFAULT_MODE,
+    pRGB->Blue = (u8)Hue;
+}
 
-	NUM_OPERATING_MODES,
-} eOperatingMode;
-
-typedef struct
+void RGB2Hue(u16* pHue, sRGB* pRGB)
 {
-	eOperatingMode OperatingMode;
-
-	u8 RGBBrightness;
-	u8 DetentBrightness;
-	u8 IndicatorBrightness;
-
-	sHardwareEncoder HardwareEncoders[NUM_ENCODERS];
-	sEncoderState	 EncoderStates[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
-
-	// Still need side switches here...
-
-	u8 AccelerationConstant;
-	u8 FineAdjustConstant;
-
-	u8 CurrentBank : 2;
-	u8 Reserved	   : 6;
-} sData;
-
-extern sData gData;
-
-void Data_Init(void);
+    pRGB->Blue = (u8)*pHue;
+}

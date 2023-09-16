@@ -15,6 +15,7 @@ endforeach
 project_src += files(
     'main.c',
 
+    'Display/Colour.c',
     'Display/Display.c',
     'Display/EncoderDisplay.c',
 

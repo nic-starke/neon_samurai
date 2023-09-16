@@ -23,9 +23,9 @@
 #include "Data.h"
 #include "Display.h"
 #include "Encoder.h"
+#include "Colour.h"
 
-sData gData = 
-{
+sData gData = {
 	.OperatingMode		  = DEFAULT_MODE,
 	.RGBBrightness		  = BRIGHTNESS_MAX,
 	.DetentBrightness	  = BRIGHTNESS_MAX,
@@ -45,28 +45,60 @@ typedef struct
 	u8 OperatingMode : 4;
 	u8 Reserved		 : 4;
 
-	sEEVirtualEncoder VirtualEncoders[NUM_VIRTUAL_ENCODERS];
-    sEEVirtualUber VirtualUbers[NUM_VIRTUAL_UBERS]; 
-    sEEVirtualSwitch VirtualSwitches[NUM_VIRTUAL_SWITCHES];
+	sEEVirtualEncoder VirtualEncoders[NUM_VIRTUAL_BANKS][NUM_ENCODERS][NUM_VIRTUAL_ENCODER_TYPES];
+	sEEVirtualUber	  VirtualUbers[NUM_VIRTUAL_BANKS][NUM_ENCODERS][NUM_VIRTUAL_UBER_TYPES];
+	sEEVirtualSwitch  VirtualSwitches[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
 } sEEData; // Data stored in EEPROM
 
-sEEData mEEData EEMEM = 
-{
-    .Version = 1,
-};
+// This data is in eeprom - access only via eeprom read/write functions
+sEEData mEEData EEMEM = {0};
 
-static u8 Version = 0;
+static inline void EE_ReadVirtualEncoder(sVirtualEncoder* pDest, sEEVirtualEncoder* pSrc)
+{
+	sEEVirtualEncoder shadow = {0};
+	eeprom_read_block(&shadow, pSrc, sizeof(sEEVirtualEncoder));
+
+	pDest->FineAdjust	= shadow.FineAdjust;
+	pDest->DisplayStyle = shadow.DisplayStyle;
+	pDest->HasDetent	= shadow.HasDetent;
+	pDest->MidiConfig	= shadow.MidiConfig;
+
+	Hue2RGB(shadow.DetentHue, &pDest->DetentColour);
+	Hue2RGB(shadow.RGBHue, &pDest->RGBColour);
+
+	pDest->DisplayInvalid = true;
+}
+
+static inline void EE_ReadVirtualUber(sVirtualUber* pDest, sEEVirtualUber* pSrc)
+{
+	sEEVirtualUber shadow = {0};
+	eeprom_read_block(&shadow, pSrc, sizeof(sEEVirtualUber));
+
+	*pDest = shadow;
+}
+
+static inline void EE_ReadVirtualSwitch(sVirtualSwitch* pDest, sEEVirtualSwitch* pSrc)
+{
+	sEEVirtualSwitch shadow = {0};
+	eeprom_read_block(&shadow, pSrc, sizeof(sEEVirtualSwitch));
+
+	pDest->MidiConfig = shadow.MidiConfig;
+}
 
 void Data_Init(void)
 {
-    // To get the compiler to assign memory these variables need to be assigned/used in some way.
-	gData.EncoderStates[0].pPrimary	  = &gData.VirtualEncoders[0];
-	gData.EncoderStates[0].pSecondary = &gData.VirtualEncoders[1];
-	// Read EE user settings to RAM.
+	while (!eeprom_is_ready()) {}						 // wait for eeprom ready
+	for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++) // Recall stored user settings.
+	{
+		for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+		{
+			sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
 
-    while(!eeprom_is_ready()) {} // wait for eeprom ready
-    
-    Version = eeprom_read_byte(&mEEData.Version);
-    Version++;
-    eeprom_write_byte(&mEEData.Version, Version);
+			EE_ReadVirtualEncoder(&pEncoder->Primary, &mEEData.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
+			EE_ReadVirtualEncoder(&pEncoder->Secondary, &mEEData.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
+			EE_ReadVirtualUber(&pEncoder->PrimaryUber, &mEEData.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
+			EE_ReadVirtualUber(&pEncoder->SecondaryUber, &mEEData.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
+			EE_ReadVirtualSwitch(&pEncoder->Switch, &mEEData.VirtualSwitches[bank][encoder]);
+		}
+	}
 }
