@@ -35,7 +35,7 @@ Please use the [issues](https://todo.sr.ht/~bxzn/Muffin) page of the repository 
 
 I have created a virtual machine development environment that can be used to quickly get going with the project.
 
-It is available [here](https://git.sr.ht/~bxzn/AVRGCC_DevelopmentEnvironment), its a generic Ubuntu VM configured with the latest AVR-GCC.
+It is available [here](https://git.sr.ht/~bxzn/AVR_VM), its a generic Ubuntu VM configured with the latest AVR-GCC.
 
 It uses a [Vagrant](www.vagrantup.com) configuration script so you don't have to configure anything.
 
