@@ -70,6 +70,10 @@ Now make some modifications and just run the `build.sh` script when required.
 
 If you want a clean build run `build.sh clean`.
 
+## Flashing the Firmware
+
+WIP.
+
 ## Disclaimer
 
 [Please review the license prior to use](LICENSE)
