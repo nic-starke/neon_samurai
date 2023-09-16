@@ -1,0 +1,91 @@
+ ██████   ██████               ██████     ██████   ███                                                    
+░░██████ ██████               ███░░███   ███░░███ ░░░                                                     
+ ░███░█████░███  █████ ████  ░███ ░░░   ░███ ░░░  ████  ████████                                          
+ ░███░░███ ░███ ░░███ ░███  ███████    ███████   ░░███ ░░███░░███                                         
+ ░███ ░░░  ░███  ░███ ░███ ░░░███░    ░░░███░     ░███  ░███ ░███                                         
+ ░███      ░███  ░███ ░███   ░███       ░███      ░███  ░███ ░███                                         
+ █████     █████ ░░████████  █████      █████     █████ ████ █████                                        
+░░░░░     ░░░░░   ░░░░░░░░  ░░░░░      ░░░░░     ░░░░░ ░░░░ ░░░░░                                         
+                                                                                                          
+                                                                                                          
+                                                                                                          
+ █████  █████               █████            █████                ██████   █████                 ████████ 
+░░███  ░░███               ░░███            ░░███                ░░██████ ░░███                 ███░░░░███
+ ░███   ░███  ████████   ███████   ██████   ███████    ██████     ░███░███ ░███   ██████       ░░░    ░███
+ ░███   ░███ ░░███░░███ ███░░███  ░░░░░███ ░░░███░    ███░░███    ░███░░███░███  ███░░███         ███████ 
+ ░███   ░███  ░███ ░███░███ ░███   ███████   ░███    ░███████     ░███ ░░██████ ░███ ░███        ███░░░░  
+ ░███   ░███  ░███ ░███░███ ░███  ███░░███   ░███ ███░███░░░      ░███  ░░█████ ░███ ░███       ███      █
+ ░░████████   ░███████ ░░████████░░████████  ░░█████ ░░██████     █████  ░░█████░░██████  ██   ░██████████
+  ░░░░░░░░    ░███░░░   ░░░░░░░░  ░░░░░░░░    ░░░░░   ░░░░░░     ░░░░░    ░░░░░  ░░░░░░  ░░    ░░░░░░░░░░ 
+              ░███                                                                                        
+              █████                                                                                       
+             ░░░░░                                                                                        
+
+
+Happy new year!
+
+Here's an update on whats been going on in the last month.
+
+- SourceHut -
+This project now lives on SourceHut. It's open source, has all the features I need, and is affordable.
+Previously I was using GitHub for the project, but I decided to try out SourceHut, so far its working out well.
+One major benefit to the project is that collaborators and/or users of the software don't need to register, they can comment/add issues just with an email address.
+
+- Wiki -
+The project now has a wiki, available here - https://man.sr.ht/~bxzn/Muffin/
+
+- Mailing List - 
+The project now has a mailing list - if you got this update your on it!
+You can check find previous updates and sign up here - https://lists.sr.ht/~bxzn/muffin-announce
+
+- MuffinEditor -
+I have started working on the desktop configuration tool for Muffin - https://git.sr.ht/~bxzn/MuffinEditor
+At the moment it is just a bare-bones project in JUCE, but in the future it will have similar functionality to the official MidiFighter Utility.
+
+- Muffin Changelog -
+
+[1] Bootloader
+The MFT can now be put into bootloader mode, allowing new firmware to be downloaded over USB (no fancy programming hardware required!).
+Holding in the four corner encoder switches, or the four top-left corner encoder switches during power up will start the bootloader.
+The LEDs will flash twice, and then you should see a checkerboard pattern - any AVR DFU compatible software can now be used to download new firmware.
+The MFT utility, FLIP (from ATMEL), and various other utilities can be used, and in the future the MuffinEditor will also support this.
+
+Importantly - this is the same bootloader that the Midi Fighter Twister already ships with, so users can switch between the original firmware and the
+Muffin firmware without fear of destroying the bootloader. Of course the standard precautions should be taken during firmware update...
+
+[2] User Data (EEPROM)
+When a user programs the Muffin firmware into the MFT it needs to write configuration data to the onboard storage. This process overwrites the data
+written by the original firmware - effectively the users previous configuration data will be destroyed. If they decide to go back to the original firmware
+the onboard storage must be reverted back to the default stage, this is done automatically by the firmware if it detects the onboard storage version is
+out of date. Muffin will make sure that this is set so that users going back to the original firmware won't experience weird bugs.
+
+[3] Encoders
+I have implemented a fixed speed rotation mode for the encoders, the accelerated mode does not exist yet.
+I will need to experiment to get the most optimal method for accelerated mode as I want low speed and high speed movements to be captured accurately.
+Some work on 14-bit NRPN midi messages will also be researched at this point.
+
+[4] Encoder Layers & Virtual Banks
+Each encoder now has two "layers" - each layer is basically a midi configuration, which sends a midi message when the encoder value
+lies within the layers' range
+
+The layers are independent, and can be enabled/disabled from the configuration tool or during use with an encoder switch/side switch.
+It is possible to have both layers active, and transmitting midi at the same time, allowing two midi parameters to be controlled by a single encoder.
+
+The mapping of the layer to the encoder is configurable - you can choose any arbitrary start and stop position.
+This means the layers can either overlap, or occupy seperate arcs around the encoder rotation. For example, Layer A could be on the left side,
+Layer B could be on the right, the configuration is completely up to you.
+
+The midi configuration of each layer is unique, so you could have one layer sending CC, and another sending notes.
+
+To accommodate for this amount of flexibility I had to drop the Super Knobs from the original firmware - but in return you get two completely independent
+and customisable midi controls per encoder.
+
+The full list of options for each layer is in the User Manual - https://man.sr.ht/~bxzn/Muffin/wiki/UserManual.md
+
+[5] Other
+Maximum brightness for all LEDs has been added.
+Muffin now supports the three display modes from the original firmware (Dot/Bar/Blended Bar), and detent mode for each.
+
+-------------------
+
+FIN.
