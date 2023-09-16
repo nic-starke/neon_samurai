@@ -185,10 +185,10 @@ extern "C" {
  */
 enum Pipe_WaitUntilReady_ErrorCodes_t
 {
-	PIPE_READYWAIT_NoError			  = 0, /**< Pipe ready for next packet, no error. */
-	PIPE_READYWAIT_PipeStalled		  = 1, /**< The device stalled the pipe while waiting. */
-	PIPE_READYWAIT_DeviceDisconnected = 2, /**< Device was disconnected from the host while waiting. */
-	PIPE_READYWAIT_Timeout			  = 3, /**< The device failed to accept or send the next packet
+    PIPE_READYWAIT_NoError            = 0, /**< Pipe ready for next packet, no error. */
+    PIPE_READYWAIT_PipeStalled        = 1, /**< The device stalled the pipe while waiting. */
+    PIPE_READYWAIT_DeviceDisconnected = 2, /**< Device was disconnected from the host while waiting. */
+    PIPE_READYWAIT_Timeout            = 3, /**< The device failed to accept or send the next packet
 											*   within the software timeout period set by the
 											*   \ref USB_STREAM_TIMEOUT_MS macro.
 											*/
@@ -205,7 +205,7 @@ enum Pipe_WaitUntilReady_ErrorCodes_t
 static inline uint16_t Pipe_BytesInPipe(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Pipe_BytesInPipe(void)
 {
-	return UPBCX;
+    return UPBCX;
 }
 
 /** Determines the currently selected pipe's direction.
@@ -215,7 +215,7 @@ static inline uint16_t Pipe_BytesInPipe(void)
 static inline uint8_t Pipe_GetPipeDirection(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetPipeDirection(void)
 {
-	return (UPCFG0X & (1 << EPDIR)) ? PIPE_DIR_IN : PIPE_DIR_OUT;
+    return (UPCFG0X & (1 << EPDIR)) ? PIPE_DIR_IN : PIPE_DIR_OUT;
 }
 
 /** Returns the pipe address of the currently selected pipe. This is typically
@@ -227,7 +227,7 @@ static inline uint8_t Pipe_GetPipeDirection(void)
 static inline uint8_t Pipe_GetCurrentPipe(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetCurrentPipe(void)
 {
-	return ((UPNUM & PIPE_PIPENUM_MASK) | Pipe_GetPipeDirection());
+    return ((UPNUM & PIPE_PIPENUM_MASK) | Pipe_GetPipeDirection());
 }
 
 /** Selects the given pipe address. Any pipe operations which do not require the
@@ -238,7 +238,7 @@ static inline uint8_t Pipe_GetCurrentPipe(void)
 static inline void Pipe_SelectPipe(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void Pipe_SelectPipe(const uint8_t Address)
 {
-	UPNUM = (Address & PIPE_PIPENUM_MASK);
+    UPNUM = (Address & PIPE_PIPENUM_MASK);
 }
 
 /** Resets the desired pipe, including the pipe banks and flags.
@@ -248,8 +248,8 @@ static inline void Pipe_SelectPipe(const uint8_t Address)
 static inline void Pipe_ResetPipe(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ResetPipe(const uint8_t Address)
 {
-	UPRST = (1 << (Address & PIPE_PIPENUM_MASK));
-	UPRST = 0;
+    UPRST = (1 << (Address & PIPE_PIPENUM_MASK));
+    UPRST = 0;
 }
 
 /** Enables the currently selected pipe so that data can be sent and received
@@ -261,7 +261,7 @@ static inline void Pipe_ResetPipe(const uint8_t Address)
 static inline void Pipe_EnablePipe(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_EnablePipe(void)
 {
-	UPCONX |= (1 << PEN);
+    UPCONX |= (1 << PEN);
 }
 
 /** Disables the currently selected pipe so that data cannot be sent and
@@ -270,7 +270,7 @@ static inline void Pipe_EnablePipe(void)
 static inline void Pipe_DisablePipe(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_DisablePipe(void)
 {
-	UPCONX &= ~(1 << PEN);
+    UPCONX &= ~(1 << PEN);
 }
 
 /** Determines if the currently selected pipe is enabled, but not necessarily
@@ -282,7 +282,7 @@ static inline void Pipe_DisablePipe(void)
 static inline bool Pipe_IsEnabled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsEnabled(void)
 {
-	return ((UPCONX & (1 << PEN)) ? true : false);
+    return ((UPCONX & (1 << PEN)) ? true : false);
 }
 
 /** Gets the current pipe token, indicating the pipe's data direction and type.
@@ -292,7 +292,7 @@ static inline bool Pipe_IsEnabled(void)
 static inline uint8_t Pipe_GetPipeToken(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetPipeToken(void)
 {
-	return (UPCFG0X & (0x03 << PTOKEN0));
+    return (UPCFG0X & (0x03 << PTOKEN0));
 }
 
 /** Sets the token for the currently selected pipe to one of the tokens
@@ -308,7 +308,7 @@ static inline uint8_t Pipe_GetPipeToken(void)
 static inline void Pipe_SetPipeToken(const uint8_t Token) ATTR_ALWAYS_INLINE;
 static inline void Pipe_SetPipeToken(const uint8_t Token)
 {
-	UPCFG0X = ((UPCFG0X & ~(0x03 << PTOKEN0)) | Token);
+    UPCFG0X = ((UPCFG0X & ~(0x03 << PTOKEN0)) | Token);
 }
 
 /** Configures the currently selected pipe to allow for an unlimited number of
@@ -316,7 +316,7 @@ static inline void Pipe_SetPipeToken(const uint8_t Token)
 static inline void Pipe_SetInfiniteINRequests(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_SetInfiniteINRequests(void)
 {
-	UPCONX |= (1 << INMODE);
+    UPCONX |= (1 << INMODE);
 }
 
 /** Configures the currently selected pipe to only allow the specified number of
@@ -328,8 +328,8 @@ static inline void Pipe_SetInfiniteINRequests(void)
 static inline void Pipe_SetFiniteINRequests(const uint8_t TotalINRequests) ATTR_ALWAYS_INLINE;
 static inline void Pipe_SetFiniteINRequests(const uint8_t TotalINRequests)
 {
-	UPCONX &= ~(1 << INMODE);
-	UPINRQX = TotalINRequests;
+    UPCONX &= ~(1 << INMODE);
+    UPINRQX = TotalINRequests;
 }
 
 /** Determines if the currently selected pipe is configured.
@@ -340,7 +340,7 @@ static inline void Pipe_SetFiniteINRequests(const uint8_t TotalINRequests)
 static inline bool Pipe_IsConfigured(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsConfigured(void)
 {
-	return ((UPSTAX & (1 << CFGOK)) ? true : false);
+    return ((UPSTAX & (1 << CFGOK)) ? true : false);
 }
 
 /** Retrieves the endpoint address of the endpoint within the attached device
@@ -351,9 +351,9 @@ static inline bool Pipe_IsConfigured(void)
 static inline uint8_t Pipe_GetBoundEndpointAddress(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetBoundEndpointAddress(void)
 {
-	uint8_t UPCFG0X_Temp = UPCFG0X;
+    uint8_t UPCFG0X_Temp = UPCFG0X;
 
-	return (((UPCFG0X_Temp >> PEPNUM0) & PIPE_EPNUM_MASK) | ((UPCFG0X_Temp & (1 << PTOKEN1)) ? ENDPOINT_DIR_IN : ENDPOINT_DIR_OUT));
+    return (((UPCFG0X_Temp >> PEPNUM0) & PIPE_EPNUM_MASK) | ((UPCFG0X_Temp & (1 << PTOKEN1)) ? ENDPOINT_DIR_IN : ENDPOINT_DIR_OUT));
 }
 
 /** Sets the period between interrupts for an INTERRUPT type pipe to a specified
@@ -364,7 +364,7 @@ static inline uint8_t Pipe_GetBoundEndpointAddress(void)
 static inline void Pipe_SetInterruptPeriod(const uint8_t Milliseconds) ATTR_ALWAYS_INLINE;
 static inline void Pipe_SetInterruptPeriod(const uint8_t Milliseconds)
 {
-	UPCFG2X = Milliseconds;
+    UPCFG2X = Milliseconds;
 }
 
 /** Returns a mask indicating which pipe's interrupt periods have elapsed,
@@ -375,7 +375,7 @@ static inline void Pipe_SetInterruptPeriod(const uint8_t Milliseconds)
 static inline uint8_t Pipe_GetPipeInterrupts(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetPipeInterrupts(void)
 {
-	return UPINT;
+    return UPINT;
 }
 
 /** Determines if the specified pipe address has interrupted (valid only for
@@ -390,7 +390,7 @@ static inline uint8_t Pipe_GetPipeInterrupts(void)
 static inline bool Pipe_HasPipeInterrupted(const uint8_t Address) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_HasPipeInterrupted(const uint8_t Address)
 {
-	return ((UPINT & (1 << (Address & PIPE_PIPENUM_MASK))) ? true : false);
+    return ((UPINT & (1 << (Address & PIPE_PIPENUM_MASK))) ? true : false);
 }
 
 /** Unfreezes the selected pipe, allowing it to communicate with an attached
@@ -398,7 +398,7 @@ static inline bool Pipe_HasPipeInterrupted(const uint8_t Address)
 static inline void Pipe_Unfreeze(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Unfreeze(void)
 {
-	UPCONX &= ~(1 << PFREEZE);
+    UPCONX &= ~(1 << PFREEZE);
 }
 
 /** Freezes the selected pipe, preventing it from communicating with an attached
@@ -406,7 +406,7 @@ static inline void Pipe_Unfreeze(void)
 static inline void Pipe_Freeze(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Freeze(void)
 {
-	UPCONX |= (1 << PFREEZE);
+    UPCONX |= (1 << PFREEZE);
 }
 
 /** Determines if the currently selected pipe is frozen, and not able to accept
@@ -418,15 +418,15 @@ static inline void Pipe_Freeze(void)
 static inline bool Pipe_IsFrozen(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsFrozen(void)
 {
-	return ((UPCONX & (1 << PFREEZE)) ? true : false);
+    return ((UPCONX & (1 << PFREEZE)) ? true : false);
 }
 
 /** Clears the error flags for the currently selected pipe. */
 static inline void Pipe_ClearError(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ClearError(void)
 {
-	UPERRX = 0;
-	UPINTX &= ~(1 << PERRI);
+    UPERRX = 0;
+    UPINTX &= ~(1 << PERRI);
 }
 
 /** Determines if the master pipe error flag is set for the currently selected
@@ -441,7 +441,7 @@ static inline void Pipe_ClearError(void)
 static inline bool Pipe_IsError(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsError(void)
 {
-	return ((UPINTX & (1 << PERRI)) ? true : false);
+    return ((UPINTX & (1 << PERRI)) ? true : false);
 }
 
 /** Gets a mask of the hardware error flags which have occurred on the currently
@@ -454,9 +454,9 @@ static inline bool Pipe_IsError(void)
 static inline uint8_t Pipe_GetErrorFlags(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetErrorFlags(void)
 {
-	return (
-		(UPERRX & (PIPE_ERRORFLAG_CRC16 | PIPE_ERRORFLAG_TIMEOUT | PIPE_ERRORFLAG_PID | PIPE_ERRORFLAG_DATAPID | PIPE_ERRORFLAG_DATATGL)) |
-		(UPSTAX & (PIPE_ERRORFLAG_OVERFLOW | PIPE_ERRORFLAG_UNDERFLOW)));
+    return (
+        (UPERRX & (PIPE_ERRORFLAG_CRC16 | PIPE_ERRORFLAG_TIMEOUT | PIPE_ERRORFLAG_PID | PIPE_ERRORFLAG_DATAPID | PIPE_ERRORFLAG_DATATGL)) |
+        (UPSTAX & (PIPE_ERRORFLAG_OVERFLOW | PIPE_ERRORFLAG_UNDERFLOW)));
 }
 
 /** Retrieves the number of busy banks in the currently selected pipe, which
@@ -470,7 +470,7 @@ static inline uint8_t Pipe_GetErrorFlags(void)
 static inline uint8_t Pipe_GetBusyBanks(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_GetBusyBanks(void)
 {
-	return (UPSTAX & (0x03 << NBUSYBK0));
+    return (UPSTAX & (0x03 << NBUSYBK0));
 }
 
 /** Determines if the currently selected pipe may be read from (if data is
@@ -490,7 +490,7 @@ static inline uint8_t Pipe_GetBusyBanks(void)
 static inline bool Pipe_IsReadWriteAllowed(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsReadWriteAllowed(void)
 {
-	return ((UPINTX & (1 << RWAL)) ? true : false);
+    return ((UPINTX & (1 << RWAL)) ? true : false);
 }
 
 /** Determines if a packet has been received on the currently selected IN pipe
@@ -504,7 +504,7 @@ static inline bool Pipe_IsReadWriteAllowed(void)
 static inline bool Pipe_IsINReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsINReceived(void)
 {
-	return ((UPINTX & (1 << RXINI)) ? true : false);
+    return ((UPINTX & (1 << RXINI)) ? true : false);
 }
 
 /** Determines if the currently selected OUT pipe is ready to send an OUT packet
@@ -518,7 +518,7 @@ static inline bool Pipe_IsINReceived(void)
 static inline bool Pipe_IsOUTReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsOUTReady(void)
 {
-	return ((UPINTX & (1 << TXOUTI)) ? true : false);
+    return ((UPINTX & (1 << TXOUTI)) ? true : false);
 }
 
 /** Determines if no SETUP request is currently being sent to the attached
@@ -532,7 +532,7 @@ static inline bool Pipe_IsOUTReady(void)
 static inline bool Pipe_IsSETUPSent(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsSETUPSent(void)
 {
-	return ((UPINTX & (1 << TXSTPI)) ? true : false);
+    return ((UPINTX & (1 << TXSTPI)) ? true : false);
 }
 
 /** Sends the currently selected CONTROL type pipe's contents to the device as a
@@ -543,7 +543,7 @@ static inline bool Pipe_IsSETUPSent(void)
 static inline void Pipe_ClearSETUP(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ClearSETUP(void)
 {
-	UPINTX &= ~((1 << TXSTPI) | (1 << FIFOCON));
+    UPINTX &= ~((1 << TXSTPI) | (1 << FIFOCON));
 }
 
 /** Acknowledges the reception of a setup IN request from the attached device on
@@ -554,7 +554,7 @@ static inline void Pipe_ClearSETUP(void)
 static inline void Pipe_ClearIN(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ClearIN(void)
 {
-	UPINTX &= ~((1 << RXINI) | (1 << FIFOCON));
+    UPINTX &= ~((1 << RXINI) | (1 << FIFOCON));
 }
 
 /** Sends the currently selected pipe's contents to the device as an OUT packet
@@ -565,7 +565,7 @@ static inline void Pipe_ClearIN(void)
 static inline void Pipe_ClearOUT(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ClearOUT(void)
 {
-	UPINTX &= ~((1 << TXOUTI) | (1 << FIFOCON));
+    UPINTX &= ~((1 << TXOUTI) | (1 << FIFOCON));
 }
 
 /** Determines if the device sent a NAK (Negative Acknowledge) in response to
@@ -583,7 +583,7 @@ static inline void Pipe_ClearOUT(void)
 static inline bool Pipe_IsNAKReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsNAKReceived(void)
 {
-	return ((UPINTX & (1 << NAKEDI)) ? true : false);
+    return ((UPINTX & (1 << NAKEDI)) ? true : false);
 }
 
 /** Clears the NAK condition on the currently selected pipe.
@@ -595,7 +595,7 @@ static inline bool Pipe_IsNAKReceived(void)
 static inline void Pipe_ClearNAKReceived(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ClearNAKReceived(void)
 {
-	UPINTX &= ~(1 << NAKEDI);
+    UPINTX &= ~(1 << NAKEDI);
 }
 
 /** Determines if the currently selected pipe has had the STALL condition set by
@@ -609,7 +609,7 @@ static inline void Pipe_ClearNAKReceived(void)
 static inline bool Pipe_IsStalled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Pipe_IsStalled(void)
 {
-	return ((UPINTX & (1 << RXSTALLI)) ? true : false);
+    return ((UPINTX & (1 << RXSTALLI)) ? true : false);
 }
 
 /** Clears the STALL condition detection flag on the currently selected pipe,
@@ -621,7 +621,7 @@ static inline bool Pipe_IsStalled(void)
 static inline void Pipe_ClearStall(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_ClearStall(void)
 {
-	UPINTX &= ~(1 << RXSTALLI);
+    UPINTX &= ~(1 << RXSTALLI);
 }
 
 /** Reads one byte from the currently selected pipe's bank, for OUT direction
@@ -634,7 +634,7 @@ static inline void Pipe_ClearStall(void)
 static inline uint8_t Pipe_Read_8(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_Read_8(void)
 {
-	return UPDATX;
+    return UPDATX;
 }
 
 /** Writes one byte to the currently selected pipe's bank, for IN direction
@@ -648,7 +648,7 @@ static inline uint8_t Pipe_Read_8(void)
 static inline void Pipe_Write_8(const uint8_t Data) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Write_8(const uint8_t Data)
 {
-	UPDATX = Data;
+    UPDATX = Data;
 }
 
 /** Discards one byte from the currently selected pipe's bank, for OUT direction
@@ -659,11 +659,11 @@ static inline void Pipe_Write_8(const uint8_t Data)
 static inline void Pipe_Discard_8(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Discard_8(void)
 {
-	uint8_t Dummy;
+    uint8_t Dummy;
 
-	Dummy = UPDATX;
+    Dummy = UPDATX;
 
-	(void)Dummy;
+    (void)Dummy;
 }
 
 /** Reads two bytes from the currently selected pipe's bank in little endian
@@ -676,16 +676,16 @@ static inline void Pipe_Discard_8(void)
 static inline uint16_t Pipe_Read_16_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Pipe_Read_16_LE(void)
 {
-	union
-	{
-		uint16_t Value;
-		uint8_t	 Bytes[2];
-	} Data;
+    union
+    {
+        uint16_t Value;
+        uint8_t  Bytes[2];
+    } Data;
 
-	Data.Bytes[0] = UPDATX;
-	Data.Bytes[1] = UPDATX;
+    Data.Bytes[0] = UPDATX;
+    Data.Bytes[1] = UPDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Reads two bytes from the currently selected pipe's bank in big endian
@@ -698,16 +698,16 @@ static inline uint16_t Pipe_Read_16_LE(void)
 static inline uint16_t Pipe_Read_16_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Pipe_Read_16_BE(void)
 {
-	union
-	{
-		uint16_t Value;
-		uint8_t	 Bytes[2];
-	} Data;
+    union
+    {
+        uint16_t Value;
+        uint8_t  Bytes[2];
+    } Data;
 
-	Data.Bytes[1] = UPDATX;
-	Data.Bytes[0] = UPDATX;
+    Data.Bytes[1] = UPDATX;
+    Data.Bytes[0] = UPDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Writes two bytes to the currently selected pipe's bank in little endian
@@ -720,8 +720,8 @@ static inline uint16_t Pipe_Read_16_BE(void)
 static inline void Pipe_Write_16_LE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Write_16_LE(const uint16_t Data)
 {
-	UPDATX = (Data & 0xFF);
-	UPDATX = (Data >> 8);
+    UPDATX = (Data & 0xFF);
+    UPDATX = (Data >> 8);
 }
 
 /** Writes two bytes to the currently selected pipe's bank in big endian format,
@@ -734,8 +734,8 @@ static inline void Pipe_Write_16_LE(const uint16_t Data)
 static inline void Pipe_Write_16_BE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Write_16_BE(const uint16_t Data)
 {
-	UPDATX = (Data >> 8);
-	UPDATX = (Data & 0xFF);
+    UPDATX = (Data >> 8);
+    UPDATX = (Data & 0xFF);
 }
 
 /** Discards two bytes from the currently selected pipe's bank, for OUT
@@ -746,12 +746,12 @@ static inline void Pipe_Write_16_BE(const uint16_t Data)
 static inline void Pipe_Discard_16(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Discard_16(void)
 {
-	uint8_t Dummy;
+    uint8_t Dummy;
 
-	Dummy = UPDATX;
-	Dummy = UPDATX;
+    Dummy = UPDATX;
+    Dummy = UPDATX;
 
-	(void)Dummy;
+    (void)Dummy;
 }
 
 /** Reads four bytes from the currently selected pipe's bank in little endian
@@ -764,18 +764,18 @@ static inline void Pipe_Discard_16(void)
 static inline uint32_t Pipe_Read_32_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint32_t Pipe_Read_32_LE(void)
 {
-	union
-	{
-		uint32_t Value;
-		uint8_t	 Bytes[4];
-	} Data;
+    union
+    {
+        uint32_t Value;
+        uint8_t  Bytes[4];
+    } Data;
 
-	Data.Bytes[0] = UPDATX;
-	Data.Bytes[1] = UPDATX;
-	Data.Bytes[2] = UPDATX;
-	Data.Bytes[3] = UPDATX;
+    Data.Bytes[0] = UPDATX;
+    Data.Bytes[1] = UPDATX;
+    Data.Bytes[2] = UPDATX;
+    Data.Bytes[3] = UPDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Reads four bytes from the currently selected pipe's bank in big endian
@@ -788,18 +788,18 @@ static inline uint32_t Pipe_Read_32_LE(void)
 static inline uint32_t Pipe_Read_32_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint32_t Pipe_Read_32_BE(void)
 {
-	union
-	{
-		uint32_t DWord;
-		uint8_t	 Bytes[4];
-	} Data;
+    union
+    {
+        uint32_t DWord;
+        uint8_t  Bytes[4];
+    } Data;
 
-	Data.Bytes[3] = UPDATX;
-	Data.Bytes[2] = UPDATX;
-	Data.Bytes[1] = UPDATX;
-	Data.Bytes[0] = UPDATX;
+    Data.Bytes[3] = UPDATX;
+    Data.Bytes[2] = UPDATX;
+    Data.Bytes[1] = UPDATX;
+    Data.Bytes[0] = UPDATX;
 
-	return Data.DWord;
+    return Data.DWord;
 }
 
 /** Writes four bytes to the currently selected pipe's bank in little endian
@@ -812,10 +812,10 @@ static inline uint32_t Pipe_Read_32_BE(void)
 static inline void Pipe_Write_32_LE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Write_32_LE(const uint32_t Data)
 {
-	UPDATX = (Data & 0xFF);
-	UPDATX = (Data >> 8);
-	UPDATX = (Data >> 16);
-	UPDATX = (Data >> 24);
+    UPDATX = (Data & 0xFF);
+    UPDATX = (Data >> 8);
+    UPDATX = (Data >> 16);
+    UPDATX = (Data >> 24);
 }
 
 /** Writes four bytes to the currently selected pipe's bank in big endian
@@ -828,10 +828,10 @@ static inline void Pipe_Write_32_LE(const uint32_t Data)
 static inline void Pipe_Write_32_BE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Write_32_BE(const uint32_t Data)
 {
-	UPDATX = (Data >> 24);
-	UPDATX = (Data >> 16);
-	UPDATX = (Data >> 8);
-	UPDATX = (Data & 0xFF);
+    UPDATX = (Data >> 24);
+    UPDATX = (Data >> 16);
+    UPDATX = (Data >> 8);
+    UPDATX = (Data & 0xFF);
 }
 
 /** Discards four bytes from the currently selected pipe's bank, for OUT
@@ -842,14 +842,14 @@ static inline void Pipe_Write_32_BE(const uint32_t Data)
 static inline void Pipe_Discard_32(void) ATTR_ALWAYS_INLINE;
 static inline void Pipe_Discard_32(void)
 {
-	uint8_t Dummy;
+    uint8_t Dummy;
 
-	Dummy = UPDATX;
-	Dummy = UPDATX;
-	Dummy = UPDATX;
-	Dummy = UPDATX;
+    Dummy = UPDATX;
+    Dummy = UPDATX;
+    Dummy = UPDATX;
+    Dummy = UPDATX;
 
-	(void)Dummy;
+    (void)Dummy;
 }
 
 /* External Variables: */
@@ -959,16 +959,16 @@ bool Pipe_IsEndpointBound(const uint8_t EndpointAddress) ATTR_WARN_UNUSED_RESULT
 static inline uint8_t Pipe_BytesToEPSizeMask(const uint16_t Bytes) ATTR_WARN_UNUSED_RESULT ATTR_CONST ATTR_ALWAYS_INLINE;
 static inline uint8_t Pipe_BytesToEPSizeMask(const uint16_t Bytes)
 {
-	uint8_t	 MaskVal	= 0;
-	uint16_t CheckBytes = 8;
+    uint8_t  MaskVal    = 0;
+    uint16_t CheckBytes = 8;
 
-	while ((CheckBytes < Bytes) && (CheckBytes < PIPE_MAX_SIZE))
-	{
-		MaskVal++;
-		CheckBytes <<= 1;
-	}
+    while ((CheckBytes < Bytes) && (CheckBytes < PIPE_MAX_SIZE))
+    {
+        MaskVal++;
+        CheckBytes <<= 1;
+    }
 
-	return (MaskVal << EPSIZE0);
+    return (MaskVal << EPSIZE0);
 }
 
 /* Function Prototypes: */

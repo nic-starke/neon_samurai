@@ -81,15 +81,15 @@ extern "C" {
  */
 enum USB_Host_SendControlErrorCodes_t
 {
-	HOST_SENDCONTROL_Successful			= 0, /**< No error occurred in the request transfer. */
-	HOST_SENDCONTROL_DeviceDisconnected = 1, /**< The attached device was disconnected during the
+    HOST_SENDCONTROL_Successful         = 0, /**< No error occurred in the request transfer. */
+    HOST_SENDCONTROL_DeviceDisconnected = 1, /**< The attached device was disconnected during the
 											  *     request transfer.
 											  */
-	HOST_SENDCONTROL_PipeError			= 2, /**< An error occurred in the pipe while sending the request. */
-	HOST_SENDCONTROL_SetupStalled		= 3, /**< The attached device stalled the request, usually
+    HOST_SENDCONTROL_PipeError          = 2, /**< An error occurred in the pipe while sending the request. */
+    HOST_SENDCONTROL_SetupStalled       = 3, /**< The attached device stalled the request, usually
 											  *   indicating that the request is unsupported on the device.
 											  */
-	HOST_SENDCONTROL_SoftwareTimeOut	= 4, /**< The request or data transfer timed out. */
+    HOST_SENDCONTROL_SoftwareTimeOut    = 4, /**< The request or data transfer timed out. */
 };
 
 /* Global Variables: */
@@ -175,7 +175,7 @@ uint8_t USB_Host_GetDeviceConfiguration(uint8_t* const ConfigNumber) ATTR_NON_NU
  * indicate the result.
  */
 uint8_t USB_Host_GetDescriptor(const uint8_t Type, const uint8_t Index, void* const Buffer, const uint8_t BufferLength)
-	ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(3);
 
 /** Retrieves the current feature status of the attached device, via a GET
  * STATUS standard request. The retrieved feature status can then be examined by
@@ -260,7 +260,7 @@ uint8_t USB_Host_GetInterfaceAltSetting(const uint8_t InterfaceIndex, uint8_t* c
 static inline uint8_t USB_Host_GetDeviceDescriptor(USB_Descriptor_Device_t* const DeviceDescriptorPtr) ATTR_NON_NULL_PTR_ARG(1);
 static inline uint8_t USB_Host_GetDeviceDescriptor(USB_Descriptor_Device_t* const DeviceDescriptorPtr)
 {
-	return USB_Host_GetDescriptor(DTYPE_Device, 0, DeviceDescriptorPtr, sizeof(USB_Descriptor_Device_t));
+    return USB_Host_GetDescriptor(DTYPE_Device, 0, DeviceDescriptorPtr, sizeof(USB_Descriptor_Device_t));
 }
 
 /** Sends a GET DESCRIPTOR standard request to the attached device, requesting
@@ -282,10 +282,10 @@ static inline uint8_t USB_Host_GetDeviceDescriptor(USB_Descriptor_Device_t* cons
  * indicate the result.
  */
 static inline uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index, void* const Buffer, const uint8_t BufferLength)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 static inline uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index, void* const Buffer, const uint8_t BufferLength)
 {
-	return USB_Host_GetDescriptor(DTYPE_String, Index, Buffer, BufferLength);
+    return USB_Host_GetDescriptor(DTYPE_String, Index, Buffer, BufferLength);
 }
 
 /* Private Interface - For use in library only: */
@@ -293,9 +293,9 @@ static inline uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index, vo
 /* Enums: */
 enum USB_WaitForTypes_t
 {
-	USB_HOST_WAITFOR_SetupSent,
-	USB_HOST_WAITFOR_InReceived,
-	USB_HOST_WAITFOR_OutReady,
+    USB_HOST_WAITFOR_SetupSent,
+    USB_HOST_WAITFOR_InReceived,
+    USB_HOST_WAITFOR_OutReady,
 };
 
 /* Function Prototypes: */

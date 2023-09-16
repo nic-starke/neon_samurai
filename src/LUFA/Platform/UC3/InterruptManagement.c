@@ -41,24 +41,24 @@ InterruptHandlerPtr_t InterruptHandlers[AVR32_INTC_NUM_INT_GRPS];
 /** ISR for unhandled interrupt groups */
 ISR(Unhandled_Interrupt)
 {
-	for (;;)
-		;
+    for (;;)
+        ;
 }
 
 InterruptHandlerPtr_t INTC_GetInterruptHandler(const uint_reg_t InterruptLevel)
 {
-	return InterruptHandlers[AVR32_INTC.icr[AVR32_INTC_INT3 - InterruptLevel]];
+    return InterruptHandlers[AVR32_INTC.icr[AVR32_INTC_INT3 - InterruptLevel]];
 }
 
 void INTC_Init(void)
 {
-	for (uint8_t InterruptGroup = 0; InterruptGroup < AVR32_INTC_NUM_INT_GRPS; InterruptGroup++)
-	{
-		InterruptHandlers[InterruptGroup] = Unhandled_Interrupt;
-		AVR32_INTC.ipr[InterruptGroup]	  = Autovector_Table[AVR32_INTC_INT0];
-	}
+    for (uint8_t InterruptGroup = 0; InterruptGroup < AVR32_INTC_NUM_INT_GRPS; InterruptGroup++)
+    {
+        InterruptHandlers[InterruptGroup] = Unhandled_Interrupt;
+        AVR32_INTC.ipr[InterruptGroup]    = Autovector_Table[AVR32_INTC_INT0];
+    }
 
-	__builtin_mtsr(AVR32_EVBA, (uintptr_t)&EVBA_Table);
+    __builtin_mtsr(AVR32_EVBA, (uintptr_t)&EVBA_Table);
 }
 
 #endif

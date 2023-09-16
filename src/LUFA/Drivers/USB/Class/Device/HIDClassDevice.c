@@ -39,172 +39,172 @@
 
 void HID_Device_ProcessControlRequest(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 {
-	if (!(Endpoint_IsSETUPReceived()))
-		return;
+    if (!(Endpoint_IsSETUPReceived()))
+        return;
 
-	if (USB_ControlRequest.wIndex != HIDInterfaceInfo->Config.InterfaceNumber)
-		return;
+    if (USB_ControlRequest.wIndex != HIDInterfaceInfo->Config.InterfaceNumber)
+        return;
 
-	switch (USB_ControlRequest.bRequest)
-	{
-		case HID_REQ_GetReport:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
-				uint16_t ReportSize = 0;
-				uint8_t	 ReportID	= (USB_ControlRequest.wValue & 0xFF);
-				uint8_t	 ReportType = (USB_ControlRequest.wValue >> 8) - 1;
-				uint8_t	 ReportData[HIDInterfaceInfo->Config.PrevReportINBufferSize];
+    switch (USB_ControlRequest.bRequest)
+    {
+        case HID_REQ_GetReport:
+            if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
+            {
+                uint16_t ReportSize = 0;
+                uint8_t  ReportID   = (USB_ControlRequest.wValue & 0xFF);
+                uint8_t  ReportType = (USB_ControlRequest.wValue >> 8) - 1;
+                uint8_t  ReportData[HIDInterfaceInfo->Config.PrevReportINBufferSize];
 
-				memset(ReportData, 0, sizeof(ReportData));
+                memset(ReportData, 0, sizeof(ReportData));
 
-				CALLBACK_HID_Device_CreateHIDReport(HIDInterfaceInfo, &ReportID, ReportType, ReportData, &ReportSize);
+                CALLBACK_HID_Device_CreateHIDReport(HIDInterfaceInfo, &ReportID, ReportType, ReportData, &ReportSize);
 
-				if (HIDInterfaceInfo->Config.PrevReportINBuffer != NULL)
-				{
-					memcpy(HIDInterfaceInfo->Config.PrevReportINBuffer, ReportData, HIDInterfaceInfo->Config.PrevReportINBufferSize);
-				}
+                if (HIDInterfaceInfo->Config.PrevReportINBuffer != NULL)
+                {
+                    memcpy(HIDInterfaceInfo->Config.PrevReportINBuffer, ReportData, HIDInterfaceInfo->Config.PrevReportINBufferSize);
+                }
 
-				Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+                Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
 
-				Endpoint_ClearSETUP();
+                Endpoint_ClearSETUP();
 
-				if (ReportID)
-					Endpoint_Write_8(ReportID);
+                if (ReportID)
+                    Endpoint_Write_8(ReportID);
 
-				Endpoint_Write_Control_Stream_LE(ReportData, ReportSize);
-				Endpoint_ClearOUT();
-			}
+                Endpoint_Write_Control_Stream_LE(ReportData, ReportSize);
+                Endpoint_ClearOUT();
+            }
 
-			break;
-		case HID_REQ_SetReport:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
-				uint16_t ReportSize = USB_ControlRequest.wLength;
-				uint8_t	 ReportID	= (USB_ControlRequest.wValue & 0xFF);
-				uint8_t	 ReportType = (USB_ControlRequest.wValue >> 8) - 1;
-				uint8_t	 ReportData[ReportSize];
+            break;
+        case HID_REQ_SetReport:
+            if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
+            {
+                uint16_t ReportSize = USB_ControlRequest.wLength;
+                uint8_t  ReportID   = (USB_ControlRequest.wValue & 0xFF);
+                uint8_t  ReportType = (USB_ControlRequest.wValue >> 8) - 1;
+                uint8_t  ReportData[ReportSize];
 
-				Endpoint_ClearSETUP();
-				Endpoint_Read_Control_Stream_LE(ReportData, ReportSize);
-				Endpoint_ClearIN();
+                Endpoint_ClearSETUP();
+                Endpoint_Read_Control_Stream_LE(ReportData, ReportSize);
+                Endpoint_ClearIN();
 
-				CALLBACK_HID_Device_ProcessHIDReport(HIDInterfaceInfo, ReportID, ReportType, &ReportData[ReportID ? 1 : 0],
-													 ReportSize - (ReportID ? 1 : 0));
-			}
+                CALLBACK_HID_Device_ProcessHIDReport(HIDInterfaceInfo, ReportID, ReportType, &ReportData[ReportID ? 1 : 0],
+                                                     ReportSize - (ReportID ? 1 : 0));
+            }
 
-			break;
-		case HID_REQ_GetProtocol:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
-				Endpoint_ClearSETUP();
-				while (!(Endpoint_IsINReady()))
-					;
-				Endpoint_Write_8(HIDInterfaceInfo->State.UsingReportProtocol);
-				Endpoint_ClearIN();
-				Endpoint_ClearStatusStage();
-			}
+            break;
+        case HID_REQ_GetProtocol:
+            if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
+            {
+                Endpoint_ClearSETUP();
+                while (!(Endpoint_IsINReady()))
+                    ;
+                Endpoint_Write_8(HIDInterfaceInfo->State.UsingReportProtocol);
+                Endpoint_ClearIN();
+                Endpoint_ClearStatusStage();
+            }
 
-			break;
-		case HID_REQ_SetProtocol:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
-				Endpoint_ClearSETUP();
-				Endpoint_ClearStatusStage();
+            break;
+        case HID_REQ_SetProtocol:
+            if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
+            {
+                Endpoint_ClearSETUP();
+                Endpoint_ClearStatusStage();
 
-				HIDInterfaceInfo->State.UsingReportProtocol = ((USB_ControlRequest.wValue & 0xFF) != 0x00);
-			}
+                HIDInterfaceInfo->State.UsingReportProtocol = ((USB_ControlRequest.wValue & 0xFF) != 0x00);
+            }
 
-			break;
-		case HID_REQ_SetIdle:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
-				Endpoint_ClearSETUP();
-				Endpoint_ClearStatusStage();
+            break;
+        case HID_REQ_SetIdle:
+            if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
+            {
+                Endpoint_ClearSETUP();
+                Endpoint_ClearStatusStage();
 
-				HIDInterfaceInfo->State.IdleCount = ((USB_ControlRequest.wValue & 0xFF00) >> 6);
-			}
+                HIDInterfaceInfo->State.IdleCount = ((USB_ControlRequest.wValue & 0xFF00) >> 6);
+            }
 
-			break;
-		case HID_REQ_GetIdle:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
-				Endpoint_ClearSETUP();
-				while (!(Endpoint_IsINReady()))
-					;
-				Endpoint_Write_8(HIDInterfaceInfo->State.IdleCount >> 2);
-				Endpoint_ClearIN();
-				Endpoint_ClearStatusStage();
-			}
+            break;
+        case HID_REQ_GetIdle:
+            if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
+            {
+                Endpoint_ClearSETUP();
+                while (!(Endpoint_IsINReady()))
+                    ;
+                Endpoint_Write_8(HIDInterfaceInfo->State.IdleCount >> 2);
+                Endpoint_ClearIN();
+                Endpoint_ClearStatusStage();
+            }
 
-			break;
-	}
+            break;
+    }
 }
 
 bool HID_Device_ConfigureEndpoints(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 {
-	memset(&HIDInterfaceInfo->State, 0x00, sizeof(HIDInterfaceInfo->State));
-	HIDInterfaceInfo->State.UsingReportProtocol = true;
-	HIDInterfaceInfo->State.IdleCount			= 500;
+    memset(&HIDInterfaceInfo->State, 0x00, sizeof(HIDInterfaceInfo->State));
+    HIDInterfaceInfo->State.UsingReportProtocol = true;
+    HIDInterfaceInfo->State.IdleCount           = 500;
 
-	HIDInterfaceInfo->Config.ReportINEndpoint.Type = EP_TYPE_INTERRUPT;
+    HIDInterfaceInfo->Config.ReportINEndpoint.Type = EP_TYPE_INTERRUPT;
 
-	if (!(Endpoint_ConfigureEndpointTable(&HIDInterfaceInfo->Config.ReportINEndpoint, 1)))
-		return false;
+    if (!(Endpoint_ConfigureEndpointTable(&HIDInterfaceInfo->Config.ReportINEndpoint, 1)))
+        return false;
 
-	return true;
+    return true;
 }
 
 void HID_Device_USBTask(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 {
-	if (USB_DeviceState != DEVICE_STATE_Configured)
-		return;
+    if (USB_DeviceState != DEVICE_STATE_Configured)
+        return;
 
-	if (HIDInterfaceInfo->State.PrevFrameNum == USB_Device_GetFrameNumber())
-	{
+    if (HIDInterfaceInfo->State.PrevFrameNum == USB_Device_GetFrameNumber())
+    {
 #if defined(USB_DEVICE_OPT_LOWSPEED)
-		if (!(USB_Options & USB_DEVICE_OPT_LOWSPEED))
-			return;
+        if (!(USB_Options & USB_DEVICE_OPT_LOWSPEED))
+            return;
 #else
-		return;
+        return;
 #endif
-	}
+    }
 
-	Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.ReportINEndpoint.Address);
+    Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.ReportINEndpoint.Address);
 
-	if (Endpoint_IsReadWriteAllowed())
-	{
-		uint8_t	 ReportINData[HIDInterfaceInfo->Config.PrevReportINBufferSize];
-		uint8_t	 ReportID	  = 0;
-		uint16_t ReportINSize = 0;
+    if (Endpoint_IsReadWriteAllowed())
+    {
+        uint8_t  ReportINData[HIDInterfaceInfo->Config.PrevReportINBufferSize];
+        uint8_t  ReportID     = 0;
+        uint16_t ReportINSize = 0;
 
-		memset(ReportINData, 0, sizeof(ReportINData));
+        memset(ReportINData, 0, sizeof(ReportINData));
 
-		bool ForceSend = CALLBACK_HID_Device_CreateHIDReport(HIDInterfaceInfo, &ReportID, HID_REPORT_ITEM_In, ReportINData, &ReportINSize);
-		bool StatesChanged	   = false;
-		bool IdlePeriodElapsed = (HIDInterfaceInfo->State.IdleCount && !(HIDInterfaceInfo->State.IdleMSRemaining));
+        bool ForceSend = CALLBACK_HID_Device_CreateHIDReport(HIDInterfaceInfo, &ReportID, HID_REPORT_ITEM_In, ReportINData, &ReportINSize);
+        bool StatesChanged     = false;
+        bool IdlePeriodElapsed = (HIDInterfaceInfo->State.IdleCount && !(HIDInterfaceInfo->State.IdleMSRemaining));
 
-		if (HIDInterfaceInfo->Config.PrevReportINBuffer != NULL)
-		{
-			StatesChanged = (memcmp(ReportINData, HIDInterfaceInfo->Config.PrevReportINBuffer, ReportINSize) != 0);
-			memcpy(HIDInterfaceInfo->Config.PrevReportINBuffer, ReportINData, HIDInterfaceInfo->Config.PrevReportINBufferSize);
-		}
+        if (HIDInterfaceInfo->Config.PrevReportINBuffer != NULL)
+        {
+            StatesChanged = (memcmp(ReportINData, HIDInterfaceInfo->Config.PrevReportINBuffer, ReportINSize) != 0);
+            memcpy(HIDInterfaceInfo->Config.PrevReportINBuffer, ReportINData, HIDInterfaceInfo->Config.PrevReportINBufferSize);
+        }
 
-		if (ReportINSize && (ForceSend || StatesChanged || IdlePeriodElapsed))
-		{
-			HIDInterfaceInfo->State.IdleMSRemaining = HIDInterfaceInfo->State.IdleCount;
+        if (ReportINSize && (ForceSend || StatesChanged || IdlePeriodElapsed))
+        {
+            HIDInterfaceInfo->State.IdleMSRemaining = HIDInterfaceInfo->State.IdleCount;
 
-			Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.ReportINEndpoint.Address);
+            Endpoint_SelectEndpoint(HIDInterfaceInfo->Config.ReportINEndpoint.Address);
 
-			if (ReportID)
-				Endpoint_Write_8(ReportID);
+            if (ReportID)
+                Endpoint_Write_8(ReportID);
 
-			Endpoint_Write_Stream_LE(ReportINData, ReportINSize, NULL);
+            Endpoint_Write_Stream_LE(ReportINData, ReportINSize, NULL);
 
-			Endpoint_ClearIN();
-		}
+            Endpoint_ClearIN();
+        }
 
-		HIDInterfaceInfo->State.PrevFrameNum = USB_Device_GetFrameNumber();
-	}
+        HIDInterfaceInfo->State.PrevFrameNum = USB_Device_GetFrameNumber();
+    }
 }
 
 #endif

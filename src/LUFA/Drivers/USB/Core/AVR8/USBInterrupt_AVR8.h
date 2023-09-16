@@ -61,26 +61,26 @@ extern "C" {
 enum USB_Interrupts_t
 {
 #if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR) || defined(__DOXYGEN__))
-	USB_INT_VBUSTI = 0,
+    USB_INT_VBUSTI = 0,
 #endif
 #if (defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__))
-	USB_INT_IDTI = 1,
+    USB_INT_IDTI = 1,
 #endif
 #if (defined(USB_CAN_BE_DEVICE) || defined(__DOXYGEN__))
-	USB_INT_WAKEUPI = 2,
-	USB_INT_SUSPI	= 3,
-	USB_INT_EORSTI	= 4,
-	USB_INT_SOFI	= 5,
-	USB_INT_RXSTPI	= 6,
+    USB_INT_WAKEUPI = 2,
+    USB_INT_SUSPI   = 3,
+    USB_INT_EORSTI  = 4,
+    USB_INT_SOFI    = 5,
+    USB_INT_RXSTPI  = 6,
 #endif
 #if (defined(USB_CAN_BE_HOST) || defined(__DOXYGEN__))
-	USB_INT_HSOFI  = 7,
-	USB_INT_DCONNI = 8,
-	USB_INT_DDISCI = 9,
-	USB_INT_RSTI   = 10,
-	USB_INT_BCERRI = 11,
-	USB_INT_VBERRI = 12,
-	USB_INT_SRPI   = 13,
+    USB_INT_HSOFI  = 7,
+    USB_INT_DCONNI = 8,
+    USB_INT_DDISCI = 9,
+    USB_INT_RSTI   = 10,
+    USB_INT_BCERRI = 11,
+    USB_INT_VBERRI = 12,
+    USB_INT_SRPI   = 13,
 #endif
 };
 
@@ -88,156 +88,156 @@ enum USB_Interrupts_t
 static inline void USB_INT_Enable(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
 static inline void USB_INT_Enable(const uint8_t Interrupt)
 {
-	switch (Interrupt)
-	{
+    switch (Interrupt)
+    {
 #if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-		case USB_INT_VBUSTI: USBCON |= (1 << VBUSTE); break;
+        case USB_INT_VBUSTI: USBCON |= (1 << VBUSTE); break;
 #endif
 #if defined(USB_CAN_BE_BOTH)
-		case USB_INT_IDTI: USBCON |= (1 << IDTE); break;
+        case USB_INT_IDTI: USBCON |= (1 << IDTE); break;
 #endif
 #if defined(USB_CAN_BE_DEVICE)
-		case USB_INT_WAKEUPI: UDIEN |= (1 << WAKEUPE); break;
-		case USB_INT_SUSPI: UDIEN |= (1 << SUSPE); break;
-		case USB_INT_EORSTI: UDIEN |= (1 << EORSTE); break;
-		case USB_INT_SOFI: UDIEN |= (1 << SOFE); break;
-		case USB_INT_RXSTPI: UEIENX |= (1 << RXSTPE); break;
+        case USB_INT_WAKEUPI: UDIEN |= (1 << WAKEUPE); break;
+        case USB_INT_SUSPI: UDIEN |= (1 << SUSPE); break;
+        case USB_INT_EORSTI: UDIEN |= (1 << EORSTE); break;
+        case USB_INT_SOFI: UDIEN |= (1 << SOFE); break;
+        case USB_INT_RXSTPI: UEIENX |= (1 << RXSTPE); break;
 #endif
 #if defined(USB_CAN_BE_HOST)
-		case USB_INT_HSOFI: UHIEN |= (1 << HSOFE); break;
-		case USB_INT_DCONNI: UHIEN |= (1 << DCONNE); break;
-		case USB_INT_DDISCI: UHIEN |= (1 << DDISCE); break;
-		case USB_INT_RSTI: UHIEN |= (1 << RSTE); break;
-		case USB_INT_BCERRI: OTGIEN |= (1 << BCERRE); break;
-		case USB_INT_VBERRI: OTGIEN |= (1 << VBERRE); break;
-		case USB_INT_SRPI: OTGIEN |= (1 << SRPE); break;
+        case USB_INT_HSOFI: UHIEN |= (1 << HSOFE); break;
+        case USB_INT_DCONNI: UHIEN |= (1 << DCONNE); break;
+        case USB_INT_DDISCI: UHIEN |= (1 << DDISCE); break;
+        case USB_INT_RSTI: UHIEN |= (1 << RSTE); break;
+        case USB_INT_BCERRI: OTGIEN |= (1 << BCERRE); break;
+        case USB_INT_VBERRI: OTGIEN |= (1 << VBERRE); break;
+        case USB_INT_SRPI: OTGIEN |= (1 << SRPE); break;
 #endif
-		default: break;
-	}
+        default: break;
+    }
 }
 
 static inline void USB_INT_Disable(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
 static inline void USB_INT_Disable(const uint8_t Interrupt)
 {
-	switch (Interrupt)
-	{
+    switch (Interrupt)
+    {
 #if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-		case USB_INT_VBUSTI: USBCON &= ~(1 << VBUSTE); break;
+        case USB_INT_VBUSTI: USBCON &= ~(1 << VBUSTE); break;
 #endif
 #if defined(USB_CAN_BE_BOTH)
-		case USB_INT_IDTI: USBCON &= ~(1 << IDTE); break;
+        case USB_INT_IDTI: USBCON &= ~(1 << IDTE); break;
 #endif
 #if defined(USB_CAN_BE_DEVICE)
-		case USB_INT_WAKEUPI: UDIEN &= ~(1 << WAKEUPE); break;
-		case USB_INT_SUSPI: UDIEN &= ~(1 << SUSPE); break;
-		case USB_INT_EORSTI: UDIEN &= ~(1 << EORSTE); break;
-		case USB_INT_SOFI: UDIEN &= ~(1 << SOFE); break;
-		case USB_INT_RXSTPI: UEIENX &= ~(1 << RXSTPE); break;
+        case USB_INT_WAKEUPI: UDIEN &= ~(1 << WAKEUPE); break;
+        case USB_INT_SUSPI: UDIEN &= ~(1 << SUSPE); break;
+        case USB_INT_EORSTI: UDIEN &= ~(1 << EORSTE); break;
+        case USB_INT_SOFI: UDIEN &= ~(1 << SOFE); break;
+        case USB_INT_RXSTPI: UEIENX &= ~(1 << RXSTPE); break;
 #endif
 #if defined(USB_CAN_BE_HOST)
-		case USB_INT_HSOFI: UHIEN &= ~(1 << HSOFE); break;
-		case USB_INT_DCONNI: UHIEN &= ~(1 << DCONNE); break;
-		case USB_INT_DDISCI: UHIEN &= ~(1 << DDISCE); break;
-		case USB_INT_RSTI: UHIEN &= ~(1 << RSTE); break;
-		case USB_INT_BCERRI: OTGIEN &= ~(1 << BCERRE); break;
-		case USB_INT_VBERRI: OTGIEN &= ~(1 << VBERRE); break;
-		case USB_INT_SRPI: OTGIEN &= ~(1 << SRPE); break;
+        case USB_INT_HSOFI: UHIEN &= ~(1 << HSOFE); break;
+        case USB_INT_DCONNI: UHIEN &= ~(1 << DCONNE); break;
+        case USB_INT_DDISCI: UHIEN &= ~(1 << DDISCE); break;
+        case USB_INT_RSTI: UHIEN &= ~(1 << RSTE); break;
+        case USB_INT_BCERRI: OTGIEN &= ~(1 << BCERRE); break;
+        case USB_INT_VBERRI: OTGIEN &= ~(1 << VBERRE); break;
+        case USB_INT_SRPI: OTGIEN &= ~(1 << SRPE); break;
 #endif
-		default: break;
-	}
+        default: break;
+    }
 }
 
 static inline void USB_INT_Clear(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
 static inline void USB_INT_Clear(const uint8_t Interrupt)
 {
-	switch (Interrupt)
-	{
+    switch (Interrupt)
+    {
 #if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-		case USB_INT_VBUSTI: USBINT &= ~(1 << VBUSTI); break;
+        case USB_INT_VBUSTI: USBINT &= ~(1 << VBUSTI); break;
 #endif
 #if defined(USB_CAN_BE_BOTH)
-		case USB_INT_IDTI: USBINT &= ~(1 << IDTI); break;
+        case USB_INT_IDTI: USBINT &= ~(1 << IDTI); break;
 #endif
 #if defined(USB_CAN_BE_DEVICE)
-		case USB_INT_WAKEUPI: UDINT &= ~(1 << WAKEUPI); break;
-		case USB_INT_SUSPI: UDINT &= ~(1 << SUSPI); break;
-		case USB_INT_EORSTI: UDINT &= ~(1 << EORSTI); break;
-		case USB_INT_SOFI: UDINT &= ~(1 << SOFI); break;
-		case USB_INT_RXSTPI: UEINTX &= ~(1 << RXSTPI); break;
+        case USB_INT_WAKEUPI: UDINT &= ~(1 << WAKEUPI); break;
+        case USB_INT_SUSPI: UDINT &= ~(1 << SUSPI); break;
+        case USB_INT_EORSTI: UDINT &= ~(1 << EORSTI); break;
+        case USB_INT_SOFI: UDINT &= ~(1 << SOFI); break;
+        case USB_INT_RXSTPI: UEINTX &= ~(1 << RXSTPI); break;
 #endif
 #if defined(USB_CAN_BE_HOST)
-		case USB_INT_HSOFI: UHINT &= ~(1 << HSOFI); break;
-		case USB_INT_DCONNI: UHINT &= ~(1 << DCONNI); break;
-		case USB_INT_DDISCI: UHINT &= ~(1 << DDISCI); break;
-		case USB_INT_RSTI: UHINT &= ~(1 << RSTI); break;
-		case USB_INT_BCERRI: OTGINT &= ~(1 << BCERRI); break;
-		case USB_INT_VBERRI: OTGINT &= ~(1 << VBERRI); break;
-		case USB_INT_SRPI: OTGINT &= ~(1 << SRPI); break;
+        case USB_INT_HSOFI: UHINT &= ~(1 << HSOFI); break;
+        case USB_INT_DCONNI: UHINT &= ~(1 << DCONNI); break;
+        case USB_INT_DDISCI: UHINT &= ~(1 << DDISCI); break;
+        case USB_INT_RSTI: UHINT &= ~(1 << RSTI); break;
+        case USB_INT_BCERRI: OTGINT &= ~(1 << BCERRI); break;
+        case USB_INT_VBERRI: OTGINT &= ~(1 << VBERRI); break;
+        case USB_INT_SRPI: OTGINT &= ~(1 << SRPI); break;
 #endif
-		default: break;
-	}
+        default: break;
+    }
 }
 
 static inline bool USB_INT_IsEnabled(const uint8_t Interrupt) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline bool USB_INT_IsEnabled(const uint8_t Interrupt)
 {
-	switch (Interrupt)
-	{
+    switch (Interrupt)
+    {
 #if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-		case USB_INT_VBUSTI: return (USBCON & (1 << VBUSTE));
+        case USB_INT_VBUSTI: return (USBCON & (1 << VBUSTE));
 #endif
 #if defined(USB_CAN_BE_BOTH)
-		case USB_INT_IDTI: return (USBCON & (1 << IDTE));
+        case USB_INT_IDTI: return (USBCON & (1 << IDTE));
 #endif
 #if defined(USB_CAN_BE_DEVICE)
-		case USB_INT_WAKEUPI: return (UDIEN & (1 << WAKEUPE));
-		case USB_INT_SUSPI: return (UDIEN & (1 << SUSPE));
-		case USB_INT_EORSTI: return (UDIEN & (1 << EORSTE));
-		case USB_INT_SOFI: return (UDIEN & (1 << SOFE));
-		case USB_INT_RXSTPI: return (UEIENX & (1 << RXSTPE));
+        case USB_INT_WAKEUPI: return (UDIEN & (1 << WAKEUPE));
+        case USB_INT_SUSPI: return (UDIEN & (1 << SUSPE));
+        case USB_INT_EORSTI: return (UDIEN & (1 << EORSTE));
+        case USB_INT_SOFI: return (UDIEN & (1 << SOFE));
+        case USB_INT_RXSTPI: return (UEIENX & (1 << RXSTPE));
 #endif
 #if defined(USB_CAN_BE_HOST)
-		case USB_INT_HSOFI: return (UHIEN & (1 << HSOFE));
-		case USB_INT_DCONNI: return (UHIEN & (1 << DCONNE));
-		case USB_INT_DDISCI: return (UHIEN & (1 << DDISCE));
-		case USB_INT_RSTI: return (UHIEN & (1 << RSTE));
-		case USB_INT_BCERRI: return (OTGIEN & (1 << BCERRE));
-		case USB_INT_VBERRI: return (OTGIEN & (1 << VBERRE));
-		case USB_INT_SRPI: return (OTGIEN & (1 << SRPE));
+        case USB_INT_HSOFI: return (UHIEN & (1 << HSOFE));
+        case USB_INT_DCONNI: return (UHIEN & (1 << DCONNE));
+        case USB_INT_DDISCI: return (UHIEN & (1 << DDISCE));
+        case USB_INT_RSTI: return (UHIEN & (1 << RSTE));
+        case USB_INT_BCERRI: return (OTGIEN & (1 << BCERRE));
+        case USB_INT_VBERRI: return (OTGIEN & (1 << VBERRE));
+        case USB_INT_SRPI: return (OTGIEN & (1 << SRPE));
 #endif
-		default: return false;
-	}
+        default: return false;
+    }
 }
 
 static inline bool USB_INT_HasOccurred(const uint8_t Interrupt) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline bool USB_INT_HasOccurred(const uint8_t Interrupt)
 {
-	switch (Interrupt)
-	{
+    switch (Interrupt)
+    {
 #if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-		case USB_INT_VBUSTI: return (USBINT & (1 << VBUSTI));
+        case USB_INT_VBUSTI: return (USBINT & (1 << VBUSTI));
 #endif
 #if defined(USB_CAN_BE_BOTH)
-		case USB_INT_IDTI: return (USBINT & (1 << IDTI));
+        case USB_INT_IDTI: return (USBINT & (1 << IDTI));
 #endif
 #if defined(USB_CAN_BE_DEVICE)
-		case USB_INT_WAKEUPI: return (UDINT & (1 << WAKEUPI));
-		case USB_INT_SUSPI: return (UDINT & (1 << SUSPI));
-		case USB_INT_EORSTI: return (UDINT & (1 << EORSTI));
-		case USB_INT_SOFI: return (UDINT & (1 << SOFI));
-		case USB_INT_RXSTPI: return (UEINTX & (1 << RXSTPI));
+        case USB_INT_WAKEUPI: return (UDINT & (1 << WAKEUPI));
+        case USB_INT_SUSPI: return (UDINT & (1 << SUSPI));
+        case USB_INT_EORSTI: return (UDINT & (1 << EORSTI));
+        case USB_INT_SOFI: return (UDINT & (1 << SOFI));
+        case USB_INT_RXSTPI: return (UEINTX & (1 << RXSTPI));
 #endif
 #if defined(USB_CAN_BE_HOST)
-		case USB_INT_HSOFI: return (UHINT & (1 << HSOFI));
-		case USB_INT_DCONNI: return (UHINT & (1 << DCONNI));
-		case USB_INT_DDISCI: return (UHINT & (1 << DDISCI));
-		case USB_INT_RSTI: return (UHINT & (1 << RSTI));
-		case USB_INT_BCERRI: return (OTGINT & (1 << BCERRI));
-		case USB_INT_VBERRI: return (OTGINT & (1 << VBERRI));
-		case USB_INT_SRPI: return (OTGINT & (1 << SRPI));
+        case USB_INT_HSOFI: return (UHINT & (1 << HSOFI));
+        case USB_INT_DCONNI: return (UHINT & (1 << DCONNI));
+        case USB_INT_DDISCI: return (UHINT & (1 << DDISCI));
+        case USB_INT_RSTI: return (UHINT & (1 << RSTI));
+        case USB_INT_BCERRI: return (OTGINT & (1 << BCERRI));
+        case USB_INT_VBERRI: return (OTGINT & (1 << VBERRI));
+        case USB_INT_SRPI: return (OTGINT & (1 << SRPI));
 #endif
-		default: return false;
-	}
+        default: return false;
+    }
 }
 
 /* Includes: */

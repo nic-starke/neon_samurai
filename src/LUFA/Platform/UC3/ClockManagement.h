@@ -89,33 +89,33 @@ extern "C" {
 /** Enum for the possible external oscillator types. */
 enum UC3_Extern_OSC_ClockTypes_t
 {
-	EXOSC_MODE_CLOCK		= AVR32_PM_OSCCTRL0_MODE_EXT_CLOCK,	 /**< External clock (non-crystal)
+    EXOSC_MODE_CLOCK        = AVR32_PM_OSCCTRL0_MODE_EXT_CLOCK,  /**< External clock (non-crystal)
 																	mode. */
-	EXOSC_MODE_900KHZ_MAX	= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G0, /**< External crystal oscillator
+    EXOSC_MODE_900KHZ_MAX   = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G0, /**< External crystal oscillator
 																	equal to or slower than 900KHz. */
-	EXOSC_MODE_3MHZ_MAX		= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G1, /**< External crystal oscillator
+    EXOSC_MODE_3MHZ_MAX     = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G1, /**< External crystal oscillator
 																	equal to or slower than 3MHz. */
-	EXOSC_MODE_8MHZ_MAX		= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G2, /**< External crystal oscillator
+    EXOSC_MODE_8MHZ_MAX     = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G2, /**< External crystal oscillator
 																	equal to or slower than 8MHz. */
-	EXOSC_MODE_8MHZ_OR_MORE = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G3, /**< External crystal oscillator
+    EXOSC_MODE_8MHZ_OR_MORE = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G3, /**< External crystal oscillator
 																	equal to or faster than 8MHz. */
 };
 
 /** Enum for the possible external oscillator startup times. */
 enum UC3_Extern_OSC_ClockStartup_t
 {
-	EXOSC_START_0CLK	 = AVR32_PM_OSCCTRL0_STARTUP_0_RCOSC,	  /**< Immediate startup, no delay. */
-	EXOSC_START_64CLK	 = AVR32_PM_OSCCTRL0_STARTUP_64_RCOSC,	  /**< Wait 64 clock cycles before
+    EXOSC_START_0CLK     = AVR32_PM_OSCCTRL0_STARTUP_0_RCOSC,     /**< Immediate startup, no delay. */
+    EXOSC_START_64CLK    = AVR32_PM_OSCCTRL0_STARTUP_64_RCOSC,    /**< Wait 64 clock cycles before
 																	 startup for stability. */
-	EXOSC_START_128CLK	 = AVR32_PM_OSCCTRL0_STARTUP_128_RCOSC,	  /**< Wait 128 clock cycles before
+    EXOSC_START_128CLK   = AVR32_PM_OSCCTRL0_STARTUP_128_RCOSC,   /**< Wait 128 clock cycles before
 																	 startup for stability. */
-	EXOSC_START_2048CLK	 = AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC,  /**< Wait 2048 clock cycles before
+    EXOSC_START_2048CLK  = AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC,  /**< Wait 2048 clock cycles before
 																	 startup for stability. */
-	EXOSC_START_4096CLK	 = AVR32_PM_OSCCTRL0_STARTUP_4096_RCOSC,  /**< Wait 4096 clock cycles before
+    EXOSC_START_4096CLK  = AVR32_PM_OSCCTRL0_STARTUP_4096_RCOSC,  /**< Wait 4096 clock cycles before
 																	 startup for stability. */
-	EXOSC_START_8192CLK	 = AVR32_PM_OSCCTRL0_STARTUP_8192_RCOSC,  /**< Wait 8192 clock cycles before
+    EXOSC_START_8192CLK  = AVR32_PM_OSCCTRL0_STARTUP_8192_RCOSC,  /**< Wait 8192 clock cycles before
 																	 startup for stability. */
-	EXOSC_START_16384CLK = AVR32_PM_OSCCTRL0_STARTUP_16384_RCOSC, /**< Wait 16384 clock cycles
+    EXOSC_START_16384CLK = AVR32_PM_OSCCTRL0_STARTUP_16384_RCOSC, /**< Wait 16384 clock cycles
 																	 before startup for stability.
 																   */
 };
@@ -123,11 +123,11 @@ enum UC3_Extern_OSC_ClockStartup_t
 /** Enum for the possible module clock sources. */
 enum UC3_System_ClockSource_t
 {
-	CLOCK_SRC_SLOW_CLK = 0, /**< Clock sourced from the internal slow clock. */
-	CLOCK_SRC_OSC0	   = 1, /**< Clock sourced from the Oscillator 0 clock. */
-	CLOCK_SRC_OSC1	   = 2, /**< Clock sourced from the Oscillator 1 clock. */
-	CLOCK_SRC_PLL0	   = 3, /**< Clock sourced from the PLL 0 clock. */
-	CLOCK_SRC_PLL1	   = 4, /**< Clock sourced from the PLL 1 clock. */
+    CLOCK_SRC_SLOW_CLK = 0, /**< Clock sourced from the internal slow clock. */
+    CLOCK_SRC_OSC0     = 1, /**< Clock sourced from the Oscillator 0 clock. */
+    CLOCK_SRC_OSC1     = 2, /**< Clock sourced from the Oscillator 1 clock. */
+    CLOCK_SRC_PLL0     = 3, /**< Clock sourced from the PLL 0 clock. */
+    CLOCK_SRC_PLL1     = 4, /**< Clock sourced from the PLL 1 clock. */
 };
 
 /* Inline Functions: */
@@ -146,24 +146,24 @@ enum UC3_System_ClockSource_t
 static inline bool UC3CLK_StartExternalOscillator(const uint8_t Channel, const uint8_t Type, const uint8_t Startup) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_StartExternalOscillator(const uint8_t Channel, const uint8_t Type, const uint8_t Startup)
 {
-	switch (Channel)
-	{
-		case 0:
-			AVR32_PM.OSCCTRL0.startup = Startup;
-			AVR32_PM.OSCCTRL0.mode	  = Type;
-			break;
-		case 1:
-			AVR32_PM.OSCCTRL1.startup = Startup;
-			AVR32_PM.OSCCTRL1.mode	  = Type;
-			break;
-		default: return false;
-	}
+    switch (Channel)
+    {
+        case 0:
+            AVR32_PM.OSCCTRL0.startup = Startup;
+            AVR32_PM.OSCCTRL0.mode    = Type;
+            break;
+        case 1:
+            AVR32_PM.OSCCTRL1.startup = Startup;
+            AVR32_PM.OSCCTRL1.mode    = Type;
+            break;
+        default: return false;
+    }
 
-	AVR32_PM.mcctrl |= (1 << (AVR32_PM_MCCTRL_OSC0EN_OFFSET + Channel));
+    AVR32_PM.mcctrl |= (1 << (AVR32_PM_MCCTRL_OSC0EN_OFFSET + Channel));
 
-	while (!(AVR32_PM.poscsr & (1 << (AVR32_PM_POSCSR_OSC0RDY_OFFSET + Channel))))
-		;
-	return true;
+    while (!(AVR32_PM.poscsr & (1 << (AVR32_PM_POSCSR_OSC0RDY_OFFSET + Channel))))
+        ;
+    return true;
 }
 
 /** Stops the given external oscillator of the UC3 microcontroller.
@@ -173,7 +173,7 @@ static inline bool UC3CLK_StartExternalOscillator(const uint8_t Channel, const u
 static inline void UC3CLK_StopExternalOscillator(const uint8_t Channel) ATTR_ALWAYS_INLINE;
 static inline void UC3CLK_StopExternalOscillator(const uint8_t Channel)
 {
-	AVR32_PM.mcctrl &= ~(1 << (AVR32_PM_MCCTRL_OSC0EN_OFFSET + Channel));
+    AVR32_PM.mcctrl &= ~(1 << (AVR32_PM_MCCTRL_OSC0EN_OFFSET + Channel));
 }
 
 /** Starts the given PLL of the UC3 microcontroller, with the given options.
@@ -191,26 +191,26 @@ static inline void UC3CLK_StopExternalOscillator(const uint8_t Channel)
  * invalid parameters specified.
  */
 static inline bool UC3CLK_StartPLL(const uint8_t Channel, const uint8_t Source, const uint32_t SourceFreq,
-								   const uint32_t Frequency) ATTR_ALWAYS_INLINE;
+                                   const uint32_t Frequency) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_StartPLL(const uint8_t Channel, const uint8_t Source, const uint32_t SourceFreq, const uint32_t Frequency)
 {
-	if (SourceFreq > Frequency)
-		return false;
+    if (SourceFreq > Frequency)
+        return false;
 
-	switch (Source)
-	{
-		case CLOCK_SRC_OSC0: AVR32_PM.PLL[Channel].pllosc = 0; break;
-		case CLOCK_SRC_OSC1: AVR32_PM.PLL[Channel].pllosc = 1; break;
-		default: return false;
-	}
+    switch (Source)
+    {
+        case CLOCK_SRC_OSC0: AVR32_PM.PLL[Channel].pllosc = 0; break;
+        case CLOCK_SRC_OSC1: AVR32_PM.PLL[Channel].pllosc = 1; break;
+        default: return false;
+    }
 
-	AVR32_PM.PLL[Channel].pllmul = (Frequency / SourceFreq) ? (((Frequency / SourceFreq) - 1) / 2) : 0;
-	AVR32_PM.PLL[Channel].plldiv = 0;
-	AVR32_PM.PLL[Channel].pllen	 = true;
+    AVR32_PM.PLL[Channel].pllmul = (Frequency / SourceFreq) ? (((Frequency / SourceFreq) - 1) / 2) : 0;
+    AVR32_PM.PLL[Channel].plldiv = 0;
+    AVR32_PM.PLL[Channel].pllen  = true;
 
-	while (!(AVR32_PM.poscsr & (1 << (AVR32_PM_POSCSR_LOCK0_OFFSET + Channel))))
-		;
-	return true;
+    while (!(AVR32_PM.poscsr & (1 << (AVR32_PM_POSCSR_LOCK0_OFFSET + Channel))))
+        ;
+    return true;
 }
 
 /** Stops the given PLL of the UC3 microcontroller.
@@ -220,7 +220,7 @@ static inline bool UC3CLK_StartPLL(const uint8_t Channel, const uint8_t Source, 
 static inline void UC3CLK_StopPLL(const uint8_t Channel) ATTR_ALWAYS_INLINE;
 static inline void UC3CLK_StopPLL(const uint8_t Channel)
 {
-	AVR32_PM.PLL[Channel].pllen = false;
+    AVR32_PM.PLL[Channel].pllen = false;
 }
 
 /** Starts the given Generic Clock of the UC3 microcontroller, with the given
@@ -236,42 +236,42 @@ static inline void UC3CLK_StopPLL(const uint8_t Channel)
  * false if invalid parameters specified.
  */
 static inline bool UC3CLK_StartGenericClock(const uint8_t Channel, const uint8_t Source, const uint32_t SourceFreq,
-											const uint32_t Frequency) ATTR_ALWAYS_INLINE;
+                                            const uint32_t Frequency) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_StartGenericClock(const uint8_t Channel, const uint8_t Source, const uint32_t SourceFreq,
-											const uint32_t Frequency)
+                                            const uint32_t Frequency)
 {
-	if (Channel >= AVR32_PM_GCLK_NUM)
-		return false;
+    if (Channel >= AVR32_PM_GCLK_NUM)
+        return false;
 
-	if (SourceFreq < Frequency)
-		return false;
+    if (SourceFreq < Frequency)
+        return false;
 
-	switch (Source)
-	{
-		case CLOCK_SRC_OSC0:
-			AVR32_PM.GCCTRL[Channel].pllsel = false;
-			AVR32_PM.GCCTRL[Channel].oscsel = 0;
-			break;
-		case CLOCK_SRC_OSC1:
-			AVR32_PM.GCCTRL[Channel].pllsel = false;
-			AVR32_PM.GCCTRL[Channel].oscsel = 1;
-			break;
-		case CLOCK_SRC_PLL0:
-			AVR32_PM.GCCTRL[Channel].pllsel = true;
-			AVR32_PM.GCCTRL[Channel].oscsel = 0;
-			break;
-		case CLOCK_SRC_PLL1:
-			AVR32_PM.GCCTRL[Channel].pllsel = true;
-			AVR32_PM.GCCTRL[Channel].oscsel = 1;
-			break;
-		default: return false;
-	}
+    switch (Source)
+    {
+        case CLOCK_SRC_OSC0:
+            AVR32_PM.GCCTRL[Channel].pllsel = false;
+            AVR32_PM.GCCTRL[Channel].oscsel = 0;
+            break;
+        case CLOCK_SRC_OSC1:
+            AVR32_PM.GCCTRL[Channel].pllsel = false;
+            AVR32_PM.GCCTRL[Channel].oscsel = 1;
+            break;
+        case CLOCK_SRC_PLL0:
+            AVR32_PM.GCCTRL[Channel].pllsel = true;
+            AVR32_PM.GCCTRL[Channel].oscsel = 0;
+            break;
+        case CLOCK_SRC_PLL1:
+            AVR32_PM.GCCTRL[Channel].pllsel = true;
+            AVR32_PM.GCCTRL[Channel].oscsel = 1;
+            break;
+        default: return false;
+    }
 
-	AVR32_PM.GCCTRL[Channel].diven = (SourceFreq > Frequency) ? true : false;
-	AVR32_PM.GCCTRL[Channel].div   = (((SourceFreq / Frequency) - 1) / 2);
-	AVR32_PM.GCCTRL[Channel].cen   = true;
+    AVR32_PM.GCCTRL[Channel].diven = (SourceFreq > Frequency) ? true : false;
+    AVR32_PM.GCCTRL[Channel].div   = (((SourceFreq / Frequency) - 1) / 2);
+    AVR32_PM.GCCTRL[Channel].cen   = true;
 
-	return true;
+    return true;
 }
 
 /** Stops the given generic clock of the UC3 microcontroller.
@@ -284,12 +284,12 @@ static inline bool UC3CLK_StartGenericClock(const uint8_t Channel, const uint8_t
 static inline bool UC3CLK_StopGenericClock(const uint8_t Channel) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_StopGenericClock(const uint8_t Channel)
 {
-	if (Channel >= AVR32_PM_GCLK_NUM)
-		return false;
+    if (Channel >= AVR32_PM_GCLK_NUM)
+        return false;
 
-	AVR32_PM.GCCTRL[Channel].cen = false;
+    AVR32_PM.GCCTRL[Channel].cen = false;
 
-	return true;
+    return true;
 }
 
 /** Sets the clock source for the main microcontroller core. The given clock
@@ -308,26 +308,26 @@ static inline bool UC3CLK_StopGenericClock(const uint8_t Channel)
 static inline bool UC3CLK_SetCPUClockSource(const uint8_t Source, const uint32_t SourceFreq) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_SetCPUClockSource(const uint8_t Source, const uint32_t SourceFreq)
 {
-	if (SourceFreq > AVR32_PM_CPU_MAX_FREQ)
-		return false;
+    if (SourceFreq > AVR32_PM_CPU_MAX_FREQ)
+        return false;
 
-	AVR32_FLASHC.FCR.fws = (SourceFreq > AVR32_FLASHC_FWS_0_MAX_FREQ) ? true : false;
+    AVR32_FLASHC.FCR.fws = (SourceFreq > AVR32_FLASHC_FWS_0_MAX_FREQ) ? true : false;
 
-	switch (Source)
-	{
+    switch (Source)
+    {
 #if defined(AVR32_PM_MCCTRL_MCSEL_SLOW)
-		case CLOCK_SRC_SLOW_CLK: AVR32_PM.MCCTRL.mcsel = AVR32_PM_MCCTRL_MCSEL_SLOW; break;
+        case CLOCK_SRC_SLOW_CLK: AVR32_PM.MCCTRL.mcsel = AVR32_PM_MCCTRL_MCSEL_SLOW; break;
 #endif
 #if defined(AVR32_PM_MCCTRL_MCSEL_OSC0)
-		case CLOCK_SRC_OSC0: AVR32_PM.MCCTRL.mcsel = AVR32_PM_MCCTRL_MCSEL_OSC0; break;
+        case CLOCK_SRC_OSC0: AVR32_PM.MCCTRL.mcsel = AVR32_PM_MCCTRL_MCSEL_OSC0; break;
 #endif
 #if defined(AVR32_PM_MCCTRL_MCSEL_PLL0)
-		case CLOCK_SRC_PLL0: AVR32_PM.MCCTRL.mcsel = AVR32_PM_MCCTRL_MCSEL_PLL0; break;
+        case CLOCK_SRC_PLL0: AVR32_PM.MCCTRL.mcsel = AVR32_PM_MCCTRL_MCSEL_PLL0; break;
 #endif
-		default: return false;
-	}
+        default: return false;
+    }
 
-	return true;
+    return true;
 }
 
 /* Disable C linkage for C++ Compilers: */

@@ -129,33 +129,33 @@ extern "C" {
  */
 enum CDC_Descriptor_ClassSubclassProtocol_t
 {
-	CDC_CSCP_CDCClass				= 0x02, /**< Descriptor Class value indicating that the
+    CDC_CSCP_CDCClass               = 0x02, /**< Descriptor Class value indicating that the
 											 * device or interface belongs to the CDC class.
 											 */
-	CDC_CSCP_NoSpecificSubclass		= 0x00, /**< Descriptor Subclass value indicating that the device or
+    CDC_CSCP_NoSpecificSubclass     = 0x00, /**< Descriptor Subclass value indicating that the device or
 											 * interface belongs to no specific subclass of the CDC class.
 											 */
-	CDC_CSCP_ACMSubclass			= 0x02, /**< Descriptor Subclass value indicating that the device or
+    CDC_CSCP_ACMSubclass            = 0x02, /**< Descriptor Subclass value indicating that the device or
 											 * interface belongs to the Abstract Control Model CDC subclass.
 											 */
-	CDC_CSCP_ATCommandProtocol		= 0x01, /**< Descriptor Protocol value indicating that the device or
+    CDC_CSCP_ATCommandProtocol      = 0x01, /**< Descriptor Protocol value indicating that the device or
 											 * interface belongs to the AT Command protocol of the CDC class.
 											 */
-	CDC_CSCP_NoSpecificProtocol		= 0x00, /**< Descriptor Protocol value indicating that the device or
+    CDC_CSCP_NoSpecificProtocol     = 0x00, /**< Descriptor Protocol value indicating that the device or
 											 * interface belongs to no specific protocol of the CDC class.
 											 */
-	CDC_CSCP_VendorSpecificProtocol = 0xFF, /**< Descriptor Protocol value indicating that the device or
+    CDC_CSCP_VendorSpecificProtocol = 0xFF, /**< Descriptor Protocol value indicating that the device or
 											 * interface belongs to a vendor-specific protocol of the CDC
 											 * class.
 											 */
-	CDC_CSCP_CDCDataClass			= 0x0A, /**< Descriptor Class value indicating that the device or
+    CDC_CSCP_CDCDataClass           = 0x0A, /**< Descriptor Class value indicating that the device or
 											 * interface belongs to the CDC Data class.
 											 */
-	CDC_CSCP_NoDataSubclass			= 0x00, /**< Descriptor Subclass value indicating that the device or
+    CDC_CSCP_NoDataSubclass         = 0x00, /**< Descriptor Subclass value indicating that the device or
 											 * interface belongs to no specific subclass of the CDC data
 											 * class.
 											 */
-	CDC_CSCP_NoDataProtocol			= 0x00, /**< Descriptor Protocol value indicating that the device or
+    CDC_CSCP_NoDataProtocol         = 0x00, /**< Descriptor Protocol value indicating that the device or
 											 * interface belongs to no specific protocol of the CDC data
 											 * class.
 											 */
@@ -165,17 +165,17 @@ enum CDC_Descriptor_ClassSubclassProtocol_t
  * USB bus host. */
 enum CDC_ClassRequests_t
 {
-	CDC_REQ_SendEncapsulatedCommand = 0x00, /**< CDC class-specific request to send an encapsulated command to
+    CDC_REQ_SendEncapsulatedCommand = 0x00, /**< CDC class-specific request to send an encapsulated command to
 											   the device. */
-	CDC_REQ_GetEncapsulatedResponse = 0x01, /**< CDC class-specific request to retrieve an encapsulated
+    CDC_REQ_GetEncapsulatedResponse = 0x01, /**< CDC class-specific request to retrieve an encapsulated
 											   command response from the device. */
-	CDC_REQ_SetLineEncoding			= 0x20, /**< CDC class-specific request to set the current virtual serial
+    CDC_REQ_SetLineEncoding         = 0x20, /**< CDC class-specific request to set the current virtual serial
 											   port configuration settings. */
-	CDC_REQ_GetLineEncoding			= 0x21, /**< CDC class-specific request to get the current virtual serial
+    CDC_REQ_GetLineEncoding         = 0x21, /**< CDC class-specific request to get the current virtual serial
 											   port configuration settings. */
-	CDC_REQ_SetControlLineState		= 0x22, /**< CDC class-specific request to set the current virtual serial
+    CDC_REQ_SetControlLineState     = 0x22, /**< CDC class-specific request to set the current virtual serial
 											   port handshake line states. */
-	CDC_REQ_SendBreak				= 0x23, /**< CDC class-specific request to send a break to
+    CDC_REQ_SendBreak               = 0x23, /**< CDC class-specific request to send a break to
 											   the receiver via the carrier channel. */
 };
 
@@ -183,7 +183,7 @@ enum CDC_ClassRequests_t
  * a CDC device to a host. */
 enum CDC_ClassNotifications_t
 {
-	CDC_NOTIF_SerialState = 0x20, /**< Notification type constant for a change in the virtual serial
+    CDC_NOTIF_SerialState = 0x20, /**< Notification type constant for a change in the virtual serial
 								   * port handshake line states, for use with a \ref
 								   * USB_Request_Header_t notification structure when sent to the
 								   * host via the CDC notification endpoint.
@@ -193,54 +193,54 @@ enum CDC_ClassNotifications_t
 /** Enum for the CDC class specific descriptor types. */
 enum CDC_DescriptorTypes_t
 {
-	CDC_DTYPE_CSInterface = 0x24, /**< CDC class specific Interface functional descriptor. */
-	CDC_DTYPE_CSEndpoint  = 0x25, /**< CDC class specific Endpoint functional descriptor. */
+    CDC_DTYPE_CSInterface = 0x24, /**< CDC class specific Interface functional descriptor. */
+    CDC_DTYPE_CSEndpoint  = 0x25, /**< CDC class specific Endpoint functional descriptor. */
 };
 
 /** Enum for the CDC class specific interface descriptor subtypes. */
 enum CDC_DescriptorSubtypes_t
 {
-	CDC_DSUBTYPE_CSInterface_Header			  = 0x00, /**< CDC class specific Header functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_CallManagement	  = 0x01, /**< CDC class specific Call Management functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_ACM			  = 0x02, /**< CDC class specific Abstract Control Model functional
+    CDC_DSUBTYPE_CSInterface_Header           = 0x00, /**< CDC class specific Header functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_CallManagement   = 0x01, /**< CDC class specific Call Management functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_ACM              = 0x02, /**< CDC class specific Abstract Control Model functional
 														 descriptor. */
-	CDC_DSUBTYPE_CSInterface_DirectLine		  = 0x03, /**< CDC class specific Direct Line functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_TelephoneRinger  = 0x04, /**< CDC class specific Telephone Ringer functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_TelephoneCall	  = 0x05, /**< CDC class specific Telephone Call functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_Union			  = 0x06, /**< CDC class specific Union functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_CountrySelection = 0x07, /**< CDC class specific Country Selection functional descriptor.
+    CDC_DSUBTYPE_CSInterface_DirectLine       = 0x03, /**< CDC class specific Direct Line functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_TelephoneRinger  = 0x04, /**< CDC class specific Telephone Ringer functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_TelephoneCall    = 0x05, /**< CDC class specific Telephone Call functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_Union            = 0x06, /**< CDC class specific Union functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_CountrySelection = 0x07, /**< CDC class specific Country Selection functional descriptor.
 													   */
-	CDC_DSUBTYPE_CSInterface_TelephoneOpModes = 0x08, /**< CDC class specific Telephone Operation Modes functional
+    CDC_DSUBTYPE_CSInterface_TelephoneOpModes = 0x08, /**< CDC class specific Telephone Operation Modes functional
 														 descriptor. */
-	CDC_DSUBTYPE_CSInterface_USBTerminal	  = 0x09, /**< CDC class specific USB Terminal functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_NetworkChannel	  = 0x0A, /**< CDC class specific Network Channel functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_ProtocolUnit	  = 0x0B, /**< CDC class specific Protocol Unit functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_ExtensionUnit	  = 0x0C, /**< CDC class specific Extension Unit functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_MultiChannel	  = 0x0D, /**< CDC class specific Multi-Channel Management functional
+    CDC_DSUBTYPE_CSInterface_USBTerminal      = 0x09, /**< CDC class specific USB Terminal functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_NetworkChannel   = 0x0A, /**< CDC class specific Network Channel functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_ProtocolUnit     = 0x0B, /**< CDC class specific Protocol Unit functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_ExtensionUnit    = 0x0C, /**< CDC class specific Extension Unit functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_MultiChannel     = 0x0D, /**< CDC class specific Multi-Channel Management functional
 														 descriptor. */
-	CDC_DSUBTYPE_CSInterface_CAPI			  = 0x0E, /**< CDC class specific Common ISDN API functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_Ethernet		  = 0x0F, /**< CDC class specific Ethernet functional descriptor. */
-	CDC_DSUBTYPE_CSInterface_ATM			  = 0x10, /**< CDC class specific Asynchronous Transfer Mode functional
+    CDC_DSUBTYPE_CSInterface_CAPI             = 0x0E, /**< CDC class specific Common ISDN API functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_Ethernet         = 0x0F, /**< CDC class specific Ethernet functional descriptor. */
+    CDC_DSUBTYPE_CSInterface_ATM              = 0x10, /**< CDC class specific Asynchronous Transfer Mode functional
 														 descriptor. */
 };
 
 /** Enum for the possible line encoding formats of a virtual serial port. */
 enum CDC_LineEncodingFormats_t
 {
-	CDC_LINEENCODING_OneStopBit			 = 0, /**< Each frame contains one stop bit. */
-	CDC_LINEENCODING_OneAndAHalfStopBits = 1, /**< Each frame contains one and a half stop bits. */
-	CDC_LINEENCODING_TwoStopBits		 = 2, /**< Each frame contains two stop bits. */
+    CDC_LINEENCODING_OneStopBit          = 0, /**< Each frame contains one stop bit. */
+    CDC_LINEENCODING_OneAndAHalfStopBits = 1, /**< Each frame contains one and a half stop bits. */
+    CDC_LINEENCODING_TwoStopBits         = 2, /**< Each frame contains two stop bits. */
 };
 
 /** Enum for the possible line encoding parity settings of a virtual serial
  * port. */
 enum CDC_LineEncodingParity_t
 {
-	CDC_PARITY_None	 = 0, /**< No parity bit mode on each frame. */
-	CDC_PARITY_Odd	 = 1, /**< Odd parity bit mode on each frame. */
-	CDC_PARITY_Even	 = 2, /**< Even parity bit mode on each frame. */
-	CDC_PARITY_Mark	 = 3, /**< Mark parity bit mode on each frame. */
-	CDC_PARITY_Space = 4, /**< Space parity bit mode on each frame. */
+    CDC_PARITY_None  = 0, /**< No parity bit mode on each frame. */
+    CDC_PARITY_Odd   = 1, /**< Odd parity bit mode on each frame. */
+    CDC_PARITY_Even  = 2, /**< Even parity bit mode on each frame. */
+    CDC_PARITY_Mark  = 3, /**< Mark parity bit mode on each frame. */
+    CDC_PARITY_Space = 4, /**< Space parity bit mode on each frame. */
 };
 
 /* Type Defines: */
@@ -260,13 +260,13 @@ enum CDC_LineEncodingParity_t
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;			  /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;           /**< Regular descriptor header containing
 												 the descriptor's type and length. */
-	uint8_t					Subtype;		  /**< Sub type value used to distinguish between CDC
+    uint8_t                 Subtype;          /**< Sub type value used to distinguish between CDC
 											   * class-specific descriptors, must be \ref
 											   * CDC_DSUBTYPE_CSInterface_Header.
 											   */
-	uint16_t				CDCSpecification; /**< Version number of the CDC specification
+    uint16_t                CDCSpecification; /**< Version number of the CDC specification
 											   * implemented by the device, encoded in BCD format.
 											   *
 											   *   \see \ref VERSION_BCD() utility macro.
@@ -289,16 +289,16 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t	 bFunctionLength;	 /**< Size of the descriptor, in bytes. */
-	uint8_t	 bDescriptorType;	 /**< Type of the descriptor, either a value in \ref
+    uint8_t  bFunctionLength;    /**< Size of the descriptor, in bytes. */
+    uint8_t  bDescriptorType;    /**< Type of the descriptor, either a value in \ref
 								  * USB_DescriptorTypes_t or a value given by the
 								  * specific class.
 								  */
-	uint8_t	 bDescriptorSubType; /**< Sub type value used to distinguish between
+    uint8_t  bDescriptorSubType; /**< Sub type value used to distinguish between
 								  * CDC class-specific descriptors, must be \ref
 								  * CDC_DSUBTYPE_CSInterface_Header.
 								  */
-	uint16_t bcdCDC;			 /**< Version number of the CDC specification implemented by
+    uint16_t bcdCDC;             /**< Version number of the CDC specification implemented by
 								  * the device, encoded in BCD format.
 								  *
 								  *   \see \ref VERSION_BCD() utility macro.
@@ -320,13 +320,13 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;		  /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;       /**< Regular descriptor header containing
 											 the descriptor's type and length. */
-	uint8_t					Subtype;	  /**< Sub type value used to distinguish between CDC
+    uint8_t                 Subtype;      /**< Sub type value used to distinguish between CDC
 										   * class-specific descriptors,	  must be \ref
 										   * CDC_DSUBTYPE_CSInterface_ACM.
 										   */
-	uint8_t					Capabilities; /**< Capabilities of the ACM interface, given as a bit
+    uint8_t                 Capabilities; /**< Capabilities of the ACM interface, given as a bit
 										   * mask. For most devices, this should be set to a
 										   * fixed value of \c 0x06 - for other capabilities,
 										   * refer to the CDC ACM specification.
@@ -348,16 +348,16 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bFunctionLength;	/**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType;	/**< Type of the descriptor, either a value in \ref
+    uint8_t bFunctionLength;    /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType;    /**< Type of the descriptor, either a value in \ref
 								 * USB_DescriptorTypes_t or a value given by the
 								 * specific class.
 								 */
-	uint8_t bDescriptorSubType; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubType; /**< Sub type value used to distinguish between
 								 * CDC class-specific descriptors, must be \ref
 								 * CDC_DSUBTYPE_CSInterface_ACM.
 								 */
-	uint8_t bmCapabilities;		/**< Capabilities of the ACM interface, given as a
+    uint8_t bmCapabilities;     /**< Capabilities of the ACM interface, given as a
 								 * bit mask. For most devices, this should be set to
 								 * a fixed value of 0x06 - for other capabilities,
 								 * refer to the CDC ACM specification.
@@ -379,15 +379,15 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;				   /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;                /**< Regular descriptor header containing
 													  the descriptor's type and length. */
-	uint8_t					Subtype;			   /**< Sub type value used to distinguish between CDC
+    uint8_t                 Subtype;               /**< Sub type value used to distinguish between CDC
 													* class-specific descriptors, must be \ref
 													* CDC_DSUBTYPE_CSInterface_Union.
 													*/
-	uint8_t					MasterInterfaceNumber; /**< Interface number of the CDC Control
+    uint8_t                 MasterInterfaceNumber; /**< Interface number of the CDC Control
 													  interface. */
-	uint8_t					SlaveInterfaceNumber;  /**< Interface number of the CDC Data
+    uint8_t                 SlaveInterfaceNumber;  /**< Interface number of the CDC Data
 													  interface. */
 } ATTR_PACKED USB_CDC_Descriptor_FunctionalUnion_t;
 
@@ -406,17 +406,17 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bFunctionLength;	/**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType;	/**< Type of the descriptor, either a value in \ref
+    uint8_t bFunctionLength;    /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType;    /**< Type of the descriptor, either a value in \ref
 								 * USB_DescriptorTypes_t or a value given by the
 								 * specific class.
 								 */
-	uint8_t bDescriptorSubType; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubType; /**< Sub type value used to distinguish between
 								 * CDC class-specific descriptors, must be \ref
 								 * CDC_DSUBTYPE_CSInterface_Union.
 								 */
-	uint8_t bMasterInterface;	/**< Interface number of the CDC Control interface. */
-	uint8_t bSlaveInterface0;	/**< Interface number of the CDC Data interface. */
+    uint8_t bMasterInterface;   /**< Interface number of the CDC Control interface. */
+    uint8_t bSlaveInterface0;   /**< Interface number of the CDC Data interface. */
 } ATTR_PACKED USB_CDC_StdDescriptor_FunctionalUnion_t;
 
 /** \brief CDC Virtual Serial Port Line Encoding Settings Structure.
@@ -429,15 +429,15 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t BaudRateBPS; /**< Baud rate of the virtual serial port, in bits per
+    uint32_t BaudRateBPS; /**< Baud rate of the virtual serial port, in bits per
 							 second. */
-	uint8_t	 CharFormat;  /**< Character format of the virtual serial port, a
+    uint8_t  CharFormat;  /**< Character format of the virtual serial port, a
 						   * value from the   \ref CDC_LineEncodingFormats_t enum.
 						   */
-	uint8_t	 ParityType;  /**< Parity setting of the virtual serial port, a value
+    uint8_t  ParityType;  /**< Parity setting of the virtual serial port, a value
 						   * from the  \ref CDC_LineEncodingParity_t enum.
 						   */
-	uint8_t	 DataBits;	  /**< Bits of data per character of the virtual serial port. */
+    uint8_t  DataBits;    /**< Bits of data per character of the virtual serial port. */
 } ATTR_PACKED CDC_LineEncoding_t;
 
 /* Disable C linkage for C++ Compilers: */

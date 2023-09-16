@@ -69,12 +69,12 @@
 /* Type Defines: */
 typedef struct
 {
-	struct
-	{
-		USB_EP_t OUT;
-		USB_EP_t IN;
-	} Endpoints[ENDPOINT_TABLE_COUNT];
-	uint16_t FrameNum;
+    struct
+    {
+        USB_EP_t OUT;
+        USB_EP_t IN;
+    } Endpoints[ENDPOINT_TABLE_COUNT];
+    uint16_t FrameNum;
 } ATTR_PACKED USB_EndpointTable_t;
 
 /* External Variables: */
@@ -159,7 +159,7 @@ extern "C" {
 static inline void USB_Detach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Detach(void)
 {
-	USB.CTRLB &= ~USB_ATTACH_bm;
+    USB.CTRLB &= ~USB_ATTACH_bm;
 }
 
 /** Attaches the device to the USB bus. This announces the device's presence to
@@ -175,7 +175,7 @@ static inline void USB_Detach(void)
 static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Attach(void)
 {
-	USB.CTRLB |= USB_ATTACH_bm;
+    USB.CTRLB |= USB_ATTACH_bm;
 }
 
 /* Function Prototypes: */
@@ -226,17 +226,17 @@ static inline void USB_Attach(void)
  */
 void USB_Init(
 #if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
-	const uint8_t Mode
+    const uint8_t Mode
 #endif
 
 #if (defined(USB_CAN_BE_BOTH) && !defined(USE_STATIC_OPTIONS)) || defined(__DOXYGEN__)
-	,
+    ,
 #elif (!defined(USB_CAN_BE_BOTH) && defined(USE_STATIC_OPTIONS))
-	void
+    void
 #endif
 
 #if !defined(USE_STATIC_OPTIONS) || defined(__DOXYGEN__)
-	const uint8_t Options
+    const uint8_t Options
 #endif
 );
 
@@ -301,20 +301,20 @@ static void USB_Init_Device(void);
 static inline void USB_Controller_Enable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Enable(void)
 {
-	USB.CTRLA |= USB_ENABLE_bm;
+    USB.CTRLA |= USB_ENABLE_bm;
 }
 
 static inline void USB_Controller_Disable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Disable(void)
 {
-	USB.CTRLA &= ~USB_ENABLE_bm;
+    USB.CTRLA &= ~USB_ENABLE_bm;
 }
 
 static inline void USB_Controller_Reset(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Reset(void)
 {
-	USB.CTRLA &= ~USB_ENABLE_bm;
-	USB.CTRLA |= USB_ENABLE_bm;
+    USB.CTRLA &= ~USB_ENABLE_bm;
+    USB.CTRLA |= USB_ENABLE_bm;
 }
 
 #endif

@@ -82,36 +82,36 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t InterfaceNumber; /**< Interface number of the Mass Storage
+    struct
+    {
+        uint8_t InterfaceNumber; /**< Interface number of the Mass Storage
 									interface within the device. */
 
-		USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
+        USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
 
-		uint8_t TotalLUNs; /**< Total number of logical drives in the Mass
+        uint8_t TotalLUNs; /**< Total number of logical drives in the Mass
 							  Storage interface. */
-	} Config;			   /**< Config data for the USB class interface within the device.
+    } Config;              /**< Config data for the USB class interface within the device.
 							* All elements in this section <b>must</b> be set or the
 							* interface will fail to enumerate and operate correctly.
 							*/
-	struct
-	{
-		MS_CommandBlockWrapper_t  CommandBlock;		/**< Mass Storage class command block structure,
+    struct
+    {
+        MS_CommandBlockWrapper_t  CommandBlock;     /**< Mass Storage class command block structure,
 													 * stores the received SCSI command from the host
 													 * which is to be processed.
 													 */
-		MS_CommandStatusWrapper_t CommandStatus;	/**< Mass Storage class command status structure, set
+        MS_CommandStatusWrapper_t CommandStatus;    /**< Mass Storage class command status structure, set
 													 * elements to indicate the issued command's success
 													 * or failure to the host.
 													 */
-		volatile bool			  IsMassStoreReset; /**< Flag indicating that the host has requested
+        volatile bool             IsMassStoreReset; /**< Flag indicating that the host has requested
 													 * that the Mass Storage interface be reset and
 													 * that all current Mass Storage operations should
 													 * immediately abort.
 													 */
-	} State;										/**< State data for the USB class interface within the device. All
+    } State;                                        /**< State data for the USB class interface within the device. All
 													 * elements in this section are reset to their defaults when the
 													 * interface is enumerated.
 													 */

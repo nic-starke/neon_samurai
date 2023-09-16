@@ -86,15 +86,15 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t InterfaceNumber; /**< Interface number of the HID interface
+    struct
+    {
+        uint8_t InterfaceNumber; /**< Interface number of the HID interface
 									within the device. */
 
-		USB_Endpoint_Table_t ReportINEndpoint; /**< Data IN HID report endpoint
+        USB_Endpoint_Table_t ReportINEndpoint; /**< Data IN HID report endpoint
 												  configuration table. */
 
-		void*	PrevReportINBuffer;		/**< Pointer to a buffer where the previously
+        void*   PrevReportINBuffer;     /**< Pointer to a buffer where the previously
 										 * created HID input report can be stored by the
 										 * driver, for comparison purposes to detect
 										 * report changes that must be sent immediately
@@ -113,7 +113,7 @@ typedef struct
 										 * be set to \c NULL and the decision to send
 										 * reports made by the user application instead.
 										 */
-		uint8_t PrevReportINBufferSize; /**< Size in bytes of the given input report
+        uint8_t PrevReportINBufferSize; /**< Size in bytes of the given input report
 										 * buffer. This is used to create a second
 										 * buffer of the same size within the driver
 										 * so that subsequent reports can be
@@ -124,23 +124,23 @@ typedef struct
 										 * of the largest report the device can
 										 * issue to the host.
 										 */
-	} Config;							/**< Config data for the USB class interface within the device.
+    } Config;                           /**< Config data for the USB class interface within the device.
 										 * All elements in this section <b>must</b> be set or the
 										 * interface will fail to enumerate and operate correctly.
 										 */
-	struct
-	{
-		bool	 UsingReportProtocol; /**< Indicates if the HID interface is set to
+    struct
+    {
+        bool     UsingReportProtocol; /**< Indicates if the HID interface is set to
 										 Boot or Report protocol mode. */
-		uint16_t PrevFrameNum;		  /**< Frame number of the previous HID report
+        uint16_t PrevFrameNum;        /**< Frame number of the previous HID report
 										 packet opportunity. */
-		uint16_t IdleCount;			  /**< Report idle period, in milliseconds, set by the
+        uint16_t IdleCount;           /**< Report idle period, in milliseconds, set by the
 										 host. */
-		uint16_t IdleMSRemaining;	  /**< Total number of milliseconds remaining before
+        uint16_t IdleMSRemaining;     /**< Total number of milliseconds remaining before
 									   * the idle period elapsed - this should be
 									   * decremented by the user application if non-zero
 									   * each millisecond. */
-	} State;						  /**< State data for the USB class interface within the device. All
+    } State;                          /**< State data for the USB class interface within the device. All
 									   * elements in this section are reset to their defaults when the
 									   * interface is enumerated.
 									   */
@@ -200,8 +200,8 @@ void HID_Device_USBTask(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo) ATTR
  * devices which report relative movement), \c false otherwise.
  */
 bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo, uint8_t* const ReportID,
-										 const uint8_t ReportType, void* ReportData, uint16_t* const ReportSize) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(4) ATTR_NON_NULL_PTR_ARG(5);
+                                         const uint8_t ReportType, void* ReportData, uint16_t* const ReportSize) ATTR_NON_NULL_PTR_ARG(1)
+    ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(4) ATTR_NON_NULL_PTR_ARG(5);
 
 /** HID class driver callback for the user processing of a received HID OUT
  * report. This callback may fire in response to either HID class control
@@ -219,8 +219,8 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
  * bytes of the received report from the host.
  */
 void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo, const uint8_t ReportID,
-										  const uint8_t ReportType, const void* ReportData, const uint16_t ReportSize)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(4);
+                                          const uint8_t ReportType, const void* ReportData, const uint16_t ReportSize)
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(4);
 
 /* Inline Functions: */
 /** Indicates that a millisecond of idle time has elapsed on the given HID
@@ -234,11 +234,11 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDI
  * Class configuration and state.
  */
 static inline void HID_Device_MillisecondElapsed(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo) ATTR_ALWAYS_INLINE
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 static inline void HID_Device_MillisecondElapsed(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo)
 {
-	if (HIDInterfaceInfo->State.IdleMSRemaining)
-		HIDInterfaceInfo->State.IdleMSRemaining--;
+    if (HIDInterfaceInfo->State.IdleMSRemaining)
+        HIDInterfaceInfo->State.IdleMSRemaining--;
 }
 
 /* Disable C linkage for C++ Compilers: */

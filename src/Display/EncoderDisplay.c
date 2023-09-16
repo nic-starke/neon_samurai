@@ -27,39 +27,39 @@
 #include "Input.h"
 
 #define INDVAL_2_INDCOUNT(x) (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS)
-#define SET_FRAME(f, x)		 ((f) &= ~(x))
-#define UNSET_FRAME(f, x)	 ((f) |= (x))
-#define PWM_CHECK(f, br)	 ((f * MAGIC_BRIGHTNESS_VAL) < (br))
+#define SET_FRAME(f, x)      ((f) &= ~(x))
+#define UNSET_FRAME(f, x)    ((f) |= (x))
+#define PWM_CHECK(f, br)     ((f * MAGIC_BRIGHTNESS_VAL) < (br))
 
 void EncoderDisplay_Test(void)
 {
-	for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
-	{
-		DisplayFrame frames[DISPLAY_BUFFER_SIZE];
+    for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+    {
+        DisplayFrame frames[DISPLAY_BUFFER_SIZE];
 
-		if ((bool)EncoderSwitchCurrentState(SWITCH_MASK(encoder)))
-		{
-			memset(frames, LED_ON, sizeof(frames));
-		}
-		else
-		{
-			memset(frames, LED_OFF, sizeof(frames));
-		}
+        if ((bool)EncoderSwitchCurrentState(SWITCH_MASK(encoder)))
+        {
+            memset(frames, LED_ON, sizeof(frames));
+        }
+        else
+        {
+            memset(frames, LED_OFF, sizeof(frames));
+        }
 
-		Display_SetEncoderFrames(encoder, frames);
-	}
+        Display_SetEncoderFrames(encoder, frames);
+    }
 }
 
 void EncoderDisplay_Render(sEncoderState* pEncoder, DisplayFrame* pFrames, int EncoderIndex)
 {
-	sVirtualEncoder* pVE = (Encoder_IsSecondaryEnabled(pEncoder) ? &pEncoder->Secondary : &pEncoder->Primary);
+    sVirtualEncoder* pVE = (Encoder_IsSecondaryEnabled(pEncoder) ? &pEncoder->Secondary : &pEncoder->Primary);
 
-	if (pVE->DisplayInvalid == false)
-	{
-		return;
-	}
-    
-    switch((eEncoderDisplayStyle) pVE->DisplayStyle)
+    if (pVE->DisplayInvalid == false)
+    {
+        return;
+    }
+
+    switch ((eEncoderDisplayStyle)pVE->DisplayStyle)
     {
         case 
     }

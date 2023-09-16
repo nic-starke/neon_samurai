@@ -27,31 +27,31 @@
 
 typedef enum
 {
-	TIMER_CHANNEL_A,
-	TIMER_CHANNEL_B,
-	TIMER_CHANNEL_C,
-	TIMER_CHANNEL_D,
+    TIMER_CHANNEL_A,
+    TIMER_CHANNEL_B,
+    TIMER_CHANNEL_C,
+    TIMER_CHANNEL_D,
 } eTimer_Channel;
 
 typedef enum
 {
-	TIMER_TCC0,
-	TIMER_TCC1,
-	TIMER_TCC2,
-	TIMER_TCD0,
-	TIMER_TCD1,
-	TIMER_TCD2,
-	TIMER_TCE0,
+    TIMER_TCC0,
+    TIMER_TCC1,
+    TIMER_TCC2,
+    TIMER_TCD0,
+    TIMER_TCD1,
+    TIMER_TCD2,
+    TIMER_TCE0,
 
-	NUM_TIMER_PERIPHERALS,
+    NUM_TIMER_PERIPHERALS,
 } eTimer_Peripheral;
 
 typedef struct
 {
-	eTimer_Peripheral Timer;
-	TC0_t*			  pTimer;
-	TC_WGMODE_t		  WaveformMode;
-	TC_CLKSEL_t		  ClockSource;
+    eTimer_Peripheral Timer;
+    TC0_t*            pTimer;
+    TC_WGMODE_t       WaveformMode;
+    TC_CLKSEL_t       ClockSource;
 } sTimer_Type0Config;
 
 // typedef struct
@@ -76,26 +76,26 @@ typedef struct
 
 static inline void Timer_EnableChannelInterrupt(TC0_t* pTC, eTimer_Channel Channel, eInterruptPriority Priority)
 {
-	const u8 shift = Channel << 1;
-	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
-	pTC->INTCTRLB  = (pTC->INTCTRLB & ~mask) | (Priority << shift);
+    const u8 shift = Channel << 1;
+    const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
+    pTC->INTCTRLB  = (pTC->INTCTRLB & ~mask) | (Priority << shift);
 }
 
 static inline void Timer_DisableChannelInterrupt(TC0_t* pTC, eTimer_Channel Channel)
 {
-	const u8 shift = Channel << 2;
-	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
-	CLR_REG(pTC->INTCTRLB, mask);
+    const u8 shift = Channel << 2;
+    const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
+    CLR_REG(pTC->INTCTRLB, mask);
 }
 
 static inline void Timer_EnableOverflowInterrupt(TC0_t* pTC, eInterruptPriority Priority)
 {
-	pTC->INTCTRLA = (pTC->INTCTRLA & ~TC0_OVFINTLVL_gm) | Priority;
+    pTC->INTCTRLA = (pTC->INTCTRLA & ~TC0_OVFINTLVL_gm) | Priority;
 }
 
 static inline void Timer_DisableOverflowInterrupt(TC0_t* pTC)
 {
-	CLR_REG(pTC->INTCTRLA, TC0_OVFINTLVL_gm);
+    CLR_REG(pTC->INTCTRLA, TC0_OVFINTLVL_gm);
 }
 
 void Timer_Type0Init(const sTimer_Type0Config* pConfig);

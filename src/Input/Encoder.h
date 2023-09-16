@@ -26,178 +26,178 @@
 #define ENCODER_MAX_VAL (UINT16_MAX)
 #define ENCODER_MID_VAL (0x7FFF)
 
-#define ACCEL_CONST		  (225)
+#define ACCEL_CONST       (225)
 #define FINE_ADJUST_CONST (50)
 
 #define NUM_VIRTUAL_ENCODERS (NUM_VIRTUAL_BANKS * NUM_ENCODERS * NUM_VIRTUAL_ENCODER_TYPES)
-#define NUM_VIRTUAL_UBERS	 (NUM_VIRTUAL_BANKS * NUM_ENCODERS * NUM_VIRTUAL_UBER_TYPES)
+#define NUM_VIRTUAL_UBERS    (NUM_VIRTUAL_BANKS * NUM_ENCODERS * NUM_VIRTUAL_UBER_TYPES)
 #define NUM_VIRTUAL_SWITCHES (NUM_VIRTUAL_BANKS * NUM_ENCODERS)
 
 typedef enum
 {
-	VIRTUALBANK_A,
-	VIRTUALBANK_B,
-	VIRTUALBANK_C,
+    VIRTUALBANK_A,
+    VIRTUALBANK_B,
+    VIRTUALBANK_C,
 
-	NUM_VIRTUAL_BANKS,
+    NUM_VIRTUAL_BANKS,
 } eVirtualBank;
 
 typedef enum
 {
-	VIRTUALENCODER_PRIMARY,
-	VIRTUALENCODER_SECONDARY,
+    VIRTUALENCODER_PRIMARY,
+    VIRTUALENCODER_SECONDARY,
 
-	NUM_VIRTUAL_ENCODER_TYPES,
+    NUM_VIRTUAL_ENCODER_TYPES,
 } eVirtualEncoderTypes;
 
 typedef enum
 {
-	VIRTUALUBER_PRIMARY,
-	VIRTUALUBER_SECONDARY,
+    VIRTUALUBER_PRIMARY,
+    VIRTUALUBER_SECONDARY,
 
-	NUM_VIRTUAL_UBER_TYPES,
+    NUM_VIRTUAL_UBER_TYPES,
 } eVirtualUberTypes;
 
 typedef enum
 {
-	STYLE_DOT,
-	STYLE_BAR,
-	STYLE_BLENDED_BAR,
+    STYLE_DOT,
+    STYLE_BAR,
+    STYLE_BLENDED_BAR,
 
-	NUM_DISPLAY_STYLES,
+    NUM_DISPLAY_STYLES,
 } eEncoderDisplayStyle;
 
 // Mode is stored in 4 bits, max num modes is therefore 16
 typedef enum
 {
-	MIDIMODE_DISABLED,
-	MIDIMODE_CC,
-	MIDIMODE_REL_CC,
-	MIDIMODE_NOTE,
+    MIDIMODE_DISABLED,
+    MIDIMODE_CC,
+    MIDIMODE_REL_CC,
+    MIDIMODE_NOTE,
 
-	NUM_MIDI_MODES,
+    NUM_MIDI_MODES,
 } eMidiMode;
 
 // Mode is stored in 4 bits, max num modes is therefore 16
 typedef enum
 {
-	SWITCH_DISABLED,
-	SWITCH_MIDI_CC_HOLD,
-	SWITCH_MIDI_CC_TOGGLE,
-	SWITCH_MIDI_NOTE_HOLD,
-	SWITCH_MIDI_NOTE_TOGGLE,
-	SWITCH_RESET_VALUE_ON_PRESS,
-	SWITCH_RESET_VALUE_ON_RELEASE,
-	SWITCH_FINE_ADJUST_HOLD,
-	SWITCH_FINE_ADJUST_TOGGLE,
-	SWITCH_SECONDARY_HOLD,
-	SWITCH_SECONDARY_TOGGLE,
+    SWITCH_DISABLED,
+    SWITCH_MIDI_CC_HOLD,
+    SWITCH_MIDI_CC_TOGGLE,
+    SWITCH_MIDI_NOTE_HOLD,
+    SWITCH_MIDI_NOTE_TOGGLE,
+    SWITCH_RESET_VALUE_ON_PRESS,
+    SWITCH_RESET_VALUE_ON_RELEASE,
+    SWITCH_FINE_ADJUST_HOLD,
+    SWITCH_FINE_ADJUST_TOGGLE,
+    SWITCH_SECONDARY_HOLD,
+    SWITCH_SECONDARY_TOGGLE,
 
-	NUM_SWITCH_MODES,
+    NUM_SWITCH_MODES,
 } eSwitchMode;
 
 typedef union
 {
-	u8 CC;
-	u8 Note;
+    u8 CC;
+    u8 Note;
 } uMidiValue;
 
 typedef struct
 {
-	u8 Mode	   : 4;
-	u8 Channel : 4;
+    u8 Mode    : 4;
+    u8 Channel : 4;
 
-	uMidiValue MidiValue;
+    uMidiValue MidiValue;
 } sRotaryMidiConfig;
 
 typedef struct
 {
-	u8 Mode	   : 4;
-	u8 Channel : 4;
+    u8 Mode    : 4;
+    u8 Channel : 4;
 
-	uMidiValue OnValue;
-	uMidiValue OffValue;
+    uMidiValue OnValue;
+    uMidiValue OffValue;
 } sSwitchMidiConfig;
 
 typedef struct
 {
-	u16 CurrentValue;
-	u16 PreviousValue;
+    u16 CurrentValue;
+    u16 PreviousValue;
 
-	u8 DisplayStyle	  : 2;
-	u8 DisplayInvalid : 1;
-	u8 FineAdjust	  : 1;
-	u8 HasDetent	  : 1;
-	u8 Reserved		  : 3;
+    u8 DisplayStyle   : 2;
+    u8 DisplayInvalid : 1;
+    u8 FineAdjust     : 1;
+    u8 HasDetent      : 1;
+    u8 Reserved       : 3;
 
-	sRotaryMidiConfig MidiConfig;
-	sRGB			  RGBColour;
-	sRGB			  DetentColour;
+    sRotaryMidiConfig MidiConfig;
+    sRGB              RGBColour;
+    sRGB              DetentColour;
 } sVirtualEncoder; // Runtime state of a virtual encoder
 
 typedef struct
 {
-	u8 DisplayStyle	  : 2;
-	u8 DisplayInvalid : 1;
-	u8 FineAdjust	  : 1;
-	u8 HasDetent	  : 1;
-	u8 Reserved		  : 3;
+    u8 DisplayStyle   : 2;
+    u8 DisplayInvalid : 1;
+    u8 FineAdjust     : 1;
+    u8 HasDetent      : 1;
+    u8 Reserved       : 3;
 
-	sRotaryMidiConfig MidiConfig;
+    sRotaryMidiConfig MidiConfig;
 
-	u16 RGBHue;
-	u16 DetentHue;
+    u16 RGBHue;
+    u16 DetentHue;
 } sEEVirtualEncoder; // Stored state of a virtual encoder
 
 typedef struct
 {
-	u8 State	: 1;
-	u8 Mode		: 4;
-	u8 Reserved : 3;
+    u8 State    : 1;
+    u8 Mode     : 4;
+    u8 Reserved : 3;
 
-	sSwitchMidiConfig MidiConfig;
+    sSwitchMidiConfig MidiConfig;
 } sVirtualSwitch; // Runtime state of a virtual switch
 
 typedef struct
 {
-	u8 Mode		: 4;
-	u8 Reserved : 4;
+    u8 Mode     : 4;
+    u8 Reserved : 4;
 
-	sSwitchMidiConfig MidiConfig;
+    sSwitchMidiConfig MidiConfig;
 } sEEVirtualSwitch; // Stored state of a virtual switch
 
 typedef struct
 {
-	u16 StartValue;
-	u16 StopValue;
+    u16 StartValue;
+    u16 StopValue;
 
-	sRotaryMidiConfig MidiConfig;
+    sRotaryMidiConfig MidiConfig;
 } sVirtualUber; // Runtime state of an virtual uber encoder
 
 typedef sVirtualUber sEEVirtualUber; // Stored state of an uber encoder.
 
 typedef struct
 {
-	sVirtualEncoder Primary;
-	sVirtualEncoder Secondary;
-	sVirtualUber	PrimaryUber;
-	sVirtualUber	SecondaryUber;
-	sVirtualSwitch	Switch;
+    sVirtualEncoder Primary;
+    sVirtualEncoder Secondary;
+    sVirtualUber    PrimaryUber;
+    sVirtualUber    SecondaryUber;
+    sVirtualSwitch  Switch;
 } sEncoderState;
 
 typedef struct
 {
-	s16 PreviousMovement;
-	s16 CurrentVelocity;
-	u8	Speed;
-	u8	Sample;
-	u32 Bits;
+    s16 PreviousMovement;
+    s16 CurrentVelocity;
+    u8  Speed;
+    u8  Sample;
+    u32 Bits;
 } sHardwareEncoder;
 
 static inline bool Encoder_IsSecondaryEnabled(sEncoderState* pEncoder)
 {
-	return ((bool)pEncoder->Switch.State == true &&
-			(pEncoder->Switch.Mode == SWITCH_SECONDARY_TOGGLE || pEncoder->Switch.Mode == SWITCH_SECONDARY_HOLD));
+    return ((bool)pEncoder->Switch.State == true &&
+            (pEncoder->Switch.Mode == SWITCH_SECONDARY_TOGGLE || pEncoder->Switch.Mode == SWITCH_SECONDARY_HOLD));
 }
 
 void Encoder_Init(void);

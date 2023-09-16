@@ -82,38 +82,38 @@ extern "C" {
 
 /** \name RNDIS Message Values */
 /**@{*/
-#define REMOTE_NDIS_PACKET_MSG			0x00000001UL
-#define REMOTE_NDIS_INITIALIZE_MSG		0x00000002UL
-#define REMOTE_NDIS_HALT_MSG			0x00000003UL
-#define REMOTE_NDIS_QUERY_MSG			0x00000004UL
-#define REMOTE_NDIS_SET_MSG				0x00000005UL
-#define REMOTE_NDIS_RESET_MSG			0x00000006UL
+#define REMOTE_NDIS_PACKET_MSG          0x00000001UL
+#define REMOTE_NDIS_INITIALIZE_MSG      0x00000002UL
+#define REMOTE_NDIS_HALT_MSG            0x00000003UL
+#define REMOTE_NDIS_QUERY_MSG           0x00000004UL
+#define REMOTE_NDIS_SET_MSG             0x00000005UL
+#define REMOTE_NDIS_RESET_MSG           0x00000006UL
 #define REMOTE_NDIS_INDICATE_STATUS_MSG 0x00000007UL
-#define REMOTE_NDIS_KEEPALIVE_MSG		0x00000008UL
+#define REMOTE_NDIS_KEEPALIVE_MSG       0x00000008UL
 /**@}*/
 
 /** \name RNDIS Response Values */
 /**@{*/
 #define REMOTE_NDIS_INITIALIZE_CMPLT 0x80000002UL
-#define REMOTE_NDIS_QUERY_CMPLT		 0x80000004UL
-#define REMOTE_NDIS_SET_CMPLT		 0x80000005UL
-#define REMOTE_NDIS_RESET_CMPLT		 0x80000006UL
-#define REMOTE_NDIS_KEEPALIVE_CMPLT	 0x80000008UL
+#define REMOTE_NDIS_QUERY_CMPLT      0x80000004UL
+#define REMOTE_NDIS_SET_CMPLT        0x80000005UL
+#define REMOTE_NDIS_RESET_CMPLT      0x80000006UL
+#define REMOTE_NDIS_KEEPALIVE_CMPLT  0x80000008UL
 /**@}*/
 
 /** \name RNDIS Status Values */
 /**@{*/
-#define REMOTE_NDIS_STATUS_SUCCESS			0x00000000UL
-#define REMOTE_NDIS_STATUS_FAILURE			0xC0000001UL
-#define REMOTE_NDIS_STATUS_INVALID_DATA		0xC0010015UL
-#define REMOTE_NDIS_STATUS_NOT_SUPPORTED	0xC00000BBUL
-#define REMOTE_NDIS_STATUS_MEDIA_CONNECT	0x4001000BUL
+#define REMOTE_NDIS_STATUS_SUCCESS          0x00000000UL
+#define REMOTE_NDIS_STATUS_FAILURE          0xC0000001UL
+#define REMOTE_NDIS_STATUS_INVALID_DATA     0xC0010015UL
+#define REMOTE_NDIS_STATUS_NOT_SUPPORTED    0xC00000BBUL
+#define REMOTE_NDIS_STATUS_MEDIA_CONNECT    0x4001000BUL
 #define REMOTE_NDIS_STATUS_MEDIA_DISCONNECT 0x4001000CUL
 /**@}*/
 
 /** \name RNDIS Media States */
 /**@{*/
-#define REMOTE_NDIS_MEDIA_STATE_CONNECTED	 0x00000000UL
+#define REMOTE_NDIS_MEDIA_STATE_CONNECTED    0x00000000UL
 #define REMOTE_NDIS_MEDIA_STATE_DISCONNECTED 0x00000001UL
 /**@}*/
 
@@ -124,52 +124,52 @@ extern "C" {
 
 /** \name RNDIS Connection Types */
 /**@{*/
-#define REMOTE_NDIS_DF_CONNECTIONLESS	   0x00000001UL
+#define REMOTE_NDIS_DF_CONNECTIONLESS      0x00000001UL
 #define REMOTE_NDIS_DF_CONNECTION_ORIENTED 0x00000002UL
 /**@}*/
 
 /** \name RNDIS Packet Types */
 /**@{*/
-#define REMOTE_NDIS_PACKET_DIRECTED		  0x00000001UL
-#define REMOTE_NDIS_PACKET_MULTICAST	  0x00000002UL
+#define REMOTE_NDIS_PACKET_DIRECTED       0x00000001UL
+#define REMOTE_NDIS_PACKET_MULTICAST      0x00000002UL
 #define REMOTE_NDIS_PACKET_ALL_MULTICAST  0x00000004UL
-#define REMOTE_NDIS_PACKET_BROADCAST	  0x00000008UL
+#define REMOTE_NDIS_PACKET_BROADCAST      0x00000008UL
 #define REMOTE_NDIS_PACKET_SOURCE_ROUTING 0x00000010UL
-#define REMOTE_NDIS_PACKET_PROMISCUOUS	  0x00000020UL
-#define REMOTE_NDIS_PACKET_SMT			  0x00000040UL
-#define REMOTE_NDIS_PACKET_ALL_LOCAL	  0x00000080UL
-#define REMOTE_NDIS_PACKET_GROUP		  0x00001000UL
+#define REMOTE_NDIS_PACKET_PROMISCUOUS    0x00000020UL
+#define REMOTE_NDIS_PACKET_SMT            0x00000040UL
+#define REMOTE_NDIS_PACKET_ALL_LOCAL      0x00000080UL
+#define REMOTE_NDIS_PACKET_GROUP          0x00001000UL
 #define REMOTE_NDIS_PACKET_ALL_FUNCTIONAL 0x00002000UL
-#define REMOTE_NDIS_PACKET_FUNCTIONAL	  0x00004000UL
-#define REMOTE_NDIS_PACKET_MAC_FRAME	  0x00008000UL
+#define REMOTE_NDIS_PACKET_FUNCTIONAL     0x00004000UL
+#define REMOTE_NDIS_PACKET_MAC_FRAME      0x00008000UL
 /**@}*/
 
 /** \name RNDIS OID Values */
 /**@{*/
-#define OID_GEN_SUPPORTED_LIST		   0x00010101UL
-#define OID_GEN_HARDWARE_STATUS		   0x00010102UL
-#define OID_GEN_MEDIA_SUPPORTED		   0x00010103UL
-#define OID_GEN_MEDIA_IN_USE		   0x00010104UL
-#define OID_GEN_MAXIMUM_FRAME_SIZE	   0x00010106UL
-#define OID_GEN_MAXIMUM_TOTAL_SIZE	   0x00010111UL
-#define OID_GEN_LINK_SPEED			   0x00010107UL
-#define OID_GEN_TRANSMIT_BLOCK_SIZE	   0x0001010AUL
-#define OID_GEN_RECEIVE_BLOCK_SIZE	   0x0001010BUL
-#define OID_GEN_VENDOR_ID			   0x0001010CUL
-#define OID_GEN_VENDOR_DESCRIPTION	   0x0001010DUL
+#define OID_GEN_SUPPORTED_LIST         0x00010101UL
+#define OID_GEN_HARDWARE_STATUS        0x00010102UL
+#define OID_GEN_MEDIA_SUPPORTED        0x00010103UL
+#define OID_GEN_MEDIA_IN_USE           0x00010104UL
+#define OID_GEN_MAXIMUM_FRAME_SIZE     0x00010106UL
+#define OID_GEN_MAXIMUM_TOTAL_SIZE     0x00010111UL
+#define OID_GEN_LINK_SPEED             0x00010107UL
+#define OID_GEN_TRANSMIT_BLOCK_SIZE    0x0001010AUL
+#define OID_GEN_RECEIVE_BLOCK_SIZE     0x0001010BUL
+#define OID_GEN_VENDOR_ID              0x0001010CUL
+#define OID_GEN_VENDOR_DESCRIPTION     0x0001010DUL
 #define OID_GEN_CURRENT_PACKET_FILTER  0x0001010EUL
-#define OID_GEN_MAXIMUM_TOTAL_SIZE	   0x00010111UL
+#define OID_GEN_MAXIMUM_TOTAL_SIZE     0x00010111UL
 #define OID_GEN_MEDIA_CONNECT_STATUS   0x00010114UL
-#define OID_GEN_PHYSICAL_MEDIUM		   0x00010202UL
-#define OID_GEN_XMIT_OK				   0x00020101UL
-#define OID_GEN_RCV_OK				   0x00020102UL
-#define OID_GEN_XMIT_ERROR			   0x00020103UL
-#define OID_GEN_RCV_ERROR			   0x00020104UL
-#define OID_GEN_RCV_NO_BUFFER		   0x00020105UL
-#define OID_802_3_PERMANENT_ADDRESS	   0x01010101UL
-#define OID_802_3_CURRENT_ADDRESS	   0x01010102UL
-#define OID_802_3_MULTICAST_LIST	   0x01010103UL
-#define OID_802_3_MAXIMUM_LIST_SIZE	   0x01010104UL
+#define OID_GEN_PHYSICAL_MEDIUM        0x00010202UL
+#define OID_GEN_XMIT_OK                0x00020101UL
+#define OID_GEN_RCV_OK                 0x00020102UL
+#define OID_GEN_XMIT_ERROR             0x00020103UL
+#define OID_GEN_RCV_ERROR              0x00020104UL
+#define OID_GEN_RCV_NO_BUFFER          0x00020105UL
+#define OID_802_3_PERMANENT_ADDRESS    0x01010101UL
+#define OID_802_3_CURRENT_ADDRESS      0x01010102UL
+#define OID_802_3_MULTICAST_LIST       0x01010103UL
+#define OID_802_3_MAXIMUM_LIST_SIZE    0x01010104UL
 #define OID_802_3_RCV_ERROR_ALIGNMENT  0x01020101UL
 #define OID_802_3_XMIT_ONE_COLLISION   0x01020102UL
 #define OID_802_3_XMIT_MORE_COLLISIONS 0x01020103UL
@@ -184,36 +184,36 @@ extern "C" {
  * USB bus host. */
 enum RNDIS_ClassRequests_t
 {
-	RNDIS_REQ_SendEncapsulatedCommand = 0x00, /**< RNDIS request to issue a host-to-device NDIS command. */
-	RNDIS_REQ_GetEncapsulatedResponse = 0x01, /**< RNDIS request to issue a device-to-host NDIS response. */
+    RNDIS_REQ_SendEncapsulatedCommand = 0x00, /**< RNDIS request to issue a host-to-device NDIS command. */
+    RNDIS_REQ_GetEncapsulatedResponse = 0x01, /**< RNDIS request to issue a device-to-host NDIS response. */
 };
 
 /** Enum for the possible NDIS adapter states. */
 enum RNDIS_States_t
 {
-	RNDIS_Uninitialized	   = 0, /**< Adapter currently uninitialized. */
-	RNDIS_Initialized	   = 1, /**< Adapter currently initialized but not ready for
+    RNDIS_Uninitialized    = 0, /**< Adapter currently uninitialized. */
+    RNDIS_Initialized      = 1, /**< Adapter currently initialized but not ready for
 								   data transfers. */
-	RNDIS_Data_Initialized = 2, /**< Adapter currently initialized and ready for data transfers. */
+    RNDIS_Data_Initialized = 2, /**< Adapter currently initialized and ready for data transfers. */
 };
 
 /** Enum for the RNDIS class specific notification requests that can be issued
  * by a RNDIS device to a host. */
 enum RNDIS_ClassNotifications_t
 {
-	RNDIS_NOTIF_ResponseAvailable = 0x01, /**< Notification request value for a RNDIS Response Available
+    RNDIS_NOTIF_ResponseAvailable = 0x01, /**< Notification request value for a RNDIS Response Available
 											 notification. */
 };
 
 /** Enum for the NDIS hardware states. */
 enum NDIS_Hardware_Status_t
 {
-	NDIS_HardwareStatus_Ready,		  /**< Hardware Ready to accept commands from the
+    NDIS_HardwareStatus_Ready,        /**< Hardware Ready to accept commands from the
 										 host. */
-	NDIS_HardwareStatus_Initializing, /**< Hardware busy initializing. */
-	NDIS_HardwareStatus_Reset,		  /**< Hardware reset. */
-	NDIS_HardwareStatus_Closing,	  /**< Hardware currently closing. */
-	NDIS_HardwareStatus_NotReady	  /**< Hardware not ready to accept commands from
+    NDIS_HardwareStatus_Initializing, /**< Hardware busy initializing. */
+    NDIS_HardwareStatus_Reset,        /**< Hardware reset. */
+    NDIS_HardwareStatus_Closing,      /**< Hardware currently closing. */
+    NDIS_HardwareStatus_NotReady      /**< Hardware not ready to accept commands from
 										 the host. */
 };
 
@@ -224,7 +224,7 @@ enum NDIS_Hardware_Status_t
  */
 typedef struct
 {
-	uint8_t Octets[6]; /**< Individual bytes of a MAC address */
+    uint8_t Octets[6]; /**< Individual bytes of a MAC address */
 } ATTR_PACKED MAC_Address_t;
 
 /** \brief RNDIS Common Message Header Structure.
@@ -236,8 +236,8 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;	/**< RNDIS message type, a \c REMOTE_NDIS_*_MSG constant */
-	uint32_t MessageLength; /**< Total length of the RNDIS message, in bytes */
+    uint32_t MessageType;   /**< RNDIS message type, a \c REMOTE_NDIS_*_MSG constant */
+    uint32_t MessageLength; /**< Total length of the RNDIS message, in bytes */
 } ATTR_PACKED RNDIS_Message_Header_t;
 
 /** \brief RNDIS Message Structure.
@@ -250,17 +250,17 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t DataOffset;
-	uint32_t DataLength;
-	uint32_t OOBDataOffset;
-	uint32_t OOBDataLength;
-	uint32_t NumOOBDataElements;
-	uint32_t PerPacketInfoOffset;
-	uint32_t PerPacketInfoLength;
-	uint32_t VcHandle;
-	uint32_t Reserved;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t DataOffset;
+    uint32_t DataLength;
+    uint32_t OOBDataOffset;
+    uint32_t OOBDataLength;
+    uint32_t NumOOBDataElements;
+    uint32_t PerPacketInfoOffset;
+    uint32_t PerPacketInfoLength;
+    uint32_t VcHandle;
+    uint32_t Reserved;
 } ATTR_PACKED RNDIS_Packet_Message_t;
 
 /** \brief RNDIS Initialization Message Structure.
@@ -272,13 +272,13 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
 
-	uint32_t MajorVersion;
-	uint32_t MinorVersion;
-	uint32_t MaxTransferSize;
+    uint32_t MajorVersion;
+    uint32_t MinorVersion;
+    uint32_t MaxTransferSize;
 } ATTR_PACKED RNDIS_Initialize_Message_t;
 
 /** \brief RNDIS Initialize Complete Message Structure.
@@ -290,20 +290,20 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
-	uint32_t Status;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
+    uint32_t Status;
 
-	uint32_t MajorVersion;
-	uint32_t MinorVersion;
-	uint32_t DeviceFlags;
-	uint32_t Medium;
-	uint32_t MaxPacketsPerTransfer;
-	uint32_t MaxTransferSize;
-	uint32_t PacketAlignmentFactor;
-	uint32_t AFListOffset;
-	uint32_t AFListSize;
+    uint32_t MajorVersion;
+    uint32_t MinorVersion;
+    uint32_t DeviceFlags;
+    uint32_t Medium;
+    uint32_t MaxPacketsPerTransfer;
+    uint32_t MaxTransferSize;
+    uint32_t PacketAlignmentFactor;
+    uint32_t AFListOffset;
+    uint32_t AFListSize;
 } ATTR_PACKED RNDIS_Initialize_Complete_t;
 
 /** \brief RNDIS Keep Alive Message Structure.
@@ -315,9 +315,9 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
 } ATTR_PACKED RNDIS_KeepAlive_Message_t;
 
 /** \brief RNDIS Keep Alive Complete Message Structure.
@@ -329,10 +329,10 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
-	uint32_t Status;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
+    uint32_t Status;
 } ATTR_PACKED RNDIS_KeepAlive_Complete_t;
 
 /** \brief RNDIS Reset Complete Message Structure.
@@ -344,11 +344,11 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t Status;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t Status;
 
-	uint32_t AddressingReset;
+    uint32_t AddressingReset;
 } ATTR_PACKED RNDIS_Reset_Complete_t;
 
 /** \brief RNDIS OID Property Set Message Structure.
@@ -360,14 +360,14 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
 
-	uint32_t Oid;
-	uint32_t InformationBufferLength;
-	uint32_t InformationBufferOffset;
-	uint32_t DeviceVcHandle;
+    uint32_t Oid;
+    uint32_t InformationBufferLength;
+    uint32_t InformationBufferOffset;
+    uint32_t DeviceVcHandle;
 } ATTR_PACKED RNDIS_Set_Message_t;
 
 /** \brief RNDIS OID Property Set Complete Message Structure.
@@ -379,10 +379,10 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
-	uint32_t Status;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
+    uint32_t Status;
 } ATTR_PACKED RNDIS_Set_Complete_t;
 
 /** \brief RNDIS OID Property Query Message Structure.
@@ -394,14 +394,14 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
 
-	uint32_t Oid;
-	uint32_t InformationBufferLength;
-	uint32_t InformationBufferOffset;
-	uint32_t DeviceVcHandle;
+    uint32_t Oid;
+    uint32_t InformationBufferLength;
+    uint32_t InformationBufferOffset;
+    uint32_t DeviceVcHandle;
 } ATTR_PACKED RNDIS_Query_Message_t;
 
 /** \brief RNDIS OID Property Query Complete Message Structure.
@@ -413,13 +413,13 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t MessageType;
-	uint32_t MessageLength;
-	uint32_t RequestId;
-	uint32_t Status;
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
+    uint32_t Status;
 
-	uint32_t InformationBufferLength;
-	uint32_t InformationBufferOffset;
+    uint32_t InformationBufferLength;
+    uint32_t InformationBufferOffset;
 } ATTR_PACKED RNDIS_Query_Complete_t;
 
 /* Disable C linkage for C++ Compilers: */

@@ -82,30 +82,30 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t ControlInterfaceNumber;	  /**< Index of the Audio Control
+    struct
+    {
+        uint8_t ControlInterfaceNumber;   /**< Index of the Audio Control
 										   * interface within the device this
 										   *   structure controls.
 										   */
-		uint8_t StreamingInterfaceNumber; /**< Index of the Audio Streaming
+        uint8_t StreamingInterfaceNumber; /**< Index of the Audio Streaming
 										   * interface within the device this
 										   *   structure controls.
 										   */
 
-		USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
-	} Config;								  /**< Config data for the USB class interface within the device.
+        USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
+    } Config;                                 /**< Config data for the USB class interface within the device.
 											   * All elements in this section <b>must</b> be set or the
 											   * interface will fail to enumerate and operate correctly.
 											   */
-	struct
-	{
-		bool InterfaceEnabled; /**< Set and cleared by the class driver to
+    struct
+    {
+        bool InterfaceEnabled; /**< Set and cleared by the class driver to
 								* indicate if the host has enabled the streaming
 								* endpoints of the Audio Streaming interface.
 								*/
-	} State;				   /**< State data for the USB class interface within the device. All
+    } State;                   /**< State data for the USB class interface within the device. All
 								* elements in this section are reset to their defaults when the
 								* interface is enumerated.
 								*/
@@ -165,8 +165,8 @@ void Audio_Device_ProcessControlRequest(USB_ClassInfo_Audio_Device_t* const Audi
  * otherwise
  */
 bool CALLBACK_Audio_Device_GetSetEndpointProperty(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const uint8_t EndpointProperty,
-												  const uint8_t EndpointAddress, const uint8_t EndpointControl, uint16_t* const DataLength,
-												  uint8_t* Data) ATTR_NON_NULL_PTR_ARG(1);
+                                                  const uint8_t EndpointAddress, const uint8_t EndpointControl, uint16_t* const DataLength,
+                                                  uint8_t* Data) ATTR_NON_NULL_PTR_ARG(1);
 
 /** Audio class driver callback for the setting and retrieval of streaming
  * interface properties. This callback must be implemented in the user
@@ -199,8 +199,8 @@ bool CALLBACK_Audio_Device_GetSetEndpointProperty(USB_ClassInfo_Audio_Device_t* 
  * otherwise
  */
 bool CALLBACK_Audio_Device_GetSetInterfaceProperty(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const uint8_t Property,
-												   const uint8_t EntityAddress, const uint16_t Parameter, uint16_t* const DataLength,
-												   uint8_t* Data) ATTR_NON_NULL_PTR_ARG(1);
+                                                   const uint8_t EntityAddress, const uint16_t Parameter, uint16_t* const DataLength,
+                                                   uint8_t* Data) ATTR_NON_NULL_PTR_ARG(1);
 
 /** Audio class driver event for an Audio Stream start/stop change. This event
  * fires each time the device receives a stream enable or disable control
@@ -224,7 +224,7 @@ void EVENT_Audio_Device_StreamStartStop(USB_ClassInfo_Audio_Device_t* const Audi
 static inline void Audio_Device_USBTask(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Device_USBTask(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 }
 
 /** Determines if the given audio interface is ready for a sample to be read
@@ -240,14 +240,14 @@ static inline void Audio_Device_USBTask(USB_ClassInfo_Audio_Device_t* const Audi
  * read, \c false otherwise.
  */
 static inline bool Audio_Device_IsSampleReceived(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline bool Audio_Device_IsSampleReceived(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	if ((USB_DeviceState != DEVICE_STATE_Configured) || !(AudioInterfaceInfo->State.InterfaceEnabled))
-		return false;
+    if ((USB_DeviceState != DEVICE_STATE_Configured) || !(AudioInterfaceInfo->State.InterfaceEnabled))
+        return false;
 
-	Endpoint_SelectEndpoint(AudioInterfaceInfo->Config.DataOUTEndpoint.Address);
-	return Endpoint_IsOUTReceived();
+    Endpoint_SelectEndpoint(AudioInterfaceInfo->Config.DataOUTEndpoint.Address);
+    return Endpoint_IsOUTReceived();
 }
 
 /** Determines if the given audio interface is ready to accept the next sample
@@ -263,14 +263,14 @@ static inline bool Audio_Device_IsSampleReceived(USB_ClassInfo_Audio_Device_t* c
  * next sample, \c false otherwise.
  */
 static inline bool Audio_Device_IsReadyForNextSample(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline bool Audio_Device_IsReadyForNextSample(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	if ((USB_DeviceState != DEVICE_STATE_Configured) || !(AudioInterfaceInfo->State.InterfaceEnabled))
-		return false;
+    if ((USB_DeviceState != DEVICE_STATE_Configured) || !(AudioInterfaceInfo->State.InterfaceEnabled))
+        return false;
 
-	Endpoint_SelectEndpoint(AudioInterfaceInfo->Config.DataINEndpoint.Address);
-	return Endpoint_IsINReady();
+    Endpoint_SelectEndpoint(AudioInterfaceInfo->Config.DataINEndpoint.Address);
+    return Endpoint_IsINReady();
 }
 
 /** Reads the next 8-bit audio sample from the current audio interface.
@@ -285,19 +285,19 @@ static inline bool Audio_Device_IsReadyForNextSample(USB_ClassInfo_Audio_Device_
  *  \return  Signed 8-bit audio sample from the audio interface.
  */
 static inline int8_t Audio_Device_ReadSample8(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline int8_t Audio_Device_ReadSample8(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	int8_t Sample;
+    int8_t Sample;
 
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Sample = Endpoint_Read_8();
+    Sample = Endpoint_Read_8();
 
-	if (!(Endpoint_BytesInEndpoint()))
-		Endpoint_ClearOUT();
+    if (!(Endpoint_BytesInEndpoint()))
+        Endpoint_ClearOUT();
 
-	return Sample;
+    return Sample;
 }
 
 /** Reads the next 16-bit audio sample from the current audio interface.
@@ -312,19 +312,19 @@ static inline int8_t Audio_Device_ReadSample8(USB_ClassInfo_Audio_Device_t* cons
  *  \return  Signed 16-bit audio sample from the audio interface.
  */
 static inline int16_t Audio_Device_ReadSample16(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline int16_t Audio_Device_ReadSample16(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	int16_t Sample;
+    int16_t Sample;
 
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Sample = (int16_t)Endpoint_Read_16_LE();
+    Sample = (int16_t)Endpoint_Read_16_LE();
 
-	if (!(Endpoint_BytesInEndpoint()))
-		Endpoint_ClearOUT();
+    if (!(Endpoint_BytesInEndpoint()))
+        Endpoint_ClearOUT();
 
-	return Sample;
+    return Sample;
 }
 
 /** Reads the next 24-bit audio sample from the current audio interface.
@@ -339,19 +339,19 @@ static inline int16_t Audio_Device_ReadSample16(USB_ClassInfo_Audio_Device_t* co
  *  \return Signed 24-bit audio sample from the audio interface.
  */
 static inline int32_t Audio_Device_ReadSample24(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline int32_t Audio_Device_ReadSample24(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo)
 {
-	int32_t Sample;
+    int32_t Sample;
 
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Sample = (((uint32_t)Endpoint_Read_8() << 16) | Endpoint_Read_16_LE());
+    Sample = (((uint32_t)Endpoint_Read_8() << 16) | Endpoint_Read_16_LE());
 
-	if (!(Endpoint_BytesInEndpoint()))
-		Endpoint_ClearOUT();
+    if (!(Endpoint_BytesInEndpoint()))
+        Endpoint_ClearOUT();
 
-	return Sample;
+    return Sample;
 }
 
 /** Writes the next 8-bit audio sample to the current audio interface.
@@ -365,13 +365,13 @@ static inline int32_t Audio_Device_ReadSample24(USB_ClassInfo_Audio_Device_t* co
  * sample.
  */
 static inline void Audio_Device_WriteSample8(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const int8_t Sample)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Device_WriteSample8(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const int8_t Sample)
 {
-	Endpoint_Write_8(Sample);
+    Endpoint_Write_8(Sample);
 
-	if (Endpoint_BytesInEndpoint() == AudioInterfaceInfo->Config.DataINEndpoint.Size)
-		Endpoint_ClearIN();
+    if (Endpoint_BytesInEndpoint() == AudioInterfaceInfo->Config.DataINEndpoint.Size)
+        Endpoint_ClearIN();
 }
 
 /** Writes the next 16-bit audio sample to the current audio interface.
@@ -385,13 +385,13 @@ static inline void Audio_Device_WriteSample8(USB_ClassInfo_Audio_Device_t* const
  * audio sample.
  */
 static inline void Audio_Device_WriteSample16(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const int16_t Sample)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Device_WriteSample16(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const int16_t Sample)
 {
-	Endpoint_Write_16_LE(Sample);
+    Endpoint_Write_16_LE(Sample);
 
-	if (Endpoint_BytesInEndpoint() == AudioInterfaceInfo->Config.DataINEndpoint.Size)
-		Endpoint_ClearIN();
+    if (Endpoint_BytesInEndpoint() == AudioInterfaceInfo->Config.DataINEndpoint.Size)
+        Endpoint_ClearIN();
 }
 
 /** Writes the next 24-bit audio sample to the current audio interface.
@@ -405,14 +405,14 @@ static inline void Audio_Device_WriteSample16(USB_ClassInfo_Audio_Device_t* cons
  * audio sample.
  */
 static inline void Audio_Device_WriteSample24(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const int32_t Sample)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Device_WriteSample24(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo, const int32_t Sample)
 {
-	Endpoint_Write_16_LE(Sample);
-	Endpoint_Write_8(Sample >> 16);
+    Endpoint_Write_16_LE(Sample);
+    Endpoint_Write_8(Sample >> 16);
 
-	if (Endpoint_BytesInEndpoint() == AudioInterfaceInfo->Config.DataINEndpoint.Size)
-		Endpoint_ClearIN();
+    if (Endpoint_BytesInEndpoint() == AudioInterfaceInfo->Config.DataINEndpoint.Size)
+        Endpoint_ClearIN();
 }
 
 /* Private Interface - For use in library only: */
@@ -422,7 +422,7 @@ static inline void Audio_Device_WriteSample24(USB_ClassInfo_Audio_Device_t* cons
 void Audio_Device_Event_Stub(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo);
 
 void EVENT_Audio_Device_StreamStartStop(USB_ClassInfo_Audio_Device_t* const AudioInterfaceInfo) ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_ALIAS(Audio_Device_Event_Stub);
+    ATTR_ALIAS(Audio_Device_Event_Stub);
 #endif
 
 #endif

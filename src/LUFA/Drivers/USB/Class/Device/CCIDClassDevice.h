@@ -73,26 +73,26 @@
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t				 InterfaceNumber; /**< Interface number of the CCID interface
+    struct
+    {
+        uint8_t              InterfaceNumber; /**< Interface number of the CCID interface
 												 within the device. */
-		uint8_t				 TotalSlots;	  /**< Total of slots no this device. */
-		USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
-	} Config;								  /**< Config data for the USB class interface within the device.
+        uint8_t              TotalSlots;      /**< Total of slots no this device. */
+        USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
+    } Config;                                 /**< Config data for the USB class interface within the device.
 											   * All elements in this section <b>must</b> be set or the
 											   * interface will fail to enumerate and operate correctly.
 											   */
-	struct
-	{
-		bool	Aborted;	//< Set if host has started an abort process
-		uint8_t AbortedSeq; //< Sequence number for the current abort process
-	} State;				/**< State data for the USB class interface within the device. All
+    struct
+    {
+        bool    Aborted;    //< Set if host has started an abort process
+        uint8_t AbortedSeq; //< Sequence number for the current abort process
+    } State;                /**< State data for the USB class interface within the device. All
 							 * elements in this section are reset to their defaults when the
 							 * interface is enumerated.
 							 */
-	USB_CCID_ProtocolData_T0_t ProtocolData;
+    USB_CCID_ProtocolData_T0_t ProtocolData;
 } USB_ClassInfo_CCID_Device_t;
 
 /* Function Prototypes: */
@@ -142,7 +142,7 @@ void CCID_Device_USBTask(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo) A
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_IccPowerOn(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, uint8_t* const Atr,
-								 uint8_t* const AtrSize, uint8_t* const Error) ATTR_NON_NULL_PTR_ARG(1);
+                                 uint8_t* const AtrSize, uint8_t* const Error) ATTR_NON_NULL_PTR_ARG(1);
 
 /** CCID class driver callback for PC_TO_RDR_IccPowerOff CCID message
  *  Turns off the ICC
@@ -155,7 +155,7 @@ uint8_t CALLBACK_CCID_IccPowerOn(USB_ClassInfo_CCID_Device_t* const CCIDInterfac
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_IccPowerOff(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, uint8_t* const Error)
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 /** CCID class driver callback for PC_TO_RDR_GetSlotStatus CCID message
  *  Retrieves the current status of a given slot
@@ -168,7 +168,7 @@ uint8_t CALLBACK_CCID_IccPowerOff(USB_ClassInfo_CCID_Device_t* const CCIDInterfa
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_GetSlotStatus(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, uint8_t* const Error)
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 /** CCID class driver callback for PC_TO_RDR_SetParameters CCID message for T=0
  *  Sets the current parameters of a given slot
@@ -183,7 +183,7 @@ uint8_t CALLBACK_CCID_GetSlotStatus(USB_ClassInfo_CCID_Device_t* const CCIDInter
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_SetParameters_T0(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, uint8_t* const Error,
-									   USB_CCID_ProtocolData_T0_t* const T0) ATTR_NON_NULL_PTR_ARG(1);
+                                       USB_CCID_ProtocolData_T0_t* const T0) ATTR_NON_NULL_PTR_ARG(1);
 
 /** CCID class driver callback for PC_TO_RDR_SetParameters CCID message for T=0
  *  Retrieves the current parameters of a given slot
@@ -199,7 +199,7 @@ uint8_t CALLBACK_CCID_SetParameters_T0(USB_ClassInfo_CCID_Device_t* const CCIDIn
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_GetParameters_T0(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, uint8_t* const Error,
-									   uint8_t* const ProtocolNum, USB_CCID_ProtocolData_T0_t* const T0) ATTR_NON_NULL_PTR_ARG(1);
+                                       uint8_t* const ProtocolNum, USB_CCID_ProtocolData_T0_t* const T0) ATTR_NON_NULL_PTR_ARG(1);
 
 /** CCID class driver callback for PC_TO_RDR_XfrBlock CCID message
  *  Send a block of bytes from the host to a slot in the device
@@ -219,8 +219,8 @@ uint8_t CALLBACK_CCID_GetParameters_T0(USB_ClassInfo_CCID_Device_t* const CCIDIn
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_XfrBlock(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, const uint8_t* ReceivedBuffer,
-							   const uint8_t ReceivedBufferSize, uint8_t* const SendBuffer, uint8_t* const SentBufferSize,
-							   uint8_t* const Error) ATTR_NON_NULL_PTR_ARG(1);
+                               const uint8_t ReceivedBufferSize, uint8_t* const SendBuffer, uint8_t* const SentBufferSize,
+                               uint8_t* const Error) ATTR_NON_NULL_PTR_ARG(1);
 
 /** CCID class driver callback for CCID_PC_to_RDR_Abort CCID message
  *  Aborts a BULK out message previously sent to a slot
@@ -237,7 +237,7 @@ uint8_t CALLBACK_CCID_XfrBlock(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceI
  *  \return	The command result code.
  */
 uint8_t CALLBACK_CCID_Abort(USB_ClassInfo_CCID_Device_t* const CCIDInterfaceInfo, const uint8_t Slot, const uint8_t Seq,
-							uint8_t* const Error) ATTR_NON_NULL_PTR_ARG(1);
+                            uint8_t* const Error) ATTR_NON_NULL_PTR_ARG(1);
 
 #endif
 

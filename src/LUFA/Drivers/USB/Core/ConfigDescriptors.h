@@ -123,38 +123,38 @@ typedef uint8_t (*ConfigComparatorPtr_t)(void*);
  * USB_Host_GetDeviceConfigDescriptor() function. */
 enum USB_Host_GetConfigDescriptor_ErrorCodes_t
 {
-	HOST_GETCONFIG_Successful		= 0, /**< No error occurred while retrieving the
+    HOST_GETCONFIG_Successful       = 0, /**< No error occurred while retrieving the
 											configuration descriptor. */
-	HOST_GETCONFIG_DeviceDisconnect = 1, /**< The attached device was disconnected while retrieving the
+    HOST_GETCONFIG_DeviceDisconnect = 1, /**< The attached device was disconnected while retrieving the
 										  * configuration descriptor.
 										  */
-	HOST_GETCONFIG_PipeError		= 2, /**< An error occurred in the pipe while sending the request. */
-	HOST_GETCONFIG_SetupStalled		= 3, /**< The attached device stalled the request to retrieve the
+    HOST_GETCONFIG_PipeError        = 2, /**< An error occurred in the pipe while sending the request. */
+    HOST_GETCONFIG_SetupStalled     = 3, /**< The attached device stalled the request to retrieve the
 										  * configuration descriptor.
 										  */
-	HOST_GETCONFIG_SoftwareTimeOut	= 4, /**< The request or data transfer timed out. */
-	HOST_GETCONFIG_BuffOverflow		= 5, /**< The device's configuration descriptor is too large to fit into
+    HOST_GETCONFIG_SoftwareTimeOut  = 4, /**< The request or data transfer timed out. */
+    HOST_GETCONFIG_BuffOverflow     = 5, /**< The device's configuration descriptor is too large to fit into
 										  * the allocated buffer.
 										  */
-	HOST_GETCONFIG_InvalidData		= 6, /**< The device returned invalid configuration descriptor data. */
+    HOST_GETCONFIG_InvalidData      = 6, /**< The device returned invalid configuration descriptor data. */
 };
 
 /** Enum for return values of a descriptor comparator function. */
 enum DSearch_Return_ErrorCodes_t
 {
-	DESCRIPTOR_SEARCH_Found	   = 0, /**< Current descriptor matches comparator criteria. */
-	DESCRIPTOR_SEARCH_Fail	   = 1, /**< No further descriptor could possibly match
+    DESCRIPTOR_SEARCH_Found    = 0, /**< Current descriptor matches comparator criteria. */
+    DESCRIPTOR_SEARCH_Fail     = 1, /**< No further descriptor could possibly match
 									   criteria, fail the search. */
-	DESCRIPTOR_SEARCH_NotFound = 2, /**< Current descriptor does not match comparator criteria. */
+    DESCRIPTOR_SEARCH_NotFound = 2, /**< Current descriptor does not match comparator criteria. */
 };
 
 /** Enum for return values of \ref USB_GetNextDescriptorComp(). */
 enum DSearch_Comp_Return_ErrorCodes_t
 {
-	DESCRIPTOR_SEARCH_COMP_Found		   = 0, /**< Configuration descriptor now points to descriptor which matches
+    DESCRIPTOR_SEARCH_COMP_Found           = 0, /**< Configuration descriptor now points to descriptor which matches
 												 *   search criteria of the given comparator function. */
-	DESCRIPTOR_SEARCH_COMP_Fail			   = 1, /**< Comparator function returned \ref DESCRIPTOR_SEARCH_Fail. */
-	DESCRIPTOR_SEARCH_COMP_EndOfDescriptor = 2, /**< End of configuration descriptor reached before match found. */
+    DESCRIPTOR_SEARCH_COMP_Fail            = 1, /**< Comparator function returned \ref DESCRIPTOR_SEARCH_Fail. */
+    DESCRIPTOR_SEARCH_COMP_EndOfDescriptor = 2, /**< End of configuration descriptor reached before match found. */
 };
 
 /* Function Prototypes: */
@@ -174,7 +174,7 @@ enum DSearch_Comp_Return_ErrorCodes_t
  * enum.
  */
 uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber, uint16_t* const ConfigSizePtr, void* const BufferPtr,
-										   const uint16_t BufferSize) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
+                                           const uint16_t BufferSize) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Skips to the next sub-descriptor inside the configuration descriptor of the
  * specified type value. The bytes remaining value is automatically decremented.
@@ -185,7 +185,7 @@ uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber, uint16_t*
  * Descriptor type value to search for.
  */
 void USB_GetNextDescriptorOfType(uint16_t* const BytesRem, void** const CurrConfigLoc, const uint8_t Type) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Skips to the next sub-descriptor inside the configuration descriptor of the
  * specified type value, which must come before a descriptor of the second given
@@ -200,7 +200,7 @@ void USB_GetNextDescriptorOfType(uint16_t* const BytesRem, void** const CurrConf
  * type value which must not be reached before the given Type descriptor.
  */
 void USB_GetNextDescriptorOfTypeBefore(uint16_t* const BytesRem, void** const CurrConfigLoc, const uint8_t Type, const uint8_t BeforeType)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Skips to the next sub-descriptor inside the configuration descriptor of the
  * specified type value, which must come after a descriptor of the second given
@@ -213,7 +213,7 @@ void USB_GetNextDescriptorOfTypeBefore(uint16_t* const BytesRem, void** const Cu
  * type value which must be reached before the given Type descriptor.
  */
 void USB_GetNextDescriptorOfTypeAfter(uint16_t* const BytesRem, void** const CurrConfigLoc, const uint8_t Type, const uint8_t AfterType)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Searches for the next descriptor in the given configuration descriptor using
  * a pre-made comparator function. The routine updates the position and
@@ -263,7 +263,7 @@ void USB_GetNextDescriptorOfTypeAfter(uint16_t* const BytesRem, void** const Cur
  *  \endcode
  */
 uint8_t USB_GetNextDescriptorComp(uint16_t* const BytesRem, void** const CurrConfigLoc, ConfigComparatorPtr_t const ComparatorRoutine)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
 
 /* Inline Functions: */
 /** Skips over the current sub-descriptor inside the configuration descriptor,
@@ -278,13 +278,13 @@ uint8_t USB_GetNextDescriptorComp(uint16_t* const BytesRem, void** const CurrCon
 static inline void USB_GetNextDescriptor(uint16_t* const BytesRem, void** CurrConfigLoc) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 static inline void USB_GetNextDescriptor(uint16_t* const BytesRem, void** CurrConfigLoc)
 {
-	uint16_t CurrDescriptorSize = DESCRIPTOR_CAST(*CurrConfigLoc, USB_Descriptor_Header_t).Size;
+    uint16_t CurrDescriptorSize = DESCRIPTOR_CAST(*CurrConfigLoc, USB_Descriptor_Header_t).Size;
 
-	if (*BytesRem < CurrDescriptorSize)
-		CurrDescriptorSize = *BytesRem;
+    if (*BytesRem < CurrDescriptorSize)
+        CurrDescriptorSize = *BytesRem;
 
-	*CurrConfigLoc = (void*)((uintptr_t)*CurrConfigLoc + CurrDescriptorSize);
-	*BytesRem -= CurrDescriptorSize;
+    *CurrConfigLoc = (void*)((uintptr_t)*CurrConfigLoc + CurrDescriptorSize);
+    *BytesRem -= CurrDescriptorSize;
 }
 
 /* Disable C linkage for C++ Compilers: */

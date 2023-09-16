@@ -170,11 +170,11 @@ extern "C" {
  */
 typedef struct
 {
-	uint8_t	 bmRequestType; /**< Type of the request. */
-	uint8_t	 bRequest;		/**< Request command code. */
-	uint16_t wValue;		/**< wValue parameter of the request. */
-	uint16_t wIndex;		/**< wIndex parameter of the request. */
-	uint16_t wLength;		/**< Length of the data to transfer in bytes. */
+    uint8_t  bmRequestType; /**< Type of the request. */
+    uint8_t  bRequest;      /**< Request command code. */
+    uint16_t wValue;        /**< wValue parameter of the request. */
+    uint16_t wIndex;        /**< wIndex parameter of the request. */
+    uint16_t wLength;       /**< Length of the data to transfer in bytes. */
 } ATTR_PACKED USB_Request_Header_t;
 
 /* Enums: */
@@ -187,48 +187,48 @@ typedef struct
  */
 enum USB_Control_Request_t
 {
-	REQ_GetStatus		 = 0,  /**< Implemented in the library for device and endpoint
+    REQ_GetStatus        = 0,  /**< Implemented in the library for device and endpoint
 								* recipients. Passed to the user application for other
 								* recipients via the \ref
 								* EVENT_USB_Device_ControlRequest() event when received
 								* in device mode. */
-	REQ_ClearFeature	 = 1,  /**< Implemented in the library for device and
+    REQ_ClearFeature     = 1,  /**< Implemented in the library for device and
 								* endpoint recipients. Passed to the user application
 								* for other recipients via the \ref
 								* EVENT_USB_Device_ControlRequest() event when
 								* received in device mode. */
-	REQ_SetFeature		 = 3,  /**< Implemented in the library for device and endpoint
+    REQ_SetFeature       = 3,  /**< Implemented in the library for device and endpoint
 								* recipients. Passed to the user application for other
 								* recipients via the \ref
 								* EVENT_USB_Device_ControlRequest() event when received
 								* in device mode. */
-	REQ_SetAddress		 = 5,  /**< Implemented in the library for the device recipient. Passed
+    REQ_SetAddress       = 5,  /**< Implemented in the library for the device recipient. Passed
 								*   to the user application for other recipients via the
 								*   \ref EVENT_USB_Device_ControlRequest() event when received in
 								*   device mode. */
-	REQ_GetDescriptor	 = 6,  /**< Implemented in the library for device and
+    REQ_GetDescriptor    = 6,  /**< Implemented in the library for device and
 								* interface recipients. Passed to the user
 								* application for other recipients via the \ref
 								* EVENT_USB_Device_ControlRequest() event when
 								* received in device mode. */
-	REQ_SetDescriptor	 = 7,  /**< Not implemented in the library, passed to the user application
+    REQ_SetDescriptor    = 7,  /**< Not implemented in the library, passed to the user application
 								*   via the \ref EVENT_USB_Device_ControlRequest() event when
 								* received in device mode. */
-	REQ_GetConfiguration = 8,  /**< Implemented in the library for the device recipient. Passed
+    REQ_GetConfiguration = 8,  /**< Implemented in the library for the device recipient. Passed
 								*   to the user application for other recipients via the
 								*   \ref EVENT_USB_Device_ControlRequest() event when received in
 								*   device mode. */
-	REQ_SetConfiguration = 9,  /**< Implemented in the library for the device recipient. Passed
+    REQ_SetConfiguration = 9,  /**< Implemented in the library for the device recipient. Passed
 								*   to the user application for other recipients via the
 								*   \ref EVENT_USB_Device_ControlRequest() event when received in
 								*   device mode. */
-	REQ_GetInterface	 = 10, /**< Not implemented in the library, passed to the user application
+    REQ_GetInterface     = 10, /**< Not implemented in the library, passed to the user application
 								*   via the \ref EVENT_USB_Device_ControlRequest() event when
 								* received in device mode. */
-	REQ_SetInterface	 = 11, /**< Not implemented in the library, passed to the user application
+    REQ_SetInterface     = 11, /**< Not implemented in the library, passed to the user application
 								*   via the \ref EVENT_USB_Device_ControlRequest() event when
 								* received in device mode. */
-	REQ_SynchFrame		 = 12, /**< Not implemented in the library, passed to the user application
+    REQ_SynchFrame       = 12, /**< Not implemented in the library, passed to the user application
 								*   via the \ref EVENT_USB_Device_ControlRequest() event when
 								* received in device mode. */
 };
@@ -238,17 +238,17 @@ enum USB_Control_Request_t
  */
 enum USB_Feature_Selectors_t
 {
-	FEATURE_SEL_EndpointHalt	   = 0x00, /**< Feature selector for Clear Feature or Set Feature commands.
+    FEATURE_SEL_EndpointHalt       = 0x00, /**< Feature selector for Clear Feature or Set Feature commands.
 											* When used in a Set Feature or Clear Feature request this
 											* indicates that an endpoint (whose address is given elsewhere in
 											* the request) should have its stall condition changed.
 											*/
-	FEATURE_SEL_DeviceRemoteWakeup = 0x01, /**< Feature selector for Device level Remote Wakeup enable set or
+    FEATURE_SEL_DeviceRemoteWakeup = 0x01, /**< Feature selector for Device level Remote Wakeup enable set or
 											* clear. This feature can be controlled by the host on devices
 											* which indicate remote wakeup support in their descriptors to
 											* selectively disable or enable remote wakeup.
 											*/
-	FEATURE_SEL_TestMode		   = 0x02, /**< Feature selector for Test Mode features, used to test the USB
+    FEATURE_SEL_TestMode           = 0x02, /**< Feature selector for Test Mode features, used to test the USB
 											* controller to check for incorrect operation.
 											*/
 };
@@ -256,7 +256,7 @@ enum USB_Feature_Selectors_t
 /* Private Interface - For use in library only: */
 #if !defined(__DOXYGEN__)
 /* Macros: */
-#define FEATURE_SELFPOWERED_ENABLED	  (1 << 0)
+#define FEATURE_SELFPOWERED_ENABLED   (1 << 0)
 #define FEATURE_REMOTE_WAKEUP_ENABLED (1 << 1)
 #endif
 

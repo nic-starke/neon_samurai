@@ -98,16 +98,16 @@ extern "C" {
 static inline uint8_t Endpoint_BytesToEPSizeMask(const uint16_t Bytes) ATTR_WARN_UNUSED_RESULT ATTR_CONST ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_BytesToEPSizeMask(const uint16_t Bytes)
 {
-	uint8_t	 MaskVal	= 0;
-	uint16_t CheckBytes = 8;
+    uint8_t  MaskVal    = 0;
+    uint16_t CheckBytes = 8;
 
-	while (CheckBytes < Bytes)
-	{
-		MaskVal++;
-		CheckBytes <<= 1;
-	}
+    while (CheckBytes < Bytes)
+    {
+        MaskVal++;
+        CheckBytes <<= 1;
+    }
 
-	return (MaskVal << EPSIZE0);
+    return (MaskVal << EPSIZE0);
 }
 
 /* Function Prototypes: */
@@ -149,18 +149,18 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number, const uint8_t UECFG0XD
  */
 enum Endpoint_WaitUntilReady_ErrorCodes_t
 {
-	ENDPOINT_READYWAIT_NoError			  = 0, /**< Endpoint is ready for next packet, no error. */
-	ENDPOINT_READYWAIT_EndpointStalled	  = 1, /**< The endpoint was stalled during the stream
+    ENDPOINT_READYWAIT_NoError            = 0, /**< Endpoint is ready for next packet, no error. */
+    ENDPOINT_READYWAIT_EndpointStalled    = 1, /**< The endpoint was stalled during the stream
 												*   transfer by the host or device.
 												*/
-	ENDPOINT_READYWAIT_DeviceDisconnected = 2, /**< Device was disconnected from the host while
+    ENDPOINT_READYWAIT_DeviceDisconnected = 2, /**< Device was disconnected from the host while
 												*   waiting for the endpoint to become ready.
 												*/
-	ENDPOINT_READYWAIT_BusSuspended		  = 3, /**< The USB bus has been suspended by
+    ENDPOINT_READYWAIT_BusSuspended       = 3, /**< The USB bus has been suspended by
 												* the host and no USB endpoint traffic
 												* can occur until the bus has resumed.
 												*/
-	ENDPOINT_READYWAIT_Timeout			  = 4, /**< The host failed to accept or send the next packet
+    ENDPOINT_READYWAIT_Timeout            = 4, /**< The host failed to accept or send the next packet
 												*   within the software timeout period set by the
 												*   \ref USB_STREAM_TIMEOUT_MS macro.
 												*/
@@ -204,16 +204,16 @@ enum Endpoint_WaitUntilReady_ErrorCodes_t
  *  \return Boolean \c true if the configuration succeeded, \c false otherwise.
  */
 static inline bool Endpoint_ConfigureEndpoint(const uint8_t Address, const uint8_t Type, const uint16_t Size,
-											  const uint8_t Banks) ATTR_ALWAYS_INLINE;
+                                              const uint8_t Banks) ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_ConfigureEndpoint(const uint8_t Address, const uint8_t Type, const uint16_t Size, const uint8_t Banks)
 {
-	uint8_t Number = (Address & ENDPOINT_EPNUM_MASK);
+    uint8_t Number = (Address & ENDPOINT_EPNUM_MASK);
 
-	if (Number >= ENDPOINT_TOTAL_ENDPOINTS)
-		return false;
+    if (Number >= ENDPOINT_TOTAL_ENDPOINTS)
+        return false;
 
-	return Endpoint_ConfigureEndpoint_Prv(Number, ((Type << EPTYPE0) | ((Address & ENDPOINT_DIR_IN) ? (1 << EPDIR) : 0)),
-										  ((1 << ALLOC) | ((Banks > 1) ? (1 << EPBK0) : 0) | Endpoint_BytesToEPSizeMask(Size)));
+    return Endpoint_ConfigureEndpoint_Prv(Number, ((Type << EPTYPE0) | ((Address & ENDPOINT_DIR_IN) ? (1 << EPDIR) : 0)),
+                                          ((1 << ALLOC) | ((Banks > 1) ? (1 << EPBK0) : 0) | Endpoint_BytesToEPSizeMask(Size)));
 }
 
 /** Indicates the number of bytes currently stored in the current endpoint's
@@ -228,11 +228,11 @@ static inline uint16_t Endpoint_BytesInEndpoint(void) ATTR_WARN_UNUSED_RESULT AT
 static inline uint16_t Endpoint_BytesInEndpoint(void)
 {
 #if (defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-	return UEBCX;
+    return UEBCX;
 #elif defined(USB_SERIES_4_AVR)
-	return (((uint16_t)UEBCHX << 8) | UEBCLX);
+    return (((uint16_t)UEBCHX << 8) | UEBCLX);
 #elif defined(USB_SERIES_2_AVR)
-	return UEBCLX;
+    return UEBCLX;
 #endif
 }
 
@@ -244,7 +244,7 @@ static inline uint16_t Endpoint_BytesInEndpoint(void)
 static inline uint8_t Endpoint_GetEndpointDirection(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_GetEndpointDirection(void)
 {
-	return (UECFG0X & (1 << EPDIR)) ? ENDPOINT_DIR_IN : ENDPOINT_DIR_OUT;
+    return (UECFG0X & (1 << EPDIR)) ? ENDPOINT_DIR_IN : ENDPOINT_DIR_OUT;
 }
 
 /** Get the endpoint address of the currently selected endpoint. This is
@@ -257,9 +257,9 @@ static inline uint8_t Endpoint_GetCurrentEndpoint(void) ATTR_WARN_UNUSED_RESULT 
 static inline uint8_t Endpoint_GetCurrentEndpoint(void)
 {
 #if !defined(CONTROL_ONLY_DEVICE)
-	return ((UENUM & ENDPOINT_EPNUM_MASK) | Endpoint_GetEndpointDirection());
+    return ((UENUM & ENDPOINT_EPNUM_MASK) | Endpoint_GetEndpointDirection());
 #else
-	return ENDPOINT_CONTROLEP;
+    return ENDPOINT_CONTROLEP;
 #endif
 }
 
@@ -274,7 +274,7 @@ static inline void Endpoint_SelectEndpoint(const uint8_t Address) ATTR_ALWAYS_IN
 static inline void Endpoint_SelectEndpoint(const uint8_t Address)
 {
 #if !defined(CONTROL_ONLY_DEVICE)
-	UENUM = (Address & ENDPOINT_EPNUM_MASK);
+    UENUM = (Address & ENDPOINT_EPNUM_MASK);
 #endif
 }
 
@@ -286,8 +286,8 @@ static inline void Endpoint_SelectEndpoint(const uint8_t Address)
 static inline void Endpoint_ResetEndpoint(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_ResetEndpoint(const uint8_t Address)
 {
-	UERST = (1 << (Address & ENDPOINT_EPNUM_MASK));
-	UERST = 0;
+    UERST = (1 << (Address & ENDPOINT_EPNUM_MASK));
+    UERST = 0;
 }
 
 /** Enables the currently selected endpoint so that data can be sent and
@@ -299,7 +299,7 @@ static inline void Endpoint_ResetEndpoint(const uint8_t Address)
 static inline void Endpoint_EnableEndpoint(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_EnableEndpoint(void)
 {
-	UECONX |= (1 << EPEN);
+    UECONX |= (1 << EPEN);
 }
 
 /** Disables the currently selected endpoint so that data cannot be sent and
@@ -308,7 +308,7 @@ static inline void Endpoint_EnableEndpoint(void)
 static inline void Endpoint_DisableEndpoint(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_DisableEndpoint(void)
 {
-	UECONX &= ~(1 << EPEN);
+    UECONX &= ~(1 << EPEN);
 }
 
 /** Determines if the currently selected endpoint is enabled, but not
@@ -320,7 +320,7 @@ static inline void Endpoint_DisableEndpoint(void)
 static inline bool Endpoint_IsEnabled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsEnabled(void)
 {
-	return ((UECONX & (1 << EPEN)) ? true : false);
+    return ((UECONX & (1 << EPEN)) ? true : false);
 }
 
 /** Retrieves the number of busy banks in the currently selected endpoint, which
@@ -334,7 +334,7 @@ static inline bool Endpoint_IsEnabled(void)
 static inline uint8_t Endpoint_GetBusyBanks(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline uint8_t Endpoint_GetBusyBanks(void)
 {
-	return (UESTA0X & (0x03 << NBUSYBK0));
+    return (UESTA0X & (0x03 << NBUSYBK0));
 }
 
 /** Aborts all pending IN transactions on the currently selected endpoint, once
@@ -346,12 +346,12 @@ static inline uint8_t Endpoint_GetBusyBanks(void)
  */
 static inline void Endpoint_AbortPendingIN(void)
 {
-	while (Endpoint_GetBusyBanks() != 0)
-	{
-		UEINTX |= (1 << RXOUTI);
-		while (UEINTX & (1 << RXOUTI))
-			;
-	}
+    while (Endpoint_GetBusyBanks() != 0)
+    {
+        UEINTX |= (1 << RXOUTI);
+        while (UEINTX & (1 << RXOUTI))
+            ;
+    }
 }
 
 /** Determines if the currently selected endpoint may be read from (if data is
@@ -369,7 +369,7 @@ static inline void Endpoint_AbortPendingIN(void)
 static inline bool Endpoint_IsReadWriteAllowed(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsReadWriteAllowed(void)
 {
-	return ((UEINTX & (1 << RWAL)) ? true : false);
+    return ((UEINTX & (1 << RWAL)) ? true : false);
 }
 
 /** Determines if the currently selected endpoint is configured.
@@ -380,7 +380,7 @@ static inline bool Endpoint_IsReadWriteAllowed(void)
 static inline bool Endpoint_IsConfigured(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsConfigured(void)
 {
-	return ((UESTA0X & (1 << CFGOK)) ? true : false);
+    return ((UESTA0X & (1 << CFGOK)) ? true : false);
 }
 
 /** Returns a mask indicating which INTERRUPT type endpoints have interrupted -
@@ -393,7 +393,7 @@ static inline bool Endpoint_IsConfigured(void)
 static inline uint8_t Endpoint_GetEndpointInterrupts(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_GetEndpointInterrupts(void)
 {
-	return UEINT;
+    return UEINT;
 }
 
 /** Determines if the specified endpoint number has interrupted (valid only for
@@ -408,7 +408,7 @@ static inline uint8_t Endpoint_GetEndpointInterrupts(void)
 static inline bool Endpoint_HasEndpointInterrupted(const uint8_t Address) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_HasEndpointInterrupted(const uint8_t Address)
 {
-	return ((Endpoint_GetEndpointInterrupts() & (1 << (Address & ENDPOINT_EPNUM_MASK))) ? true : false);
+    return ((Endpoint_GetEndpointInterrupts() & (1 << (Address & ENDPOINT_EPNUM_MASK))) ? true : false);
 }
 
 /** Determines if the selected IN endpoint is ready for a new packet to be sent
@@ -422,7 +422,7 @@ static inline bool Endpoint_HasEndpointInterrupted(const uint8_t Address)
 static inline bool Endpoint_IsINReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsINReady(void)
 {
-	return ((UEINTX & (1 << TXINI)) ? true : false);
+    return ((UEINTX & (1 << TXINI)) ? true : false);
 }
 
 /** Determines if the selected OUT endpoint has received new packet from the
@@ -436,7 +436,7 @@ static inline bool Endpoint_IsINReady(void)
 static inline bool Endpoint_IsOUTReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsOUTReceived(void)
 {
-	return ((UEINTX & (1 << RXOUTI)) ? true : false);
+    return ((UEINTX & (1 << RXOUTI)) ? true : false);
 }
 
 /** Determines if the current CONTROL type endpoint has received a SETUP packet.
@@ -449,7 +449,7 @@ static inline bool Endpoint_IsOUTReceived(void)
 static inline bool Endpoint_IsSETUPReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsSETUPReceived(void)
 {
-	return ((UEINTX & (1 << RXSTPI)) ? true : false);
+    return ((UEINTX & (1 << RXSTPI)) ? true : false);
 }
 
 /** Clears a received SETUP packet on the currently selected CONTROL type
@@ -462,7 +462,7 @@ static inline bool Endpoint_IsSETUPReceived(void)
 static inline void Endpoint_ClearSETUP(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_ClearSETUP(void)
 {
-	UEINTX &= ~(1 << RXSTPI);
+    UEINTX &= ~(1 << RXSTPI);
 }
 
 /** Sends an IN packet to the host on the currently selected endpoint, freeing
@@ -475,9 +475,9 @@ static inline void Endpoint_ClearIN(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_ClearIN(void)
 {
 #if !defined(CONTROL_ONLY_DEVICE)
-	UEINTX &= ~((1 << TXINI) | (1 << FIFOCON));
+    UEINTX &= ~((1 << TXINI) | (1 << FIFOCON));
 #else
-	UEINTX &= ~(1 << TXINI);
+    UEINTX &= ~(1 << TXINI);
 #endif
 }
 
@@ -491,9 +491,9 @@ static inline void Endpoint_ClearOUT(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_ClearOUT(void)
 {
 #if !defined(CONTROL_ONLY_DEVICE)
-	UEINTX &= ~((1 << RXOUTI) | (1 << FIFOCON));
+    UEINTX &= ~((1 << RXOUTI) | (1 << FIFOCON));
 #else
-	UEINTX &= ~(1 << RXOUTI);
+    UEINTX &= ~(1 << RXOUTI);
 #endif
 }
 
@@ -512,7 +512,7 @@ static inline void Endpoint_ClearOUT(void)
 static inline void Endpoint_StallTransaction(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_StallTransaction(void)
 {
-	UECONX |= (1 << STALLRQ);
+    UECONX |= (1 << STALLRQ);
 }
 
 /** Clears the STALL condition on the currently selected endpoint.
@@ -522,7 +522,7 @@ static inline void Endpoint_StallTransaction(void)
 static inline void Endpoint_ClearStall(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_ClearStall(void)
 {
-	UECONX |= (1 << STALLRQC);
+    UECONX |= (1 << STALLRQC);
 }
 
 /** Determines if the currently selected endpoint is stalled, \c false
@@ -536,14 +536,14 @@ static inline void Endpoint_ClearStall(void)
 static inline bool Endpoint_IsStalled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsStalled(void)
 {
-	return ((UECONX & (1 << STALLRQ)) ? true : false);
+    return ((UECONX & (1 << STALLRQ)) ? true : false);
 }
 
 /** Resets the data toggle of the currently selected endpoint. */
 static inline void Endpoint_ResetDataToggle(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_ResetDataToggle(void)
 {
-	UECONX |= (1 << RSTDT);
+    UECONX |= (1 << RSTDT);
 }
 
 /** Sets the direction of the currently selected endpoint.
@@ -554,7 +554,7 @@ static inline void Endpoint_ResetDataToggle(void)
 static inline void Endpoint_SetEndpointDirection(const uint8_t DirectionMask) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_SetEndpointDirection(const uint8_t DirectionMask)
 {
-	UECFG0X = ((UECFG0X & ~(1 << EPDIR)) | (DirectionMask ? (1 << EPDIR) : 0));
+    UECFG0X = ((UECFG0X & ~(1 << EPDIR)) | (DirectionMask ? (1 << EPDIR) : 0));
 }
 
 /** Reads one byte from the currently selected endpoint's bank, for OUT
@@ -567,7 +567,7 @@ static inline void Endpoint_SetEndpointDirection(const uint8_t DirectionMask)
 static inline uint8_t Endpoint_Read_8(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_Read_8(void)
 {
-	return UEDATX;
+    return UEDATX;
 }
 
 /** Writes one byte to the currently selected endpoint's bank, for IN direction
@@ -581,7 +581,7 @@ static inline uint8_t Endpoint_Read_8(void)
 static inline void Endpoint_Write_8(const uint8_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_8(const uint8_t Data)
 {
-	UEDATX = Data;
+    UEDATX = Data;
 }
 
 /** Discards one byte from the currently selected endpoint's bank, for OUT
@@ -592,11 +592,11 @@ static inline void Endpoint_Write_8(const uint8_t Data)
 static inline void Endpoint_Discard_8(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Discard_8(void)
 {
-	uint8_t Dummy;
+    uint8_t Dummy;
 
-	Dummy = UEDATX;
+    Dummy = UEDATX;
 
-	(void)Dummy;
+    (void)Dummy;
 }
 
 /** Reads two bytes from the currently selected endpoint's bank in little endian
@@ -609,16 +609,16 @@ static inline void Endpoint_Discard_8(void)
 static inline uint16_t Endpoint_Read_16_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Endpoint_Read_16_LE(void)
 {
-	union
-	{
-		uint16_t Value;
-		uint8_t	 Bytes[2];
-	} Data;
+    union
+    {
+        uint16_t Value;
+        uint8_t  Bytes[2];
+    } Data;
 
-	Data.Bytes[0] = UEDATX;
-	Data.Bytes[1] = UEDATX;
+    Data.Bytes[0] = UEDATX;
+    Data.Bytes[1] = UEDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Reads two bytes from the currently selected endpoint's bank in big endian
@@ -631,16 +631,16 @@ static inline uint16_t Endpoint_Read_16_LE(void)
 static inline uint16_t Endpoint_Read_16_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Endpoint_Read_16_BE(void)
 {
-	union
-	{
-		uint16_t Value;
-		uint8_t	 Bytes[2];
-	} Data;
+    union
+    {
+        uint16_t Value;
+        uint8_t  Bytes[2];
+    } Data;
 
-	Data.Bytes[1] = UEDATX;
-	Data.Bytes[0] = UEDATX;
+    Data.Bytes[1] = UEDATX;
+    Data.Bytes[0] = UEDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Writes two bytes to the currently selected endpoint's bank in little endian
@@ -654,8 +654,8 @@ static inline uint16_t Endpoint_Read_16_BE(void)
 static inline void Endpoint_Write_16_LE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_16_LE(const uint16_t Data)
 {
-	UEDATX = (Data & 0xFF);
-	UEDATX = (Data >> 8);
+    UEDATX = (Data & 0xFF);
+    UEDATX = (Data >> 8);
 }
 
 /** Writes two bytes to the currently selected endpoint's bank in big endian
@@ -669,8 +669,8 @@ static inline void Endpoint_Write_16_LE(const uint16_t Data)
 static inline void Endpoint_Write_16_BE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_16_BE(const uint16_t Data)
 {
-	UEDATX = (Data >> 8);
-	UEDATX = (Data & 0xFF);
+    UEDATX = (Data >> 8);
+    UEDATX = (Data & 0xFF);
 }
 
 /** Discards two bytes from the currently selected endpoint's bank, for OUT
@@ -681,12 +681,12 @@ static inline void Endpoint_Write_16_BE(const uint16_t Data)
 static inline void Endpoint_Discard_16(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Discard_16(void)
 {
-	uint8_t Dummy;
+    uint8_t Dummy;
 
-	Dummy = UEDATX;
-	Dummy = UEDATX;
+    Dummy = UEDATX;
+    Dummy = UEDATX;
 
-	(void)Dummy;
+    (void)Dummy;
 }
 
 /** Reads four bytes from the currently selected endpoint's bank in little
@@ -699,18 +699,18 @@ static inline void Endpoint_Discard_16(void)
 static inline uint32_t Endpoint_Read_32_LE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint32_t Endpoint_Read_32_LE(void)
 {
-	union
-	{
-		uint32_t Value;
-		uint8_t	 Bytes[4];
-	} Data;
+    union
+    {
+        uint32_t Value;
+        uint8_t  Bytes[4];
+    } Data;
 
-	Data.Bytes[0] = UEDATX;
-	Data.Bytes[1] = UEDATX;
-	Data.Bytes[2] = UEDATX;
-	Data.Bytes[3] = UEDATX;
+    Data.Bytes[0] = UEDATX;
+    Data.Bytes[1] = UEDATX;
+    Data.Bytes[2] = UEDATX;
+    Data.Bytes[3] = UEDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Reads four bytes from the currently selected endpoint's bank in big endian
@@ -723,18 +723,18 @@ static inline uint32_t Endpoint_Read_32_LE(void)
 static inline uint32_t Endpoint_Read_32_BE(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint32_t Endpoint_Read_32_BE(void)
 {
-	union
-	{
-		uint32_t Value;
-		uint8_t	 Bytes[4];
-	} Data;
+    union
+    {
+        uint32_t Value;
+        uint8_t  Bytes[4];
+    } Data;
 
-	Data.Bytes[3] = UEDATX;
-	Data.Bytes[2] = UEDATX;
-	Data.Bytes[1] = UEDATX;
-	Data.Bytes[0] = UEDATX;
+    Data.Bytes[3] = UEDATX;
+    Data.Bytes[2] = UEDATX;
+    Data.Bytes[1] = UEDATX;
+    Data.Bytes[0] = UEDATX;
 
-	return Data.Value;
+    return Data.Value;
 }
 
 /** Writes four bytes to the currently selected endpoint's bank in little endian
@@ -748,10 +748,10 @@ static inline uint32_t Endpoint_Read_32_BE(void)
 static inline void Endpoint_Write_32_LE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_32_LE(const uint32_t Data)
 {
-	UEDATX = (Data & 0xFF);
-	UEDATX = (Data >> 8);
-	UEDATX = (Data >> 16);
-	UEDATX = (Data >> 24);
+    UEDATX = (Data & 0xFF);
+    UEDATX = (Data >> 8);
+    UEDATX = (Data >> 16);
+    UEDATX = (Data >> 24);
 }
 
 /** Writes four bytes to the currently selected endpoint's bank in big endian
@@ -765,10 +765,10 @@ static inline void Endpoint_Write_32_LE(const uint32_t Data)
 static inline void Endpoint_Write_32_BE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_32_BE(const uint32_t Data)
 {
-	UEDATX = (Data >> 24);
-	UEDATX = (Data >> 16);
-	UEDATX = (Data >> 8);
-	UEDATX = (Data & 0xFF);
+    UEDATX = (Data >> 24);
+    UEDATX = (Data >> 16);
+    UEDATX = (Data >> 8);
+    UEDATX = (Data & 0xFF);
 }
 
 /** Discards four bytes from the currently selected endpoint's bank, for OUT
@@ -779,14 +779,14 @@ static inline void Endpoint_Write_32_BE(const uint32_t Data)
 static inline void Endpoint_Discard_32(void) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Discard_32(void)
 {
-	uint8_t Dummy;
+    uint8_t Dummy;
 
-	Dummy = UEDATX;
-	Dummy = UEDATX;
-	Dummy = UEDATX;
-	Dummy = UEDATX;
+    Dummy = UEDATX;
+    Dummy = UEDATX;
+    Dummy = UEDATX;
+    Dummy = UEDATX;
 
-	(void)Dummy;
+    (void)Dummy;
 }
 
 /* External Variables: */

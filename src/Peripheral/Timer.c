@@ -24,106 +24,95 @@
 #include "Types.h"
 #include "Utility.h"
 
-// static const uintptr_t TimerPointers[NUM_TIMER_PERIPHERALS] PROGMEM = {
-// 	[TIMER_TCC0] = &TCC0, [TIMER_TCC1] = &TCC1, [TIMER_TCC2] = &TCC2,
-// [TIMER_TCD0] = &TCD0, 	[TIMER_TCD1] = &TCD1, [TIMER_TCD2] = &TCD2,
-// [TIMER_TCE0] = &TCE0,
-// };
-
-// static inline uintptr_t GetTimerPointer(eTimer_Peripheral Timer)
-// {
-// 	return pgm_read_word(&(TimerPointers[Timer]));
-// }
-
 static inline u8 GetTimerBitmask(eTimer_Peripheral Timer)
 {
-	switch (Timer)
-	{
-		case TIMER_TCC0:
-		case TIMER_TCC2:
-		case TIMER_TCD0:
-		case TIMER_TCD2:
-		case TIMER_TCE0:
-		{
-			return PR_TC0_bm;
-		}
-		case TIMER_TCC1:
-		case TIMER_TCD1:
-		{
-			return PR_TC1_bm;
-		}
+    switch (Timer)
+    {
+        case TIMER_TCC0:
+        case TIMER_TCC2:
+        case TIMER_TCD0:
+        case TIMER_TCD2:
+        case TIMER_TCE0:
+        {
+            return PR_TC0_bm;
+        }
+        case TIMER_TCC1:
+        case TIMER_TCD1:
+        {
+            return PR_TC1_bm;
+        }
 
-		default: return 0;
-	}
+        default: return 0;
+    }
 
-	return 0;
+    return 0;
 }
 
 static inline u8 GetTimerPowerPort(eTimer_Peripheral Timer)
 {
-	switch (Timer)
-	{
-		case TIMER_TCC0:
-		case TIMER_TCC1:
-		case TIMER_TCC2:
-		{
-			return PR.PRPC;
-		}
+    switch (Timer)
+    {
+        case TIMER_TCC0:
+        case TIMER_TCC1:
+        case TIMER_TCC2:
+        {
+            return PR.PRPC;
+        }
 
-		case TIMER_TCD0:
-		case TIMER_TCD1:
-		case TIMER_TCD2:
-		{
-			return PR.PRPD;
-		}
+        case TIMER_TCD0:
+        case TIMER_TCD1:
+        case TIMER_TCD2:
+        {
+            return PR.PRPD;
+        }
 
-		case TIMER_TCE0:
-		{
-			return PR.PRPE;
-		}
+        case TIMER_TCE0:
+        {
+            return PR.PRPE;
+        }
 
-		default:
-		{
-			return 0;
-		}
-	}
+        default:
+        {
+            return 0;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 static inline void EnablePower(eTimer_Peripheral Timer)
 {
-	vu8		 pp		 = GetTimerPowerPort(Timer);
-	const u8 bitmask = GetTimerBitmask(Timer);
+    vu8      pp      = GetTimerPowerPort(Timer);
+    const u8 bitmask = GetTimerBitmask(Timer);
 
-	SET_REG(pp, bitmask);
+    SET_REG(pp, bitmask);
 }
 
 static inline void DisablePower(eTimer_Peripheral Timer)
 {
-	vu8		 pp		 = GetTimerPowerPort(Timer);
-	const u8 bitmask = GetTimerBitmask(Timer);
+    vu8      pp      = GetTimerPowerPort(Timer);
+    const u8 bitmask = GetTimerBitmask(Timer);
 
-	SET_REG(pp, bitmask);
+    SET_REG(pp, bitmask);
 }
 
 static inline void SetWGM(TC0_t* pTC, TC_WGMODE_t Mode)
 {
-	pTC->CTRLB = (pTC->CTRLB & ~TC0_WGMODE_gm) | Mode;
+    pTC->CTRLB = (pTC->CTRLB & ~TC0_WGMODE_gm) | Mode;
 }
 
 static inline void SetPrescaler(TC0_t* pTC, TC_CLKSEL_t ClockSel)
 {
-	pTC->CTRLA = (pTC->CTRLA & ~TC0_CLKSEL_gm) | ClockSel;
+    pTC->CTRLA = (pTC->CTRLA & ~TC0_CLKSEL_gm) | ClockSel;
 }
 
 void Timer_Type0Init(const sTimer_Type0Config* pConfig)
 {
-	const u8 flags = IRQ_DisableInterrupts();
-	EnablePower(pConfig->Timer);
+    const u8 flags = IRQ_DisableInterrupts();
+    EnablePower(pConfig->Timer);
 
-	SetWGM(pConfig->pTimer, pConfig->WaveformMode);
-	SetPrescaler(pConfig->pTimer, pConfig->ClockSource);
+    SetWGM(pConfig->pTimer, pConfig->WaveformMode);
+    SetPrescaler(pConfig->pTimer, pConfig->ClockSource);
 
-	IRQ_EnableInterrupts(flags);
+    IRQ_EnableInterrupts(flags);
 }

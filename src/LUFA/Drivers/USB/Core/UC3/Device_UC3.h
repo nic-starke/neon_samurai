@@ -125,7 +125,7 @@ extern "C" {
 #undef USE_INTERNAL_SERIAL
 #define USE_INTERNAL_SERIAL NO_DESCRIPTOR
 
-#define INTERNAL_SERIAL_LENGTH_BITS	  0
+#define INTERNAL_SERIAL_LENGTH_BITS   0
 #define INTERNAL_SERIAL_START_ADDRESS 0
 #endif
 
@@ -165,7 +165,7 @@ void USB_Device_SendRemoteWakeup(void);
 static inline uint16_t USB_Device_GetFrameNumber(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline uint16_t USB_Device_GetFrameNumber(void)
 {
-	return AVR32_USBB.UDFNUM.fnum;
+    return AVR32_USBB.UDFNUM.fnum;
 }
 
 #if !defined(NO_SOF_EVENTS)
@@ -179,7 +179,7 @@ static inline uint16_t USB_Device_GetFrameNumber(void)
 static inline void USB_Device_EnableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_EnableSOFEvents(void)
 {
-	USB_INT_Enable(USB_INT_SOFI);
+    USB_INT_Enable(USB_INT_SOFI);
 }
 
 /** Disables the device mode Start Of Frame events. When disabled, this stops
@@ -191,7 +191,7 @@ static inline void USB_Device_EnableSOFEvents(void)
 static inline void USB_Device_DisableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_DisableSOFEvents(void)
 {
-	USB_INT_Disable(USB_INT_SOFI);
+    USB_INT_Disable(USB_INT_SOFI);
 }
 #endif
 
@@ -201,15 +201,15 @@ static inline void USB_Device_DisableSOFEvents(void)
 static inline void USB_Device_SetLowSpeed(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetLowSpeed(void)
 {
-	AVR32_USBB.UDCON.ls = true;
+    AVR32_USBB.UDCON.ls = true;
 }
 
 static inline void USB_Device_SetFullSpeed(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetFullSpeed(void)
 {
-	AVR32_USBB.UDCON.ls = false;
+    AVR32_USBB.UDCON.ls = false;
 #if defined(USB_DEVICE_OPT_HIGHSPEED)
-	AVR32_USBB.UDCON.spdconf = 3;
+    AVR32_USBB.UDCON.spdconf = 3;
 #endif
 }
 
@@ -217,56 +217,56 @@ static inline void USB_Device_SetFullSpeed(void)
 static inline void USB_Device_SetHighSpeed(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetHighSpeed(void)
 {
-	AVR32_USBB.UDCON.ls		 = false;
-	AVR32_USBB.UDCON.spdconf = 0;
+    AVR32_USBB.UDCON.ls      = false;
+    AVR32_USBB.UDCON.spdconf = 0;
 }
 #endif
 
 static inline void USB_Device_SetDeviceAddress(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetDeviceAddress(const uint8_t Address)
 {
-	AVR32_USBB.UDCON.uadd = Address;
+    AVR32_USBB.UDCON.uadd = Address;
 }
 
 static inline void USB_Device_EnableDeviceAddress(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_EnableDeviceAddress(const uint8_t Address)
 {
-	(void)Address;
+    (void)Address;
 
-	AVR32_USBB.UDCON.adden = true;
+    AVR32_USBB.UDCON.adden = true;
 }
 
 static inline bool USB_Device_IsAddressSet(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline bool USB_Device_IsAddressSet(void)
 {
-	return AVR32_USBB.UDCON.adden;
+    return AVR32_USBB.UDCON.adden;
 }
 
 #if (USE_INTERNAL_SERIAL != NO_DESCRIPTOR)
 static inline void USB_Device_GetSerialString(uint16_t* const UnicodeString) ATTR_NON_NULL_PTR_ARG(1);
 static inline void USB_Device_GetSerialString(uint16_t* const UnicodeString)
 {
-	uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
-	GlobalInterruptDisable();
+    uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
+    GlobalInterruptDisable();
 
-	uint8_t* SigReadAddress = (uint8_t*)INTERNAL_SERIAL_START_ADDRESS;
+    uint8_t* SigReadAddress = (uint8_t*)INTERNAL_SERIAL_START_ADDRESS;
 
-	for (uint8_t SerialCharNum = 0; SerialCharNum < (INTERNAL_SERIAL_LENGTH_BITS / 4); SerialCharNum++)
-	{
-		uint8_t SerialByte = *SigReadAddress;
+    for (uint8_t SerialCharNum = 0; SerialCharNum < (INTERNAL_SERIAL_LENGTH_BITS / 4); SerialCharNum++)
+    {
+        uint8_t SerialByte = *SigReadAddress;
 
-		if (SerialCharNum & 0x01)
-		{
-			SerialByte >>= 4;
-			SigReadAddress++;
-		}
+        if (SerialCharNum & 0x01)
+        {
+            SerialByte >>= 4;
+            SigReadAddress++;
+        }
 
-		SerialByte &= 0x0F;
+        SerialByte &= 0x0F;
 
-		UnicodeString[SerialCharNum] = cpu_to_le16((SerialByte >= 10) ? (('A' - 10) + SerialByte) : ('0' + SerialByte));
-	}
+        UnicodeString[SerialCharNum] = cpu_to_le16((SerialByte >= 10) ? (('A' - 10) + SerialByte) : ('0' + SerialByte));
+    }
 
-	SetGlobalInterruptMask(CurrentGlobalInt);
+    SetGlobalInterruptMask(CurrentGlobalInt);
 }
 #endif
 

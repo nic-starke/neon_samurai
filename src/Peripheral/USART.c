@@ -33,55 +33,55 @@
 
 static inline u8 GetBitMask(USART_t* pUSART)
 {
-	if (pUSART == &USARTC0 || pUSART == &USARTD0 || pUSART == &USARTE0)
-	{
-		return PR_USART0_bm;
-	}
-	else if (pUSART == &USARTC1 || pUSART == &USARTD1)
-	{
-		return PR_USART1_bm;
-	}
+    if (pUSART == &USARTC0 || pUSART == &USARTD0 || pUSART == &USARTE0)
+    {
+        return PR_USART0_bm;
+    }
+    else if (pUSART == &USARTC1 || pUSART == &USARTD1)
+    {
+        return PR_USART1_bm;
+    }
 
-	return 0;
+    return 0;
 }
 
 static inline void EnablePower(USART_t* pUSART)
 {
-	CLR_REG(PR.PRPC, GetBitMask(pUSART));
+    CLR_REG(PR.PRPC, GetBitMask(pUSART));
 }
 
 static inline void DisablePower(USART_t* pUSART)
 {
-	SET_REG(PR.PRPC, GetBitMask(pUSART));
+    SET_REG(PR.PRPC, GetBitMask(pUSART));
 }
 
 static inline void SetMode(USART_t* pUSART, USART_CMODE_t Mode)
 {
-	pUSART->CTRLC = (pUSART->CTRLC & (~USART_CMODE_gm)) | Mode;
+    pUSART->CTRLC = (pUSART->CTRLC & (~USART_CMODE_gm)) | Mode;
 }
 
 static inline void SetClockPhase(USART_t* pUSART, eSPI_Mode Mode)
 {
-	if ((Mode == SPI_MODE_1) || (Mode == SPI_MODE_3))
-	{
-		SET_REG(pUSART->CTRLC, USART_UCPHA_bm);
-	}
-	else
-	{
-		CLR_REG(pUSART->CTRLC, USART_UCPHA_bm);
-	}
+    if ((Mode == SPI_MODE_1) || (Mode == SPI_MODE_3))
+    {
+        SET_REG(pUSART->CTRLC, USART_UCPHA_bm);
+    }
+    else
+    {
+        CLR_REG(pUSART->CTRLC, USART_UCPHA_bm);
+    }
 }
 
 static inline void SetDataOrder(USART_t* pUSART, eDataOrder DataOrder)
 {
-	if (DataOrder == LSB_FIRST)
-	{
-		SET_REG(pUSART->CTRLC, USART_DORD_bm);
-	}
-	else
-	{
-		CLR_REG(pUSART->CTRLC, USART_DORD_bm);
-	}
+    if (DataOrder == LSB_FIRST)
+    {
+        SET_REG(pUSART->CTRLC, USART_DORD_bm);
+    }
+    else
+    {
+        CLR_REG(pUSART->CTRLC, USART_DORD_bm);
+    }
 }
 
 /**
@@ -95,18 +95,17 @@ static inline void SetDataOrder(USART_t* pUSART, eDataOrder DataOrder)
  */
 static inline void SetBaudRate(USART_t* pUSART, u32 BaudRate, u32 CPUFrequency)
 {
-	u16 baudSelection = 0; // set to maximum possible to start
+    u16 baudSelection = 0; // set to maximum possible to start
 
-	// If user requires lower than maximum, calculate the correct baudSelection
-	if (BaudRate < (CPUFrequency / 2))
-	{
-		baudSelection = (CPUFrequency / (BaudRate * 2)) - 1;
-	}
+    // If user requires lower than maximum, calculate the correct baudSelection
+    if (BaudRate < (CPUFrequency / 2))
+    {
+        baudSelection = (CPUFrequency / (BaudRate * 2)) - 1;
+    }
 
-	// USART in Master SPI mode does NOT support double speed (other USART modes
-	// do).
-	pUSART->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baudSelection >> 0x08));
-	pUSART->BAUDCTRLA = (u8)(baudSelection);
+    // USART in Master SPI mode does NOT support double speed (other USART modes do)
+    pUSART->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baudSelection >> 0x08));
+    pUSART->BAUDCTRLA = (u8)(baudSelection);
 }
 
 /**
@@ -117,60 +116,60 @@ static inline void SetBaudRate(USART_t* pUSART, u32 BaudRate, u32 CPUFrequency)
  */
 static inline void ConfigureGPIO(USART_t* pUSART, eSPI_Mode SPIMode)
 {
-	// Default pins are  SCK = 1, RX = 2, TX = 3
-	// Remapped pins are SCK = 5, RX = 6, TX = 7
+    // Default pins are  SCK = 1, RX = 2, TX = 3
+    // Remapped pins are SCK = 5, RX = 6, TX = 7
 
-	bool	remap = false;
-	PORT_t* pPort = NULL;
+    bool    remap = false;
+    PORT_t* pPort = NULL;
 
-	if (pUSART == &USARTC0)
-	{
-		pPort = &PORTC;
-		remap = (PORTC.REMAP & PORT_USART0_bm);
-	}
-	else if (pUSART == &USARTC1)
-	{
-		pPort = &PORTC;
-		remap = true;
-	}
-	else if (pUSART == &USARTD0)
-	{
-		pPort = &PORTD;
-		remap = (PORTD.REMAP & PORT_USART0_bm);
-	}
-	else if (pUSART == &USARTD1)
-	{
-		pPort = &PORTD;
-		remap = true;
-	}
-	else if (pUSART == &USARTE0)
-	{
-		pPort = &PORTE;
-		remap = (PORTE.REMAP & PORT_USART0_bm);
-	}
+    if (pUSART == &USARTC0)
+    {
+        pPort = &PORTC;
+        remap = (PORTC.REMAP & PORT_USART0_bm);
+    }
+    else if (pUSART == &USARTC1)
+    {
+        pPort = &PORTC;
+        remap = true;
+    }
+    else if (pUSART == &USARTD0)
+    {
+        pPort = &PORTD;
+        remap = (PORTD.REMAP & PORT_USART0_bm);
+    }
+    else if (pUSART == &USARTD1)
+    {
+        pPort = &PORTD;
+        remap = true;
+    }
+    else if (pUSART == &USARTE0)
+    {
+        pPort = &PORTE;
+        remap = (PORTE.REMAP & PORT_USART0_bm);
+    }
 
-	const u8   sckPin	 = (remap ? 5 : 1);
-	const u8   rxPin	 = (remap ? 6 : 2);
-	const u8   txPin	 = (remap ? 7 : 3);
-	const bool invertSCK = (SPIMode == SPI_MODE_2 || SPIMode == SPI_MODE_3);
+    const u8   sckPin    = (remap ? 5 : 1);
+    const u8   rxPin     = (remap ? 6 : 2);
+    const u8   txPin     = (remap ? 7 : 3);
+    const bool invertSCK = (SPIMode == SPI_MODE_2 || SPIMode == SPI_MODE_3);
 
-	GPIO_SetPinMode(pPort, sckPin, PORT_OPC_TOTEM_gc | (invertSCK ? (0x01 << 6) : 0));
+    GPIO_SetPinMode(pPort, sckPin, PORT_OPC_TOTEM_gc | (invertSCK ? (0x01 << 6) : 0));
 
-	GPIO_SetPinDirection(pPort, sckPin, GPIO_OUTPUT);
-	GPIO_SetPinDirection(pPort, rxPin, GPIO_INPUT);
-	GPIO_SetPinDirection(pPort, txPin, GPIO_OUTPUT);
-	// GPIO_SetPinLevel(pPort, sckPin, HIGH);
+    GPIO_SetPinDirection(pPort, sckPin, GPIO_OUTPUT);
+    GPIO_SetPinDirection(pPort, rxPin, GPIO_INPUT);
+    GPIO_SetPinDirection(pPort, txPin, GPIO_OUTPUT);
+    // GPIO_SetPinLevel(pPort, sckPin, HIGH);
 }
 
 // ----------------- //
 
 void USART_Init(void)
 {
-	// u8 flags = IRQ_DisableInterrupts();
+    // u8 flags = IRQ_DisableInterrupts();
 
-	// No global init required.
+    // No global init required.
 
-	// IRQ_EnableInterrupts(flags);
+    // IRQ_EnableInterrupts(flags);
 }
 
 /**
@@ -193,18 +192,18 @@ void USART_Init(void)
  */
 void USART_InitModule(const sUSART_ModuleConfig* pConfig)
 {
-	const u8 flags = IRQ_DisableInterrupts();
+    const u8 flags = IRQ_DisableInterrupts();
 
-	EnablePower(pConfig->pUSART);
+    EnablePower(pConfig->pUSART);
 
-	USART_DisableRX(pConfig->pUSART);
-	USART_EnableTX(pConfig->pUSART);
+    USART_DisableRX(pConfig->pUSART);
+    USART_EnableTX(pConfig->pUSART);
 
-	ConfigureGPIO(pConfig->pUSART, pConfig->SPIMode);
-	SetMode(pConfig->pUSART, USART_CMODE_MSPI_gc);
-	SetClockPhase(pConfig->pUSART, pConfig->SPIMode);
-	SetDataOrder(pConfig->pUSART, pConfig->DataOrder);
-	SetBaudRate(pConfig->pUSART, pConfig->BaudRate, CPU_GetMainClockSpeed());
+    ConfigureGPIO(pConfig->pUSART, pConfig->SPIMode);
+    SetMode(pConfig->pUSART, USART_CMODE_MSPI_gc);
+    SetClockPhase(pConfig->pUSART, pConfig->SPIMode);
+    SetDataOrder(pConfig->pUSART, pConfig->DataOrder);
+    SetBaudRate(pConfig->pUSART, pConfig->BaudRate, CPU_GetMainClockSpeed());
 
-	IRQ_EnableInterrupts(flags);
+    IRQ_EnableInterrupts(flags);
 }

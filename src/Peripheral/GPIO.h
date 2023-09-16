@@ -26,45 +26,45 @@
 
 typedef enum
 {
-	GPIO_INPUT,
-	GPIO_OUTPUT,
+    GPIO_INPUT,
+    GPIO_OUTPUT,
 } eGPIO_Direction;
 
 #define PIN_MASK(x) (1u << ((x)&0x07))
 
 static inline void GPIO_SetPinDirection(PORT_t* Port, u8 Pin, eGPIO_Direction Direction)
 {
-	if (Direction == GPIO_INPUT)
-	{
-		Port->DIRCLR = PIN_MASK(Pin);
-	}
-	else if (Direction == GPIO_OUTPUT)
-	{
-		Port->DIRSET = PIN_MASK(Pin);
-	}
+    if (Direction == GPIO_INPUT)
+    {
+        Port->DIRCLR = PIN_MASK(Pin);
+    }
+    else if (Direction == GPIO_OUTPUT)
+    {
+        Port->DIRSET = PIN_MASK(Pin);
+    }
 }
 
 static inline void GPIO_SetPinLevel(PORT_t* Port, u8 Pin, eLogicLevel Level)
 {
-	if (Level == HIGH)
-	{
-		Port->OUTSET = PIN_MASK(Pin);
-	}
-	else if (Level == LOW)
-	{
-		Port->OUTCLR = PIN_MASK(Pin);
-	}
+    if (Level == HIGH)
+    {
+        Port->OUTSET = PIN_MASK(Pin);
+    }
+    else if (Level == LOW)
+    {
+        Port->OUTCLR = PIN_MASK(Pin);
+    }
 }
 
 static inline void GPIO_SetPinMode(PORT_t* pPort, u8 Pin, PORT_OPC_t Mode)
 {
-	vu8* regCTRL = (&pPort->PIN0CTRL + PIN_MASK(Pin));
+    vu8* regCTRL = (&pPort->PIN0CTRL + PIN_MASK(Pin));
 
-	*regCTRL &= PORT_ISC_gm;
-	SET_REG(*regCTRL, Mode);
+    *regCTRL &= PORT_ISC_gm;
+    SET_REG(*regCTRL, Mode);
 }
 
 static inline u8 GPIO_GetPinLevel(PORT_t* pPort, u8 Pin)
 {
-	return pPort->IN & PIN_MASK(Pin);
+    return pPort->IN & PIN_MASK(Pin);
 }

@@ -104,7 +104,7 @@ extern "C" {
  *  \return Input value with the byte ordering reversed.
  */
 #define SWAPENDIAN_32(x)                                                                                                                   \
-	(uint32_t)((((x)&0xFF000000UL) >> 24UL) | (((x)&0x00FF0000UL) >> 8UL) | (((x)&0x0000FF00UL) << 8UL) | (((x)&0x000000FFUL) << 24UL))
+    (uint32_t)((((x)&0xFF000000UL) >> 24UL) | (((x)&0x00FF0000UL) >> 8UL) | (((x)&0x0000FF00UL) << 8UL) | (((x)&0x000000FFUL) << 24UL))
 
 #if defined(ARCH_BIG_ENDIAN) && !defined(le16_to_cpu)
 #define le16_to_cpu(x) SwapEndian_16(x)
@@ -412,24 +412,24 @@ extern "C" {
 static inline uint16_t SwapEndian_16(const uint16_t Word) ATTR_WARN_UNUSED_RESULT ATTR_CONST ATTR_ALWAYS_INLINE;
 static inline uint16_t SwapEndian_16(const uint16_t Word)
 {
-	if (GCC_IS_COMPILE_CONST(Word))
-		return SWAPENDIAN_16(Word);
+    if (GCC_IS_COMPILE_CONST(Word))
+        return SWAPENDIAN_16(Word);
 
-	uint8_t Temp;
+    uint8_t Temp;
 
-	union
-	{
-		uint16_t Word;
-		uint8_t	 Bytes[2];
-	} Data;
+    union
+    {
+        uint16_t Word;
+        uint8_t  Bytes[2];
+    } Data;
 
-	Data.Word = Word;
+    Data.Word = Word;
 
-	Temp		  = Data.Bytes[0];
-	Data.Bytes[0] = Data.Bytes[1];
-	Data.Bytes[1] = Temp;
+    Temp          = Data.Bytes[0];
+    Data.Bytes[0] = Data.Bytes[1];
+    Data.Bytes[1] = Temp;
 
-	return Data.Word;
+    return Data.Word;
 }
 
 /** Function to reverse the byte ordering of the individual bytes in a 32 bit
@@ -444,28 +444,28 @@ static inline uint16_t SwapEndian_16(const uint16_t Word)
 static inline uint32_t SwapEndian_32(const uint32_t DWord) ATTR_WARN_UNUSED_RESULT ATTR_CONST ATTR_ALWAYS_INLINE;
 static inline uint32_t SwapEndian_32(const uint32_t DWord)
 {
-	if (GCC_IS_COMPILE_CONST(DWord))
-		return SWAPENDIAN_32(DWord);
+    if (GCC_IS_COMPILE_CONST(DWord))
+        return SWAPENDIAN_32(DWord);
 
-	uint8_t Temp;
+    uint8_t Temp;
 
-	union
-	{
-		uint32_t DWord;
-		uint8_t	 Bytes[4];
-	} Data;
+    union
+    {
+        uint32_t DWord;
+        uint8_t  Bytes[4];
+    } Data;
 
-	Data.DWord = DWord;
+    Data.DWord = DWord;
 
-	Temp		  = Data.Bytes[0];
-	Data.Bytes[0] = Data.Bytes[3];
-	Data.Bytes[3] = Temp;
+    Temp          = Data.Bytes[0];
+    Data.Bytes[0] = Data.Bytes[3];
+    Data.Bytes[3] = Temp;
 
-	Temp		  = Data.Bytes[1];
-	Data.Bytes[1] = Data.Bytes[2];
-	Data.Bytes[2] = Temp;
+    Temp          = Data.Bytes[1];
+    Data.Bytes[1] = Data.Bytes[2];
+    Data.Bytes[2] = Temp;
 
-	return Data.DWord;
+    return Data.DWord;
 }
 
 /** Function to reverse the byte ordering of the individual bytes in a n byte
@@ -481,17 +481,17 @@ static inline uint32_t SwapEndian_32(const uint32_t DWord)
 static inline void SwapEndian_n(void* const Data, uint8_t Length) ATTR_NON_NULL_PTR_ARG(1);
 static inline void SwapEndian_n(void* const Data, uint8_t Length)
 {
-	uint8_t* CurrDataPos = (uint8_t*)Data;
+    uint8_t* CurrDataPos = (uint8_t*)Data;
 
-	while (Length > 1)
-	{
-		uint8_t Temp				= *CurrDataPos;
-		*CurrDataPos				= *(CurrDataPos + Length - 1);
-		*(CurrDataPos + Length - 1) = Temp;
+    while (Length > 1)
+    {
+        uint8_t Temp                = *CurrDataPos;
+        *CurrDataPos                = *(CurrDataPos + Length - 1);
+        *(CurrDataPos + Length - 1) = Temp;
 
-		CurrDataPos++;
-		Length -= 2;
-	}
+        CurrDataPos++;
+        Length -= 2;
+    }
 }
 
 /* Disable C linkage for C++ Compilers: */

@@ -93,7 +93,7 @@ typedef void (*InterruptHandlerPtr_t)(void);
 extern const void EVBA_Table;
 #endif
 extern InterruptHandlerPtr_t InterruptHandlers[AVR32_INTC_NUM_INT_GRPS];
-extern const uint32_t		 Autovector_Table[];
+extern const uint32_t        Autovector_Table[];
 #endif
 
 /* Public Interface - May be used in end-application: */
@@ -152,11 +152,11 @@ InterruptHandlerPtr_t INTC_GetInterruptHandler(const uint_reg_t InterruptLevel);
  * the ISR handler for the interrupt group.
  */
 static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const uint8_t InterruptLevel,
-											 const InterruptHandlerPtr_t Handler) ATTR_ALWAYS_INLINE;
+                                             const InterruptHandlerPtr_t Handler) ATTR_ALWAYS_INLINE;
 static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const uint8_t InterruptLevel, const InterruptHandlerPtr_t Handler)
 {
-	InterruptHandlers[GroupNumber] = Handler;
-	AVR32_INTC.ipr[GroupNumber]	   = Autovector_Table[InterruptLevel];
+    InterruptHandlers[GroupNumber] = Handler;
+    AVR32_INTC.ipr[GroupNumber]    = Autovector_Table[InterruptLevel];
 }
 
 /** Retrieves the pending interrupts for a given interrupt group. The result of
@@ -171,7 +171,7 @@ static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const u
 static inline uint_reg_t INTC_GetGroupInterrupts(const uint16_t GroupNumber) ATTR_ALWAYS_INLINE;
 static inline uint_reg_t INTC_GetGroupInterrupts(const uint16_t GroupNumber)
 {
-	return AVR32_INTC.irr[GroupNumber];
+    return AVR32_INTC.irr[GroupNumber];
 }
 
 /* Disable C linkage for C++ Compilers: */

@@ -96,7 +96,7 @@ extern "C" {
  */
 enum USB_Host_ErrorCodes_t
 {
-	HOST_ERROR_VBusVoltageDip = 0, /**< VBUS voltage dipped to an unacceptable level. This
+    HOST_ERROR_VBusVoltageDip = 0, /**< VBUS voltage dipped to an unacceptable level. This
 									*   error may be the result of an attached device drawing
 									*   too much current from the VBUS line, or due to the
 									*   AVR's power source being unable to supply sufficient
@@ -111,21 +111,21 @@ enum USB_Host_ErrorCodes_t
  */
 enum USB_Host_EnumerationErrorCodes_t
 {
-	HOST_ENUMERROR_NoError			= 0, /**< No error occurred. Used internally, this is not a valid
+    HOST_ENUMERROR_NoError          = 0, /**< No error occurred. Used internally, this is not a valid
 										  *   ErrorCode parameter value for the \ref
 										  * EVENT_USB_Host_DeviceEnumerationFailed() event.
 										  */
-	HOST_ENUMERROR_WaitStage		= 1, /**< One of the delays between enumeration
+    HOST_ENUMERROR_WaitStage        = 1, /**< One of the delays between enumeration
 										  * steps failed to complete successfully, due
 										  * to a timeout or other error.
 										  */
-	HOST_ENUMERROR_NoDeviceDetected = 2, /**< No device was detected, despite the USB data lines
+    HOST_ENUMERROR_NoDeviceDetected = 2, /**< No device was detected, despite the USB data lines
 										  *   indicating the attachment of a device.
 										  */
-	HOST_ENUMERROR_ControlError		= 3, /**< One of the enumeration control requests failed to
+    HOST_ENUMERROR_ControlError     = 3, /**< One of the enumeration control requests failed to
 										  *   complete successfully.
 										  */
-	HOST_ENUMERROR_PipeConfigError	= 4, /**< The default control pipe (address
+    HOST_ENUMERROR_PipeConfigError  = 4, /**< The default control pipe (address
 										  * 0) failed to configure correctly.
 										  */
 };
@@ -140,7 +140,7 @@ enum USB_Host_EnumerationErrorCodes_t
 static inline uint16_t USB_Host_GetFrameNumber(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t USB_Host_GetFrameNumber(void)
 {
-	return AVR32_USBB_UHFNUM;
+    return AVR32_USBB_UHFNUM;
 }
 
 #if !defined(NO_SOF_EVENTS)
@@ -155,7 +155,7 @@ static inline uint16_t USB_Host_GetFrameNumber(void)
 static inline void USB_Host_EnableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_EnableSOFEvents(void)
 {
-	USB_INT_Enable(USB_INT_HSOFI);
+    USB_INT_Enable(USB_INT_HSOFI);
 }
 
 /** Disables the host mode Start Of Frame events. When disabled, this stops the
@@ -168,7 +168,7 @@ static inline void USB_Host_EnableSOFEvents(void)
 static inline void USB_Host_DisableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_DisableSOFEvents(void)
 {
-	USB_INT_Disable(USB_INT_HSOFI);
+    USB_INT_Disable(USB_INT_HSOFI);
 }
 #endif
 
@@ -183,7 +183,7 @@ static inline void USB_Host_DisableSOFEvents(void)
 static inline void USB_Host_ResetBus(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_ResetBus(void)
 {
-	AVR32_USBB.UHCON.reset = true;
+    AVR32_USBB.UHCON.reset = true;
 }
 
 /** Determines if a previously issued bus reset (via the \ref
@@ -195,7 +195,7 @@ static inline void USB_Host_ResetBus(void)
 static inline bool USB_Host_IsBusResetComplete(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_Host_IsBusResetComplete(void)
 {
-	return AVR32_USBB.UHCON.reset;
+    return AVR32_USBB.UHCON.reset;
 }
 
 /** Resumes USB communications with an attached and enumerated device, by
@@ -206,7 +206,7 @@ static inline bool USB_Host_IsBusResetComplete(void)
 static inline void USB_Host_ResumeBus(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_ResumeBus(void)
 {
-	AVR32_USBB.UHCON.sofe = true;
+    AVR32_USBB.UHCON.sofe = true;
 }
 
 /** Suspends the USB bus, preventing any communications from occurring between
@@ -220,7 +220,7 @@ static inline void USB_Host_ResumeBus(void)
 static inline void USB_Host_SuspendBus(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_SuspendBus(void)
 {
-	AVR32_USBB.UHCON.sofe = false;
+    AVR32_USBB.UHCON.sofe = false;
 }
 
 /** Determines if the USB bus has been suspended via the use of the \ref
@@ -234,7 +234,7 @@ static inline void USB_Host_SuspendBus(void)
 static inline bool USB_Host_IsBusSuspended(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_Host_IsBusSuspended(void)
 {
-	return AVR32_USBB.UHCON.sofe;
+    return AVR32_USBB.UHCON.sofe;
 }
 
 /** Determines if the attached device is currently enumerated in Full Speed mode
@@ -247,7 +247,7 @@ static inline bool USB_Host_IsBusSuspended(void)
 static inline bool USB_Host_IsDeviceFullSpeed(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_Host_IsDeviceFullSpeed(void)
 {
-	return (AVR32_USBB.USBSTA.speed == AVR32_USBB_SPEED_FULL);
+    return (AVR32_USBB.USBSTA.speed == AVR32_USBB_SPEED_FULL);
 }
 
 /** Determines if the attached device is currently issuing a Remote Wakeup
@@ -260,7 +260,7 @@ static inline bool USB_Host_IsDeviceFullSpeed(void)
 static inline bool USB_Host_IsRemoteWakeupSent(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_Host_IsRemoteWakeupSent(void)
 {
-	return AVR32_USBB.UHINT.rxrsmi;
+    return AVR32_USBB.UHINT.rxrsmi;
 }
 
 /** Clears the flag indicating that a Remote Wakeup request has been issued by
@@ -268,7 +268,7 @@ static inline bool USB_Host_IsRemoteWakeupSent(void)
 static inline void USB_Host_ClearRemoteWakeupSent(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_ClearRemoteWakeupSent(void)
 {
-	AVR32_USBB.UHINTCLR.rxrsmic = true;
+    AVR32_USBB.UHINTCLR.rxrsmic = true;
 }
 
 /** Accepts a Remote Wakeup request from an attached device. This must be issued
@@ -278,7 +278,7 @@ static inline void USB_Host_ClearRemoteWakeupSent(void)
 static inline void USB_Host_ResumeFromWakeupRequest(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_ResumeFromWakeupRequest(void)
 {
-	AVR32_USBB.UHCON.resume = true;
+    AVR32_USBB.UHCON.resume = true;
 }
 
 /** Determines if a resume from Remote Wakeup request is currently being sent to
@@ -290,7 +290,7 @@ static inline void USB_Host_ResumeFromWakeupRequest(void)
 static inline bool USB_Host_IsResumeFromWakeupRequestSent(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_Host_IsResumeFromWakeupRequestSent(void)
 {
-	return AVR32_USBB.UHCON.resume;
+    return AVR32_USBB.UHCON.resume;
 }
 
 /* Private Interface - For use in library only: */
@@ -299,74 +299,74 @@ static inline bool USB_Host_IsResumeFromWakeupRequestSent(void)
 static inline void USB_Host_HostMode_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_HostMode_On(void)
 {
-	// Not required for UC3B
+    // Not required for UC3B
 }
 
 static inline void USB_Host_HostMode_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_HostMode_Off(void)
 {
-	// Not required for UC3B
+    // Not required for UC3B
 }
 
 static inline void USB_Host_VBUS_Auto_Enable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_VBUS_Auto_Enable(void)
 {
-	AVR32_USBB.USBCON.vbushwc = false;
+    AVR32_USBB.USBCON.vbushwc = false;
 }
 
 static inline void USB_Host_VBUS_Manual_Enable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_VBUS_Manual_Enable(void)
 {
-	AVR32_USBB.USBCON.vbushwc = true;
+    AVR32_USBB.USBCON.vbushwc = true;
 }
 
 static inline void USB_Host_VBUS_Auto_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_VBUS_Auto_On(void)
 {
-	AVR32_USBB.USBSTASET.vbusrqs = true;
+    AVR32_USBB.USBSTASET.vbusrqs = true;
 }
 
 static inline void USB_Host_VBUS_Manual_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_VBUS_Manual_On(void)
 {
-	AVR32_USBB.USBSTASET.vbusrqs = true;
+    AVR32_USBB.USBSTASET.vbusrqs = true;
 }
 
 static inline void USB_Host_VBUS_Auto_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_VBUS_Auto_Off(void)
 {
-	AVR32_USBB.USBSTACLR.vbusrqc = true;
+    AVR32_USBB.USBSTACLR.vbusrqc = true;
 }
 
 static inline void USB_Host_VBUS_Manual_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_VBUS_Manual_Off(void)
 {
-	AVR32_USBB.USBSTACLR.vbusrqc = true;
+    AVR32_USBB.USBSTACLR.vbusrqc = true;
 }
 
 static inline void USB_Host_SetDeviceAddress(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void USB_Host_SetDeviceAddress(const uint8_t Address)
 {
-	AVR32_USBB.UHADDR1.uhaddr_p0 = Address;
-	AVR32_USBB.UHADDR1.uhaddr_p1 = Address;
-	AVR32_USBB.UHADDR1.uhaddr_p2 = Address;
-	AVR32_USBB.UHADDR1.uhaddr_p3 = Address;
-	AVR32_USBB.UHADDR2.uhaddr_p4 = Address;
-	AVR32_USBB.UHADDR2.uhaddr_p5 = Address;
-	AVR32_USBB.UHADDR2.uhaddr_p6 = Address;
+    AVR32_USBB.UHADDR1.uhaddr_p0 = Address;
+    AVR32_USBB.UHADDR1.uhaddr_p1 = Address;
+    AVR32_USBB.UHADDR1.uhaddr_p2 = Address;
+    AVR32_USBB.UHADDR1.uhaddr_p3 = Address;
+    AVR32_USBB.UHADDR2.uhaddr_p4 = Address;
+    AVR32_USBB.UHADDR2.uhaddr_p5 = Address;
+    AVR32_USBB.UHADDR2.uhaddr_p6 = Address;
 }
 
 /* Enums: */
 enum USB_Host_WaitMSErrorCodes_t
 {
-	HOST_WAITERROR_Successful		= 0,
-	HOST_WAITERROR_DeviceDisconnect = 1,
-	HOST_WAITERROR_PipeError		= 2,
-	HOST_WAITERROR_SetupStalled		= 3,
+    HOST_WAITERROR_Successful       = 0,
+    HOST_WAITERROR_DeviceDisconnect = 1,
+    HOST_WAITERROR_PipeError        = 2,
+    HOST_WAITERROR_SetupStalled     = 3,
 };
 
 /* Function Prototypes: */
-void	USB_Host_ProcessNextHostState(void);
+void    USB_Host_ProcessNextHostState(void);
 uint8_t USB_Host_WaitMS(uint8_t MS);
 
 #if defined(__INCLUDE_FROM_HOST_C)

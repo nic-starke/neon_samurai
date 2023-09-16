@@ -105,45 +105,45 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t ControlInterfaceNumber; /**< Interface number of the CDC control
+    struct
+    {
+        uint8_t ControlInterfaceNumber; /**< Interface number of the CDC control
 										   interface within the device. */
 
-		USB_Endpoint_Table_t DataINEndpoint;	   /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint;	   /**< Data OUT endpoint configuration table. */
-		USB_Endpoint_Table_t NotificationEndpoint; /**< Notification IN Endpoint
+        USB_Endpoint_Table_t DataINEndpoint;       /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint;      /**< Data OUT endpoint configuration table. */
+        USB_Endpoint_Table_t NotificationEndpoint; /**< Notification IN Endpoint
 													  configuration table. */
-	} Config;									   /**< Config data for the USB class interface within the device.
+    } Config;                                      /**< Config data for the USB class interface within the device.
 													* All elements in this section <b>must</b> be set or the
 													* interface will fail to enumerate and operate correctly.
 													*/
-	struct
-	{
-		struct
-		{
-			uint16_t HostToDevice; /**< Control line states from the host to device,
+    struct
+    {
+        struct
+        {
+            uint16_t HostToDevice; /**< Control line states from the host to device,
 									* as a set of \c CDC_CONTROL_LINE_OUT_* masks.
 									* This value is updated each time \ref
 									* CDC_Device_USBTask() is called.
 									*/
-			uint16_t DeviceToHost; /**< Control line states from the device to
+            uint16_t DeviceToHost; /**< Control line states from the device to
 									* host, as a set of \c CDC_CONTROL_LINE_IN_*
 									* masks - to notify the host of changes to
 									* these values, call the \ref
 									* CDC_Device_SendControlLineStateChange()
 									* function.
 									*/
-		} ControlLineStates;	   /**< Current states of the virtual serial port's
+        } ControlLineStates;       /**< Current states of the virtual serial port's
 									* control lines between the device and host.
 									*/
 
-		CDC_LineEncoding_t LineEncoding; /**< Line encoding used in the virtual serial port,
+        CDC_LineEncoding_t LineEncoding; /**< Line encoding used in the virtual serial port,
 										  * for the device's information. This is generally
 										  * only used if the virtual serial port data is to be
 										  * reconstructed on a physical UART.
 										  */
-	} State;							 /**< State data for the USB class interface within the device. All
+    } State;                             /**< State data for the USB class interface within the device. All
 										  * elements in this section are reset to their defaults when the
 										  * interface is enumerated.
 										  */
@@ -234,7 +234,7 @@ void EVENT_CDC_Device_BreakSent(USB_ClassInfo_CDC_Device_t* const CDCInterfaceIn
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t CDC_Device_SendString(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const char* const String) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends a given data buffer to the attached USB host, if connected. If a host
  * is not connected when the function is called, the string is discarded. Bytes
@@ -254,7 +254,7 @@ uint8_t CDC_Device_SendString(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t CDC_Device_SendData(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const void* const Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 #if defined(ARCH_HAS_FLASH_ADDRESS_SPACE)
 /** Sends a given null terminated string from PROGMEM space to the attached USB
@@ -278,7 +278,7 @@ uint8_t CDC_Device_SendData(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, 
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t CDC_Device_SendString_P(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const char* const String) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 #endif
 
 #if defined(ARCH_HAS_FLASH_ADDRESS_SPACE)
@@ -303,7 +303,7 @@ uint8_t CDC_Device_SendString_P(USB_ClassInfo_CDC_Device_t* const CDCInterfaceIn
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t CDC_Device_SendData_P(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const void* const Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 #endif
 
 /** Sends a given byte to the attached USB host, if connected. If a host is not
@@ -413,7 +413,7 @@ void CDC_Device_SendControlLineStateChange(USB_ClassInfo_CDC_Device_t* const CDC
  * FILE structure where the created stream should be placed.
  */
 void CDC_Device_CreateStream(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, FILE* const Stream) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Identical to \ref CDC_Device_CreateStream(), except that reads are blocking
  * until the calling stream function terminates the transfer. While blocking,
@@ -427,7 +427,7 @@ void CDC_Device_CreateStream(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo,
  * FILE structure where the created stream should be placed.
  */
 void CDC_Device_CreateBlockingStream(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, FILE* const Stream) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 #endif
 
 /* Private Interface - For use in library only: */
@@ -444,11 +444,11 @@ void CDC_Device_Event_Stub(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo);
 void CDC_Device_Event_Stub_2(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const uint8_t _1);
 
 void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo) ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_ALIAS(CDC_Device_Event_Stub);
+    ATTR_ALIAS(CDC_Device_Event_Stub);
 void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo) ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_ALIAS(CDC_Device_Event_Stub);
+    ATTR_ALIAS(CDC_Device_Event_Stub);
 void EVENT_CDC_Device_BreakSent(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo, const uint8_t Duration) ATTR_WEAK
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALIAS(CDC_Device_Event_Stub_2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALIAS(CDC_Device_Event_Stub_2);
 #endif
 
 #endif

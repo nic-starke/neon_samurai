@@ -165,18 +165,18 @@ extern "C" {
  * USB_ProcessHIDReport() function. */
 enum HID_Parse_ErrorCodes_t
 {
-	HID_PARSE_Successful				  = 0, /**< Successful parse of the HID report descriptor, no error. */
-	HID_PARSE_HIDStackOverflow			  = 1, /**< More than \ref HID_STATETABLE_STACK_DEPTH nested PUSHes in the
+    HID_PARSE_Successful                  = 0, /**< Successful parse of the HID report descriptor, no error. */
+    HID_PARSE_HIDStackOverflow            = 1, /**< More than \ref HID_STATETABLE_STACK_DEPTH nested PUSHes in the
 												  report. */
-	HID_PARSE_HIDStackUnderflow			  = 2, /**< A POP was found when the state table stack was empty. */
-	HID_PARSE_InsufficientReportItems	  = 3, /**< More than \ref HID_MAX_REPORTITEMS report items in the report.
+    HID_PARSE_HIDStackUnderflow           = 2, /**< A POP was found when the state table stack was empty. */
+    HID_PARSE_InsufficientReportItems     = 3, /**< More than \ref HID_MAX_REPORTITEMS report items in the report.
 												*/
-	HID_PARSE_UnexpectedEndCollection	  = 4, /**< An END COLLECTION item found without matching COLLECTION item.
+    HID_PARSE_UnexpectedEndCollection     = 4, /**< An END COLLECTION item found without matching COLLECTION item.
 												*/
-	HID_PARSE_InsufficientCollectionPaths = 5, /**< More than \ref HID_MAX_COLLECTIONS collections in the report. */
-	HID_PARSE_UsageListOverflow			  = 6, /**< More than \ref HID_USAGE_STACK_DEPTH usages listed in a row. */
-	HID_PARSE_InsufficientReportIDItems	  = 7, /**< More than \ref HID_MAX_REPORT_IDS report IDs in the device. */
-	HID_PARSE_NoUnfilteredReportItems	  = 8, /**< All report items from the device were filtered by the filtering
+    HID_PARSE_InsufficientCollectionPaths = 5, /**< More than \ref HID_MAX_COLLECTIONS collections in the report. */
+    HID_PARSE_UsageListOverflow           = 6, /**< More than \ref HID_USAGE_STACK_DEPTH usages listed in a row. */
+    HID_PARSE_InsufficientReportIDItems   = 7, /**< More than \ref HID_MAX_REPORT_IDS report IDs in the device. */
+    HID_PARSE_NoUnfilteredReportItems     = 8, /**< All report items from the device were filtered by the filtering
 												  callback routine. */
 };
 
@@ -188,8 +188,8 @@ enum HID_Parse_ErrorCodes_t
  */
 typedef struct
 {
-	uint32_t Minimum; /**< Minimum value for the attribute. */
-	uint32_t Maximum; /**< Maximum value for the attribute. */
+    uint32_t Minimum; /**< Minimum value for the attribute. */
+    uint32_t Maximum; /**< Maximum value for the attribute. */
 } HID_MinMax_t;
 
 /** \brief HID Parser Report Item Unit Structure.
@@ -198,8 +198,8 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t Type;	   /**< Unit type (refer to HID specifications for details). */
-	uint8_t	 Exponent; /**< Unit exponent (refer to HID specifications for
+    uint32_t Type;     /**< Unit type (refer to HID specifications for details). */
+    uint8_t  Exponent; /**< Unit exponent (refer to HID specifications for
 						  details). */
 } HID_Unit_t;
 
@@ -209,8 +209,8 @@ typedef struct
  */
 typedef struct
 {
-	uint16_t Page;	/**< Usage page of the report item. */
-	uint16_t Usage; /**< Usage of the report item. */
+    uint16_t Page;  /**< Usage page of the report item. */
+    uint16_t Usage; /**< Usage of the report item. */
 } HID_Usage_t;
 
 /** \brief HID Parser Report Item Collection Path Structure.
@@ -220,9 +220,9 @@ typedef struct
  */
 typedef struct HID_CollectionPath
 {
-	uint8_t					   Type;   /**< Collection type (e.g. "Generic Desktop"). */
-	HID_Usage_t				   Usage;  /**< Collection usage. */
-	struct HID_CollectionPath* Parent; /**< Reference to parent collection, or
+    uint8_t                    Type;   /**< Collection type (e.g. "Generic Desktop"). */
+    HID_Usage_t                Usage;  /**< Collection usage. */
+    struct HID_CollectionPath* Parent; /**< Reference to parent collection, or
 										  \c NULL if root collection. */
 } HID_CollectionPath_t;
 
@@ -232,12 +232,12 @@ typedef struct HID_CollectionPath
  */
 typedef struct
 {
-	uint8_t BitSize; /**< Size in bits of the report item's data. */
+    uint8_t BitSize; /**< Size in bits of the report item's data. */
 
-	HID_Usage_t	 Usage;	   /**< Usage of the report item. */
-	HID_Unit_t	 Unit;	   /**< Unit type and exponent of the report item. */
-	HID_MinMax_t Logical;  /**< Logical minimum and maximum of the report item. */
-	HID_MinMax_t Physical; /**< Physical minimum and maximum of the report item. */
+    HID_Usage_t  Usage;    /**< Usage of the report item. */
+    HID_Unit_t   Unit;     /**< Unit type and exponent of the report item. */
+    HID_MinMax_t Logical;  /**< Logical minimum and maximum of the report item. */
+    HID_MinMax_t Physical; /**< Physical minimum and maximum of the report item. */
 } HID_ReportItem_Attributes_t;
 
 /** \brief HID Parser Report Item Details Structure.
@@ -247,22 +247,22 @@ typedef struct
  */
 typedef struct
 {
-	uint16_t			  BitOffset;	  /**< Bit offset in the IN, OUT or FEATURE report of the
+    uint16_t              BitOffset;      /**< Bit offset in the IN, OUT or FEATURE report of the
 											 item. */
-	uint8_t				  ItemType;		  /**< Report item type, a value in \ref
+    uint8_t               ItemType;       /**< Report item type, a value in \ref
 											 HID_ReportItemTypes_t. */
-	uint16_t			  ItemFlags;	  /**< Item data flags, a mask of \c HID_IOF_* constants. */
-	uint8_t				  ReportID;		  /**< Report ID this item belongs to, or 0x00 if device has
+    uint16_t              ItemFlags;      /**< Item data flags, a mask of \c HID_IOF_* constants. */
+    uint8_t               ReportID;       /**< Report ID this item belongs to, or 0x00 if device has
 											 only one report */
-	HID_CollectionPath_t* CollectionPath; /**< Collection path of the item. */
+    HID_CollectionPath_t* CollectionPath; /**< Collection path of the item. */
 
-	HID_ReportItem_Attributes_t Attributes; /**< Report item attributes. */
+    HID_ReportItem_Attributes_t Attributes; /**< Report item attributes. */
 
-	uint32_t Value;			/**< Current value of the report item - use \ref
+    uint32_t Value;         /**< Current value of the report item - use \ref
 							 * HID_ALIGN_DATA() when processing		 a retrieved value
 							 * so		 that it is aligned to a specific type.
 							 */
-	uint32_t PreviousValue; /**< Previous value of the report item. */
+    uint32_t PreviousValue; /**< Previous value of the report item. */
 } HID_ReportItem_t;
 
 /** \brief HID Parser Report Size Structure.
@@ -272,8 +272,8 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t	 ReportID;			/**< Report ID of the report within the HID interface. */
-	uint16_t ReportSizeBits[3]; /**< Total number of bits in each report type
+    uint8_t  ReportID;          /**< Report ID of the report within the HID interface. */
+    uint16_t ReportSizeBits[3]; /**< Total number of bits in each report type
 								 * for the given Report ID, indexed by the \ref
 								 * HID_ReportItemTypes_t enum.
 								 */
@@ -286,20 +286,20 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t				 TotalReportItems;					   /**< Total number of report items stored in the \c
+    uint8_t              TotalReportItems;                     /**< Total number of report items stored in the \c
 																  ReportItems array. */
-	HID_ReportItem_t	 ReportItems[HID_MAX_REPORTITEMS];	   /**< Report items array, including all
+    HID_ReportItem_t     ReportItems[HID_MAX_REPORTITEMS];     /**< Report items array, including all
 																* IN, OUT and FEATURE items.
 																*/
-	HID_CollectionPath_t CollectionPaths[HID_MAX_COLLECTIONS]; /**< All collection items,
+    HID_CollectionPath_t CollectionPaths[HID_MAX_COLLECTIONS]; /**< All collection items,
 																* referenced by the report items.
 																*/
-	uint8_t				 TotalDeviceReports;				   /**< Number of reports within the HID interface */
-	HID_ReportSizeInfo_t ReportIDSizes[HID_MAX_REPORT_IDS];	   /**< Report sizes for each report in
+    uint8_t              TotalDeviceReports;                   /**< Number of reports within the HID interface */
+    HID_ReportSizeInfo_t ReportIDSizes[HID_MAX_REPORT_IDS];    /**< Report sizes for each report in
 																  the interface */
-	uint16_t			 LargestReportSizeBits;				   /**< Largest report that the attached device
+    uint16_t             LargestReportSizeBits;                /**< Largest report that the attached device
 																  will generate, in bits */
-	bool				 UsingReportIDs;					   /**< Indicates if the device has at least one REPORT ID
+    bool                 UsingReportIDs;                       /**< Indicates if the device has at least one REPORT ID
 																*   element in its HID report descriptor.
 																*/
 } HID_ReportInfo_t;
@@ -316,7 +316,7 @@ typedef struct
  *  \return A value in the \ref HID_Parse_ErrorCodes_t enum.
  */
 uint8_t USB_ProcessHIDReport(const uint8_t* ReportData, uint16_t ReportSize, HID_ReportInfo_t* const ParserData) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(3);
 
 /** Extracts the given report item's value out of the given HID report and
  * places it into the Value member of the report item's \ref HID_ReportItem_t
@@ -367,7 +367,7 @@ void USB_SetHIDReportItemInfo(uint8_t* ReportData, HID_ReportItem_t* const Repor
  *  \return Size of the report in bytes, or \c 0 if the report does not exist.
  */
 uint16_t USB_GetHIDReportSize(HID_ReportInfo_t* const ParserData, const uint8_t ReportID, const uint8_t ReportType) ATTR_CONST
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 /** Callback routine for the HID Report Parser. This callback <b>must</b> be
  * implemented by the user code when the parser is used, to determine what
@@ -394,9 +394,9 @@ bool CALLBACK_HIDParser_FilterHIDReportItem(HID_ReportItem_t* const CurrentItem)
 /* Type Defines: */
 typedef struct
 {
-	HID_ReportItem_Attributes_t Attributes;
-	uint8_t						ReportCount;
-	uint8_t						ReportID;
+    HID_ReportItem_Attributes_t Attributes;
+    uint8_t                     ReportCount;
+    uint8_t                     ReportID;
 } HID_StateTable_t;
 #endif
 

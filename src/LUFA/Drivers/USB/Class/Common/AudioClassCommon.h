@@ -272,9 +272,9 @@ extern "C" {
  *  \param[in] freq  Required audio sampling frequency in HZ
  */
 #define AUDIO_SAMPLE_FREQ(freq)                                                                                                            \
-	{                                                                                                                                      \
-		.Byte1 = ((uint32_t)freq & 0xFF), .Byte2 = (((uint32_t)freq >> 8) & 0xFF), .Byte3 = (((uint32_t)freq >> 16) & 0xFF)                \
-	}
+    {                                                                                                                                      \
+        .Byte1 = ((uint32_t)freq & 0xFF), .Byte2 = (((uint32_t)freq >> 8) & 0xFF), .Byte3 = (((uint32_t)freq >> 16) & 0xFF)                \
+    }
 
 /** Mask for the attributes parameter of an Audio class-specific Endpoint
  * descriptor, indicating that the endpoint accepts only filled endpoint packets
@@ -306,22 +306,22 @@ extern "C" {
  */
 enum Audio_Descriptor_ClassSubclassProtocol_t
 {
-	AUDIO_CSCP_AudioClass			  = 0x01, /**< Descriptor Class value indicating that the device or
+    AUDIO_CSCP_AudioClass             = 0x01, /**< Descriptor Class value indicating that the device or
 											   *   interface belongs to the USB Audio 1.0 class.
 											   */
-	AUDIO_CSCP_ControlSubclass		  = 0x01, /**< Descriptor Subclass value indicating that the device or
+    AUDIO_CSCP_ControlSubclass        = 0x01, /**< Descriptor Subclass value indicating that the device or
 											   *   interface belongs to the Audio Control subclass.
 											   */
-	AUDIO_CSCP_ControlProtocol		  = 0x00, /**< Descriptor Protocol value indicating that the device or
+    AUDIO_CSCP_ControlProtocol        = 0x00, /**< Descriptor Protocol value indicating that the device or
 											   *   interface belongs to the Audio Control protocol.
 											   */
-	AUDIO_CSCP_AudioStreamingSubclass = 0x02, /**< Descriptor Subclass value indicating that the device or
+    AUDIO_CSCP_AudioStreamingSubclass = 0x02, /**< Descriptor Subclass value indicating that the device or
 											   *   interface belongs to the MIDI Streaming subclass.
 											   */
-	AUDIO_CSCP_MIDIStreamingSubclass  = 0x03, /**< Descriptor Subclass value indicating that the device or
+    AUDIO_CSCP_MIDIStreamingSubclass  = 0x03, /**< Descriptor Subclass value indicating that the device or
 											   *   interface belongs to the Audio streaming subclass.
 											   */
-	AUDIO_CSCP_StreamingProtocol	  = 0x00, /**< Descriptor Protocol value indicating that the device or
+    AUDIO_CSCP_StreamingProtocol      = 0x00, /**< Descriptor Protocol value indicating that the device or
 											   *   interface belongs to the Streaming Audio protocol.
 											   */
 };
@@ -329,33 +329,33 @@ enum Audio_Descriptor_ClassSubclassProtocol_t
 /** Enum for the Audio class specific descriptor types. */
 enum AUDIO_DescriptorTypes_t
 {
-	AUDIO_DTYPE_CSInterface = 0x24, /**< Audio class specific Interface functional descriptor. */
-	AUDIO_DTYPE_CSEndpoint	= 0x25, /**< Audio class specific Endpoint functional descriptor. */
+    AUDIO_DTYPE_CSInterface = 0x24, /**< Audio class specific Interface functional descriptor. */
+    AUDIO_DTYPE_CSEndpoint  = 0x25, /**< Audio class specific Endpoint functional descriptor. */
 };
 
 /** Audio class specific interface description subtypes, for the Audio Control
  * interface. */
 enum Audio_CSInterface_AC_SubTypes_t
 {
-	AUDIO_DSUBTYPE_CSInterface_Header		  = 0x01, /**< Audio class specific control interface header. */
-	AUDIO_DSUBTYPE_CSInterface_InputTerminal  = 0x02, /**< Audio class specific control interface Input Terminal. */
-	AUDIO_DSUBTYPE_CSInterface_OutputTerminal = 0x03, /**< Audio class specific control interface Output Terminal. */
-	AUDIO_DSUBTYPE_CSInterface_Mixer		  = 0x04, /**< Audio class specific control interface Mixer Unit. */
-	AUDIO_DSUBTYPE_CSInterface_Selector		  = 0x05, /**< Audio class specific control interface Selector Unit. */
-	AUDIO_DSUBTYPE_CSInterface_Feature		  = 0x06, /**< Audio class specific control interface Feature Unit. */
-	AUDIO_DSUBTYPE_CSInterface_Processing	  = 0x07, /**< Audio class specific control interface Processing Unit. */
-	AUDIO_DSUBTYPE_CSInterface_Extension	  = 0x08, /**< Audio class specific control interface Extension Unit. */
+    AUDIO_DSUBTYPE_CSInterface_Header         = 0x01, /**< Audio class specific control interface header. */
+    AUDIO_DSUBTYPE_CSInterface_InputTerminal  = 0x02, /**< Audio class specific control interface Input Terminal. */
+    AUDIO_DSUBTYPE_CSInterface_OutputTerminal = 0x03, /**< Audio class specific control interface Output Terminal. */
+    AUDIO_DSUBTYPE_CSInterface_Mixer          = 0x04, /**< Audio class specific control interface Mixer Unit. */
+    AUDIO_DSUBTYPE_CSInterface_Selector       = 0x05, /**< Audio class specific control interface Selector Unit. */
+    AUDIO_DSUBTYPE_CSInterface_Feature        = 0x06, /**< Audio class specific control interface Feature Unit. */
+    AUDIO_DSUBTYPE_CSInterface_Processing     = 0x07, /**< Audio class specific control interface Processing Unit. */
+    AUDIO_DSUBTYPE_CSInterface_Extension      = 0x08, /**< Audio class specific control interface Extension Unit. */
 };
 
 /** Audio class specific interface description subtypes, for the Audio Streaming
  * interface. */
 enum Audio_CSInterface_AS_SubTypes_t
 {
-	AUDIO_DSUBTYPE_CSInterface_General		  = 0x01, /**< Audio class specific streaming interface general descriptor.
+    AUDIO_DSUBTYPE_CSInterface_General        = 0x01, /**< Audio class specific streaming interface general descriptor.
 													   */
-	AUDIO_DSUBTYPE_CSInterface_FormatType	  = 0x02, /**< Audio class specific streaming interface format type
+    AUDIO_DSUBTYPE_CSInterface_FormatType     = 0x02, /**< Audio class specific streaming interface format type
 														 descriptor. */
-	AUDIO_DSUBTYPE_CSInterface_FormatSpecific = 0x03, /**< Audio class specific streaming interface format information
+    AUDIO_DSUBTYPE_CSInterface_FormatSpecific = 0x03, /**< Audio class specific streaming interface format information
 														 descriptor. */
 };
 
@@ -363,34 +363,34 @@ enum Audio_CSInterface_AS_SubTypes_t
  * interface. */
 enum Audio_CSEndpoint_SubTypes_t
 {
-	AUDIO_DSUBTYPE_CSEndpoint_General = 0x01, /**< Audio class specific endpoint general descriptor. */
+    AUDIO_DSUBTYPE_CSEndpoint_General = 0x01, /**< Audio class specific endpoint general descriptor. */
 };
 
 /** Enum for the Audio class specific control requests that can be issued by the
  * USB bus host. */
 enum Audio_ClassRequests_t
 {
-	AUDIO_REQ_SetCurrent	= 0x01, /**< Audio class-specific request to set the current value of a
+    AUDIO_REQ_SetCurrent    = 0x01, /**< Audio class-specific request to set the current value of a
 									   parameter within the device. */
-	AUDIO_REQ_SetMinimum	= 0x02, /**< Audio class-specific request to set the minimum value of a
+    AUDIO_REQ_SetMinimum    = 0x02, /**< Audio class-specific request to set the minimum value of a
 									   parameter within the device. */
-	AUDIO_REQ_SetMaximum	= 0x03, /**< Audio class-specific request to set the maximum value of a
+    AUDIO_REQ_SetMaximum    = 0x03, /**< Audio class-specific request to set the maximum value of a
 									   parameter within the device. */
-	AUDIO_REQ_SetResolution = 0x04, /**< Audio class-specific request to set the resolution value of a
+    AUDIO_REQ_SetResolution = 0x04, /**< Audio class-specific request to set the resolution value of a
 									   parameter within the device. */
-	AUDIO_REQ_SetMemory		= 0x05, /**< Audio class-specific request to set the memory value of a
+    AUDIO_REQ_SetMemory     = 0x05, /**< Audio class-specific request to set the memory value of a
 									   parameter within the device. */
-	AUDIO_REQ_GetCurrent	= 0x81, /**< Audio class-specific request to get the current value of a
+    AUDIO_REQ_GetCurrent    = 0x81, /**< Audio class-specific request to get the current value of a
 									   parameter within the device. */
-	AUDIO_REQ_GetMinimum	= 0x82, /**< Audio class-specific request to get the minimum value of a
+    AUDIO_REQ_GetMinimum    = 0x82, /**< Audio class-specific request to get the minimum value of a
 									   parameter within the device. */
-	AUDIO_REQ_GetMaximum	= 0x83, /**< Audio class-specific request to get the maximum value of a
+    AUDIO_REQ_GetMaximum    = 0x83, /**< Audio class-specific request to get the maximum value of a
 									   parameter within the device. */
-	AUDIO_REQ_GetResolution = 0x84, /**< Audio class-specific request to get the resolution value of a
+    AUDIO_REQ_GetResolution = 0x84, /**< Audio class-specific request to get the resolution value of a
 									   parameter within the device. */
-	AUDIO_REQ_GetMemory		= 0x85, /**< Audio class-specific request to get the memory value of a
+    AUDIO_REQ_GetMemory     = 0x85, /**< Audio class-specific request to get the memory value of a
 									   parameter within the device. */
-	AUDIO_REQ_GetStatus		= 0xFF, /**< Audio class-specific request to get the device status. */
+    AUDIO_REQ_GetStatus     = 0xFF, /**< Audio class-specific request to get the device status. */
 };
 
 /** Enum for Audio class specific Endpoint control modifiers which can be set
@@ -400,8 +400,8 @@ enum Audio_ClassRequests_t
  */
 enum Audio_EndpointControls_t
 {
-	AUDIO_EPCONTROL_SamplingFreq = 0x01, /**< Sampling frequency adjustment of the endpoint. */
-	AUDIO_EPCONTROL_Pitch		 = 0x02, /**< Pitch adjustment of the endpoint. */
+    AUDIO_EPCONTROL_SamplingFreq = 0x01, /**< Sampling frequency adjustment of the endpoint. */
+    AUDIO_EPCONTROL_Pitch        = 0x02, /**< Pitch adjustment of the endpoint. */
 };
 
 /* Type Defines: */
@@ -421,28 +421,28 @@ enum Audio_EndpointControls_t
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, must be \ref
 									  * AUDIO_DSUBTYPE_CSInterface_InputTerminal.
 									  */
 
-	uint8_t	 TerminalID;			   /**< ID value of this terminal unit - must be a unique
+    uint8_t  TerminalID;               /**< ID value of this terminal unit - must be a unique
 										  value within the device. */
-	uint16_t TerminalType;			   /**< Type of terminal, a \c TERMINAL_* mask. */
-	uint8_t	 AssociatedOutputTerminal; /**< ID of associated output terminal, for
+    uint16_t TerminalType;             /**< Type of terminal, a \c TERMINAL_* mask. */
+    uint8_t  AssociatedOutputTerminal; /**< ID of associated output terminal, for
 										* physically grouped terminals	 such as the
 										* speaker and microphone of a phone handset.
 										*/
-	uint8_t	 TotalChannels;			   /**< Total number of separate audio channels within
+    uint8_t  TotalChannels;            /**< Total number of separate audio channels within
 										  this interface (right, left, etc.) */
-	uint16_t ChannelConfig;			   /**< \c CHANNEL_* masks indicating what channel
+    uint16_t ChannelConfig;            /**< \c CHANNEL_* masks indicating what channel
 										  layout is supported by this terminal. */
 
-	uint8_t ChannelStrIndex;  /**< Index of a string descriptor describing this
+    uint8_t ChannelStrIndex;  /**< Index of a string descriptor describing this
 								 channel within the device. */
-	uint8_t TerminalStrIndex; /**< Index of a string descriptor describing this
+    uint8_t TerminalStrIndex; /**< Index of a string descriptor describing this
 								 descriptor within the device. */
 } ATTR_PACKED USB_Audio_Descriptor_InputTerminal_t;
 
@@ -462,31 +462,31 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
 							  * USB_DescriptorTypes_t or a value given by the
 							  * specific class.
 							  */
 
-	uint8_t	 bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t  bDescriptorSubtype; /**< Sub type value used to distinguish between
 								  * audio class-specific descriptors,	  must be
 								  * \ref	  AUDIO_DSUBTYPE_CSInterface_InputTerminal.
 								  */
-	uint8_t	 bTerminalID;		 /**< ID value of this terminal unit - must be a unique
+    uint8_t  bTerminalID;        /**< ID value of this terminal unit - must be a unique
 									value within the device. */
-	uint16_t wTerminalType;		 /**< Type of terminal, a \c TERMINAL_* mask. */
-	uint8_t	 bAssocTerminal;	 /**< ID of associated output terminal, for
+    uint16_t wTerminalType;      /**< Type of terminal, a \c TERMINAL_* mask. */
+    uint8_t  bAssocTerminal;     /**< ID of associated output terminal, for
 								  * physically grouped terminals  such as the speaker
 								  * and microphone of a phone handset.
 								  */
-	uint8_t	 bNrChannels;		 /**< Total number of separate audio channels within
+    uint8_t  bNrChannels;        /**< Total number of separate audio channels within
 									this interface (right, left, etc.) */
-	uint16_t wChannelConfig;	 /**< \c CHANNEL_* masks indicating what channel
+    uint16_t wChannelConfig;     /**< \c CHANNEL_* masks indicating what channel
 									layout is supported by this terminal. */
 
-	uint8_t iChannelNames; /**< Index of a string descriptor describing this
+    uint8_t iChannelNames; /**< Index of a string descriptor describing this
 							  channel within the device. */
-	uint8_t iTerminal;	   /**< Index of a string descriptor describing this
+    uint8_t iTerminal;     /**< Index of a string descriptor describing this
 							  descriptor within the device. */
 } ATTR_PACKED USB_Audio_StdDescriptor_InputTerminal_t;
 
@@ -506,24 +506,24 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, must be \ref
 									  * AUDIO_DSUBTYPE_CSInterface_OutputTerminal.
 									  */
 
-	uint8_t	 TerminalID;			  /**< ID value of this terminal unit - must be a unique
+    uint8_t  TerminalID;              /**< ID value of this terminal unit - must be a unique
 										 value within the device. */
-	uint16_t TerminalType;			  /**< Type of terminal, a \c TERMINAL_* mask. */
-	uint8_t	 AssociatedInputTerminal; /**< ID of associated input terminal, for
+    uint16_t TerminalType;            /**< Type of terminal, a \c TERMINAL_* mask. */
+    uint8_t  AssociatedInputTerminal; /**< ID of associated input terminal, for
 									   * physically grouped terminals	 such as the
 									   * speaker and microphone of a phone handset.
 									   */
-	uint8_t	 SourceID;				  /**< ID value of the unit this terminal's audio is sourced
+    uint8_t  SourceID;                /**< ID value of the unit this terminal's audio is sourced
 										 from. */
 
-	uint8_t TerminalStrIndex; /**< Index of a string descriptor describing this
+    uint8_t TerminalStrIndex; /**< Index of a string descriptor describing this
 								 descriptor within the device. */
 } ATTR_PACKED USB_Audio_Descriptor_OutputTerminal_t;
 
@@ -543,28 +543,28 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Sub type value used to distinguish between
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Sub type value used to distinguish between
 							  * audio class-specific descriptors, must be \ref
 							  * AUDIO_DSUBTYPE_CSInterface_OutputTerminal.
 							  */
 
-	uint8_t	 bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t  bDescriptorSubtype; /**< Sub type value used to distinguish between
 								  * audio class-specific descriptors,	  a value
 								  * from  the \ref Audio_CSInterface_AC_SubTypes_t
 								  * enum.
 								  */
-	uint8_t	 bTerminalID;		 /**< ID value of this terminal unit - must be a unique
+    uint8_t  bTerminalID;        /**< ID value of this terminal unit - must be a unique
 									value within the device. */
-	uint16_t wTerminalType;		 /**< Type of terminal, a \c TERMINAL_* mask. */
-	uint8_t	 bAssocTerminal;	 /**< ID of associated input terminal, for physically
+    uint16_t wTerminalType;      /**< Type of terminal, a \c TERMINAL_* mask. */
+    uint8_t  bAssocTerminal;     /**< ID of associated input terminal, for physically
 								  * grouped terminals such as the speaker and
 								  * microphone of a phone handset.
 								  */
-	uint8_t	 bSourceID;			 /**< ID value of the unit this terminal's audio is
+    uint8_t  bSourceID;          /**< ID value of the unit this terminal's audio is
 									sourced from. */
 
-	uint8_t iTerminal; /**< Index of a string descriptor describing this
+    uint8_t iTerminal; /**< Index of a string descriptor describing this
 						  descriptor within the device. */
 } ATTR_PACKED USB_Audio_StdDescriptor_OutputTerminal_t;
 
@@ -583,24 +583,24 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, a value from the \ref
 									  * Audio_CSInterface_AS_SubTypes_t enum.
 									  */
 
-	uint16_t ACSpecification; /**< Binary Coded Decimal value, indicating the
+    uint16_t ACSpecification; /**< Binary Coded Decimal value, indicating the
 							   * supported Audio Class specification version.
 							   *
 							   *   \see \ref VERSION_BCD() utility macro.
 							   */
-	uint16_t TotalLength;	  /**< Total length of the Audio class-specific
+    uint16_t TotalLength;     /**< Total length of the Audio class-specific
 								 descriptors, including this descriptor. */
 
-	uint8_t InCollection;	 /**< Total number of Audio Streaming interfaces linked
+    uint8_t InCollection;    /**< Total number of Audio Streaming interfaces linked
 								to this Audio Control interface (must be 1). */
-	uint8_t InterfaceNumber; /**< Interface number of the associated Audio
+    uint8_t InterfaceNumber; /**< Interface number of the associated Audio
 								Streaming interface. */
 } ATTR_PACKED USB_Audio_Descriptor_Interface_AC_t;
 
@@ -620,28 +620,28 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
 							  * USB_DescriptorTypes_t or a value given by the
 							  * specific class.
 							  */
 
-	uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
 								 * audio class-specific descriptors, a value from
 								 * the \ref Audio_CSInterface_AS_SubTypes_t enum.
 								 */
 
-	uint16_t bcdADC;	   /**< Binary coded decimal value, indicating the supported
+    uint16_t bcdADC;       /**< Binary coded decimal value, indicating the supported
 							* Audio Class specification version.
 							*
 							*   \see \ref VERSION_BCD() utility macro.
 							*/
-	uint16_t wTotalLength; /**< Total length of the Audio class-specific
+    uint16_t wTotalLength; /**< Total length of the Audio class-specific
 							  descriptors, including this descriptor. */
 
-	uint8_t bInCollection;	   /**< Total number of Audio Streaming interfaces linked to
+    uint8_t bInCollection;     /**< Total number of Audio Streaming interfaces linked to
 								  this Audio Control interface (must be 1). */
-	uint8_t bInterfaceNumbers; /**< Interface number of the associated Audio
+    uint8_t bInterfaceNumbers; /**< Interface number of the associated Audio
 								  Streaming interface. */
 } ATTR_PACKED USB_Audio_StdDescriptor_Interface_AC_t;
 
@@ -661,24 +661,24 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, must be \ref
 									  * AUDIO_DSUBTYPE_CSInterface_Feature.
 									  */
 
-	uint8_t UnitID;	  /**< ID value of this feature unit - must be a unique value
+    uint8_t UnitID;   /**< ID value of this feature unit - must be a unique value
 						 within the device. */
-	uint8_t SourceID; /**< Source ID value of the audio source input into this
+    uint8_t SourceID; /**< Source ID value of the audio source input into this
 						 feature unit. */
 
-	uint8_t ControlSize;		/**< Size of each element in the \c ChannelControls
+    uint8_t ControlSize;        /**< Size of each element in the \c ChannelControls
 								   array. */
-	uint8_t ChannelControls[3]; /**< Feature masks for the control channel, and
+    uint8_t ChannelControls[3]; /**< Feature masks for the control channel, and
 								   each separate audio channel. */
 
-	uint8_t FeatureUnitStrIndex; /**< Index of a string descriptor describing
+    uint8_t FeatureUnitStrIndex; /**< Index of a string descriptor describing
 									this descriptor within the device. */
 } ATTR_PACKED USB_Audio_Descriptor_FeatureUnit_t;
 
@@ -698,28 +698,28 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
 							  * USB_DescriptorTypes_t or a value given by the
 							  * specific class.
 							  */
 
-	uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
 								 * audio class-specific descriptors, must be
 								 * \ref AUDIO_DSUBTYPE_CSInterface_Feature.
 								 */
 
-	uint8_t bUnitID;   /**< ID value of this feature unit - must be a unique value
+    uint8_t bUnitID;   /**< ID value of this feature unit - must be a unique value
 						  within the device. */
-	uint8_t bSourceID; /**< Source ID value of the audio source input into this
+    uint8_t bSourceID; /**< Source ID value of the audio source input into this
 						  feature unit. */
 
-	uint8_t bControlSize;	/**< Size of each element in the \c ChannelControls
+    uint8_t bControlSize;   /**< Size of each element in the \c ChannelControls
 							   array. */
-	uint8_t bmaControls[3]; /**< Feature masks for the control channel, and each
+    uint8_t bmaControls[3]; /**< Feature masks for the control channel, and each
 							   separate audio channel. */
 
-	uint8_t iFeature; /**< Index of a string descriptor describing this
+    uint8_t iFeature; /**< Index of a string descriptor describing this
 						 descriptor within the device. */
 } ATTR_PACKED USB_Audio_StdDescriptor_FeatureUnit_t;
 
@@ -738,19 +738,19 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, a value from the \ref
 									  * Audio_CSInterface_AS_SubTypes_t enum.
 									  */
 
-	uint8_t TerminalLink; /**< ID value of the output terminal this descriptor
+    uint8_t TerminalLink; /**< ID value of the output terminal this descriptor
 							 is describing. */
 
-	uint8_t	 FrameDelay;  /**< Delay in frames resulting from the complete sample
+    uint8_t  FrameDelay;  /**< Delay in frames resulting from the complete sample
 							 processing from input to output. */
-	uint16_t AudioFormat; /**< Format of the audio stream, see Audio Device
+    uint16_t AudioFormat; /**< Format of the audio stream, see Audio Device
 							 Formats specification. */
 } ATTR_PACKED USB_Audio_Descriptor_Interface_AS_t;
 
@@ -769,23 +769,23 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
 							  * USB_DescriptorTypes_t or a value given by the
 							  * specific class.
 							  */
 
-	uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
 								 * audio class-specific descriptors, a value from
 								 * the \ref Audio_CSInterface_AS_SubTypes_t enum.
 								 */
 
-	uint8_t bTerminalLink; /**< ID value of the output terminal this descriptor
+    uint8_t bTerminalLink; /**< ID value of the output terminal this descriptor
 							  is describing. */
 
-	uint8_t	 bDelay;	 /**< Delay in frames resulting from the complete sample
+    uint8_t  bDelay;     /**< Delay in frames resulting from the complete sample
 							processing from input to output. */
-	uint16_t wFormatTag; /**< Format of the audio stream, see Audio Device
+    uint16_t wFormatTag; /**< Format of the audio stream, see Audio Device
 							Formats specification. */
 } ATTR_PACKED USB_Audio_StdDescriptor_Interface_AS_t;
 
@@ -808,23 +808,23 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, must be \ref
 									  * AUDIO_DSUBTYPE_CSInterface_FormatType.
 									  */
 
-	uint8_t FormatType; /**< Format of the audio stream, see Audio Device
+    uint8_t FormatType; /**< Format of the audio stream, see Audio Device
 						   Formats specification. */
-	uint8_t Channels;	/**< Total number of discrete channels in the stream. */
+    uint8_t Channels;   /**< Total number of discrete channels in the stream. */
 
-	uint8_t SubFrameSize;  /**< Size in bytes of each channel's sample data in
+    uint8_t SubFrameSize;  /**< Size in bytes of each channel's sample data in
 							  the stream. */
-	uint8_t BitResolution; /**< Bits of resolution of each channel's samples in
+    uint8_t BitResolution; /**< Bits of resolution of each channel's samples in
 							  the stream. */
 
-	uint8_t TotalDiscreteSampleRates; /**< Total number of discrete sample
+    uint8_t TotalDiscreteSampleRates; /**< Total number of discrete sample
 									   * frequencies supported by the device. When
 									   *   zero, this must be followed by the lower
 									   * and upper continuous sampling frequencies
@@ -846,9 +846,9 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t Byte1; /**< Lowest 8 bits of the 24-bit value. */
-	uint8_t Byte2; /**< Middle 8 bits of the 24-bit value. */
-	uint8_t Byte3; /**< Upper 8 bits of the 24-bit value. */
+    uint8_t Byte1; /**< Lowest 8 bits of the 24-bit value. */
+    uint8_t Byte2; /**< Middle 8 bits of the 24-bit value. */
+    uint8_t Byte3; /**< Upper 8 bits of the 24-bit value. */
 } ATTR_PACKED USB_Audio_SampleFreq_t;
 
 /** \brief Audio class-specific Format Descriptor (USB-IF naming conventions).
@@ -869,27 +869,27 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Sub type value used to distinguish between
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Sub type value used to distinguish between
 							  * audio class-specific descriptors, must be \ref
 							  * AUDIO_DSUBTYPE_CSInterface_FormatType.
 							  */
 
-	uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
 								 * audio class-specific descriptors, a value from
 								 * the \ref Audio_CSInterface_AS_SubTypes_t enum.
 								 */
 
-	uint8_t bFormatType; /**< Format of the audio stream, see Audio Device
+    uint8_t bFormatType; /**< Format of the audio stream, see Audio Device
 							Formats specification. */
-	uint8_t bNrChannels; /**< Total number of discrete channels in the stream. */
+    uint8_t bNrChannels; /**< Total number of discrete channels in the stream. */
 
-	uint8_t bSubFrameSize;	/**< Size in bytes of each channel's sample data in
+    uint8_t bSubFrameSize;  /**< Size in bytes of each channel's sample data in
 							   the stream. */
-	uint8_t bBitResolution; /**< Bits of resolution of each channel's samples in
+    uint8_t bBitResolution; /**< Bits of resolution of each channel's samples in
 							   the stream. */
 
-	uint8_t bSampleFrequencyType; /**< Total number of sample frequencies
+    uint8_t bSampleFrequencyType; /**< Total number of sample frequencies
 								   * supported by the device. When zero, this
 								   * must be followed by the lower and upper
 								   * continuous sampling frequencies supported
@@ -914,11 +914,11 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Endpoint_t Endpoint; /**< Standard endpoint descriptor
+    USB_Descriptor_Endpoint_t Endpoint; /**< Standard endpoint descriptor
 										   describing the audio endpoint. */
 
-	uint8_t Refresh;			/**< Always set to zero for Audio class devices. */
-	uint8_t SyncEndpointNumber; /**< Endpoint address to send synchronization
+    uint8_t Refresh;            /**< Always set to zero for Audio class devices. */
+    uint8_t SyncEndpointNumber; /**< Endpoint address to send synchronization
 								   information to, if needed (zero otherwise). */
 } ATTR_PACKED USB_Audio_Descriptor_StreamEndpoint_Std_t;
 
@@ -937,29 +937,29 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t	 bLength;		   /**< Size of the descriptor, in bytes. */
-	uint8_t	 bDescriptorType;  /**< Type of the descriptor, either a value in \ref
+    uint8_t  bLength;          /**< Size of the descriptor, in bytes. */
+    uint8_t  bDescriptorType;  /**< Type of the descriptor, either a value in \ref
 								* USB_DescriptorTypes_t or a value given by the
 								* specific class.
 								*/
-	uint8_t	 bEndpointAddress; /**< Logical address of the endpoint within the
+    uint8_t  bEndpointAddress; /**< Logical address of the endpoint within the
 								* device for the current configuration, including
 								* direction mask.
 								*/
-	uint8_t	 bmAttributes;	   /**< Endpoint attributes, comprised of a mask of the
+    uint8_t  bmAttributes;     /**< Endpoint attributes, comprised of a mask of the
 								* endpoint type (\c EP_TYPE_*) and attributes (\c
 								* ENDPOINT_ATTR_*) masks.
 								*/
-	uint16_t wMaxPacketSize;   /**< Size of the endpoint bank, in bytes. This
+    uint16_t wMaxPacketSize;   /**< Size of the endpoint bank, in bytes. This
 								* indicates the maximum packet size that the
 								* endpoint can receive at a time.
 								*/
-	uint8_t	 bInterval;		   /**< Polling interval in milliseconds for the endpoint if
+    uint8_t  bInterval;        /**< Polling interval in milliseconds for the endpoint if
 								* it is an INTERRUPT or ISOCHRONOUS type.
 								*/
 
-	uint8_t bRefresh;	   /**< Always set to zero for Audio class devices. */
-	uint8_t bSynchAddress; /**< Endpoint address to send synchronization
+    uint8_t bRefresh;      /**< Always set to zero for Audio class devices. */
+    uint8_t bSynchAddress; /**< Endpoint address to send synchronization
 							  information to, if needed (zero otherwise). */
 } ATTR_PACKED USB_Audio_StdDescriptor_StreamEndpoint_Std_t;
 
@@ -979,19 +979,19 @@ typedef struct
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header;	 /**< Regular descriptor header containing
+    USB_Descriptor_Header_t Header;  /**< Regular descriptor header containing
 										the descriptor's type and length. */
-	uint8_t					Subtype; /**< Sub type value used to distinguish between audio
+    uint8_t                 Subtype; /**< Sub type value used to distinguish between audio
 									  * class-specific descriptors, a value from the \ref
 									  * Audio_CSEndpoint_SubTypes_t enum.
 									  */
 
-	uint8_t Attributes; /**< Audio class-specific endpoint attributes, such as
+    uint8_t Attributes; /**< Audio class-specific endpoint attributes, such as
 						   \ref AUDIO_EP_FULL_PACKETS_ONLY. */
 
-	uint8_t	 LockDelayUnits; /**< Units used for the LockDelay field, see Audio
+    uint8_t  LockDelayUnits; /**< Units used for the LockDelay field, see Audio
 								class specification. */
-	uint16_t LockDelay;		 /**< Time required to internally lock endpoint's
+    uint16_t LockDelay;      /**< Time required to internally lock endpoint's
 								internal clock recovery circuitry. */
 } ATTR_PACKED USB_Audio_Descriptor_StreamEndpoint_Spc_t;
 
@@ -1011,23 +1011,23 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
+    uint8_t bLength;         /**< Size of the descriptor, in bytes. */
+    uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
 							  * USB_DescriptorTypes_t or a value given by the
 							  * specific class.
 							  */
 
-	uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
+    uint8_t bDescriptorSubtype; /**< Sub type value used to distinguish between
 								 * audio class-specific descriptors, a value from
 								 * the \ref Audio_CSEndpoint_SubTypes_t enum.
 								 */
 
-	uint8_t bmAttributes; /**< Audio class-specific endpoint attributes, such as
+    uint8_t bmAttributes; /**< Audio class-specific endpoint attributes, such as
 							 \ref AUDIO_EP_FULL_PACKETS_ONLY. */
 
-	uint8_t	 bLockDelayUnits; /**< Units used for the LockDelay field, see Audio
+    uint8_t  bLockDelayUnits; /**< Units used for the LockDelay field, see Audio
 								 class specification. */
-	uint16_t wLockDelay;	  /**< Time required to internally lock endpoint's
+    uint16_t wLockDelay;      /**< Time required to internally lock endpoint's
 								 internal clock recovery circuitry. */
 } ATTR_PACKED USB_Audio_StdDescriptor_StreamEndpoint_Spc_t;
 

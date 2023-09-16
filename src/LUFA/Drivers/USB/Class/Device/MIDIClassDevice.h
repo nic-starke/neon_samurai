@@ -82,23 +82,23 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t StreamingInterfaceNumber; /**< Index of the Audio Streaming
+    struct
+    {
+        uint8_t StreamingInterfaceNumber; /**< Index of the Audio Streaming
 											 interface within the device this
 											 structure controls. */
 
-		USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
-	} Config;								  /**< Config data for the USB class interface within the device.
+        USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
+    } Config;                                 /**< Config data for the USB class interface within the device.
 											   * All elements in this section <b>must</b> be set or the
 											   * interface will fail to enumerate and operate correctly.
 											   */
 
-	struct
-	{
-		uint8_t RESERVED; // No state information for this class
-	} State;			  /**< State data for the USB class interface within the device. All
+    struct
+    {
+        uint8_t RESERVED; // No state information for this class
+    } State;              /**< State data for the USB class interface within the device. All
 						   * elements in this section are reset to their defaults when the
 						   * interface is enumerated.
 						   */
@@ -144,7 +144,7 @@ void MIDI_Device_USBTask(USB_ClassInfo_MIDI_Device_t* const MIDIInterfaceInfo) A
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t MIDI_Device_SendEventPacket(USB_ClassInfo_MIDI_Device_t* const MIDIInterfaceInfo, const MIDI_EventPacket_t* const Event)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Flushes the MIDI send buffer, sending any queued MIDI events to the host.
  * This should be called to override the \ref MIDI_Device_SendEventPacket()
@@ -174,7 +174,7 @@ uint8_t MIDI_Device_Flush(USB_ClassInfo_MIDI_Device_t* const MIDIInterfaceInfo) 
  * otherwise.
  */
 bool MIDI_Device_ReceiveEventPacket(USB_ClassInfo_MIDI_Device_t* const MIDIInterfaceInfo, MIDI_EventPacket_t* const Event)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /* Inline Functions: */
 /** Processes incoming control requests from the host, that are directed to the
@@ -187,7 +187,7 @@ bool MIDI_Device_ReceiveEventPacket(USB_ClassInfo_MIDI_Device_t* const MIDIInter
 static inline void MIDI_Device_ProcessControlRequest(USB_ClassInfo_MIDI_Device_t* const MIDIInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 static inline void MIDI_Device_ProcessControlRequest(USB_ClassInfo_MIDI_Device_t* const MIDIInterfaceInfo)
 {
-	(void)MIDIInterfaceInfo;
+    (void)MIDIInterfaceInfo;
 }
 
 /* Disable C linkage for C++ Compilers: */

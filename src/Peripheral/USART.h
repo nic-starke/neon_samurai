@@ -29,49 +29,49 @@
 
 typedef enum
 {
-	UART_Module_C0,
-	UART_Module_C1,
-	UART_Module_D0,
-	UART_Module_D1,
-	UART_Module_E0,
+    UART_Module_C0,
+    UART_Module_C1,
+    UART_Module_D0,
+    UART_Module_D1,
+    UART_Module_E0,
 
-	NUM_UART_MODULES,
+    NUM_UART_MODULES,
 } eUART_Module;
 
 typedef enum
 {
-	SPI_MODE_0, // clock low, phase low
-	SPI_MODE_1, // clock low, phase high
-	SPI_MODE_2, // clock high, phase low
-	SPI_MODE_3, // clock high, phase high
+    SPI_MODE_0, // clock low, phase low
+    SPI_MODE_1, // clock low, phase high
+    SPI_MODE_2, // clock high, phase low
+    SPI_MODE_3, // clock high, phase high
 } eSPI_Mode;
 
 typedef struct
 {
-	USART_t*   pUSART;
-	u32		   BaudRate;
-	eSPI_Mode  SPIMode;
-	eDataOrder DataOrder;
+    USART_t*   pUSART;
+    u32        BaudRate;
+    eSPI_Mode  SPIMode;
+    eDataOrder DataOrder;
 } sUSART_ModuleConfig;
 
 static inline void USART_DisableTX(USART_t* pUSART)
 {
-	CLR_REG(pUSART->CTRLB, USART_TXEN_bm);
+    CLR_REG(pUSART->CTRLB, USART_TXEN_bm);
 }
 
 static inline void USART_EnableTX(USART_t* pUSART)
 {
-	SET_REG(pUSART->CTRLB, USART_TXEN_bm);
+    SET_REG(pUSART->CTRLB, USART_TXEN_bm);
 }
 
 static inline void USART_DisableRX(USART_t* pUSART)
 {
-	CLR_REG(pUSART->CTRLB, USART_RXEN_bm);
+    CLR_REG(pUSART->CTRLB, USART_RXEN_bm);
 }
 
 static inline void USART_EnableRX(USART_t* pUSART)
 {
-	SET_REG(pUSART->CTRLB, USART_RXEN_bm);
+    SET_REG(pUSART->CTRLB, USART_RXEN_bm);
 }
 
 void USART_Init(void);

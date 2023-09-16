@@ -82,26 +82,26 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
-	} Config;						  /**< Config data for the USB class interface within the device.
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+    } Config;                         /**< Config data for the USB class interface within the device.
 									   * All elements in this section <b>must</b> be set or the
 									   * interface will fail to enumerate and operate correctly.
 									   */
-	struct
-	{
-		bool	IsActive;		  /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;         /**< Indicates if the current interface instance is
 								   * connected to an attached device, valid    after \ref
 								   * PRNT_Host_ConfigurePipes() is called and the Host
 								   * state machine is in the    Configured state.
 								   */
-		uint8_t InterfaceNumber;  /**< Interface index of the Printer interface
+        uint8_t InterfaceNumber;  /**< Interface index of the Printer interface
 									 within the attached device. */
-		uint8_t AlternateSetting; /**< Alternate setting within the Printer
+        uint8_t AlternateSetting; /**< Alternate setting within the Printer
 									 Interface in the attached device. */
-	} State;					  /**< State data for the USB class interface within the device. All
+    } State;                      /**< State data for the USB class interface within the device. All
 								   * elements in this section <b>may</b> be set to initial values,
 								   * but may also be ignored to default to sane values when the
 								   * interface is enumerated.
@@ -113,11 +113,11 @@ typedef struct
  * PRNT_Host_ConfigurePipes() function. */
 enum PRNT_Host_EnumerationFailure_ErrorCodes_t
 {
-	PRNT_ENUMERROR_NoError					  = 0, /**< Configuration Descriptor was processed successfully. */
-	PRNT_ENUMERROR_InvalidConfigDescriptor	  = 1, /**< The device returned an invalid Configuration Descriptor. */
-	PRNT_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Printer interface was not found in the device's
+    PRNT_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    PRNT_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    PRNT_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Printer interface was not found in the device's
 													  Configuration Descriptor. */
-	PRNT_ENUMERROR_PipeConfigurationFailed	  = 3, /**< One or more pipes for the specified interface could not be
+    PRNT_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													  configured correctly. */
 };
 
@@ -140,7 +140,7 @@ enum PRNT_Host_EnumerationFailure_ErrorCodes_t
  * enum.
  */
 uint8_t PRNT_Host_ConfigurePipes(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo, uint16_t ConfigDescriptorSize,
-								 void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                 void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** General management task for a given Printer host class interface, required
  * for the correct operation of the interface. This should be called frequently
@@ -174,7 +174,7 @@ uint8_t PRNT_Host_SetBidirectionalMode(USB_ClassInfo_PRNT_Host_t* const PRNTInte
  *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
  */
 uint8_t PRNT_Host_GetPortStatus(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo, uint8_t* const PortStatus) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Soft-resets the attached printer, readying it for new commands.
  *
@@ -211,7 +211,7 @@ uint8_t PRNT_Host_Flush(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo) ATTR
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t PRNT_Host_SendString(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo, const char* const String) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends the given raw data stream to the attached printer's input endpoint.
  * This should contain commands that the printer is able to understand - for
@@ -230,7 +230,7 @@ uint8_t PRNT_Host_SendString(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo,
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t PRNT_Host_SendData(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo, const void* Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends a given byte to the attached USB device, if connected. If a device is
  * not connected when the function is called, the byte is discarded. Bytes will
@@ -302,7 +302,7 @@ int16_t PRNT_Host_ReceiveByte(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t PRNT_Host_GetDeviceID(USB_ClassInfo_PRNT_Host_t* const PRNTInterfaceInfo, char* const DeviceIDString, const uint16_t BufferSize)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /* Private Interface - For use in library only: */
 #if !defined(__DOXYGEN__)

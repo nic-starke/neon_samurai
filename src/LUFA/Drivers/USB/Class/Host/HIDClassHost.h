@@ -87,12 +87,12 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
 
-		uint8_t HIDInterfaceProtocol; /**< HID interface protocol value to match
+        uint8_t HIDInterfaceProtocol; /**< HID interface protocol value to match
 									   * against if a specific boot subclass
 									   * protocol is required, a protocol value
 									   * from the \ref
@@ -100,7 +100,7 @@ typedef struct
 									   * enum.
 									   */
 #if !defined(HID_HOST_BOOT_PROTOCOL_ONLY)
-		HID_ReportInfo_t* HIDParserData; /**< HID parser data to store the parsed HID report
+        HID_ReportInfo_t* HIDParserData; /**< HID parser data to store the parsed HID report
 										  * data, when boot protocol is not used.
 										  *
 										  *  \note When the \c HID_HOST_BOOT_PROTOCOL_ONLY
@@ -108,38 +108,38 @@ typedef struct
 										  * unavailable.
 										  */
 #endif
-	} Config; /**< Config data for the USB class interface within the device.
+    } Config; /**< Config data for the USB class interface within the device.
 			   * All elements in this section <b>must</b> be set or the
 			   * interface will fail to enumerate and operate correctly.
 			   */
-	struct
-	{
-		bool	IsActive;		 /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;        /**< Indicates if the current interface instance is
 								  * connected to an attached device, valid    after \ref
 								  * HID_Host_ConfigurePipes() is called and the Host state
 								  * machine is in the    Configured state.
 								  */
-		uint8_t InterfaceNumber; /**< Interface index of the HID interface
+        uint8_t InterfaceNumber; /**< Interface index of the HID interface
 									within the attached device. */
 
-		bool	 SupportsBootProtocol; /**< Indicates if the current interface
+        bool     SupportsBootProtocol; /**< Indicates if the current interface
 										* instance supports the HID Boot Protocol
 										* when enabled via \ref
 										* HID_Host_SetBootProtocol().
 										*/
-		bool	 DeviceUsesOUTPipe;	   /**< Indicates if the current interface instance
+        bool     DeviceUsesOUTPipe;    /**< Indicates if the current interface instance
 										* uses a separate OUT data pipe for OUT
 										* reports, or if OUT reports are sent via the
 										* control pipe instead.
 										*/
-		bool	 UsingBootProtocol;	   /**< Indicates that the interface is currently
+        bool     UsingBootProtocol;    /**< Indicates that the interface is currently
 										  initialized in Boot Protocol mode */
-		uint16_t HIDReportSize;		   /**< Size in bytes of the HID report descriptor
+        uint16_t HIDReportSize;        /**< Size in bytes of the HID report descriptor
 										  in the device. */
 
-		uint8_t LargestReportSize; /**< Largest report the device will send, in
+        uint8_t LargestReportSize; /**< Largest report the device will send, in
 									  bytes. */
-	} State;					   /**< State data for the USB class interface within the device. All
+    } State;                       /**< State data for the USB class interface within the device. All
 									* elements in this section <b>may</b> be set to initial values,
 									* but may also be ignored to default to sane values when the
 									* interface is enumerated.
@@ -151,11 +151,11 @@ typedef struct
  * HID_Host_ConfigurePipes() function. */
 enum HID_Host_EnumerationFailure_ErrorCodes_t
 {
-	HID_ENUMERROR_NoError					 = 0, /**< Configuration Descriptor was processed successfully. */
-	HID_ENUMERROR_InvalidConfigDescriptor	 = 1, /**< The device returned an invalid Configuration Descriptor. */
-	HID_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible HID interface was not found in the device's
+    HID_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    HID_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    HID_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible HID interface was not found in the device's
 													 Configuration Descriptor. */
-	HID_ENUMERROR_PipeConfigurationFailed	 = 3, /**< One or more pipes for the specified interface could not be
+    HID_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													 configured correctly. */
 };
 
@@ -181,7 +181,7 @@ enum HID_Host_EnumerationFailure_ErrorCodes_t
  *  \return A value from the \ref HID_Host_EnumerationFailure_ErrorCodes_t enum.
  */
 uint8_t HID_Host_ConfigurePipes(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo, uint16_t ConfigDescriptorSize, void* ConfigDescriptorData)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Receives a HID IN report from the attached HID device, when a report has
  * been received on the HID IN Data pipe.
@@ -199,7 +199,7 @@ uint8_t HID_Host_ConfigurePipes(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo
  *  \return An error code from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t HID_Host_ReceiveReport(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo, void* Buffer) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 #if !defined(HID_HOST_BOOT_PROTOCOL_ONLY)
 /** Receives a HID IN report from the attached device, by the report ID.
@@ -219,7 +219,7 @@ uint8_t HID_Host_ReceiveReport(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo,
  *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
  */
 uint8_t HID_Host_ReceiveReportByID(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo, const uint8_t ReportID, void* Buffer)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 #endif
 
 /** Sends an OUT or FEATURE report to the currently attached HID device, using
@@ -246,13 +246,13 @@ uint8_t HID_Host_ReceiveReportByID(USB_ClassInfo_HID_Host_t* const HIDInterfaceI
  */
 uint8_t HID_Host_SendReportByID(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo,
 #if !defined(HID_HOST_BOOT_PROTOCOL_ONLY)
-								const uint8_t ReportID,
+                                const uint8_t ReportID,
 #endif
-								const uint8_t ReportType, void* Buffer, const uint16_t ReportSize) ATTR_NON_NULL_PTR_ARG(1)
+                                const uint8_t ReportType, void* Buffer, const uint16_t ReportSize) ATTR_NON_NULL_PTR_ARG(1)
 #if !defined(HID_HOST_BOOT_PROTOCOL_ONLY)
-	ATTR_NON_NULL_PTR_ARG(4);
+    ATTR_NON_NULL_PTR_ARG(4);
 #else
-	ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(3);
 #endif
 
 /** Determines if a HID IN report has been received from the attached device on
@@ -333,7 +333,7 @@ uint8_t HID_Host_SetReportProtocol(USB_ClassInfo_HID_Host_t* const HIDInterfaceI
 static inline void HID_Host_USBTask(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 static inline void HID_Host_USBTask(USB_ClassInfo_HID_Host_t* const HIDInterfaceInfo)
 {
-	(void)HIDInterfaceInfo;
+    (void)HIDInterfaceInfo;
 }
 
 /* Private Interface - For use in library only: */

@@ -133,7 +133,7 @@ extern "C" {
 #undef USE_INTERNAL_SERIAL
 #define USE_INTERNAL_SERIAL NO_DESCRIPTOR
 
-#define INTERNAL_SERIAL_LENGTH_BITS	  0
+#define INTERNAL_SERIAL_LENGTH_BITS   0
 #define INTERNAL_SERIAL_START_ADDRESS 0
 #endif
 
@@ -173,7 +173,7 @@ void USB_Device_SendRemoteWakeup(void);
 static inline uint16_t USB_Device_GetFrameNumber(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline uint16_t USB_Device_GetFrameNumber(void)
 {
-	return ((USB_EndpointTable_t*)USB.EPPTR)->FrameNum;
+    return ((USB_EndpointTable_t*)USB.EPPTR)->FrameNum;
 }
 
 #if !defined(NO_SOF_EVENTS)
@@ -188,7 +188,7 @@ static inline uint16_t USB_Device_GetFrameNumber(void)
 static inline void USB_Device_EnableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_EnableSOFEvents(void)
 {
-	USB.INTCTRLA |= USB_SOFIE_bm;
+    USB.INTCTRLA |= USB_SOFIE_bm;
 }
 
 /** Disables the device mode Start Of Frame events. When disabled, this stops
@@ -201,7 +201,7 @@ static inline void USB_Device_EnableSOFEvents(void)
 static inline void USB_Device_DisableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_DisableSOFEvents(void)
 {
-	USB.INTCTRLA &= ~USB_SOFIE_bm;
+    USB.INTCTRLA &= ~USB_SOFIE_bm;
 }
 #endif
 
@@ -211,63 +211,63 @@ static inline void USB_Device_DisableSOFEvents(void)
 static inline void USB_Device_SetLowSpeed(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetLowSpeed(void)
 {
-	USB.CTRLA &= ~USB_SPEED_bm;
+    USB.CTRLA &= ~USB_SPEED_bm;
 }
 
 static inline void USB_Device_SetFullSpeed(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetFullSpeed(void)
 {
-	USB.CTRLA |= USB_SPEED_bm;
+    USB.CTRLA |= USB_SPEED_bm;
 }
 
 static inline void USB_Device_SetDeviceAddress(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_SetDeviceAddress(const uint8_t Address)
 {
-	(void)Address;
+    (void)Address;
 
-	/* No implementation for XMEGA architecture */
+    /* No implementation for XMEGA architecture */
 }
 
 static inline void USB_Device_EnableDeviceAddress(const uint8_t Address) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_EnableDeviceAddress(const uint8_t Address)
 {
-	USB.ADDR = Address;
+    USB.ADDR = Address;
 }
 
 static inline bool USB_Device_IsAddressSet(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline bool USB_Device_IsAddressSet(void)
 {
-	return ((USB.ADDR != 0) ? true : false);
+    return ((USB.ADDR != 0) ? true : false);
 }
 
 static inline void USB_Device_GetSerialString(uint16_t* const UnicodeString) ATTR_NON_NULL_PTR_ARG(1);
 static inline void USB_Device_GetSerialString(uint16_t* const UnicodeString)
 {
-	uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
-	GlobalInterruptDisable();
+    uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
+    GlobalInterruptDisable();
 
-	uint8_t SigReadAddress = INTERNAL_SERIAL_START_ADDRESS;
+    uint8_t SigReadAddress = INTERNAL_SERIAL_START_ADDRESS;
 
-	for (uint8_t SerialCharNum = 0; SerialCharNum < (INTERNAL_SERIAL_LENGTH_BITS / 4); SerialCharNum++)
-	{
-		uint8_t SerialByte;
+    for (uint8_t SerialCharNum = 0; SerialCharNum < (INTERNAL_SERIAL_LENGTH_BITS / 4); SerialCharNum++)
+    {
+        uint8_t SerialByte;
 
-		NVM.CMD	   = NVM_CMD_READ_CALIB_ROW_gc;
-		SerialByte = pgm_read_byte(SigReadAddress);
-		NVM.CMD	   = 0;
+        NVM.CMD    = NVM_CMD_READ_CALIB_ROW_gc;
+        SerialByte = pgm_read_byte(SigReadAddress);
+        NVM.CMD    = 0;
 
-		if (SerialCharNum & 0x01)
-		{
-			SerialByte >>= 4;
-			SigReadAddress++;
-		}
+        if (SerialCharNum & 0x01)
+        {
+            SerialByte >>= 4;
+            SigReadAddress++;
+        }
 
-		SerialByte &= 0x0F;
+        SerialByte &= 0x0F;
 
-		UnicodeString[SerialCharNum] = cpu_to_le16((SerialByte >= 10) ? (('A' - 10) + SerialByte) : ('0' + SerialByte));
-	}
+        UnicodeString[SerialCharNum] = cpu_to_le16((SerialByte >= 10) ? (('A' - 10) + SerialByte) : ('0' + SerialByte));
+    }
 
-	SetGlobalInterruptMask(CurrentGlobalInt);
+    SetGlobalInterruptMask(CurrentGlobalInt);
 }
 
 #endif

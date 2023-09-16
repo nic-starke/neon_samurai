@@ -40,18 +40,18 @@
 
 void USB_Device_SendRemoteWakeup(void)
 {
-	if (!(USB_Options & USB_OPT_MANUAL_PLL))
-	{
-		USB_PLL_On();
-		while (!(USB_PLL_IsReady()))
-			;
-	}
+    if (!(USB_Options & USB_OPT_MANUAL_PLL))
+    {
+        USB_PLL_On();
+        while (!(USB_PLL_IsReady()))
+            ;
+    }
 
-	USB_CLK_Unfreeze();
+    USB_CLK_Unfreeze();
 
-	UDCON |= (1 << RMWKUP);
-	while (UDCON & (1 << RMWKUP))
-		;
+    UDCON |= (1 << RMWKUP);
+    while (UDCON & (1 << RMWKUP))
+        ;
 }
 
 #endif

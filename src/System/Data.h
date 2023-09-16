@@ -27,45 +27,45 @@
 
 typedef enum
 {
-	DEFAULT_MODE,
-	TEST_MODE,
+    DEFAULT_MODE,
+    TEST_MODE,
 
-	NUM_OPERATING_MODES,
+    NUM_OPERATING_MODES,
 } eOperatingMode;
 
 typedef struct
 {
-	eOperatingMode OperatingMode;
+    eOperatingMode OperatingMode;
 
-	u8	 FirmwareVersion;
-	u16	 DataVersion;
-	bool FactoryReset;
+    u8   FirmwareVersion;
+    u16  DataVersion;
+    bool FactoryReset;
 
-	u8 RGBBrightness;
-	u8 DetentBrightness;
-	u8 IndicatorBrightness;
+    u8 RGBBrightness;
+    u8 DetentBrightness;
+    u8 IndicatorBrightness;
 
-	sHardwareEncoder HardwareEncoders[NUM_ENCODERS];
-	sEncoderState	 EncoderStates[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
+    sHardwareEncoder HardwareEncoders[NUM_ENCODERS];
+    sEncoderState    EncoderStates[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
 
-	// Still need side switches here...
+    // Still need side switches here...
 
-	u8 AccelerationConstant;
-	u8 FineAdjustConstant;
+    u8 AccelerationConstant;
+    u8 FineAdjustConstant;
 
-	u8 CurrentBank : 2;
-	u8 Reserved	   : 6;
+    u8 CurrentBank : 2;
+    u8 Reserved    : 6;
 } sData;
 
 extern sData gData;
 
 static inline void Data_PGMReadBlock(void* pDest, const void* pSrc, u8 size)
 {
-	u8* dest = (u8*)pDest;
-	for (u8 i = 0; i < size; i++)
-	{
-		dest[i] = pgm_read_byte((const u8*)pSrc + i);
-	}
+    u8* dest = (u8*)pDest;
+    for (u8 i = 0; i < size; i++)
+    {
+        dest[i] = pgm_read_byte((const u8*)pSrc + i);
+    }
 }
 
 void Data_Init(void);

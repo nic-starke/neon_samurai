@@ -175,7 +175,7 @@ extern "C" {
 #else
 /* Macros: */
 #if (defined(__AVR_AT90USB162__) || defined(__AVR_AT90USB82__) || defined(__AVR_ATmega32U2__) || defined(__AVR_ATmega16U2__) ||            \
-	 defined(__AVR_ATmega8U2__))
+     defined(__AVR_ATmega8U2__))
 #define USB_SERIES_2_AVR
 #define USB_CAN_BE_DEVICE
 #elif (defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__))
@@ -197,12 +197,12 @@ extern "C" {
 #define USB_CAN_BE_DEVICE
 #define USB_CAN_BE_HOST
 #elif (defined(__AVR32_UC3A3256__) || defined(__AVR32_UC3A3256S__) || defined(__AVR32_UC3A3128__) || defined(__AVR32_UC3A3128S__) ||       \
-	   defined(__AVR32_UC3A364__) || defined(__AVR32_UC3A364S__))
+       defined(__AVR32_UC3A364__) || defined(__AVR32_UC3A364S__))
 #define USB_SERIES_UC3A3_AVR32
 #define USB_CAN_BE_DEVICE
 #define USB_CAN_BE_HOST
 #elif (defined(__AVR32_UC3A4256__) || defined(__AVR32_UC3A4256S__) || defined(__AVR32_UC3A4128__) || defined(__AVR32_UC3A4128S__) ||       \
-	   defined(__AVR32_UC3A464__) || defined(__AVR32_UC3A464S__))
+       defined(__AVR32_UC3A464__) || defined(__AVR32_UC3A464S__))
 #define USB_SERIES_UC3A4_AVR32
 #define USB_CAN_BE_DEVICE
 #define USB_CAN_BE_HOST
@@ -233,7 +233,7 @@ extern "C" {
 #define USB_SERIES_B3_XMEGA
 #define USB_CAN_BE_DEVICE
 #elif (defined(__AVR_ATxmega128C3__) || defined(__AVR_ATxmega64C3__) || defined(__AVR_ATxmega192C3__) || defined(__AVR_ATxmega256C3__) ||  \
-	   defined(__AVR_ATxmega384C3__))
+       defined(__AVR_ATxmega384C3__))
 #define USB_SERIES_C3_XMEGA
 #define USB_CAN_BE_DEVICE
 #elif (defined(__AVR_ATxmega16C4__) || defined(__AVR_ATxmega32C4__))

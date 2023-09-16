@@ -26,21 +26,21 @@
 
 typedef enum
 {
-	PRIORITY_OFF,
-	PRIORITY_LOW,
-	PRIORITY_MED,
-	PRIORITY_HI,
+    PRIORITY_OFF,
+    PRIORITY_LOW,
+    PRIORITY_MED,
+    PRIORITY_HI,
 } eInterruptPriority;
 
 static inline u8 IRQ_DisableInterrupts(void)
 {
-	vu8 flags = SREG;
-	cli();
-	return flags;
+    vu8 flags = SREG;
+    cli();
+    return flags;
 }
 
 static inline void IRQ_EnableInterrupts(vu8 Flags)
 {
-	_MemoryBarrier();
-	SREG = Flags;
+    _MemoryBarrier();
+    SREG = Flags;
 }

@@ -27,5 +27,5 @@
 
 static inline u32 CPU_GetMainClockSpeed(void)
 {
-	return F_CPU; // 32 MHz
+    return F_CPU; // 32 MHz
 }

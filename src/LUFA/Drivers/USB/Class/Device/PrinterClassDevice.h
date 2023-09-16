@@ -84,34 +84,34 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t InterfaceNumber; /**< Interface number of the Printer interface
+    struct
+    {
+        uint8_t InterfaceNumber; /**< Interface number of the Printer interface
 									within the device. */
 
-		USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
+        USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
 
-		char* IEEE1284String; /**< IEEE 1284 identification string, sent to the
+        char* IEEE1284String; /**< IEEE 1284 identification string, sent to the
 							   * host during enumeration to identify the printer
 							   * model, manufacturer and other characteristics.
 							   */
-	} Config;				  /**< Config data for the USB class interface within the device.
+    } Config;                 /**< Config data for the USB class interface within the device.
 							   * All elements in this section <b>must</b> be set or the
 							   * interface will fail to enumerate and operate correctly.
 							   */
-	struct
-	{
-		uint8_t PortStatus; /**< Current status of the Printer virtual port, a
+    struct
+    {
+        uint8_t PortStatus; /**< Current status of the Printer virtual port, a
 							 * collection of \c PRNT_PORTSTATUS_* bitmask values.
 							 */
 
-		volatile bool IsPrinterReset; /**< Flag indicating that the host has
+        volatile bool IsPrinterReset; /**< Flag indicating that the host has
 									   * requested that the Printer interface be
 									   * reset and that all current Mass Storage
 									   * operations should immediately abort.
 									   */
-	} State;						  /**< State data for the USB class interface within the device. All
+    } State;                          /**< State data for the USB class interface within the device. All
 									   * elements in this section are reset to their defaults when the
 									   * interface is enumerated.
 									   */
@@ -178,7 +178,7 @@ void EVENT_PRNT_Device_SoftReset(USB_ClassInfo_PRNT_Device_t* const PRNTInterfac
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t PRNT_Device_SendData(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, const void* const Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends a given null terminated string to the attached USB host, if connected.
  * If a host is not connected when the function is called, the string is
@@ -197,7 +197,7 @@ uint8_t PRNT_Device_SendData(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInf
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t PRNT_Device_SendString(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, const char* const String) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends a given byte to the attached USB host, if connected. If a host is not
  * connected when the function is called, the byte is discarded. Bytes will be
@@ -291,7 +291,7 @@ uint8_t PRNT_Device_Flush(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo) 
  * FILE structure where the created stream should be placed.
  */
 void PRNT_Device_CreateStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, FILE* const Stream) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Identical to \ref PRNT_Device_CreateStream(), except that reads are blocking
  * until the calling stream function terminates the transfer. While blocking,
@@ -305,7 +305,7 @@ void PRNT_Device_CreateStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceIn
  * FILE structure where the created stream should be placed.
  */
 void PRNT_Device_CreateBlockingStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, FILE* const Stream) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 #endif
 
 /* Private Interface - For use in library only: */
@@ -321,7 +321,7 @@ static int PRNT_Device_getchar_Blocking(FILE* Stream) ATTR_NON_NULL_PTR_ARG(1);
 void PRNT_Device_Event_Stub(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo);
 
 void EVENT_PRNT_Device_SoftReset(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo) ATTR_WEAK ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_ALIAS(PRNT_Device_Event_Stub);
+    ATTR_ALIAS(PRNT_Device_Event_Stub);
 
 #endif
 

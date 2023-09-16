@@ -82,34 +82,34 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;	   /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe;	   /**< Data OUT Pipe configuration table. */
-		USB_Pipe_Table_t NotificationPipe; /**< Notification IN Pipe configuration table. */
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;       /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe;      /**< Data OUT Pipe configuration table. */
+        USB_Pipe_Table_t NotificationPipe; /**< Notification IN Pipe configuration table. */
 
-		uint32_t HostMaxPacketSize; /**< Maximum size of a packet which can be
+        uint32_t HostMaxPacketSize; /**< Maximum size of a packet which can be
 									   buffered by the host. */
-	} Config;						/**< Config data for the USB class interface within the device.
+    } Config;                       /**< Config data for the USB class interface within the device.
 									 * All elements in this section <b>must</b> be set or the
 									 * interface will fail to enumerate and operate correctly.
 									 */
-	struct
-	{
-		bool	IsActive;				/**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;               /**< Indicates if the current interface instance is
 										 * connected to an attached device, valid after \ref
 										 * RNDIS_Host_ConfigurePipes() is called and the Host
 										 * state machine is in the Configured state.
 										 */
-		uint8_t ControlInterfaceNumber; /**< Interface index of the RNDIS control
+        uint8_t ControlInterfaceNumber; /**< Interface index of the RNDIS control
 										   interface within the attached device. */
 
-		uint32_t DeviceMaxPacketSize; /**< Maximum size of a packet which can be
+        uint32_t DeviceMaxPacketSize; /**< Maximum size of a packet which can be
 										 buffered by the attached RNDIS device. */
 
-		uint32_t RequestID; /**< Request ID counter to give a unique ID for each
+        uint32_t RequestID; /**< Request ID counter to give a unique ID for each
 							   command/response pair. */
-	} State;				/**< State data for the USB class interface within the device. All
+    } State;                /**< State data for the USB class interface within the device. All
 							 * elements in this section <b>may</b> be set to initial values,
 							 * but may also be ignored to default to sane values when the
 							 * interface is enumerated.
@@ -121,11 +121,11 @@ typedef struct
  * RNDIS_Host_ConfigurePipes() function. */
 enum RNDIS_Host_EnumerationFailure_ErrorCodes_t
 {
-	RNDIS_ENUMERROR_NoError					   = 0, /**< Configuration Descriptor was processed successfully. */
-	RNDIS_ENUMERROR_InvalidConfigDescriptor	   = 1, /**< The device returned an invalid Configuration Descriptor. */
-	RNDIS_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible RNDIS interface was not found in the device's
+    RNDIS_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    RNDIS_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    RNDIS_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible RNDIS interface was not found in the device's
 													   Configuration Descriptor. */
-	RNDIS_ENUMERROR_PipeConfigurationFailed	   = 3, /**< One or more pipes for the specified interface could not be
+    RNDIS_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													   configured correctly. */
 };
 
@@ -148,7 +148,7 @@ enum RNDIS_Host_EnumerationFailure_ErrorCodes_t
  * enum.
  */
 uint8_t RNDIS_Host_ConfigurePipes(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, uint16_t ConfigDescriptorSize,
-								  void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                  void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Sends a RNDIS KEEPALIVE command to the device, to ensure that it does not
  * enter standby mode after periods of long inactivity.
@@ -188,7 +188,7 @@ uint8_t RNDIS_Host_InitializeDevice(USB_ClassInfo_RNDIS_Host_t* const RNDISInter
  * failure.
  */
 uint8_t RNDIS_Host_SetRNDISProperty(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, const uint32_t Oid, void* Buffer,
-									const uint16_t Length) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                    const uint16_t Length) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Gets a given RNDIS property of an attached RNDIS device.
  *
@@ -203,7 +203,7 @@ uint8_t RNDIS_Host_SetRNDISProperty(USB_ClassInfo_RNDIS_Host_t* const RNDISInter
  * failure.
  */
 uint8_t RNDIS_Host_QueryRNDISProperty(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, const uint32_t Oid, void* Buffer,
-									  const uint16_t MaxLength) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                      const uint16_t MaxLength) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Determines if a packet is currently waiting for the host to read in and
  * process.
@@ -236,7 +236,7 @@ bool RNDIS_Host_IsPacketReceived(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfac
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t RNDIS_Host_ReadPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, void* Buffer, const uint16_t BufferSize,
-							  uint16_t* const PacketLength) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(4);
+                              uint16_t* const PacketLength) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(4);
 
 /** Sends the given packet to the attached RNDIS device, after adding a RNDIS
  * packet message header.
@@ -252,7 +252,7 @@ uint8_t RNDIS_Host_ReadPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t RNDIS_Host_SendPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, void* Buffer, const uint16_t PacketLength)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /* Inline Functions: */
 /** General management task for a given RNDIS host class interface, required for
@@ -266,7 +266,7 @@ uint8_t RNDIS_Host_SendPacket(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceIn
 static inline void RNDIS_Host_USBTask(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void RNDIS_Host_USBTask(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo)
 {
-	(void)RNDISInterfaceInfo;
+    (void)RNDISInterfaceInfo;
 }
 
 /* Private Interface - For use in library only: */
@@ -274,9 +274,9 @@ static inline void RNDIS_Host_USBTask(USB_ClassInfo_RNDIS_Host_t* const RNDISInt
 /* Function Prototypes: */
 #if defined(__INCLUDE_FROM_RNDIS_HOST_C)
 static uint8_t RNDIS_SendEncapsulatedCommand(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, void* Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 static uint8_t RNDIS_GetEncapsulatedResponse(USB_ClassInfo_RNDIS_Host_t* const RNDISInterfaceInfo, void* Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 static uint8_t DCOMP_RNDIS_Host_NextRNDISControlInterface(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);
 static uint8_t DCOMP_RNDIS_Host_NextRNDISDataInterface(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);

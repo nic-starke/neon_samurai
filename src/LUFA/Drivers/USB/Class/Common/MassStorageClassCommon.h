@@ -247,14 +247,14 @@ extern "C" {
  */
 enum MS_Descriptor_ClassSubclassProtocol_t
 {
-	MS_CSCP_MassStorageClass		  = 0x08, /**< Descriptor Class value indicating that the device or
+    MS_CSCP_MassStorageClass          = 0x08, /**< Descriptor Class value indicating that the device or
 											   * interface belongs to the Mass Storage class.
 											   */
-	MS_CSCP_SCSITransparentSubclass	  = 0x06, /**< Descriptor Subclass value indicating that the device or
+    MS_CSCP_SCSITransparentSubclass   = 0x06, /**< Descriptor Subclass value indicating that the device or
 											   * interface belongs to the SCSI Transparent Command Set subclass
 											   * of the Mass storage class.
 											   */
-	MS_CSCP_BulkOnlyTransportProtocol = 0x50, /**< Descriptor Protocol value indicating that the device or
+    MS_CSCP_BulkOnlyTransportProtocol = 0x50, /**< Descriptor Protocol value indicating that the device or
 											   * interface belongs to the Bulk Only Transport protocol of the
 											   * Mass Storage class.
 											   */
@@ -264,10 +264,10 @@ enum MS_Descriptor_ClassSubclassProtocol_t
  * by the USB bus host. */
 enum MS_ClassRequests_t
 {
-	MS_REQ_GetMaxLUN		= 0xFE, /**< Mass Storage class-specific request to retrieve the total
+    MS_REQ_GetMaxLUN        = 0xFE, /**< Mass Storage class-specific request to retrieve the total
 									 * number of Logical Units (drives) in the SCSI device.
 									 */
-	MS_REQ_MassStorageReset = 0xFF, /**< Mass Storage class-specific request to reset the Mass Storage
+    MS_REQ_MassStorageReset = 0xFF, /**< Mass Storage class-specific request to reset the Mass Storage
 									 * interface, ready for the next command.
 									 */
 };
@@ -275,11 +275,11 @@ enum MS_ClassRequests_t
 /** Enum for the possible command status wrapper return status codes. */
 enum MS_CommandStatusCodes_t
 {
-	MS_SCSI_COMMAND_Pass	   = 0, /**< Command completed with no error */
-	MS_SCSI_COMMAND_Fail	   = 1, /**< Command failed to complete - host may check the exact error via
+    MS_SCSI_COMMAND_Pass       = 0, /**< Command completed with no error */
+    MS_SCSI_COMMAND_Fail       = 1, /**< Command failed to complete - host may check the exact error via
 									 * a SCSI REQUEST SENSE command.
 									 */
-	MS_SCSI_COMMAND_PhaseError = 2, /**< Command failed due to being invalid in the current phase. */
+    MS_SCSI_COMMAND_PhaseError = 2, /**< Command failed due to being invalid in the current phase. */
 };
 
 /* Type Defines: */
@@ -293,17 +293,17 @@ enum MS_CommandStatusCodes_t
  */
 typedef struct
 {
-	uint32_t Signature;			  /**< Command block signature, must be \ref MS_CBW_SIGNATURE
+    uint32_t Signature;           /**< Command block signature, must be \ref MS_CBW_SIGNATURE
 									 to indicate a valid Command Block. */
-	uint32_t Tag;				  /**< Unique command ID value, to associate a command block
+    uint32_t Tag;                 /**< Unique command ID value, to associate a command block
 									 wrapper with its command status wrapper. */
-	uint32_t DataTransferLength;  /**< Length of the optional data portion of the
+    uint32_t DataTransferLength;  /**< Length of the optional data portion of the
 									 issued command, in bytes. */
-	uint8_t	 Flags;				  /**< Command block flags, indicating command data direction. */
-	uint8_t	 LUN;				  /**< Logical Unit number this command is issued to. */
-	uint8_t	 SCSICommandLength;	  /**< Length of the issued SCSI command within the
+    uint8_t  Flags;               /**< Command block flags, indicating command data direction. */
+    uint8_t  LUN;                 /**< Logical Unit number this command is issued to. */
+    uint8_t  SCSICommandLength;   /**< Length of the issued SCSI command within the
 									 SCSI command data array. */
-	uint8_t	 SCSICommandData[16]; /**< Issued SCSI command in the Command Block. */
+    uint8_t  SCSICommandData[16]; /**< Issued SCSI command in the Command Block. */
 } ATTR_PACKED MS_CommandBlockWrapper_t;
 
 /** \brief Mass Storage Class Command Status Wrapper.
@@ -316,13 +316,13 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t Signature;			  /**< Status block signature, must be \ref MS_CSW_SIGNATURE to
+    uint32_t Signature;           /**< Status block signature, must be \ref MS_CSW_SIGNATURE to
 									 indicate a valid Command Status. */
-	uint32_t Tag;				  /**< Unique command ID value, to associate a command block
+    uint32_t Tag;                 /**< Unique command ID value, to associate a command block
 									 wrapper with its command status wrapper. */
-	uint32_t DataTransferResidue; /**< Number of bytes of data not processed in
+    uint32_t DataTransferResidue; /**< Number of bytes of data not processed in
 									 the SCSI command. */
-	uint8_t	 Status;			  /**< Status code of the issued command - a value from the
+    uint8_t  Status;              /**< Status code of the issued command - a value from the
 									 \ref MS_CommandStatusCodes_t enum. */
 } ATTR_PACKED MS_CommandStatusWrapper_t;
 
@@ -336,23 +336,23 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t ResponseCode;
+    uint8_t ResponseCode;
 
-	uint8_t SegmentNumber;
+    uint8_t SegmentNumber;
 
-	unsigned SenseKey : 4;
-	unsigned Reserved : 1;
-	unsigned ILI	  : 1;
-	unsigned EOM	  : 1;
-	unsigned FileMark : 1;
+    unsigned SenseKey : 4;
+    unsigned Reserved : 1;
+    unsigned ILI      : 1;
+    unsigned EOM      : 1;
+    unsigned FileMark : 1;
 
-	uint8_t Information[4];
-	uint8_t AdditionalLength;
-	uint8_t CmdSpecificInformation[4];
-	uint8_t AdditionalSenseCode;
-	uint8_t AdditionalSenseQualifier;
-	uint8_t FieldReplaceableUnitCode;
-	uint8_t SenseKeySpecific[3];
+    uint8_t Information[4];
+    uint8_t AdditionalLength;
+    uint8_t CmdSpecificInformation[4];
+    uint8_t AdditionalSenseCode;
+    uint8_t AdditionalSenseQualifier;
+    uint8_t FieldReplaceableUnitCode;
+    uint8_t SenseKeySpecific[3];
 } ATTR_PACKED SCSI_Request_Sense_Response_t;
 
 /** \brief Mass Storage Class SCSI Inquiry Structure.
@@ -365,35 +365,35 @@ typedef struct
  */
 typedef struct
 {
-	unsigned DeviceType			 : 5;
-	unsigned PeripheralQualifier : 3;
+    unsigned DeviceType          : 5;
+    unsigned PeripheralQualifier : 3;
 
-	unsigned Reserved			 : 7;
-	unsigned Removable			 : 1;
+    unsigned Reserved            : 7;
+    unsigned Removable           : 1;
 
-	uint8_t Version;
+    uint8_t Version;
 
-	unsigned ResponseDataFormat : 4;
-	unsigned Reserved2			: 1;
-	unsigned NormACA			: 1;
-	unsigned TrmTsk				: 1;
-	unsigned AERC				: 1;
+    unsigned ResponseDataFormat : 4;
+    unsigned Reserved2          : 1;
+    unsigned NormACA            : 1;
+    unsigned TrmTsk             : 1;
+    unsigned AERC               : 1;
 
-	uint8_t AdditionalLength;
-	uint8_t Reserved3[2];
+    uint8_t AdditionalLength;
+    uint8_t Reserved3[2];
 
-	unsigned SoftReset	  : 1;
-	unsigned CmdQue		  : 1;
-	unsigned Reserved4	  : 1;
-	unsigned Linked		  : 1;
-	unsigned Sync		  : 1;
-	unsigned WideBus16Bit : 1;
-	unsigned WideBus32Bit : 1;
-	unsigned RelAddr	  : 1;
+    unsigned SoftReset    : 1;
+    unsigned CmdQue       : 1;
+    unsigned Reserved4    : 1;
+    unsigned Linked       : 1;
+    unsigned Sync         : 1;
+    unsigned WideBus16Bit : 1;
+    unsigned WideBus32Bit : 1;
+    unsigned RelAddr      : 1;
 
-	uint8_t VendorID[8];
-	uint8_t ProductID[16];
-	uint8_t RevisionID[4];
+    uint8_t VendorID[8];
+    uint8_t ProductID[16];
+    uint8_t RevisionID[4];
 } ATTR_PACKED SCSI_Inquiry_Response_t;
 
 /* Disable C linkage for C++ Compilers: */

@@ -92,29 +92,29 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
 
-		char* PropertyStrings[AOA_STRING_TOTAL_STRINGS]; /**< Android Accessory property strings,
+        char* PropertyStrings[AOA_STRING_TOTAL_STRINGS]; /**< Android Accessory property strings,
 														  * sent to identify the accessory when
 														  * the Android device is switched into
 														  * Open Accessory mode. */
-	} Config;											 /**< Config data for the USB class interface within the device.
+    } Config;                                            /**< Config data for the USB class interface within the device.
 														  * All elements in this section <b>must</b> be set or the
 														  * interface will fail to enumerate and operate correctly.
 														  */
-	struct
-	{
-		bool	IsActive;		 /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;        /**< Indicates if the current interface instance is
 								  * connected to an attached device, valid    after \ref
 								  * AOA_Host_ConfigurePipes() is called and the Host state
 								  * machine is in the    Configured state.
 								  */
-		uint8_t InterfaceNumber; /**< Interface index of the AOA interface
+        uint8_t InterfaceNumber; /**< Interface index of the AOA interface
 									within the attached device. */
-	} State;					 /**< State data for the USB class interface within the device. All
+    } State;                     /**< State data for the USB class interface within the device. All
 								  * elements in this section <b>may</b> be set to initial values,
 								  * but may also be ignored to default to sane values when the
 								  * interface is enumerated.
@@ -126,11 +126,11 @@ typedef struct
  * AOA_Host_ConfigurePipes() function. */
 enum AOA_Host_EnumerationFailure_ErrorCodes_t
 {
-	AOA_ENUMERROR_NoError					 = 0, /**< Configuration Descriptor was processed successfully. */
-	AOA_ENUMERROR_InvalidConfigDescriptor	 = 1, /**< The device returned an invalid Configuration Descriptor. */
-	AOA_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Android Open Accessory interface was not found in
+    AOA_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    AOA_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    AOA_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Android Open Accessory interface was not found in
 													 the device's Configuration Descriptor. */
-	AOA_ENUMERROR_PipeConfigurationFailed	 = 3, /**< One or more pipes for the specified interface could not be
+    AOA_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													 configured correctly. */
 };
 
@@ -157,9 +157,9 @@ void AOA_Host_USBTask(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo) ATTR_NON
  *  \return Boolean \c true if the attached device is a valid Android device, \c
  * false otherwise.
  */
-bool AOA_Host_ValidateAccessoryDevice(USB_ClassInfo_AOA_Host_t* const	   AOAInterfaceInfo,
-									  const USB_Descriptor_Device_t* const DeviceDescriptor, bool* const NeedModeSwitch)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
+bool AOA_Host_ValidateAccessoryDevice(USB_ClassInfo_AOA_Host_t* const      AOAInterfaceInfo,
+                                      const USB_Descriptor_Device_t* const DeviceDescriptor, bool* const NeedModeSwitch)
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Host interface configuration routine, to configure a given Android Open
  * Accessory host interface instance using the Configuration Descriptor read
@@ -178,7 +178,7 @@ bool AOA_Host_ValidateAccessoryDevice(USB_ClassInfo_AOA_Host_t* const	   AOAInte
  *  \return A value from the \ref AOA_Host_EnumerationFailure_ErrorCodes_t enum.
  */
 uint8_t AOA_Host_ConfigurePipes(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, uint16_t ConfigDescriptorSize, void* ConfigDescriptorData)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Starts Accessory Mode in the attached Android device. This function will
  * validate the device's Android Open Accessory protocol version, send the
@@ -211,7 +211,7 @@ uint8_t AOA_Host_StartAccessoryMode(USB_ClassInfo_AOA_Host_t* const AOAInterface
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t AOA_Host_SendData(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, const void* const Buffer, const uint16_t Length)
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 /** Sends a given null-terminated string to the attached USB device, if
  * connected. If a device is not connected when the function is called, the
@@ -231,7 +231,7 @@ uint8_t AOA_Host_SendData(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, cons
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t AOA_Host_SendString(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, const char* const String) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends a given byte to the attached USB device, if connected. If a device is
  * not connected when the function is called, the byte is discarded. Bytes will
@@ -322,7 +322,7 @@ uint8_t AOA_Host_Flush(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo) ATTR_NO
  * FILE structure where the created stream should be placed.
  */
 void AOA_Host_CreateStream(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, FILE* const Stream) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Identical to \ref AOA_Host_CreateStream(), except that reads are blocking
  * until the calling stream function terminates the transfer. While blocking,
@@ -336,7 +336,7 @@ void AOA_Host_CreateStream(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, FIL
  * FILE structure where the created stream should be placed.
  */
 void AOA_Host_CreateBlockingStream(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, FILE* const Stream) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /* Private Interface - For use in library only: */
 #if !defined(__DOXYGEN__)
@@ -350,7 +350,7 @@ static int AOA_Host_getchar_Blocking(FILE* Stream) ATTR_NON_NULL_PTR_ARG(1);
 
 static uint8_t AOA_Host_GetAccessoryProtocol(uint16_t* const Protocol) ATTR_NON_NULL_PTR_ARG(1);
 static uint8_t AOA_Host_SendPropertyString(USB_ClassInfo_AOA_Host_t* const AOAInterfaceInfo, const uint8_t StringIndex)
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 static uint8_t DCOMP_AOA_Host_NextAndroidAccessoryInterface(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);
 static uint8_t DCOMP_AOA_Host_NextInterfaceBulkEndpoint(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);

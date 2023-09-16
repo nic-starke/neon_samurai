@@ -82,31 +82,31 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
-	} Config;						  /**< Config data for the USB class interface within the device.
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+    } Config;                         /**< Config data for the USB class interface within the device.
 									   * All elements in this section <b>must</b> be set or the
 									   * interface will fail to enumerate and operate correctly.
 									   */
-	struct
-	{
-		bool	IsActive;				  /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;                 /**< Indicates if the current interface instance is
 										   * connected to an attached device, valid after \ref
 										   * Audio_Host_ConfigurePipes() is called and the Host
 										   * state machine is in the Configured state.
 										   */
-		uint8_t ControlInterfaceNumber;	  /**< Interface index of the Audio Control
+        uint8_t ControlInterfaceNumber;   /**< Interface index of the Audio Control
 											 interface within the attached device. */
-		uint8_t StreamingInterfaceNumber; /**< Interface index of the Audio
+        uint8_t StreamingInterfaceNumber; /**< Interface index of the Audio
 											 Streaming interface within the
 											 attached device. */
 
-		uint8_t EnabledStreamingAltIndex; /**< Alternative setting index of the
+        uint8_t EnabledStreamingAltIndex; /**< Alternative setting index of the
 											 Audio Streaming interface when the
 											 stream is enabled. */
-	} State;							  /**< State data for the USB class interface within the device. All
+    } State;                              /**< State data for the USB class interface within the device. All
 										   * elements in this section <b>may</b> be set to initial values,
 										   * but may also be ignored to default to sane values when the
 										   * interface is enumerated.
@@ -118,11 +118,11 @@ typedef struct
  * Audio_Host_ConfigurePipes() function. */
 enum AUDIO_Host_EnumerationFailure_ErrorCodes_t
 {
-	AUDIO_ENUMERROR_NoError					   = 0, /**< Configuration Descriptor was processed successfully. */
-	AUDIO_ENUMERROR_InvalidConfigDescriptor	   = 1, /**< The device returned an invalid Configuration Descriptor. */
-	AUDIO_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible AUDIO interface was not found in the device's
+    AUDIO_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    AUDIO_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    AUDIO_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible AUDIO interface was not found in the device's
 													   Configuration Descriptor. */
-	AUDIO_ENUMERROR_PipeConfigurationFailed	   = 3, /**< One or more pipes for the specified interface could not be
+    AUDIO_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													   configured correctly. */
 };
 
@@ -145,7 +145,7 @@ enum AUDIO_Host_EnumerationFailure_ErrorCodes_t
  * enum.
  */
 uint8_t Audio_Host_ConfigurePipes(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, uint16_t ConfigDescriptorSize,
-								  void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                  void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Starts or stops the audio streaming for the given configured Audio Host
  * interface, allowing for audio samples to be send and/or received.
@@ -158,7 +158,7 @@ uint8_t Audio_Host_ConfigurePipes(USB_ClassInfo_Audio_Host_t* const AudioInterfa
  *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
  */
 uint8_t Audio_Host_StartStopStreaming(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const bool EnableStreaming)
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 /** Gets or sets the specified property of a streaming audio class endpoint that
  * is bound to a pipe in the given class instance.
@@ -178,8 +178,8 @@ uint8_t Audio_Host_StartStopStreaming(USB_ClassInfo_Audio_Host_t* const AudioInt
  *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
  */
 uint8_t Audio_Host_GetSetEndpointProperty(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const uint8_t DataPipeIndex,
-										  const uint8_t EndpointProperty, const uint8_t EndpointControl, const uint16_t DataLength,
-										  void* const Data) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(6);
+                                          const uint8_t EndpointProperty, const uint8_t EndpointControl, const uint16_t DataLength,
+                                          void* const Data) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(6);
 
 /* Inline Functions: */
 /** General management task for a given Audio host class interface, required for
@@ -193,7 +193,7 @@ uint8_t Audio_Host_GetSetEndpointProperty(USB_ClassInfo_Audio_Host_t* const Audi
 static inline void Audio_Host_USBTask(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Host_USBTask(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 {
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 }
 
 /** Determines if the given audio interface is ready for a sample to be read
@@ -209,20 +209,20 @@ static inline void Audio_Host_USBTask(USB_ClassInfo_Audio_Host_t* const AudioInt
  * read, \c false otherwise.
  */
 static inline bool Audio_Host_IsSampleReceived(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline bool Audio_Host_IsSampleReceived(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
-		return false;
+    if ((USB_HostState != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
+        return false;
 
-	bool SampleReceived = false;
+    bool SampleReceived = false;
 
-	Pipe_SelectPipe(AudioInterfaceInfo->Config.DataINPipe.Address);
-	Pipe_Unfreeze();
-	SampleReceived = Pipe_IsINReceived();
-	Pipe_Freeze();
+    Pipe_SelectPipe(AudioInterfaceInfo->Config.DataINPipe.Address);
+    Pipe_Unfreeze();
+    SampleReceived = Pipe_IsINReceived();
+    Pipe_Freeze();
 
-	return SampleReceived;
+    return SampleReceived;
 }
 
 /** Determines if the given audio interface is ready to accept the next sample
@@ -238,14 +238,14 @@ static inline bool Audio_Host_IsSampleReceived(USB_ClassInfo_Audio_Host_t* const
  * next sample, \c false otherwise.
  */
 static inline bool Audio_Host_IsReadyForNextSample(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline bool Audio_Host_IsReadyForNextSample(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 {
-	if ((USB_HostState != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
-		return false;
+    if ((USB_HostState != HOST_STATE_Configured) || !(AudioInterfaceInfo->State.IsActive))
+        return false;
 
-	Pipe_SelectPipe(AudioInterfaceInfo->Config.DataOUTPipe.Address);
-	return Pipe_IsOUTReady();
+    Pipe_SelectPipe(AudioInterfaceInfo->Config.DataOUTPipe.Address);
+    return Pipe_IsOUTReady();
 }
 
 /** Reads the next 8-bit audio sample from the current audio interface.
@@ -260,23 +260,23 @@ static inline bool Audio_Host_IsReadyForNextSample(USB_ClassInfo_Audio_Host_t* c
  *  \return  Signed 8-bit audio sample from the audio interface.
  */
 static inline int8_t Audio_Host_ReadSample8(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline int8_t Audio_Host_ReadSample8(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 {
-	int8_t Sample;
+    int8_t Sample;
 
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Sample = Pipe_Read_8();
+    Sample = Pipe_Read_8();
 
-	if (!(Pipe_BytesInPipe()))
-	{
-		Pipe_Unfreeze();
-		Pipe_ClearIN();
-		Pipe_Freeze();
-	}
+    if (!(Pipe_BytesInPipe()))
+    {
+        Pipe_Unfreeze();
+        Pipe_ClearIN();
+        Pipe_Freeze();
+    }
 
-	return Sample;
+    return Sample;
 }
 
 /** Reads the next 16-bit audio sample from the current audio interface.
@@ -291,23 +291,23 @@ static inline int8_t Audio_Host_ReadSample8(USB_ClassInfo_Audio_Host_t* const Au
  *  \return  Signed 16-bit audio sample from the audio interface.
  */
 static inline int16_t Audio_Host_ReadSample16(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline int16_t Audio_Host_ReadSample16(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 {
-	int16_t Sample;
+    int16_t Sample;
 
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Sample = (int16_t)Pipe_Read_16_LE();
+    Sample = (int16_t)Pipe_Read_16_LE();
 
-	if (!(Pipe_BytesInPipe()))
-	{
-		Pipe_Unfreeze();
-		Pipe_ClearIN();
-		Pipe_Freeze();
-	}
+    if (!(Pipe_BytesInPipe()))
+    {
+        Pipe_Unfreeze();
+        Pipe_ClearIN();
+        Pipe_Freeze();
+    }
 
-	return Sample;
+    return Sample;
 }
 
 /** Reads the next 24-bit audio sample from the current audio interface.
@@ -322,23 +322,23 @@ static inline int16_t Audio_Host_ReadSample16(USB_ClassInfo_Audio_Host_t* const 
  *  \return Signed 24-bit audio sample from the audio interface.
  */
 static inline int32_t Audio_Host_ReadSample24(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline int32_t Audio_Host_ReadSample24(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo)
 {
-	int32_t Sample;
+    int32_t Sample;
 
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Sample = (((uint32_t)Pipe_Read_8() << 16) | Pipe_Read_16_LE());
+    Sample = (((uint32_t)Pipe_Read_8() << 16) | Pipe_Read_16_LE());
 
-	if (!(Pipe_BytesInPipe()))
-	{
-		Pipe_Unfreeze();
-		Pipe_ClearIN();
-		Pipe_Freeze();
-	}
+    if (!(Pipe_BytesInPipe()))
+    {
+        Pipe_Unfreeze();
+        Pipe_ClearIN();
+        Pipe_Freeze();
+    }
 
-	return Sample;
+    return Sample;
 }
 
 /** Writes the next 8-bit audio sample to the current audio interface.
@@ -352,20 +352,20 @@ static inline int32_t Audio_Host_ReadSample24(USB_ClassInfo_Audio_Host_t* const 
  * sample.
  */
 static inline void Audio_Host_WriteSample8(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const int8_t Sample)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Host_WriteSample8(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const int8_t Sample)
 {
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Pipe_Write_8(Sample);
+    Pipe_Write_8(Sample);
 
-	if (!(Pipe_IsReadWriteAllowed()))
-	{
-		Pipe_Unfreeze();
-		Pipe_ClearOUT();
-		Pipe_WaitUntilReady();
-		Pipe_Freeze();
-	}
+    if (!(Pipe_IsReadWriteAllowed()))
+    {
+        Pipe_Unfreeze();
+        Pipe_ClearOUT();
+        Pipe_WaitUntilReady();
+        Pipe_Freeze();
+    }
 }
 
 /** Writes the next 16-bit audio sample to the current audio interface.
@@ -379,20 +379,20 @@ static inline void Audio_Host_WriteSample8(USB_ClassInfo_Audio_Host_t* const Aud
  * audio sample.
  */
 static inline void Audio_Host_WriteSample16(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const int16_t Sample)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Host_WriteSample16(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const int16_t Sample)
 {
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Pipe_Write_16_LE(Sample);
+    Pipe_Write_16_LE(Sample);
 
-	if (!(Pipe_IsReadWriteAllowed()))
-	{
-		Pipe_Unfreeze();
-		Pipe_ClearOUT();
-		Pipe_WaitUntilReady();
-		Pipe_Freeze();
-	}
+    if (!(Pipe_IsReadWriteAllowed()))
+    {
+        Pipe_Unfreeze();
+        Pipe_ClearOUT();
+        Pipe_WaitUntilReady();
+        Pipe_Freeze();
+    }
 }
 
 /** Writes the next 24-bit audio sample to the current audio interface.
@@ -406,21 +406,21 @@ static inline void Audio_Host_WriteSample16(USB_ClassInfo_Audio_Host_t* const Au
  * audio sample.
  */
 static inline void Audio_Host_WriteSample24(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const int32_t Sample)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void Audio_Host_WriteSample24(USB_ClassInfo_Audio_Host_t* const AudioInterfaceInfo, const int32_t Sample)
 {
-	(void)AudioInterfaceInfo;
+    (void)AudioInterfaceInfo;
 
-	Pipe_Write_16_LE(Sample);
-	Pipe_Write_8(Sample >> 16);
+    Pipe_Write_16_LE(Sample);
+    Pipe_Write_8(Sample >> 16);
 
-	if (!(Pipe_IsReadWriteAllowed()))
-	{
-		Pipe_Unfreeze();
-		Pipe_ClearOUT();
-		Pipe_WaitUntilReady();
-		Pipe_Freeze();
-	}
+    if (!(Pipe_IsReadWriteAllowed()))
+    {
+        Pipe_Unfreeze();
+        Pipe_ClearOUT();
+        Pipe_WaitUntilReady();
+        Pipe_Freeze();
+    }
 }
 
 /* Private Interface - For use in library only: */

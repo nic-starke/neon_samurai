@@ -87,27 +87,27 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
-	} Config;						  /**< Config data for the USB class interface within the device.
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+    } Config;                         /**< Config data for the USB class interface within the device.
 									   * All elements in this section <b>must</b> be set or the
 									   * interface will fail to enumerate and operate correctly.
 									   */
-	struct
-	{
-		bool	IsActive;		 /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;        /**< Indicates if the current interface instance is
 								  * connected to an attached device, valid    after \ref
 								  * MS_Host_ConfigurePipes() is called and the Host state
 								  * machine is in the    Configured state.
 								  */
-		uint8_t InterfaceNumber; /**< Interface index of the Mass Storage
+        uint8_t InterfaceNumber; /**< Interface index of the Mass Storage
 									interface within the attached device. */
 
-		uint32_t TransactionTag; /**< Current transaction tag for data
+        uint32_t TransactionTag; /**< Current transaction tag for data
 									synchronizing of packets. */
-	} State;					 /**< State data for the USB class interface within the device. All
+    } State;                     /**< State data for the USB class interface within the device. All
 								  * elements in this section <b>may</b> be set to initial values,
 								  * but may also be ignored to default to sane values when the
 								  * interface is enumerated.
@@ -123,8 +123,8 @@ typedef struct
  */
 typedef struct
 {
-	uint32_t Blocks;	/**< Number of blocks in the addressed LUN of the device. */
-	uint32_t BlockSize; /**< Number of bytes in each block in the addressed LUN. */
+    uint32_t Blocks;    /**< Number of blocks in the addressed LUN of the device. */
+    uint32_t BlockSize; /**< Number of bytes in each block in the addressed LUN. */
 } SCSI_Capacity_t;
 
 /* Enums: */
@@ -132,11 +132,11 @@ typedef struct
  * MS_Host_ConfigurePipes() function. */
 enum MS_Host_EnumerationFailure_ErrorCodes_t
 {
-	MS_ENUMERROR_NoError					= 0, /**< Configuration Descriptor was processed successfully. */
-	MS_ENUMERROR_InvalidConfigDescriptor	= 1, /**< The device returned an invalid Configuration Descriptor. */
-	MS_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Mass Storage interface was not found in the
+    MS_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    MS_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    MS_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Mass Storage interface was not found in the
 													device's Configuration Descriptor. */
-	MS_ENUMERROR_PipeConfigurationFailed	= 3, /**< One or more pipes for the specified interface could not be
+    MS_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													configured correctly. */
 };
 
@@ -158,7 +158,7 @@ enum MS_Host_EnumerationFailure_ErrorCodes_t
  *  \return A value from the \ref MS_Host_EnumerationFailure_ErrorCodes_t enum.
  */
 uint8_t MS_Host_ConfigurePipes(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, uint16_t ConfigDescriptorSize, void* DeviceConfigDescriptor)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Sends a MASS STORAGE RESET control request to the attached device, resetting
  * the Mass Storage Interface and readying it for the next Mass Storage command.
@@ -189,7 +189,7 @@ uint8_t MS_Host_ResetMSInterface(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo)
  *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum.
  */
 uint8_t MS_Host_GetMaxLUN(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, uint8_t* const MaxLUNIndex) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Retrieves the Mass Storage device's inquiry data for the specified LUN,
  * indicating the device characteristics and properties.
@@ -206,7 +206,7 @@ uint8_t MS_Host_GetMaxLUN(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, uint8_
  * MS_ERROR_LOGICAL_CMD_FAILED.
  */
 uint8_t MS_Host_GetInquiryData(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, const uint8_t LUNIndex,
-							   SCSI_Inquiry_Response_t* const InquiryData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                               SCSI_Inquiry_Response_t* const InquiryData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Sends a TEST UNIT READY command to the device, to determine if it is ready
  * to accept other SCSI commands.
@@ -235,7 +235,7 @@ uint8_t MS_Host_TestUnitReady(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, co
  * MS_ERROR_LOGICAL_CMD_FAILED if not ready.
  */
 uint8_t MS_Host_ReadDeviceCapacity(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, const uint8_t LUNIndex,
-								   SCSI_Capacity_t* const DeviceCapacity) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                   SCSI_Capacity_t* const DeviceCapacity) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Retrieves the device sense data, indicating the current device state and
  * error codes for the previously issued command.
@@ -252,7 +252,7 @@ uint8_t MS_Host_ReadDeviceCapacity(USB_ClassInfo_MS_Host_t* const MSInterfaceInf
  * MS_ERROR_LOGICAL_CMD_FAILED if not ready.
  */
 uint8_t MS_Host_RequestSense(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, const uint8_t LUNIndex,
-							 SCSI_Request_Sense_Response_t* const SenseData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                             SCSI_Request_Sense_Response_t* const SenseData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Issues a PREVENT MEDIUM REMOVAL command, to logically (or, depending on the
  * type of device, physically) lock the device from removal so that blocks of
@@ -271,7 +271,7 @@ uint8_t MS_Host_RequestSense(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, con
  * MS_ERROR_LOGICAL_CMD_FAILED if not ready.
  */
 uint8_t MS_Host_PreventAllowMediumRemoval(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, const uint8_t LUNIndex, const bool PreventRemoval)
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 
 /** Reads blocks of data from the attached Mass Storage device's medium.
  *
@@ -290,8 +290,8 @@ uint8_t MS_Host_PreventAllowMediumRemoval(USB_ClassInfo_MS_Host_t* const MSInter
  * MS_ERROR_LOGICAL_CMD_FAILED if not ready.
  */
 uint8_t MS_Host_ReadDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, const uint8_t LUNIndex, const uint32_t BlockAddress,
-								 const uint8_t Blocks, const uint16_t BlockSize, void* BlockBuffer) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(6);
+                                 const uint8_t Blocks, const uint16_t BlockSize, void* BlockBuffer) ATTR_NON_NULL_PTR_ARG(1)
+    ATTR_NON_NULL_PTR_ARG(6);
 
 /** Writes blocks of data to the attached Mass Storage device's medium.
  *
@@ -310,8 +310,8 @@ uint8_t MS_Host_ReadDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo,
  * MS_ERROR_LOGICAL_CMD_FAILED if not ready.
  */
 uint8_t MS_Host_WriteDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, const uint8_t LUNIndex, const uint32_t BlockAddress,
-								  const uint8_t Blocks, const uint16_t BlockSize, const void* BlockBuffer) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(6);
+                                  const uint8_t Blocks, const uint16_t BlockSize, const void* BlockBuffer) ATTR_NON_NULL_PTR_ARG(1)
+    ATTR_NON_NULL_PTR_ARG(6);
 
 /* Inline Functions: */
 /** General management task for a given Mass Storage host class interface,
@@ -325,7 +325,7 @@ uint8_t MS_Host_WriteDeviceBlocks(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo
 static inline void MS_Host_USBTask(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void MS_Host_USBTask(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo)
 {
-	(void)MSInterfaceInfo;
+    (void)MSInterfaceInfo;
 }
 
 /* Private Interface - For use in library only: */
@@ -336,12 +336,12 @@ static inline void MS_Host_USBTask(USB_ClassInfo_MS_Host_t* const MSInterfaceInf
 /* Function Prototypes: */
 #if defined(__INCLUDE_FROM_MASSSTORAGE_HOST_C)
 static uint8_t MS_Host_SendCommand(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, MS_CommandBlockWrapper_t* const SCSICommandBlock,
-								   const void* const BufferPtr) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+                                   const void* const BufferPtr) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 static uint8_t MS_Host_WaitForDataReceived(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 static uint8_t MS_Host_SendReceiveData(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, MS_CommandBlockWrapper_t* const SCSICommandBlock,
-									   void* BufferPtr) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+                                       void* BufferPtr) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 static uint8_t MS_Host_GetReturnedStatus(USB_ClassInfo_MS_Host_t* const MSInterfaceInfo, MS_CommandStatusWrapper_t* const SCSICommandStatus)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 static uint8_t DCOMP_MS_Host_NextMSInterface(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);
 static uint8_t DCOMP_MS_Host_NextMSInterfaceEndpoint(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);

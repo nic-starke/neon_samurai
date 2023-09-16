@@ -87,30 +87,30 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
-		USB_Pipe_Table_t EventsPipe;  /**< Event notification IN Pipe configuration table. */
-	} Config;						  /**< Config data for the USB class interface within the device.
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+        USB_Pipe_Table_t EventsPipe;  /**< Event notification IN Pipe configuration table. */
+    } Config;                         /**< Config data for the USB class interface within the device.
 									   * All elements in this section <b>must</b> be set or the
 									   * interface will fail to enumerate and operate correctly.
 									   */
-	struct
-	{
-		bool	IsActive;		 /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;        /**< Indicates if the current interface instance is
 								  * connected to an attached device, valid    after \ref
 								  * SI_Host_ConfigurePipes() is called and the Host state
 								  * machine is in the    Configured state.
 								  */
-		uint8_t InterfaceNumber; /**< Interface index of the Still Image
+        uint8_t InterfaceNumber; /**< Interface index of the Still Image
 									interface within the attached device. */
 
-		bool	 IsSessionOpen; /**< Indicates if a PIMA session is currently open
+        bool     IsSessionOpen; /**< Indicates if a PIMA session is currently open
 								   with the attached device. */
-		uint32_t TransactionID; /**< Transaction ID for the next transaction to
+        uint32_t TransactionID; /**< Transaction ID for the next transaction to
 								   send to the device. */
-	} State;					/**< State data for the USB class interface within the device. All
+    } State;                    /**< State data for the USB class interface within the device. All
 								 * elements in this section <b>may</b> be set to initial values,
 								 * but may also be ignored to default to sane values when the
 								 * interface is enumerated.
@@ -122,12 +122,12 @@ typedef struct
  * SI_Host_ConfigurePipes() function. */
 enum SI_Host_EnumerationFailure_ErrorCodes_t
 {
-	SI_ENUMERROR_NoError					= 0, /**< Configuration Descriptor was processed successfully. */
-	SI_ENUMERROR_InvalidConfigDescriptor	= 1, /**< The device returned an invalid Configuration Descriptor. */
-	SI_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Still Image interface was not found in the device's
+    SI_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    SI_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    SI_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible Still Image interface was not found in the device's
 												  *   Configuration Descriptor.
 												  */
-	SI_ENUMERROR_PipeConfigurationFailed	= 3, /**< One or more pipes for the specified interface could not be
+    SI_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													configured correctly. */
 };
 
@@ -149,7 +149,7 @@ enum SI_Host_EnumerationFailure_ErrorCodes_t
  *  \return A value from the \ref SI_Host_EnumerationFailure_ErrorCodes_t enum.
  */
 uint8_t SI_Host_ConfigurePipes(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, uint16_t ConfigDescriptorSize, void* ConfigDescriptorData)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** Opens a new PIMA session with the attached device. This should be used
  * before any session-orientated PIMA commands are issued to the device. Only
@@ -195,7 +195,7 @@ uint8_t SI_Host_CloseSession(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo) ATT
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t SI_Host_SendBlockHeader(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, PIMA_Container_t* const PIMAHeader) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Receives a raw PIMA block header from the device. This can be used to
  * receive arbitrary PIMA blocks from the device with or without parameters.
@@ -210,7 +210,7 @@ uint8_t SI_Host_SendBlockHeader(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, 
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t SI_Host_ReceiveBlockHeader(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, PIMA_Container_t* const PIMAHeader)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends a given PIMA command to the attached device, filling out the PIMA
  * command header's Transaction ID automatically.
@@ -229,7 +229,7 @@ uint8_t SI_Host_ReceiveBlockHeader(USB_ClassInfo_SI_Host_t* const SIInterfaceInf
  * SI_ERROR_LOGICAL_CMD_FAILED if the device returned a logical command failure.
  */
 uint8_t SI_Host_SendCommand(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, const uint16_t Operation, const uint8_t TotalParams,
-							uint32_t* const Params) ATTR_NON_NULL_PTR_ARG(1);
+                            uint32_t* const Params) ATTR_NON_NULL_PTR_ARG(1);
 
 /** Receives and checks a response block from the attached Still Image device,
  * once a command has been issued and all data associated with the command has
@@ -274,7 +274,7 @@ bool SI_Host_IsEventReceived(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo) ATT
  * SI_ERROR_LOGICAL_CMD_FAILED if the device returned a logical command failure.
  */
 uint8_t SI_Host_ReceiveEventHeader(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, PIMA_Container_t* const PIMAHeader)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Sends arbitrary data to the attached device, for use in the data phase of
  * PIMA commands which require data transfer beyond the regular PIMA command
@@ -291,7 +291,7 @@ uint8_t SI_Host_ReceiveEventHeader(USB_ClassInfo_SI_Host_t* const SIInterfaceInf
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t SI_Host_SendData(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, const void* Buffer, const uint16_t Bytes) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /** Receives arbitrary data from the attached device, for use in the data phase
  * of PIMA commands which require data transfer beyond the regular PIMA command
@@ -308,7 +308,7 @@ uint8_t SI_Host_SendData(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, const v
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t SI_Host_ReadData(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, void* Buffer, const uint16_t Bytes) ATTR_NON_NULL_PTR_ARG(1)
-	ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(2);
 
 /* Inline Functions: */
 /** General management task for a given Still Image host class interface,
@@ -322,7 +322,7 @@ uint8_t SI_Host_ReadData(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo, void* B
 static inline void SI_Host_USBTask(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1) ATTR_ALWAYS_INLINE;
 static inline void SI_Host_USBTask(USB_ClassInfo_SI_Host_t* const SIInterfaceInfo)
 {
-	(void)SIInterfaceInfo;
+    (void)SIInterfaceInfo;
 }
 
 /* Private Interface - For use in library only: */

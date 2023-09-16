@@ -75,22 +75,22 @@ extern "C" {
  *  \note This macro is not available for all architectures.
  */
 #define JTAG_ENABLE()                                                                                                                      \
-	do                                                                                                                                     \
-	{                                                                                                                                      \
-		__asm__ __volatile__("in __tmp_reg__,__SREG__"                                                                                     \
-							 "\n\t"                                                                                                        \
-							 "cli"                                                                                                         \
-							 "\n\t"                                                                                                        \
-							 "out %1, %0"                                                                                                  \
-							 "\n\t"                                                                                                        \
-							 "out __SREG__, __tmp_reg__"                                                                                   \
-							 "\n\t"                                                                                                        \
-							 "out %1, %0"                                                                                                  \
-							 "\n\t"                                                                                                        \
-							 :                                                                                                             \
-							 : "r"(MCUCR & ~(1 << JTD)), "M"(_SFR_IO_ADDR(MCUCR))                                                          \
-							 : "r0");                                                                                                      \
-	} while (0)
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        __asm__ __volatile__("in __tmp_reg__,__SREG__"                                                                                     \
+                             "\n\t"                                                                                                        \
+                             "cli"                                                                                                         \
+                             "\n\t"                                                                                                        \
+                             "out %1, %0"                                                                                                  \
+                             "\n\t"                                                                                                        \
+                             "out __SREG__, __tmp_reg__"                                                                                   \
+                             "\n\t"                                                                                                        \
+                             "out %1, %0"                                                                                                  \
+                             "\n\t"                                                                                                        \
+                             :                                                                                                             \
+                             : "r"(MCUCR & ~(1 << JTD)), "M"(_SFR_IO_ADDR(MCUCR))                                                          \
+                             : "r0");                                                                                                      \
+    } while (0)
 
 /** Disables the AVR's JTAG bus in software, until a system reset. This will
  * override the current JTAG status as set by the JTAGEN fuse, disabling JTAG
@@ -99,22 +99,22 @@ extern "C" {
  *  \note This macro is not available for all architectures.
  */
 #define JTAG_DISABLE()                                                                                                                     \
-	do                                                                                                                                     \
-	{                                                                                                                                      \
-		__asm__ __volatile__("in __tmp_reg__,__SREG__"                                                                                     \
-							 "\n\t"                                                                                                        \
-							 "cli"                                                                                                         \
-							 "\n\t"                                                                                                        \
-							 "out %1, %0"                                                                                                  \
-							 "\n\t"                                                                                                        \
-							 "out __SREG__, __tmp_reg__"                                                                                   \
-							 "\n\t"                                                                                                        \
-							 "out %1, %0"                                                                                                  \
-							 "\n\t"                                                                                                        \
-							 :                                                                                                             \
-							 : "r"(MCUCR | (1 << JTD)), "M"(_SFR_IO_ADDR(MCUCR))                                                           \
-							 : "r0");                                                                                                      \
-	} while (0)
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        __asm__ __volatile__("in __tmp_reg__,__SREG__"                                                                                     \
+                             "\n\t"                                                                                                        \
+                             "cli"                                                                                                         \
+                             "\n\t"                                                                                                        \
+                             "out %1, %0"                                                                                                  \
+                             "\n\t"                                                                                                        \
+                             "out __SREG__, __tmp_reg__"                                                                                   \
+                             "\n\t"                                                                                                        \
+                             "out %1, %0"                                                                                                  \
+                             "\n\t"                                                                                                        \
+                             :                                                                                                             \
+                             : "r"(MCUCR | (1 << JTD)), "M"(_SFR_IO_ADDR(MCUCR))                                                           \
+                             : "r0");                                                                                                      \
+    } while (0)
 #endif
 
 /** Defines a volatile \c NOP statement which cannot be optimized out by the
@@ -142,11 +142,11 @@ extern "C" {
  *  \param[in] Condition  Condition that will be evaluated.
  */
 #define JTAG_ASSERT(Condition)                                                                                                             \
-	do                                                                                                                                     \
-	{                                                                                                                                      \
-		if (!(Condition))                                                                                                                  \
-			JTAG_DEBUG_BREAK();                                                                                                            \
-	} while (0)
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        if (!(Condition))                                                                                                                  \
+            JTAG_DEBUG_BREAK();                                                                                                            \
+    } while (0)
 
 /** Macro for testing condition \c "x" and writing debug data to the stdout
  * stream if \c false. The stdout stream must be pre-initialized before this
@@ -161,13 +161,13 @@ extern "C" {
  *  \param[in] Condition  Condition that will be evaluated,
  */
 #define STDOUT_ASSERT(Condition)                                                                                                           \
-	do                                                                                                                                     \
-	{                                                                                                                                      \
-		if (!(Condition))                                                                                                                  \
-			printf_P(PSTR("%s: Function \"%s\", Line %d: "                                                                                 \
-						  "Assertion \"%s\" failed.\r\n"),                                                                                 \
-					 __FILE__, __func__, __LINE__, #Condition);                                                                            \
-	} while (0)
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        if (!(Condition))                                                                                                                  \
+            printf_P(PSTR("%s: Function \"%s\", Line %d: "                                                                                 \
+                          "Assertion \"%s\" failed.\r\n"),                                                                                 \
+                     __FILE__, __func__, __LINE__, #Condition);                                                                            \
+    } while (0)
 
 #if !defined(pgm_read_ptr) || defined(__DOXYGEN__)
 /** Reads a pointer out of PROGMEM space on the AVR8 architecture. This is a
@@ -187,19 +187,19 @@ extern "C" {
 #define JTAG_DEBUG_POINT() __asm__ __volatile__("nop" ::)
 #define JTAG_DEBUG_BREAK() __asm__ __volatile__("breakpoint" ::)
 #define JTAG_ASSERT(Condition)                                                                                                             \
-	do                                                                                                                                     \
-	{                                                                                                                                      \
-		if (!(Condition))                                                                                                                  \
-			JTAG_DEBUG_BREAK();                                                                                                            \
-	} while (0)
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        if (!(Condition))                                                                                                                  \
+            JTAG_DEBUG_BREAK();                                                                                                            \
+    } while (0)
 #define STDOUT_ASSERT(Condition)                                                                                                           \
-	do                                                                                                                                     \
-	{                                                                                                                                      \
-		if (!(Condition))                                                                                                                  \
-			printf("%s: Function \"%s\", Line %d: "                                                                                        \
-				   "Assertion \"%s\" failed.\r\n",                                                                                         \
-				   __FILE__, __func__, __LINE__, #Condition);                                                                              \
-	} while (0)
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        if (!(Condition))                                                                                                                  \
+            printf("%s: Function \"%s\", Line %d: "                                                                                        \
+                   "Assertion \"%s\" failed.\r\n",                                                                                         \
+                   __FILE__, __func__, __LINE__, #Condition);                                                                              \
+    } while (0)
 #endif
 
 /* Disable C linkage for C++ Compilers: */

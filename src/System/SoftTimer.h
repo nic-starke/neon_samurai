@@ -23,38 +23,38 @@
 
 typedef enum
 {
-	TIMER_STOPPED,
-	TIMER_RUNNING,
+    TIMER_STOPPED,
+    TIMER_RUNNING,
 
-	NUM_TIMER_STATES,
+    NUM_TIMER_STATES,
 } eSoftTimer_State;
 
 typedef struct
 {
-	u32				 StartTime;
-	eSoftTimer_State State;
+    u32              StartTime;
+    eSoftTimer_State State;
 } sSoftTimer;
 
 void SoftTimer_Init(void);
-u32	 Millis(void);
+u32  Millis(void);
 
 static inline void SoftTimer_Start(sSoftTimer* pTimer)
 {
-	pTimer->State	  = TIMER_RUNNING;
-	pTimer->StartTime = Millis();
+    pTimer->State     = TIMER_RUNNING;
+    pTimer->StartTime = Millis();
 }
 
 static inline u32 SoftTimer_Elapsed(sSoftTimer* pTimer)
 {
-	return Millis() - pTimer->StartTime;
+    return Millis() - pTimer->StartTime;
 }
 
 static inline u32 SoftTimer_Stop(sSoftTimer* pTimer)
 {
-	if (pTimer->State == TIMER_RUNNING)
-	{
-		pTimer->State = TIMER_STOPPED;
-	}
+    if (pTimer->State == TIMER_RUNNING)
+    {
+        pTimer->State = TIMER_STOPPED;
+    }
 
-	return SoftTimer_Elapsed(pTimer);
+    return SoftTimer_Elapsed(pTimer);
 }

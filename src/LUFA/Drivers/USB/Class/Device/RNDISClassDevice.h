@@ -82,39 +82,39 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		uint8_t ControlInterfaceNumber; /**< Interface number of the RNDIS control
+    struct
+    {
+        uint8_t ControlInterfaceNumber; /**< Interface number of the RNDIS control
 										   interface within the device. */
 
-		USB_Endpoint_Table_t DataINEndpoint;	   /**< Data IN endpoint configuration table. */
-		USB_Endpoint_Table_t DataOUTEndpoint;	   /**< Data OUT endpoint configuration table. */
-		USB_Endpoint_Table_t NotificationEndpoint; /**< Notification IN Endpoint
+        USB_Endpoint_Table_t DataINEndpoint;       /**< Data IN endpoint configuration table. */
+        USB_Endpoint_Table_t DataOUTEndpoint;      /**< Data OUT endpoint configuration table. */
+        USB_Endpoint_Table_t NotificationEndpoint; /**< Notification IN Endpoint
 													  configuration table. */
 
-		char*		  AdapterVendorDescription; /**< String description of the adapter
+        char*         AdapterVendorDescription; /**< String description of the adapter
 												   vendor. */
-		MAC_Address_t AdapterMACAddress;		/**< MAC address of the adapter. */
+        MAC_Address_t AdapterMACAddress;        /**< MAC address of the adapter. */
 
-		uint8_t* MessageBuffer;		  /**< Buffer where RNDIS messages can be stored
+        uint8_t* MessageBuffer;       /**< Buffer where RNDIS messages can be stored
 									   * by the internal driver. This should be at
 									   * least 132 bytes in length for minimal
 									   * functionality. */
-		uint16_t MessageBufferLength; /**< Length in bytes of the \ref
+        uint16_t MessageBufferLength; /**< Length in bytes of the \ref
 										 MessageBuffer RNDIS buffer. */
-	} Config;						  /**< Config data for the USB class interface within the device.
+    } Config;                         /**< Config data for the USB class interface within the device.
 									   * All elements in this section <b>must</b> be set or the
 									   * interface will fail to enumerate and operate correctly.
 									   */
-	struct
-	{
-		bool	 ResponseReady;	   /**< Internal flag indicating if a RNDIS message is
+    struct
+    {
+        bool     ResponseReady;    /**< Internal flag indicating if a RNDIS message is
 									  waiting to be returned to the host. */
-		uint8_t	 CurrRNDISState;   /**< Current RNDIS state of the adapter, a value
+        uint8_t  CurrRNDISState;   /**< Current RNDIS state of the adapter, a value
 									  from the \ref RNDIS_States_t enum. */
-		uint32_t CurrPacketFilter; /**< Current packet filter mode, used
+        uint32_t CurrPacketFilter; /**< Current packet filter mode, used
 									  internally by the class driver. */
-	} State;					   /**< State data for the USB class interface within the device. All
+    } State;                       /**< State data for the USB class interface within the device. All
 									* elements in this section are reset to their defaults when the
 									* interface is enumerated.
 									*/
@@ -183,7 +183,7 @@ bool RNDIS_Device_IsPacketReceived(USB_ClassInfo_RNDIS_Device_t* const RNDISInte
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t RNDIS_Device_ReadPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo, void* Buffer, const uint16_t BufferSize,
-								uint16_t* PacketLength) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(4);
+                                uint16_t* PacketLength) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2) ATTR_NON_NULL_PTR_ARG(4);
 
 /** Sends the given packet to the attached RNDIS device, after adding a RNDIS
  * packet message header.
@@ -199,7 +199,7 @@ uint8_t RNDIS_Device_ReadPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfa
  *  \return A value from the \ref Endpoint_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t RNDIS_Device_SendPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo, void* Buffer, const uint16_t PacketLength)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /* Private Interface - For use in library only: */
 #if !defined(__DOXYGEN__)
@@ -210,10 +210,10 @@ uint8_t RNDIS_Device_SendPacket(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfa
 #if defined(__INCLUDE_FROM_RNDIS_DEVICE_C)
 static void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 static bool RNDIS_Device_ProcessNDISQuery(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo, const uint32_t OId, void* const QueryData,
-										  const uint16_t QuerySize, void* ResponseData, uint16_t* const ResponseSize)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(5) ATTR_NON_NULL_PTR_ARG(6);
+                                          const uint16_t QuerySize, void* ResponseData, uint16_t* const ResponseSize)
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(5) ATTR_NON_NULL_PTR_ARG(6);
 static bool RNDIS_Device_ProcessNDISSet(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo, const uint32_t OId, const void* SetData,
-										const uint16_t SetSize) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                        const uint16_t SetSize) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 #endif
 
 #endif

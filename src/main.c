@@ -39,60 +39,60 @@ static sSoftTimer timer = {0};
 
 static inline void SetupTest(void)
 {
-	SoftTimer_Start(&timer);
+    SoftTimer_Start(&timer);
 }
 
 static inline void RunTest(void)
 {
-	if (SoftTimer_Elapsed(&timer) >= 250)
-	{
-		Display_Test();
-		SoftTimer_Start(&timer);
-	}
+    if (SoftTimer_Elapsed(&timer) >= 250)
+    {
+        Display_Test();
+        SoftTimer_Start(&timer);
+    }
 }
 
 int main(void)
 {
-	// Do not adjust the order of these init functions!
+    // Do not adjust the order of these init functions!
 
-	System_Init();
-	DMA_Init();
-	USART_Init();
-	SoftTimer_Init();
-	Display_Init();
-	Input_Init();
-	Encoder_Init();
+    System_Init();
+    DMA_Init();
+    USART_Init();
+    SoftTimer_Init();
+    Display_Init();
+    Input_Init();
+    Encoder_Init();
 
-	USB_Init();
+    USB_Init();
 
-	GlobalInterruptEnable();
+    GlobalInterruptEnable();
 
-	Data_Init();
+    Data_Init();
 
-	if (gData.OperatingMode == TEST_MODE)
-	{
-		SetupTest();
-	}
+    if (gData.OperatingMode == TEST_MODE)
+    {
+        SetupTest();
+    }
 
-	while (1)
-	{
-		// Display_Update();
-		Input_Update();
+    while (1)
+    {
+        // Display_Update();
+        Input_Update();
 
-		switch (gData.OperatingMode)
-		{
-			case DEFAULT_MODE:
-				EncoderDisplay_Test();
-				// SideSwitch_Update();
-				// Encoder_Update();
-				// USBMidi_Update();
-				break;
+        switch (gData.OperatingMode)
+        {
+            case DEFAULT_MODE:
+                EncoderDisplay_Test();
+                // SideSwitch_Update();
+                // Encoder_Update();
+                // USBMidi_Update();
+                break;
 
-			case TEST_MODE: RunTest(); break;
+            case TEST_MODE: RunTest(); break;
 
-			default: break;
-		}
+            default: break;
+        }
 
-		USB_USBTask();
-	}
+        USB_USBTask();
+    }
 }

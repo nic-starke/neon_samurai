@@ -88,7 +88,7 @@ extern "C" {
 
 #if (F_USB == 8000000)
 #if (defined(__AVR_AT90USB82__) || defined(__AVR_AT90USB162__) || defined(__AVR_ATmega8U2__) || defined(__AVR_ATmega16U2__) ||             \
-	 defined(__AVR_ATmega32U2__))
+     defined(__AVR_ATmega32U2__))
 #define USB_PLL_PSC 0
 #elif (defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__))
 #define USB_PLL_PSC 0
@@ -99,7 +99,7 @@ extern "C" {
 #endif
 #elif (F_USB == 16000000)
 #if (defined(__AVR_AT90USB82__) || defined(__AVR_AT90USB162__) || defined(__AVR_ATmega8U2__) || defined(__AVR_ATmega16U2__) ||             \
-	 defined(__AVR_ATmega32U2__))
+     defined(__AVR_ATmega32U2__))
 #define USB_PLL_PSC (1 << PLLP0)
 #elif (defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__))
 #define USB_PLL_PSC (1 << PINDIV)
@@ -191,7 +191,7 @@ extern "C" {
 static inline bool USB_VBUS_GetStatus(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_VBUS_GetStatus(void)
 {
-	return ((USBSTA & (1 << VBUS)) ? true : false);
+    return ((USBSTA & (1 << VBUS)) ? true : false);
 }
 #endif
 
@@ -203,7 +203,7 @@ static inline bool USB_VBUS_GetStatus(void)
 static inline void USB_Detach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Detach(void)
 {
-	UDCON |= (1 << DETACH);
+    UDCON |= (1 << DETACH);
 }
 
 /** Attaches the device to the USB bus. This announces the device's presence to
@@ -219,7 +219,7 @@ static inline void USB_Detach(void)
 static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Attach(void)
 {
-	UDCON &= ~(1 << DETACH);
+    UDCON &= ~(1 << DETACH);
 }
 
 /* Function Prototypes: */
@@ -270,17 +270,17 @@ static inline void USB_Attach(void)
  */
 void USB_Init(
 #if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
-	const uint8_t Mode
+    const uint8_t Mode
 #endif
 
 #if (defined(USB_CAN_BE_BOTH) && !defined(USE_STATIC_OPTIONS)) || defined(__DOXYGEN__)
-	,
+    ,
 #elif (!defined(USB_CAN_BE_BOTH) && defined(USE_STATIC_OPTIONS))
-	void
+    void
 #endif
 
 #if !defined(USE_STATIC_OPTIONS) || defined(__DOXYGEN__)
-	const uint8_t Options
+    const uint8_t Options
 #endif
 );
 
@@ -351,29 +351,29 @@ static void USB_Init_Host(void);
 static inline void USB_PLL_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_PLL_On(void)
 {
-	PLLCSR = USB_PLL_PSC;
-	PLLCSR = (USB_PLL_PSC | (1 << PLLE));
+    PLLCSR = USB_PLL_PSC;
+    PLLCSR = (USB_PLL_PSC | (1 << PLLE));
 }
 
 static inline void USB_PLL_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_PLL_Off(void)
 {
-	PLLCSR = 0;
+    PLLCSR = 0;
 }
 
 static inline bool USB_PLL_IsReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_PLL_IsReady(void)
 {
-	return ((PLLCSR & (1 << PLOCK)) ? true : false);
+    return ((PLLCSR & (1 << PLOCK)) ? true : false);
 }
 
 static inline void USB_REG_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_REG_On(void)
 {
 #if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
-	UHWCON |= (1 << UVREGE);
+    UHWCON |= (1 << UVREGE);
 #else
-	REGCR &= ~(1 << REGDIS);
+    REGCR &= ~(1 << REGDIS);
 #endif
 }
 
@@ -381,9 +381,9 @@ static inline void USB_REG_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_REG_Off(void)
 {
 #if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
-	UHWCON &= ~(1 << UVREGE);
+    UHWCON &= ~(1 << UVREGE);
 #else
-	REGCR |= (1 << REGDIS);
+    REGCR |= (1 << REGDIS);
 #endif
 }
 
@@ -391,55 +391,55 @@ static inline void USB_REG_Off(void)
 static inline void USB_OTGPAD_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTGPAD_On(void)
 {
-	USBCON |= (1 << OTGPADE);
+    USBCON |= (1 << OTGPADE);
 }
 
 static inline void USB_OTGPAD_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTGPAD_Off(void)
 {
-	USBCON &= ~(1 << OTGPADE);
+    USBCON &= ~(1 << OTGPADE);
 }
 #endif
 
 static inline void USB_CLK_Freeze(void) ATTR_ALWAYS_INLINE;
 static inline void USB_CLK_Freeze(void)
 {
-	USBCON |= (1 << FRZCLK);
+    USBCON |= (1 << FRZCLK);
 }
 
 static inline void USB_CLK_Unfreeze(void) ATTR_ALWAYS_INLINE;
 static inline void USB_CLK_Unfreeze(void)
 {
-	USBCON &= ~(1 << FRZCLK);
+    USBCON &= ~(1 << FRZCLK);
 }
 
 static inline void USB_Controller_Enable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Enable(void)
 {
-	USBCON |= (1 << USBE);
+    USBCON |= (1 << USBE);
 }
 
 static inline void USB_Controller_Disable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Disable(void)
 {
-	USBCON &= ~(1 << USBE);
+    USBCON &= ~(1 << USBE);
 }
 
 static inline void USB_Controller_Reset(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Reset(void)
 {
-	USBCON &= ~(1 << USBE);
-	USBCON |= (1 << USBE);
+    USBCON &= ~(1 << USBE);
+    USBCON |= (1 << USBE);
 }
 
 #if defined(USB_CAN_BE_BOTH)
 static inline uint8_t USB_GetUSBModeFromUID(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t USB_GetUSBModeFromUID(void)
 {
-	if (USBSTA & (1 << ID))
-		return USB_MODE_Device;
-	else
-		return USB_MODE_Host;
+    if (USBSTA & (1 << ID))
+        return USB_MODE_Device;
+    else
+        return USB_MODE_Host;
 }
 #endif
 

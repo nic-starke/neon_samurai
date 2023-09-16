@@ -84,7 +84,7 @@ extern "C" {
 static inline void USB_OTG_Device_RequestHNP(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTG_Device_RequestHNP(void)
 {
-	OTGCON |= (1 << HNPREQ);
+    OTGCON |= (1 << HNPREQ);
 }
 
 /** Cancel a Host Negotiation Protocol request. This stops a pending HNP request
@@ -93,7 +93,7 @@ static inline void USB_OTG_Device_RequestHNP(void)
 static inline void USB_OTG_Device_CancelHNPRequest(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTG_Device_CancelHNPRequest(void)
 {
-	OTGCON &= ~(1 << HNPREQ);
+    OTGCON &= ~(1 << HNPREQ);
 }
 
 /** Determines if the device is currently sending a HNP to an attached host.
@@ -104,7 +104,7 @@ static inline void USB_OTG_Device_CancelHNPRequest(void)
 static inline bool USB_OTG_Device_IsSendingHNP(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_OTG_Device_IsSendingHNP(void)
 {
-	return ((OTGCON & (1 << HNPREQ)) ? true : false);
+    return ((OTGCON & (1 << HNPREQ)) ? true : false);
 }
 
 /** Initiates a Session Request Protocol request. Most OTG devices turn off VBUS
@@ -121,7 +121,7 @@ static inline bool USB_OTG_Device_IsSendingHNP(void)
 static inline void USB_OTG_Device_InitiateSRP(const uint8_t SRPTypeMask) ATTR_ALWAYS_INLINE;
 static inline void USB_OTG_Device_InitiateSRP(const uint8_t SRPTypeMask)
 {
-	OTGCON = ((OTGCON & ~(1 << SRPSEL)) | (SRPTypeMask | (1 << SRPREQ)));
+    OTGCON = ((OTGCON & ~(1 << SRPSEL)) | (SRPTypeMask | (1 << SRPREQ)));
 }
 
 /** Accepts a HNP from a connected device, indicating that both devices should
@@ -130,7 +130,7 @@ static inline void USB_OTG_Device_InitiateSRP(const uint8_t SRPTypeMask)
 static inline void USB_OTG_Host_AcceptHNP(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTG_Host_AcceptHNP(void)
 {
-	OTGCON |= (1 << HNPREQ);
+    OTGCON |= (1 << HNPREQ);
 }
 
 /** Rejects a HNP from a connected device, indicating that both devices should
@@ -139,7 +139,7 @@ static inline void USB_OTG_Host_AcceptHNP(void)
 static inline void USB_OTG_Host_RejectHNP(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTG_Host_RejectHNP(void)
 {
-	OTGCON &= ~(1 << HNPREQ);
+    OTGCON &= ~(1 << HNPREQ);
 }
 
 /** Indicates if the connected device is currently sending a HNP request.
@@ -150,7 +150,7 @@ static inline void USB_OTG_Host_RejectHNP(void)
 static inline bool USB_OTG_Host_IsHNPReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_OTG_Host_IsHNPReceived(void)
 {
-	return ((OTGCON & (1 << HNPREQ)) ? true : false);
+    return ((OTGCON & (1 << HNPREQ)) ? true : false);
 }
 
 /* Disable C linkage for C++ Compilers: */

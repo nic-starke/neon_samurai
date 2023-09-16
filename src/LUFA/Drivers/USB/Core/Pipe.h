@@ -108,13 +108,13 @@ extern "C" {
  */
 typedef struct
 {
-	uint8_t	 Address;		  /**< Address of the pipe to configure, or zero if the table
+    uint8_t  Address;         /**< Address of the pipe to configure, or zero if the table
 								 entry is to be unused. */
-	uint16_t Size;			  /**< Size of the pipe bank, in bytes. */
-	uint8_t	 EndpointAddress; /**< Address of the endpoint in the connected
+    uint16_t Size;            /**< Size of the pipe bank, in bytes. */
+    uint8_t  EndpointAddress; /**< Address of the endpoint in the connected
 								 device. */
-	uint8_t	 Type;			  /**< Type of the endpoint, a \c EP_TYPE_* mask. */
-	uint8_t	 Banks;			  /**< Number of hardware banks to use for the pipe. */
+    uint8_t  Type;            /**< Type of the endpoint, a \c EP_TYPE_* mask. */
+    uint8_t  Banks;           /**< Number of hardware banks to use for the pipe. */
 } USB_Pipe_Table_t;
 
 /* Macros: */

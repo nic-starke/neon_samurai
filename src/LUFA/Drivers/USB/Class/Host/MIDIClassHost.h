@@ -82,24 +82,24 @@ extern "C" {
  */
 typedef struct
 {
-	struct
-	{
-		USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
-		USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
-	} Config;						  /**< Config data for the USB class interface within the device.
+    struct
+    {
+        USB_Pipe_Table_t DataINPipe;  /**< Data IN Pipe configuration table. */
+        USB_Pipe_Table_t DataOUTPipe; /**< Data OUT Pipe configuration table. */
+    } Config;                         /**< Config data for the USB class interface within the device.
 									   * All elements in this section <b>must</b> be set or the
 									   * interface will fail to enumerate and operate correctly.
 									   */
-	struct
-	{
-		bool	IsActive;		 /**< Indicates if the current interface instance is
+    struct
+    {
+        bool    IsActive;        /**< Indicates if the current interface instance is
 								  * connected to an attached device, valid    after \ref
 								  * MIDI_Host_ConfigurePipes() is called and the Host
 								  * state machine is in the    Configured state.
 								  */
-		uint8_t InterfaceNumber; /**< Interface index of the MIDI interface
+        uint8_t InterfaceNumber; /**< Interface index of the MIDI interface
 									within the attached device. */
-	} State;					 /**< State data for the USB class interface within the device. All
+    } State;                     /**< State data for the USB class interface within the device. All
 								  * elements in this section <b>may</b> be set to initial values,
 								  * but may also be ignored to default to sane values when the
 								  * interface is enumerated.
@@ -111,11 +111,11 @@ typedef struct
  * MIDI_Host_ConfigurePipes() function. */
 enum MIDI_Host_EnumerationFailure_ErrorCodes_t
 {
-	MIDI_ENUMERROR_NoError					  = 0, /**< Configuration Descriptor was processed successfully. */
-	MIDI_ENUMERROR_InvalidConfigDescriptor	  = 1, /**< The device returned an invalid Configuration Descriptor. */
-	MIDI_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible MIDI interface was not found in the device's
+    MIDI_ENUMERROR_NoError                    = 0, /**< Configuration Descriptor was processed successfully. */
+    MIDI_ENUMERROR_InvalidConfigDescriptor    = 1, /**< The device returned an invalid Configuration Descriptor. */
+    MIDI_ENUMERROR_NoCompatibleInterfaceFound = 2, /**< A compatible MIDI interface was not found in the device's
 													  Configuration Descriptor. */
-	MIDI_ENUMERROR_PipeConfigurationFailed	  = 3, /**< One or more pipes for the specified interface could not be
+    MIDI_ENUMERROR_PipeConfigurationFailed    = 3, /**< One or more pipes for the specified interface could not be
 													  configured correctly. */
 };
 
@@ -138,7 +138,7 @@ enum MIDI_Host_EnumerationFailure_ErrorCodes_t
  * enum.
  */
 uint8_t MIDI_Host_ConfigurePipes(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo, uint16_t ConfigDescriptorSize,
-								 void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
+                                 void* ConfigDescriptorData) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(3);
 
 /** General management task for a given MIDI host class interface, required for
  * the correct operation of the interface. This should be called frequently in
@@ -163,7 +163,7 @@ void MIDI_Host_USBTask(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo) ATTR_
  *  \return A value from the \ref Pipe_Stream_RW_ErrorCodes_t enum.
  */
 uint8_t MIDI_Host_SendEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo, MIDI_EventPacket_t* const Event)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /** Flushes the MIDI send buffer, sending any queued MIDI events to the device.
  * This should be called to override the \ref MIDI_Host_SendEventPacket()
@@ -193,7 +193,7 @@ uint8_t MIDI_Host_Flush(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo) ATTR
  * otherwise.
  */
 bool MIDI_Host_ReceiveEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo, MIDI_EventPacket_t* const Event)
-	ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+    ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
 
 /* Private Interface - For use in library only: */
 #if !defined(__DOXYGEN__)
@@ -201,7 +201,7 @@ bool MIDI_Host_ReceiveEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterface
 #if defined(__INCLUDE_FROM_MIDI_HOST_C)
 static uint8_t DCOMP_MIDI_Host_NextMIDIStreamingInterface(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(1);
 static uint8_t DCOMP_MIDI_Host_NextMIDIStreamingDataEndpoint(void* const CurrentDescriptor) ATTR_WARN_UNUSED_RESULT
-	ATTR_NON_NULL_PTR_ARG(1);
+    ATTR_NON_NULL_PTR_ARG(1);
 #endif
 #endif
 

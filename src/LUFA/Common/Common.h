@@ -117,9 +117,9 @@ typedef uint8_t uint_reg_t;
 // === TODO: Find abstracted way to handle these ===
 #define PROGMEM
 #define pgm_read_byte(x) *x
-#define memcmp_P(...)	 memcmp(__VA_ARGS__)
-#define memcpy_P(...)	 memcpy(__VA_ARGS__)
-#define strlen_P(...)	 strlen(__VA_ARGS__)
+#define memcmp_P(...)    memcmp(__VA_ARGS__)
+#define memcpy_P(...)    memcpy(__VA_ARGS__)
+#define strlen_P(...)    strlen(__VA_ARGS__)
 // =================================================
 
 typedef uint32_t uint_reg_t;
@@ -245,8 +245,8 @@ typedef uint8_t uint_reg_t;
  *  \param[in] Name  Unique name of the interrupt service routine.
  */
 #define ISR(Name, ...)                                                                                                                     \
-	void Name(void) __attribute__((__interrupt__)) __VA_ARGS__;                                                                            \
-	void Name(void)
+    void Name(void) __attribute__((__interrupt__)) __VA_ARGS__;                                                                            \
+    void Name(void)
 #endif
 
 /* Inline Functions: */
@@ -260,11 +260,11 @@ typedef uint8_t uint_reg_t;
 static inline uint8_t BitReverse(uint8_t Byte) ATTR_WARN_UNUSED_RESULT ATTR_CONST;
 static inline uint8_t BitReverse(uint8_t Byte)
 {
-	Byte = (((Byte & 0xF0) >> 4) | ((Byte & 0x0F) << 4));
-	Byte = (((Byte & 0xCC) >> 2) | ((Byte & 0x33) << 2));
-	Byte = (((Byte & 0xAA) >> 1) | ((Byte & 0x55) << 1));
+    Byte = (((Byte & 0xF0) >> 4) | ((Byte & 0x0F) << 4));
+    Byte = (((Byte & 0xCC) >> 2) | ((Byte & 0x33) << 2));
+    Byte = (((Byte & 0xAA) >> 1) | ((Byte & 0x55) << 1));
 
-	return Byte;
+    return Byte;
 }
 
 /** Function to perform a blocking delay for a specified number of milliseconds.
@@ -278,32 +278,32 @@ static inline void Delay_MS(uint16_t Milliseconds) ATTR_ALWAYS_INLINE;
 static inline void Delay_MS(uint16_t Milliseconds)
 {
 #if (ARCH == ARCH_AVR8)
-	if (GCC_IS_COMPILE_CONST(Milliseconds))
-	{
-		_delay_ms(Milliseconds);
-	}
-	else
-	{
-		while (Milliseconds--)
-			_delay_ms(1);
-	}
+    if (GCC_IS_COMPILE_CONST(Milliseconds))
+    {
+        _delay_ms(Milliseconds);
+    }
+    else
+    {
+        while (Milliseconds--)
+            _delay_ms(1);
+    }
 #elif (ARCH == ARCH_UC3)
-	while (Milliseconds--)
-	{
-		__builtin_mtsr(AVR32_COUNT, 0);
-		while ((uint32_t)__builtin_mfsr(AVR32_COUNT) < (F_CPU / 1000))
-			;
-	}
+    while (Milliseconds--)
+    {
+        __builtin_mtsr(AVR32_COUNT, 0);
+        while ((uint32_t)__builtin_mfsr(AVR32_COUNT) < (F_CPU / 1000))
+            ;
+    }
 #elif (ARCH == ARCH_XMEGA)
-	if (GCC_IS_COMPILE_CONST(Milliseconds))
-	{
-		_delay_ms(Milliseconds);
-	}
-	else
-	{
-		while (Milliseconds--)
-			_delay_ms(1);
-	}
+    if (GCC_IS_COMPILE_CONST(Milliseconds))
+    {
+        _delay_ms(Milliseconds);
+    }
+    else
+    {
+        while (Milliseconds--)
+            _delay_ms(1);
+    }
 #endif
 }
 
@@ -319,14 +319,14 @@ static inline void Delay_MS(uint16_t Milliseconds)
 static inline uint_reg_t GetGlobalInterruptMask(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
 static inline uint_reg_t GetGlobalInterruptMask(void)
 {
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 
 #if (ARCH == ARCH_AVR8)
-	return SREG;
+    return SREG;
 #elif (ARCH == ARCH_UC3)
-	return __builtin_mfsr(AVR32_SR);
+    return __builtin_mfsr(AVR32_SR);
 #elif (ARCH == ARCH_XMEGA)
-	return SREG;
+    return SREG;
 #endif
 }
 
@@ -342,20 +342,20 @@ static inline uint_reg_t GetGlobalInterruptMask(void)
 static inline void SetGlobalInterruptMask(const uint_reg_t GlobalIntState) ATTR_ALWAYS_INLINE;
 static inline void SetGlobalInterruptMask(const uint_reg_t GlobalIntState)
 {
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 
 #if (ARCH == ARCH_AVR8)
-	SREG = GlobalIntState;
+    SREG = GlobalIntState;
 #elif (ARCH == ARCH_UC3)
-	if (GlobalIntState & AVR32_SR_GM)
-		__builtin_ssrf(AVR32_SR_GM_OFFSET);
-	else
-		__builtin_csrf(AVR32_SR_GM_OFFSET);
+    if (GlobalIntState & AVR32_SR_GM)
+        __builtin_ssrf(AVR32_SR_GM_OFFSET);
+    else
+        __builtin_csrf(AVR32_SR_GM_OFFSET);
 #elif (ARCH == ARCH_XMEGA)
-	SREG = GlobalIntState;
+    SREG = GlobalIntState;
 #endif
 
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 }
 
 /** Enables global interrupt handling for the device, allowing interrupts to be
@@ -366,17 +366,17 @@ static inline void SetGlobalInterruptMask(const uint_reg_t GlobalIntState)
 static inline void GlobalInterruptEnable(void) ATTR_ALWAYS_INLINE;
 static inline void GlobalInterruptEnable(void)
 {
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 
 #if (ARCH == ARCH_AVR8)
-	sei();
+    sei();
 #elif (ARCH == ARCH_UC3)
-	__builtin_csrf(AVR32_SR_GM_OFFSET);
+    __builtin_csrf(AVR32_SR_GM_OFFSET);
 #elif (ARCH == ARCH_XMEGA)
-	sei();
+    sei();
 #endif
 
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 }
 
 /** Disabled global interrupt handling for the device, preventing interrupts
@@ -387,17 +387,17 @@ static inline void GlobalInterruptEnable(void)
 static inline void GlobalInterruptDisable(void) ATTR_ALWAYS_INLINE;
 static inline void GlobalInterruptDisable(void)
 {
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 
 #if (ARCH == ARCH_AVR8)
-	cli();
+    cli();
 #elif (ARCH == ARCH_UC3)
-	__builtin_ssrf(AVR32_SR_GM_OFFSET);
+    __builtin_ssrf(AVR32_SR_GM_OFFSET);
 #elif (ARCH == ARCH_XMEGA)
-	cli();
+    cli();
 #endif
 
-	GCC_MEMORY_BARRIER();
+    GCC_MEMORY_BARRIER();
 }
 
 /* Disable C linkage for C++ Compilers: */

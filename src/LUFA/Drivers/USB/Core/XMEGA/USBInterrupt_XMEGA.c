@@ -36,70 +36,70 @@
 
 void USB_INT_DisableAllInterrupts(void)
 {
-	USB.INTCTRLA &= USB_INTLVL_gm;
-	USB.INTCTRLB = 0;
+    USB.INTCTRLA &= USB_INTLVL_gm;
+    USB.INTCTRLB = 0;
 }
 
 void USB_INT_ClearAllInterrupts(void)
 {
-	USB.INTFLAGSACLR = 0xFF;
-	USB.INTFLAGSBCLR = 0xFF;
+    USB.INTFLAGSACLR = 0xFF;
+    USB.INTFLAGSBCLR = 0xFF;
 }
 
 ISR(USB_BUSEVENT_vect)
 {
 #if !defined(NO_SOF_EVENTS)
-	if (USB_INT_HasOccurred(USB_INT_SOFI) && USB_INT_IsEnabled(USB_INT_SOFI))
-	{
-		USB_INT_Clear(USB_INT_SOFI);
+    if (USB_INT_HasOccurred(USB_INT_SOFI) && USB_INT_IsEnabled(USB_INT_SOFI))
+    {
+        USB_INT_Clear(USB_INT_SOFI);
 
-		EVENT_USB_Device_StartOfFrame();
-	}
+        EVENT_USB_Device_StartOfFrame();
+    }
 #endif
 
-	if (USB_INT_HasOccurred(USB_INT_BUSEVENTI_Suspend))
-	{
-		USB_INT_Clear(USB_INT_BUSEVENTI_Suspend);
+    if (USB_INT_HasOccurred(USB_INT_BUSEVENTI_Suspend))
+    {
+        USB_INT_Clear(USB_INT_BUSEVENTI_Suspend);
 
 #if !defined(NO_LIMITED_CONTROLLER_CONNECT)
-		USB_DeviceState = DEVICE_STATE_Unattached;
-		EVENT_USB_Device_Disconnect();
+        USB_DeviceState = DEVICE_STATE_Unattached;
+        EVENT_USB_Device_Disconnect();
 #else
-		USB_DeviceState = DEVICE_STATE_Suspended;
-		EVENT_USB_Device_Suspend();
+        USB_DeviceState = DEVICE_STATE_Suspended;
+        EVENT_USB_Device_Suspend();
 #endif
-	}
+    }
 
-	if (USB_INT_HasOccurred(USB_INT_BUSEVENTI_Resume))
-	{
-		USB_INT_Clear(USB_INT_BUSEVENTI_Resume);
+    if (USB_INT_HasOccurred(USB_INT_BUSEVENTI_Resume))
+    {
+        USB_INT_Clear(USB_INT_BUSEVENTI_Resume);
 
-		if (USB_Device_ConfigurationNumber)
-			USB_DeviceState = DEVICE_STATE_Configured;
-		else
-			USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Addressed : DEVICE_STATE_Powered;
+        if (USB_Device_ConfigurationNumber)
+            USB_DeviceState = DEVICE_STATE_Configured;
+        else
+            USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Addressed : DEVICE_STATE_Powered;
 
 #if !defined(NO_LIMITED_CONTROLLER_CONNECT)
-		EVENT_USB_Device_Connect();
+        EVENT_USB_Device_Connect();
 #else
-		EVENT_USB_Device_WakeUp();
+        EVENT_USB_Device_WakeUp();
 #endif
-	}
+    }
 
-	if (USB_INT_HasOccurred(USB_INT_BUSEVENTI_Reset))
-	{
-		USB_INT_Clear(USB_INT_BUSEVENTI_Reset);
+    if (USB_INT_HasOccurred(USB_INT_BUSEVENTI_Reset))
+    {
+        USB_INT_Clear(USB_INT_BUSEVENTI_Reset);
 
-		USB_DeviceState				   = DEVICE_STATE_Default;
-		USB_Device_ConfigurationNumber = 0;
+        USB_DeviceState                = DEVICE_STATE_Default;
+        USB_Device_ConfigurationNumber = 0;
 
-		USB_Device_EnableDeviceAddress(0);
+        USB_Device_EnableDeviceAddress(0);
 
-		Endpoint_ClearEndpoints();
-		Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
+        Endpoint_ClearEndpoints();
+        Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
 
-		EVENT_USB_Device_Reset();
-	}
+        EVENT_USB_Device_Reset();
+    }
 }
 
 #endif

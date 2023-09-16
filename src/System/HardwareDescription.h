@@ -19,11 +19,11 @@
 
 #pragma once
 
-#define NUM_ENCODERS			  (16)
-#define NUM_ENCODER_SWITCHES	  (NUM_ENCODERS)
-#define NUM_SIDE_SWITCHES		  (6)
-#define NUM_LEDS				  (256)
-#define NUM_LEDS_PER_ENCODER	  (16)
-#define NUM_INDICATOR_LEDS		  (11)
-#define NUM_LED_SHIFT_REGISTERS	  (32)
+#define NUM_ENCODERS              (16)
+#define NUM_ENCODER_SWITCHES      (NUM_ENCODERS)
+#define NUM_SIDE_SWITCHES         (6)
+#define NUM_LEDS                  (256)
+#define NUM_LEDS_PER_ENCODER      (16)
+#define NUM_INDICATOR_LEDS        (11)
+#define NUM_LED_SHIFT_REGISTERS   (32)
 #define NUM_INPUT_SHIFT_REGISTERS (6)

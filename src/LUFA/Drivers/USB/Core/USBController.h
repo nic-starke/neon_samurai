@@ -149,13 +149,13 @@ extern "C" {
  */
 enum USB_Modes_t
 {
-	USB_MODE_None	= 0, /**< Indicates that the controller is currently not
+    USB_MODE_None   = 0, /**< Indicates that the controller is currently not
 							initialized in any specific USB mode. */
-	USB_MODE_Device = 1, /**< Indicates that the controller is currently
+    USB_MODE_Device = 1, /**< Indicates that the controller is currently
 							initialized in USB Device mode. */
-	USB_MODE_Host	= 2, /**< Indicates that the controller is currently
+    USB_MODE_Host   = 2, /**< Indicates that the controller is currently
 							initialized in USB Host mode. */
-	USB_MODE_UID	= 3, /**< Indicates that the controller should determine the
+    USB_MODE_UID    = 3, /**< Indicates that the controller should determine the
 						  * USB mode from the UID pin of the    USB connector.
 						  */
 };

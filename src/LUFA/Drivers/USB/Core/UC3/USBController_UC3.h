@@ -144,7 +144,7 @@ extern "C" {
 static inline bool USB_VBUS_GetStatus(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool USB_VBUS_GetStatus(void)
 {
-	return AVR32_USBB.USBSTA.vbus;
+    return AVR32_USBB.USBSTA.vbus;
 }
 
 /** Detaches the device from the USB bus. This has the effect of removing the
@@ -155,7 +155,7 @@ static inline bool USB_VBUS_GetStatus(void)
 static inline void USB_Detach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Detach(void)
 {
-	AVR32_USBB.UDCON.detach = true;
+    AVR32_USBB.UDCON.detach = true;
 }
 
 /** Attaches the device to the USB bus. This announces the device's presence to
@@ -171,7 +171,7 @@ static inline void USB_Detach(void)
 static inline void USB_Attach(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Attach(void)
 {
-	AVR32_USBB.UDCON.detach = false;
+    AVR32_USBB.UDCON.detach = false;
 }
 
 /* Function Prototypes: */
@@ -218,17 +218,17 @@ static inline void USB_Attach(void)
  */
 void USB_Init(
 #if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
-	const uint8_t Mode
+    const uint8_t Mode
 #endif
 
 #if (defined(USB_CAN_BE_BOTH) && !defined(USE_STATIC_OPTIONS)) || defined(__DOXYGEN__)
-	,
+    ,
 #elif (!defined(USB_CAN_BE_BOTH) && defined(USE_STATIC_OPTIONS))
-	void
+    void
 #endif
 
 #if !defined(USE_STATIC_OPTIONS) || defined(__DOXYGEN__)
-	const uint8_t Options
+    const uint8_t Options
 #endif
 );
 
@@ -306,54 +306,54 @@ static void USB_Init_Host(void);
 static inline void USB_OTGPAD_On(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTGPAD_On(void)
 {
-	AVR32_USBB.USBCON.otgpade = true;
+    AVR32_USBB.USBCON.otgpade = true;
 }
 
 static inline void USB_OTGPAD_Off(void) ATTR_ALWAYS_INLINE;
 static inline void USB_OTGPAD_Off(void)
 {
-	AVR32_USBB.USBCON.otgpade = false;
+    AVR32_USBB.USBCON.otgpade = false;
 }
 
 static inline void USB_CLK_Freeze(void) ATTR_ALWAYS_INLINE;
 static inline void USB_CLK_Freeze(void)
 {
-	AVR32_USBB.USBCON.frzclk = true;
+    AVR32_USBB.USBCON.frzclk = true;
 }
 
 static inline void USB_CLK_Unfreeze(void) ATTR_ALWAYS_INLINE;
 static inline void USB_CLK_Unfreeze(void)
 {
-	AVR32_USBB.USBCON.frzclk = false;
+    AVR32_USBB.USBCON.frzclk = false;
 }
 
 static inline void USB_Controller_Enable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Enable(void)
 {
-	AVR32_USBB.USBCON.usbe = true;
+    AVR32_USBB.USBCON.usbe = true;
 }
 
 static inline void USB_Controller_Disable(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Disable(void)
 {
-	AVR32_USBB.USBCON.usbe = false;
+    AVR32_USBB.USBCON.usbe = false;
 }
 
 static inline void USB_Controller_Reset(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Controller_Reset(void)
 {
-	AVR32_USBB.USBCON.usbe = false;
-	AVR32_USBB.USBCON.usbe = true;
+    AVR32_USBB.USBCON.usbe = false;
+    AVR32_USBB.USBCON.usbe = true;
 }
 
 #if defined(USB_CAN_BE_BOTH)
 static inline uint8_t USB_GetUSBModeFromUID(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t USB_GetUSBModeFromUID(void)
 {
-	if (AVR32_USBB.USBSTA.id)
-		return USB_MODE_Device;
-	else
-		return USB_MODE_Host;
+    if (AVR32_USBB.USBSTA.id)
+        return USB_MODE_Device;
+    else
+        return USB_MODE_Host;
 }
 #endif
 

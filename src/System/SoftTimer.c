@@ -31,30 +31,30 @@ static vu32 mCurrentTick;
 
 void SoftTimer_Init(void)
 {
-	sTimer_Type0Config timerConfig = {
-		.pTimer		  = &SOFT_TIMER,
-		.ClockSource  = TC_CLKSEL_DIV1_gc,
-		.Timer		  = TIMER_TCD0,
-		.WaveformMode = TC_WGMODE_NORMAL_gc,
-	};
+    sTimer_Type0Config timerConfig = {
+        .pTimer       = &SOFT_TIMER,
+        .ClockSource  = TC_CLKSEL_DIV1_gc,
+        .Timer        = TIMER_TCD0,
+        .WaveformMode = TC_WGMODE_NORMAL_gc,
+    };
 
-	Timer_Type0Init(&timerConfig);
-	timerConfig.pTimer->PER = (u16)32000;
-	Timer_EnableOverflowInterrupt(&SOFT_TIMER, PRIORITY_LOW);
+    Timer_Type0Init(&timerConfig);
+    timerConfig.pTimer->PER = (u16)32000;
+    Timer_EnableOverflowInterrupt(&SOFT_TIMER, PRIORITY_LOW);
 }
 
 ISR(TCD0_OVF_vect)
 {
-	++mCurrentTick;
+    ++mCurrentTick;
 }
 
 u32 Millis(void)
 {
-	u32 m = 0;
-	// atomic block required due to 32 bit read
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-	{
-		m = mCurrentTick;
-	}
-	return m;
+    u32 m = 0;
+    // atomic block required due to 32 bit read (which is not single-cycle)
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        m = mCurrentTick;
+    }
+    return m;
 }

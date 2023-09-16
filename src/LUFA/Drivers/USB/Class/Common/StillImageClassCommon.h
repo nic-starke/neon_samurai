@@ -94,11 +94,11 @@ extern "C" {
 /** Enum for the possible PIMA contains types. */
 enum PIMA_Container_Types_t
 {
-	PIMA_CONTAINER_Undefined	 = 0, /**< Undefined container type. */
-	PIMA_CONTAINER_CommandBlock	 = 1, /**< Command Block container type. */
-	PIMA_CONTAINER_DataBlock	 = 2, /**< Data Block container type. */
-	PIMA_CONTAINER_ResponseBlock = 3, /**< Response container type. */
-	PIMA_CONTAINER_EventBlock	 = 4, /**< Event Block container type. */
+    PIMA_CONTAINER_Undefined     = 0, /**< Undefined container type. */
+    PIMA_CONTAINER_CommandBlock  = 1, /**< Command Block container type. */
+    PIMA_CONTAINER_DataBlock     = 2, /**< Data Block container type. */
+    PIMA_CONTAINER_ResponseBlock = 3, /**< Response container type. */
+    PIMA_CONTAINER_EventBlock    = 4, /**< Event Block container type. */
 };
 
 /* Enums: */
@@ -107,13 +107,13 @@ enum PIMA_Container_Types_t
  */
 enum SI_Descriptor_ClassSubclassProtocol_t
 {
-	SI_CSCP_StillImageClass	   = 0x06, /**< Descriptor Class value indicating that the device or
+    SI_CSCP_StillImageClass    = 0x06, /**< Descriptor Class value indicating that the device or
 										* interface belongs to the Still Image class.
 										*/
-	SI_CSCP_StillImageSubclass = 0x01, /**< Descriptor Subclass value indicating that the device or
+    SI_CSCP_StillImageSubclass = 0x01, /**< Descriptor Subclass value indicating that the device or
 										* interface belongs to the Still Image subclass.
 										*/
-	SI_CSCP_BulkOnlyProtocol   = 0x01, /**< Descriptor Protocol value indicating that the device or
+    SI_CSCP_BulkOnlyProtocol   = 0x01, /**< Descriptor Protocol value indicating that the device or
 										* interface belongs to the Bulk Only Transport protocol of the
 										* Still Image class.
 										*/
@@ -124,18 +124,18 @@ enum SI_Descriptor_ClassSubclassProtocol_t
  */
 enum PIMA_ResponseCodes_t
 {
-	PIMA_RESPONSE_OK					= 1, /**< Response code indicating no error in the issued command. */
-	PIMA_RESPONSE_GeneralError			= 2, /**< Response code indicating a general error while processing the
+    PIMA_RESPONSE_OK                    = 1, /**< Response code indicating no error in the issued command. */
+    PIMA_RESPONSE_GeneralError          = 2, /**< Response code indicating a general error while processing the
 											  *  issued command.
 											  */
-	PIMA_RESPONSE_SessionNotOpen		= 3, /**< Response code indicating that the sent command requires an open
+    PIMA_RESPONSE_SessionNotOpen        = 3, /**< Response code indicating that the sent command requires an open
 											  *   session before being issued.
 											  */
-	PIMA_RESPONSE_InvalidTransaction	= 4, /**< Response code indicating an invalid transaction occurred. */
-	PIMA_RESPONSE_OperationNotSupported = 5, /**< Response code indicating that the issued command is not
+    PIMA_RESPONSE_InvalidTransaction    = 4, /**< Response code indicating an invalid transaction occurred. */
+    PIMA_RESPONSE_OperationNotSupported = 5, /**< Response code indicating that the issued command is not
 											  * supported by the attached device.
 											  */
-	PIMA_RESPONSE_ParameterNotSupported = 6, /**< Response code indicating that one or more of the issued
+    PIMA_RESPONSE_ParameterNotSupported = 6, /**< Response code indicating that one or more of the issued
 											  * command's parameters are not supported by the device.
 											  */
 };
@@ -151,12 +151,12 @@ enum PIMA_ResponseCodes_t
  */
 typedef struct
 {
-	uint32_t DataLength;	/**< Length of the container and data, in bytes. */
-	uint16_t Type;			/**< Container type, a value from the \ref
+    uint32_t DataLength;    /**< Length of the container and data, in bytes. */
+    uint16_t Type;          /**< Container type, a value from the \ref
 							   PIMA_Container_Types_t enum. */
-	uint16_t Code;			/**< Command, event or response code of the container. */
-	uint32_t TransactionID; /**< Unique container ID to link blocks together. */
-	uint32_t Params[3];		/**< Block parameters to be issued along with the block
+    uint16_t Code;          /**< Command, event or response code of the container. */
+    uint32_t TransactionID; /**< Unique container ID to link blocks together. */
+    uint32_t Params[3];     /**< Block parameters to be issued along with the block
 							   code (command blocks only). */
 } ATTR_PACKED PIMA_Container_t;
 
