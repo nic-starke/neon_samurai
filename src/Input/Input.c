@@ -68,15 +68,15 @@ typedef struct
 
 typedef enum
 {
-    R_START,
-    R_CCW_BEGIN,
-    R_CW_BEGIN,
-    R_START_M,
-    R_CW_BEGIN_M,
-    R_CCW_BEGIN_M,
+    QUAD_00,
+    QUAD_01,
+    QUAD_10,
+    QUAD_11,
+    QUAD_100,
+    QUAD_101,
 
     NUM_ENCODER_ROTARY_STATES,
-} eEncoderRotationState;
+} eQuadratureState;
 
 // clang-format off
 
@@ -85,13 +85,13 @@ typedef enum
  * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
  * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
  */
-static const eEncoderRotationState EncoderRotLUT[NUM_ENCODER_ROTARY_STATES][4] = {
-		{R_START_M,            R_CW_BEGIN,     R_CCW_BEGIN,  R_START},					// R_START (00)
-		{R_START_M | DIR_CCW,  R_START,        R_CCW_BEGIN,  R_START},					// R_CCW_BEGIN
-		{R_START_M | DIR_CW,   R_CW_BEGIN,     R_START,      R_START},					// R_CW_BEGIN
-		{R_START_M,            R_CCW_BEGIN_M,  R_CW_BEGIN_M, R_START},					// R_START_M (11)
-		{R_START_M,            R_START_M,      R_CW_BEGIN_M, R_START | DIR_CW},			// R_CW_BEGIN_M
-		{R_START_M,            R_CCW_BEGIN_M,  R_START_M,    R_START | DIR_CCW},		// R_CCW_BEGIN_M
+static const eQuadratureState EncoderRotLUT[NUM_ENCODER_ROTARY_STATES][4] = {       // Current Quadrature GrayCode
+		{QUAD_11,            QUAD_10,       QUAD_01,        QUAD_00},				// 00
+		{QUAD_11 | DIR_CCW,  QUAD_00,       QUAD_01,        QUAD_00},				// 01
+		{QUAD_11 | DIR_CW,   QUAD_10,       QUAD_00,        QUAD_00},				// 10
+		{QUAD_11,            QUAD_101,      QUAD_100,       QUAD_00},				// 11
+		{QUAD_11,            QUAD_11,       QUAD_100,       QUAD_00 | DIR_CW},		// 100
+		{QUAD_11,            QUAD_101,      QUAD_11,        QUAD_00 | DIR_CCW},		// 101
 };
 
 // clang-format on

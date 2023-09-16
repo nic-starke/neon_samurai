@@ -25,6 +25,8 @@
 #define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
+// For more information on CBOR see - https://www.rfc-editor.org/rfc/rfc8949.html
+
 /**
  * @brief Prints an error to serial if the QCBOR context is in an error state
  * 
