@@ -28,6 +28,7 @@
 #include "Types.h"
 #include "Timer.h"
 #include "Settings.h"
+#include "Display.h"
 
 #define SIDE_SWITCH_PORT    (PORTA)
 #define ENCODER_PORT        (PORTC)
@@ -217,17 +218,15 @@ static inline void UpdateEncoderQuadratureStates(void)
     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
     {
         GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
-        u16 stateA = (u16)GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN);
-        SET_REG(mEncoderSR_CH_A, (stateA << encoder));
+        SET_REG(mEncoderSR_CH_A, GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN) ? (1u << encoder) : 0);
         GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
 
         GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
-        u16 stateB = (u16)GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN);
-        SET_REG(mEncoderSR_CH_B, (stateB << encoder));
+        SET_REG(mEncoderSR_CH_B, GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN) ? (1u << encoder) : 0);
         GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
     }
 }
-#include "Display.h"
+
 ISR(TCC1_CCA_vect)
 {
     INPUT_TIMER.CCA = INPUT_SCAN_RATE + INPUT_TIMER.CNT;

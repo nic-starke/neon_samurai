@@ -15,7 +15,8 @@ if [ -d "$BUILD_DIR" ]; then
     # ninja EepromSize
   else
   echo "BUILD FAILED - Stopping here."
-
+  exit 1
   fi
 fi
 
+exit 0

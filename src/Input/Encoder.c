@@ -18,6 +18,7 @@
  */
 
 #include <avr/pgmspace.h>
+#include <math.h>
 
 #include "Encoder.h"
 #include "HardwareDescription.h"
@@ -29,7 +30,7 @@
 static const sVirtualEncoder DEFAULT_PRIMARY_VENCODER = {
     .CurrentValue            = ENCODER_MIN_VAL,
     .PreviousValue           = ENCODER_MIN_VAL,
-    .DisplayStyle            = STYLE_DOT,
+    .DisplayStyle            = STYLE_BLENDED_BAR,
     .HasDetent               = false,
     .FineAdjust              = false,
     .MidiConfig.Channel      = 0,
@@ -43,7 +44,7 @@ static const sVirtualEncoder DEFAULT_PRIMARY_VENCODER = {
 static const sVirtualEncoder DEFAULT_SECONDARY_VENCODER = {
     .CurrentValue            = ENCODER_MID_VAL,
     .PreviousValue           = ENCODER_MID_VAL,
-    .DisplayStyle            = STYLE_BLENDED_BAR,
+    .DisplayStyle            = STYLE_DOT,
     .HasDetent               = true,
     .FineAdjust              = true,
     .MidiConfig.Channel      = 1,
@@ -82,6 +83,8 @@ static const sEncoderState DEFAULT_ENCODERSTATE = {
     .PrimaryEnabled = true,
 };
 
+static s16 Acceleration(sHardwareEncoder* pHWEncoder, s8 Movement, bool FineAdjust);
+
 void Encoder_Init(void)
 {
 }
@@ -102,20 +105,20 @@ void Encoder_FactoryReset(void)
             sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
             Encoder_SetDefaultConfig(pEncoder);
 
-            pEncoder->Primary.MidiConfig.MidiValue.CC       = encoder;
-            pEncoder->Primary.MidiConfig.Channel            = 0;
+            pEncoder->Primary.MidiConfig.MidiValue.CC = encoder;
+            pEncoder->Primary.MidiConfig.Channel      = 0;
 
-            pEncoder->PrimaryUber.MidiConfig.MidiValue.CC   = encoder;
-            pEncoder->PrimaryUber.MidiConfig.Channel        = 1;
+            pEncoder->PrimaryUber.MidiConfig.MidiValue.CC = encoder;
+            pEncoder->PrimaryUber.MidiConfig.Channel      = 1;
 
-            pEncoder->Secondary.MidiConfig.MidiValue.CC     = encoder;
-            pEncoder->Secondary.MidiConfig.Channel          = 2;
+            pEncoder->Secondary.MidiConfig.MidiValue.CC = encoder;
+            pEncoder->Secondary.MidiConfig.Channel      = 2;
 
             pEncoder->SecondaryUber.MidiConfig.MidiValue.CC = encoder;
             pEncoder->SecondaryUber.MidiConfig.Channel      = 3;
 
-            pEncoder->Primary.DisplayInvalid                = true;
-            pEncoder->Secondary.DisplayInvalid              = true;
+            pEncoder->Primary.DisplayInvalid   = true;
+            pEncoder->Secondary.DisplayInvalid = true;
             // pEncoder->Switch.MidiConfig.Channel = 0;
             // pEncoder->Switch.MidiConfig.OnValue = 1;
             // pEncoder->Switch.MidiConfig.OffValue = 0;
@@ -280,12 +283,10 @@ void Encoder_Update(void)
 #define ACC_ENABLED 0
 #if (ACC_ENABLED == 1)
             pHardwareEncoder->CurrentVelocity = move * Acceleration(pHardwareEncoder, move, pVE->FineAdjust);
-
-            s32 newValue = (s32)pVE->CurrentValue + pHardwareEncoder->CurrentVelocity;
 #else
-            pHardwareEncoder->CurrentVelocity += move;
-            s32 newValue = pHardwareEncoder->CurrentVelocity * 1000;
+            pHardwareEncoder->CurrentVelocity = move * 1000;
 #endif
+            s32 newValue = (s32)pVE->CurrentValue + pHardwareEncoder->CurrentVelocity;
 
             if (newValue >= ENCODER_MAX_VAL)
             {
