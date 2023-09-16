@@ -83,7 +83,7 @@ int main(void)
     GlobalInterruptEnable();
 
     // When eeprom/user settings are working correctly reinstate data init and remove factory reset.
-    //Data_Init();
+    Data_Init();
     Encoder_FactoryReset();
 
     if (gData.OperatingMode == TEST_MODE)

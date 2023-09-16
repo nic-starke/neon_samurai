@@ -43,7 +43,6 @@ typedef enum
 {
     VIRTUAL_LAYER_A,
     VIRTUAL_LAYER_B,
-    VIRTUAL_LAYER_C,
 
     NUM_VIRTUAL_ENCODER_LAYERS,
 } eVirtualEncoderLayers;
@@ -56,6 +55,12 @@ typedef enum
 
     NUM_DISPLAY_STYLES,
 } eEncoderDisplayStyle;
+
+
+typedef enum
+{
+    LAYERMODE_AB_
+} eLayerMode;
 
 // Mode is stored in 4 bits, max num modes is therefore 16
 typedef enum
@@ -84,8 +89,7 @@ typedef enum
     SWITCH_FINE_ADJUST_TOGGLE,
     SWITCH_LAYER_TOGGLE,     // Enable/disable a specified layer
     SWITCH_LAYER_HOLD,       // Enable a specified layer while switch is active
-    SWITCH_LAYER_CYCLE_AB,   // Cycle between two layers (enables one, and disables the other)
-    SWITCH_LAYER_CYCLE_NEXT, // Cycle to next layer (disable current, enable next)
+    SWITCH_LAYER_CYCLE,      // Cycle between two layers (enables one, and disables the other)
 
     NUM_SWITCH_MODES,
 } eSwitchMode;
@@ -116,6 +120,18 @@ typedef struct
 
 typedef struct
 {
+    union {
+        struct {
+            u8 Mode: 4;
+            u8 Channel : 4;
+        } sData;
+        u8 Byte;
+    } MidiData;
+    uMidiValue MidiValue;
+} sEERotaryMidiConfig;
+
+typedef struct
+{
     u8 Mode    : 4;
     u8 Channel : 4;
 
@@ -133,6 +149,16 @@ typedef struct
     sHSV              RGBColour;
     bool              Enabled;
 } sVirtualEncoderLayer; // Runtime state of an encoder layer
+
+typedef struct 
+{
+    u16               StartPosition;
+    u16               StopPosition;
+    u16               MinValue;
+    u16               MaxValue;
+    sEERotaryMidiConfig MidiConfig;
+    u16               RGBHue;
+} sEEVirtualEncoderLayer;
 
 typedef struct
 {

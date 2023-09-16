@@ -54,18 +54,6 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
     .Enabled                 = true,
 };
 
-static const sVirtualEncoderLayer DEFAULT_LAYER_C = {
-    .StartPosition           = ENCODER_MIN_VAL,
-    .StopPosition            = ENCODER_MAX_VAL,
-    .MinValue                = ENCODER_MIN_VAL,
-    .MaxValue                = ENCODER_MAX_VAL,
-    .MidiConfig.Channel      = 2,
-    .MidiConfig.Mode         = MIDIMODE_CC,
-    .MidiConfig.MidiValue.CC = 2,
-    .RGBColour               = HSV_GREEN,
-    .Enabled                 = true,
-};
-
 // clang-format off
 static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = {
     .State               = 0,
@@ -90,7 +78,7 @@ static const sEncoderState DEFAULT_ENCODERSTATE = {
     .HasDetent               = false,
     .Layers[VIRTUAL_LAYER_A] = DEFAULT_LAYER_A,
     .Layers[VIRTUAL_LAYER_B] = DEFAULT_LAYER_B,
-    .Layers[VIRTUAL_LAYER_C] = DEFAULT_LAYER_C,
+    // .Layers[VIRTUAL_LAYER_C] = DEFAULT_LAYER_C,
     .Switch                  = DEFAULT_ENCODER_SWITCH,
 };
 
@@ -261,7 +249,7 @@ static inline void UpdateEncoderSwitch(int EncoderIndex, sEncoderState* pEncoder
                 pEncoderState->Layers[pEncoderState->Switch.ModeParameter.Value].Enabled = pEncoderState->Switch.State;
                 break;
             }
-            case SWITCH_LAYER_CYCLE_AB:
+            case SWITCH_LAYER_CYCLE:
             {
                 if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
                 {

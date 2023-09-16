@@ -52,6 +52,8 @@ typedef struct
     u8 RGBBrightness;
     u8 DetentBrightness;
     u8 IndicatorBrightness;
+
+    sEEVirtualEncoderLayer VirtualEncoders[NUM_VIRTUAL_BANKS][NUM_VIRTUAL_ENCODER_LAYERS][NUM_ENCODERS];
 } sEEData; // Data stored in EEPROM
 
 // "mEEData" is stored in eeprom - access only via eeprom read/write functions
@@ -64,6 +66,7 @@ sEEData mEEData EEMEM = {
     .RGBBrightness       = BRIGHTNESS_MAX,
     .DetentBrightness    = BRIGHTNESS_MAX,
     .IndicatorBrightness = BRIGHTNESS_MAX,
+    .VirtualEncoders = {0},
 };
 
 // static inline void EE_ReadVirtualEncoder(sVirtualEncoder* pDest, sEEVirtualEncoder* pSrc)
@@ -137,29 +140,35 @@ sEEData mEEData EEMEM = {
 //     eeprom_update_block(&data, pDest, sizeof(sEEVirtualSwitch));
 // }
 
-// void Data_Init(void)
-// {
-//     NVM.CMD = 0x00; // Set NVM command register to NOP as per pgmspace.
+void Data_Init(void)
+{
+    NVM.CMD = 0x00; // Set NVM command register to NOP as per pgmspace.
 
-//     while (!eeprom_is_ready()) {} // wait for eeprom ready
+    while (!eeprom_is_ready()) {} // wait for eeprom ready
 
-//     // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
-//     gData.DataVersion  = eeprom_read_word(&mEEData.DataVersion);
-//     gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
+    u16 hue = eeprom_read_word(&mEEData.VirtualEncoders[0][0][0].RGBHue);
 
-//     if (gData.FactoryReset)
-//     {
-//         Data_FactoryReset();
-//         Data_RecallUserSettings();
-//         gData.FactoryReset = false;
-//         Display_Flash(100, 5);
-//     }
-//     else
-//     {
-//         Data_RecallUserSettings();
-//         Display_Flash(200, 2);
-//     }
-// }
+    hue = hue + 1;
+
+    eeprom_update_byte(&mEEData.VirtualEncoders[0][0][0].RGBHue, hue);
+
+    // // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
+    // gData.DataVersion  = eeprom_read_word(&mEEData.DataVersion);
+    // gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
+
+    // if (gData.FactoryReset)
+    // {
+    //     Data_FactoryReset();
+    //     Data_RecallUserSettings();
+    //     gData.FactoryReset = false;
+    //     Display_Flash(100, 5);
+    // }
+    // else
+    // {
+    //     Data_RecallUserSettings();
+    //     Display_Flash(200, 2);
+    // }
+}
 
 // void Data_FactoryReset(void)
 // {
