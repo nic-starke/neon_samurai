@@ -24,6 +24,7 @@
 #include "Encoder.h"
 #include "DataTypes.h"
 #include "Input.h"
+#include "Display.h"
 
 bool mMirrorInput = false;
 
@@ -60,6 +61,20 @@ void USBMidi_Receive(void)
         if (mMirrorInput)
         {
             MIDI_Device_SendEventPacket(&mMIDI_Interface, &rx);
+        }
+
+        switch(rx.Event)
+        {
+            case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_2BYTE):
+            case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_3BYTE):
+            case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE):
+            case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE):
+            case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_2BYTE):
+            case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE):
+            {
+                Display_Flash(500, 2);
+                break;
+            }
         }
         // switch on the event type - handle.
         // if (rx.Event == MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE))

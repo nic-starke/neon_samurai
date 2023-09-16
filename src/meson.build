@@ -1,6 +1,7 @@
 folders = [
 	'Display',
     'Input',
+    'MIDI',
 	'Peripheral',
 	'System',
     'USB',
