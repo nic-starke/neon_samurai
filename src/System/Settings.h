@@ -1,5 +1,5 @@
 /*
- * File: System.c ( 20th November 2021 )
+ * File: Settings.h ( 22nd November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -17,28 +17,21 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <avr/wdt.h>
-#include <Platform/XMEGA/ClockManagement.h>
+#pragma once
 
-#include "System.h"
-#include "DMA.h"
-#include "USART.h"
-#include "CPU.h"
-#include "Interrupt.h"
+/* Faster updates can reduce flickering (some people may be sensitive)
+ * But this will slow down input processing */
 
-void System_Init(void)
-{
-	wdt_disable();
+#define DISPLAY_REFRESH_SLOW   (80)
+#define DISPLAY_REFRESH_AVG	   (40)
+#define DISPLAY_REFRESH_FAST   (10)
+#define DISPLAY_REFRESH_INSANE (5)
 
-	// Initialise system clocks
-	XMEGACLK_StartPLL(CLOCK_SRC_INT_RC2MHZ, 2000000, F_CPU);
-	XMEGACLK_SetCPUClockSource(CLOCK_SRC_PLL);
-	XMEGACLK_StartInternalOscillator(CLOCK_SRC_INT_RC32MHZ);
-	XMEGACLK_StartDFLL(CLOCK_SRC_INT_RC32MHZ, DFLL_REF_INT_USBSOF, F_USB);
+#define DISPLAY_REFRESH_RATE (DISPLAY_REFRESH_AVG)
 
-	// Configure interrupt controller
-	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
+#define INPUT_SCAN_SLOW	  (40)
+#define INPUT_SCAN_AVG	  (10)
+#define INPUT_SCAN_FAST	  (5)
+#define INPUT_SCAN_INSANE (1)
 
-	DMA_Init();
-	USART_Init();
-}
+#define INPUT_SCAN_RATE (INPUT_SCAN_AVG)

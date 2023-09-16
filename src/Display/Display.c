@@ -17,6 +17,7 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
+#include <avr/io.h>
 #include <string.h>
 
 #include "Display.h"
@@ -25,15 +26,46 @@
 #include "DMA.h"
 #include "USART.h"
 #include "Timer.h"
+#include "Settings.h"
+#include "GPIO.h"
+
+#define DISPLAY_DMA_CH	(0)
+#define DISPLAY_USART	(USARTD0)
+#define USART_BAUD		(4000000)
+#define DISPLAY_SR_PORT (PORTD)
+#define DISPLAY_TIMER	(TCC0)
+
+#define PIN_SR_ENABLE (0)
+#define PIN_SR_CLK	  (1)
+#define PIN_SR_DATA	  (3)
+#define PIN_SR_LATCH  (4)
+#define PIN_SR_RESET  (5)
 
 static volatile DisplayFrame DisplayBuffer[DISPLAY_BUFFER_SIZE][NUM_ENCODERS];
+static vu8					 mCurrentFrame;
+
+static inline void Display_Enable(void)
+{
+    GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_ENABLE, LOW);
+}
+
+static inline void Display_Disable(void)
+{
+    GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_ENABLE, LOW);
+}
 
 void Display_Init(void)
 {
-	memset((DisplayFrame*) &DisplayBuffer[0], LED_OFF, sizeof(DisplayBuffer));
+	memset((DisplayFrame*)&DisplayBuffer[0], LED_OFF, sizeof(DisplayBuffer));
+
+    GPIO_SetPinDirection(&DISPLAY_SR_PORT, PIN_SR_ENABLE, GPIO_OUTPUT);
+	GPIO_SetPinDirection(&DISPLAY_SR_PORT, PIN_SR_CLK, GPIO_OUTPUT);
+	GPIO_SetPinDirection(&DISPLAY_SR_PORT, PIN_SR_DATA, GPIO_OUTPUT);
+    GPIO_SetPinDirection(&DISPLAY_SR_PORT, PIN_SR_LATCH, GPIO_OUTPUT);
+    GPIO_SetPinDirection(&DISPLAY_SR_PORT, PIN_SR_RESET, GPIO_OUTPUT);
 
 	const sDMA_ChannelConfig dmaConfig = {
-		.pChannel = DMA_GetChannelPointer(0),
+		.pChannel = DMA_GetChannelPointer(DISPLAY_DMA_CH),
 
 		.BurstLength		  = DMA_CH_BURSTLEN_1BYTE_gc,
 		.BytesPerTransfer	  = NUM_LED_SHIFT_REGISTERS, // 1 byte per SR
@@ -41,27 +73,80 @@ void Display_Init(void)
 		.DstAddress			  = (uintptr_t)&USARTD0.DATA,
 		.DstAddressingMode	  = DMA_CH_DESTDIR_FIXED_gc,
 		.DstReloadMode		  = DMA_CH_DESTRELOAD_NONE_gc,
-		.ErrInterruptPriority = DMA_CH_ERRINTLVL_MED_gc,
-		.InterruptPriority	  = DMA_CH_TRNINTLVL_MED_gc,
+		.ErrInterruptPriority = PRIORITY_OFF,
+		.InterruptPriority	  = PRIORITY_OFF,
 		.Repeats			  = 1, // Single shot
 		.SrcAddress			  = (uintptr_t)&DisplayBuffer[0][0],
 		.SrcAddressingMode	  = DMA_CH_SRCDIR_INC_gc,		   // Auto increment through buffer array
-		.SrcReloadMode		  = DMA_CH_SRCRELOAD_NONE_gc,	   // Handle address overflow manually in Display DMA ISR
+		.SrcReloadMode		  = DMA_CH_SRCRELOAD_NONE_gc,	   // Address reload handled manually in display update isr
 		.TriggerSource		  = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // USART SPI Master will trigger DMA transaction
 	};
 
 	DMA_InitChannel(&dmaConfig);
+	DMA_DisableChannel(DMA_GetChannelPointer(DISPLAY_DMA_CH));
 
 	const sUSART_ModuleConfig usartConfig = {
-		.pUSART	   = &USARTD0,
-		.BaudRate  = 4000000,
+		.pUSART	   = &DISPLAY_USART,
+		.BaudRate  = USART_BAUD,
 		.DataOrder = MSB_FIRST,
 		.SPIMode   = SPI_MODE_0,
 	};
 
 	USART_InitModule(&usartConfig);
 
-    sTimer_Type0Config timerConfig = {
-        .ClockSource = 
-    }
+	sTimer_Type0Config timerConfig = {
+		.pTimer		  = &DISPLAY_TIMER,
+		.ClockSource  = TC_CLKSEL_DIV256_gc,
+		.Timer		  = TIMER_TCC0,
+		.WaveformMode = TC_WGMODE_NORMAL_gc,
+	};
+
+	Timer_Type0Init(&timerConfig);
+	Timer_EnableChannelInterrupt(timerConfig.pTimer, TIMER_CHANNEL_A, PRIORITY_HI);
+	timerConfig.pTimer->CCA = (u16) DISPLAY_REFRESH_RATE;
+
+	// EncoderDisplays_Invalidate()
+
+	for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+	{
+		for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
+		{
+			if (encoder % 2 == 0)
+			{
+				DisplayBuffer[frame][encoder] = LEDS_OFF;
+			}
+			else
+			{
+				DisplayBuffer[frame][encoder] = LEDS_ON;
+			}
+		}
+	}
+
+    Display_Enable();
+
+	GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_RESET, LOW);
+	GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_RESET, HIGH);
+}
+
+// Display Interrupt
+ISR(TCC0_CCA_vect)
+{
+	// Increment the timer
+	DISPLAY_TIMER.CCA = DISPLAY_REFRESH_RATE + DISPLAY_TIMER.CNT;
+
+	// Latch the SR so the data that has been previously transmitted gets set to the SR outputs
+	GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, HIGH);
+	GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, LOW);
+
+	u8 flags = IRQ_DisableInterrupts();
+	DMA_EnableChannel(DMA_GetChannelPointer(DISPLAY_DMA_CH));
+
+	// Reset the source address if we are at the end of the display buffer
+	if (mCurrentFrame++ > DISPLAY_BUFFER_SIZE - 1)
+	{
+		while (DMA_ChannelBusy(DISPLAY_DMA_CH)) {}
+		DMA_SetChannelSourceAddress(DMA_GetChannelPointer(DISPLAY_DMA_CH), (uintptr_t)&DisplayBuffer[0]);
+	}
+
+	IRQ_EnableInterrupts(flags);
 }

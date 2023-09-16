@@ -26,10 +26,10 @@
 
 typedef enum
 {
-    PRIORITY_OFF,
-    PRIORITY_LOW,
-    PRIORITY_MED,
-    PRIORITY_HI,
+	PRIORITY_OFF,
+	PRIORITY_LOW,
+	PRIORITY_MED,
+	PRIORITY_HI,
 } eInterruptPriority;
 
 static inline u8 IRQ_DisableInterrupts(void)

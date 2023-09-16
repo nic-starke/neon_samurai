@@ -81,10 +81,10 @@ static inline u8 GetTimerPowerPort(eTimer_Peripheral Timer)
 			return PR.PRPE;
 		}
 
-        default:
-        {
-            return 0;
-        }
+		default:
+		{
+			return 0;
+		}
 	}
 
 	return 0;

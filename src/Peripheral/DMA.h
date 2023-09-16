@@ -33,8 +33,8 @@ typedef struct
 	DMA_CH_BURSTLEN_t	BurstLength;
 	DMA_CH_TRIGSRC_t	TriggerSource;
 	DMA_DBUFMODE_t		DoubleBufferMode;
-	DMA_CH_TRNINTLVL_t	InterruptPriority;
-	DMA_CH_ERRINTLVL_t	ErrInterruptPriority;
+	eInterruptPriority	InterruptPriority;
+	eInterruptPriority	ErrInterruptPriority;
 	uintptr_t			SrcAddress;
 	DMA_CH_SRCDIR_t		SrcAddressingMode;
 	DMA_CH_SRCRELOAD_t	SrcReloadMode;
@@ -76,6 +76,33 @@ static inline void DMA_DisableChannel(DMA_CH_t* pDMA)
 static inline void DMA_ResetChannel(DMA_CH_t* pDMA)
 {
 	SET_BIT(pDMA->CTRLA, DMA_CH_RESET_bm);
+}
+
+static inline bool DMA_ChannelBusy(u8 ChannelNumber)
+{
+	vu8 busy = DMA.STATUS;
+
+	busy &= (1 << ChannelNumber) | (1 << (ChannelNumber + 4));
+	if (busy)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+static inline void DMA_SetChannelSourceAddress(DMA_CH_t* pDMA, uintptr_t Address)
+{
+	pDMA->SRCADDR0 = (Address >> 0) & 0xFF;
+	pDMA->SRCADDR1 = (Address >> 8) & 0xFF;
+	pDMA->SRCADDR2 = (Address >> 16) & 0xFF;
+	// pDMA->SRCADDR2 = 0; .. runaway something or other...
+}
+
+static inline void DMA_SetChannelInterrupts(DMA_CH_t* pDMA, eInterruptPriority TransactionIntPriority, eInterruptPriority ErrorIntPriority)
+{
+	CLR_BIT(pDMA->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);
+	SET_BIT(pDMA->CTRLB, (ErrorIntPriority << DMA_CH_ERRINTLVL_gp) | (TransactionIntPriority << DMA_CH_TRNINTLVL_gp));
 }
 
 void DMA_Init(void);

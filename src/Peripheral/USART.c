@@ -42,7 +42,7 @@ static inline u8 GetBitMask(USART_t* pUSART)
 		return PR_USART1_bm;
 	}
 
-    return 0;
+	return 0;
 }
 
 static inline void EnablePower(USART_t* pUSART)

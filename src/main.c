@@ -17,14 +17,18 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Config.h"
-
 #ifndef __AVR_ATxmega128A4U__
 #warning "This project has only been tested on the XMEGA 128A4U, continue at your own risk"
 #endif
 
+#include "Config.h"
+
+#include "System.h"
+#include "Display.h"
+
 int main(void)
 {
-
+	System_Init();
+	Display_Init();
 	while (1) {}
 }

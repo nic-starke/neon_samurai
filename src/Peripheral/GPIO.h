@@ -30,7 +30,7 @@ typedef enum
 	GPIO_OUTPUT,
 } eGPIO_Direction;
 
-#define PIN_MASK(x) (1u << (x & 0x07))
+#define PIN_MASK(x) (1u << ((x) & 0x07))
 
 static inline void GPIO_SetPinDirection(PORT_t* Port, u8 Pin, eGPIO_Direction Direction)
 {
