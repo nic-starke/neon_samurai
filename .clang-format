@@ -1,0 +1,52 @@
+---
+Language: Cpp
+AlignArrayOfStructures: Right
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: AcrossComments
+AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
+AlignConsecutiveDeclarations: AcrossComments
+AlignConsecutiveMacros: AcrossComments
+AlignEscapedNewlines: Right
+AlignOperands: true
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+BitFieldColonSpacing: Both
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeElse: true
+  BeforeWhile: false
+ColumnLimit: 140
+ExperimentalAutoDetectBinPacking: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           ^"(llvm|llvm-c|clang|clang-c)/
+    Priority:        2
+    SortPriority:    2
+    CaseSensitive:   true
+  - Regex:           ^(<|"(gtest|gmock|isl|json)/)
+    Priority:        3
+  - Regex:           <[[:alnum:].]+>
+    Priority:        4
+  - Regex:           .*
+    Priority:        1
+    SortPriority:    0
+IncludeIsMainRegex: (Test)?$
+IndentCaseLabels: true
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Left
+ReflowComments: true
+SortIncludes: true
+SortUsingDeclarations: true
+TabWidth: 2
+
+...
