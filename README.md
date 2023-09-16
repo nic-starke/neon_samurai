@@ -1,4 +1,4 @@
-# MuffinTwister
+# Muffin
 *An open source alternative firmware for the excellent Midi Fighter Twister from DJ Tech Tools*
 
 
@@ -14,7 +14,7 @@ See below regarding feature requests.
 ## Feature Requests and Bug Reports
 Please use the [issues](https://github.com/bxzn/MuffinTwister/issues) page of the repository to request new features, or to submit a bug.
 
-## Why Muffin Twister?
+## Why Muffin?
 - To add new features to the MFT, and fix some of the original firmwares' curiosities.
 - To provide a clean and well organised firmware project that other users can extend for themselves.
 - As a personal project to experiment with the AVR platform.
