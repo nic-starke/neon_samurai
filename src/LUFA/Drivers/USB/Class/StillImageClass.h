@@ -31,27 +31,35 @@
 /** \file
  *  \brief Master include file for the library USB Still Image Class driver.
  *
- *  Master include file for the library USB Still Image Class driver, for both host and device modes, where available.
+ *  Master include file for the library USB Still Image Class driver, for both
+ * host and device modes, where available.
  *
- *  This file should be included in all user projects making use of this optional class driver, instead of
- *  including any headers in the USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common subdirectories.
+ *  This file should be included in all user projects making use of this
+ * optional class driver, instead of including any headers in the
+ * USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common
+ * subdirectories.
  */
 
 /** \ingroup Group_USBClassDrivers
  *  \defgroup Group_USBClassSI Still Image Class Driver
- *  \brief USB class driver for the USB-IF Still Image (PIMA-compliant) class standard.
+ *  \brief USB class driver for the USB-IF Still Image (PIMA-compliant) class
+ * standard.
  *
  *  \section Sec_USBClassSI_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
- *    - LUFA/Drivers/USB/Class/Host/StillImageClassHost.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
+ *  The following files must be built with any user project that uses this
+ * module:
+ *    - LUFA/Drivers/USB/Class/Host/StillImageClassHost.c <i>(Makefile source
+ * module name: LUFA_SRC_USBCLASS)</i>
  *
  *  \section Sec_USBClassSI_ModDescription Module Description
- *  Still Image Class Driver module. This module contains an internal implementation of the USB Still Image Class,
- *  for USB Host mode only. User applications can use this class driver instead of implementing the Still Image class
- *  manually via the low-level LUFA APIs.
+ *  Still Image Class Driver module. This module contains an internal
+ * implementation of the USB Still Image Class, for USB Host mode only. User
+ * applications can use this class driver instead of implementing the Still
+ * Image class manually via the low-level LUFA APIs.
  *
- *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
- *  Devices using the USB Still Image Class.
+ *  This module is designed to simplify the user code by exposing only the
+ * required interface needed to interface with Devices using the USB Still Image
+ * Class.
  *
  *  @{
  */

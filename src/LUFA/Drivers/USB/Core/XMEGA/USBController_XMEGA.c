@@ -43,7 +43,8 @@ volatile uint8_t USB_CurrentMode = USB_MODE_None;
 volatile uint8_t USB_Options;
 #endif
 
-/* Ugly workaround to ensure an aligned table, since __BIGGEST_ALIGNMENT__ == 1 for the 8-bit AVR-GCC toolchain */
+/* Ugly workaround to ensure an aligned table, since __BIGGEST_ALIGNMENT__ == 1
+ * for the 8-bit AVR-GCC toolchain */
 uint8_t USB_EndpointTable[sizeof(USB_EndpointTable_t) + 1];
 
 void USB_Init(
@@ -74,7 +75,8 @@ void USB_Init(
 	USB.CAL1 = pgm_read_byte(offsetof(NVM_PROD_SIGNATURES_t, USBCAL1));
 	NVM.CMD	 = NVM_CMD_NO_OPERATION_gc;
 
-	/* Ugly workaround to ensure an aligned table, since __BIGGEST_ALIGNMENT__ == 1 for the 8-bit AVR-GCC toolchain */
+	/* Ugly workaround to ensure an aligned table, since __BIGGEST_ALIGNMENT__
+	 * == 1 for the 8-bit AVR-GCC toolchain */
 	USB.EPPTR = ((intptr_t)&USB_EndpointTable[1] & ~(1 << 0));
 	USB.CTRLA = (USB_STFRNUM_bm | ((ENDPOINT_TOTAL_ENDPOINTS - 1) << USB_MAXEP_gp));
 

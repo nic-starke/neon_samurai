@@ -33,20 +33,22 @@
  *
  *  \copydetails Group_Architectures
  *
- *  \note Do not include this file directly, rather include the Common.h header file instead to gain this file's
- *        functionality.
+ *  \note Do not include this file directly, rather include the Common.h header
+ * file instead to gain this file's functionality.
  */
 
 /** \ingroup Group_Common
  *  \defgroup Group_Architectures Hardware Architectures
  *  \brief Supported library architecture defines.
  *
- *  Architecture macros for selecting the desired target microcontroller architecture. One of these values should be
- *  defined as the value of \c ARCH in the user project makefile via the \c -D compiler switch to GCC, to select the
- *  target architecture.
+ *  Architecture macros for selecting the desired target microcontroller
+ * architecture. One of these values should be defined as the value of \c ARCH
+ * in the user project makefile via the \c -D compiler switch to GCC, to select
+ * the target architecture.
  *
- *  The selected architecture should remain consistent with the makefile \c ARCH value, which is used to select the
- *  underlying driver source files for each architecture.
+ *  The selected architecture should remain consistent with the makefile \c ARCH
+ * value, which is used to select the underlying driver source files for each
+ * architecture.
  *
  *  @{
  */

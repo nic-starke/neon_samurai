@@ -166,8 +166,9 @@ void RNDIS_Device_USBTask(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo
 
 void RNDIS_Device_ProcessRNDISControlMessage(USB_ClassInfo_RNDIS_Device_t* const RNDISInterfaceInfo)
 {
-	/* Note: Only a single buffer is used for both the received message and its response to save SRAM. Because of
-			 this, response bytes should be filled in order so that they do not clobber unread data in the buffer. */
+	/* Note: Only a single buffer is used for both the received message and its
+	   response to save SRAM. Because of this, response bytes should be filled
+	   in order so that they do not clobber unread data in the buffer. */
 
 	RNDIS_Message_Header_t* MessageHeader = (RNDIS_Message_Header_t*)RNDISInterfaceInfo->Config.MessageBuffer;
 
@@ -318,7 +319,8 @@ static bool RNDIS_Device_ProcessNDISQuery(USB_ClassInfo_RNDIS_Device_t* const RN
 		case OID_GEN_VENDOR_ID:
 			*ResponseSize = sizeof(uint32_t);
 
-			/* Vendor ID 0x0xFFFFFF is reserved for vendors who have not purchased a NDIS VID */
+			/* Vendor ID 0x0xFFFFFF is reserved for vendors who have not
+			 * purchased a NDIS VID */
 			*((uint32_t*)ResponseData) = CPU_TO_LE32(0x00FFFFFF);
 
 			return true;
@@ -386,7 +388,8 @@ static bool RNDIS_Device_ProcessNDISQuery(USB_ClassInfo_RNDIS_Device_t* const RN
 		case OID_GEN_MAXIMUM_TOTAL_SIZE:
 			*ResponseSize = sizeof(uint32_t);
 
-			/* Indicate maximum overall buffer (Ethernet frame and RNDIS header) the adapter can handle */
+			/* Indicate maximum overall buffer (Ethernet frame and RNDIS header)
+			 * the adapter can handle */
 			*((uint32_t*)ResponseData) = CPU_TO_LE32(RNDISInterfaceInfo->Config.MessageBufferLength + ETHERNET_FRAME_SIZE_MAX);
 
 			return true;
@@ -408,7 +411,8 @@ static bool RNDIS_Device_ProcessNDISSet(USB_ClassInfo_RNDIS_Device_t* const RNDI
 
 			return true;
 		case OID_802_3_MULTICAST_LIST:
-			/* Do nothing - throw away the value from the host as it is unused */
+			/* Do nothing - throw away the value from the host as it is unused
+			 */
 
 			return true;
 		default: return false;

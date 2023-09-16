@@ -103,13 +103,15 @@ static inline void SetBaudRate(USART_t* pUSART, u32 BaudRate, u32 CPUFrequency)
 		baudSelection = (CPUFrequency / (BaudRate * 2)) - 1;
 	}
 
-	// USART in Master SPI mode does NOT support double speed (other USART modes do).
+	// USART in Master SPI mode does NOT support double speed (other USART modes
+	// do).
 	pUSART->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baudSelection >> 0x08));
 	pUSART->BAUDCTRLA = (u8)(baudSelection);
 }
 
 /**
- * @brief Configures SCK, TX and RX for the corrects pins based on the port number.
+ * @brief Configures SCK, TX and RX for the corrects pins based on the port
+ * number.
  *
  * @param pUSART A pointer to the USART module.
  */

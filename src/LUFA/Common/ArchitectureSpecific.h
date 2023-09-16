@@ -29,20 +29,23 @@
 */
 
 /** \file
- *  \brief Architecture specific definitions relating to specific processor architectures.
+ *  \brief Architecture specific definitions relating to specific processor
+ * architectures.
  *
  *  \copydetails Group_ArchitectureSpecific
  *
- *  \note Do not include this file directly, rather include the Common.h header file instead to gain this file's
- *        functionality.
+ *  \note Do not include this file directly, rather include the Common.h header
+ * file instead to gain this file's functionality.
  */
 
 /** \ingroup Group_Common
  *  \defgroup Group_ArchitectureSpecific Architecture Specific Definitions
- *  \brief Architecture specific definitions relating to specific processor architectures.
+ *  \brief Architecture specific definitions relating to specific processor
+ * architectures.
  *
- *  Architecture specific macros, functions and other definitions, which relate to specific architectures. This
- *  definitions may or may not be available in some form on other architectures, and thus should be protected by
+ *  Architecture specific macros, functions and other definitions, which relate
+ * to specific architectures. This definitions may or may not be available in
+ * some form on other architectures, and thus should be protected by
  *  preprocessor checks in portable code to prevent compile errors.
  *
  *  @{
@@ -65,8 +68,9 @@ extern "C" {
 /* Macros: */
 #if (ARCH == ARCH_AVR8) || (ARCH == ARCH_XMEGA) || defined(__DOXYGEN__)
 #if (ARCH == ARCH_AVR8) || defined(__DOXYGEN__)
-/** Re-enables the AVR's JTAG bus in software, until a system reset. This will re-enable JTAG debugging
- *  interface after is has been disabled in software via \ref JTAG_DISABLE().
+/** Re-enables the AVR's JTAG bus in software, until a system reset. This will
+ * re-enable JTAG debugging interface after is has been disabled in software via
+ * \ref JTAG_DISABLE().
  *
  *  \note This macro is not available for all architectures.
  */
@@ -88,9 +92,9 @@ extern "C" {
 							 : "r0");                                                                                                      \
 	} while (0)
 
-/** Disables the AVR's JTAG bus in software, until a system reset. This will override the current JTAG
- *  status as set by the JTAGEN fuse, disabling JTAG debugging and reverting the JTAG pins back to GPIO
- *  mode.
+/** Disables the AVR's JTAG bus in software, until a system reset. This will
+ * override the current JTAG status as set by the JTAGEN fuse, disabling JTAG
+ * debugging and reverting the JTAG pins back to GPIO mode.
  *
  *  \note This macro is not available for all architectures.
  */
@@ -113,22 +117,25 @@ extern "C" {
 	} while (0)
 #endif
 
-/** Defines a volatile \c NOP statement which cannot be optimized out by the compiler, and thus can always
- *  be set as a breakpoint in the resulting code. Useful for debugging purposes, where the optimizer
- *  removes/reorders code to the point where break points cannot reliably be set.
+/** Defines a volatile \c NOP statement which cannot be optimized out by the
+ * compiler, and thus can always be set as a breakpoint in the resulting code.
+ * Useful for debugging purposes, where the optimizer removes/reorders code to
+ * the point where break points cannot reliably be set.
  *
  *  \note This macro is not available for all architectures.
  */
 #define JTAG_DEBUG_POINT() __asm__ __volatile__("nop" ::)
 
-/** Defines an explicit JTAG break point in the resulting binary via the assembly \c BREAK statement. When
- *  a JTAG is used, this causes the program execution to halt when reached until manually resumed.
+/** Defines an explicit JTAG break point in the resulting binary via the
+ * assembly \c BREAK statement. When a JTAG is used, this causes the program
+ * execution to halt when reached until manually resumed.
  *
  *  \note This macro is not available for all architectures.
  */
 #define JTAG_DEBUG_BREAK() __asm__ __volatile__("break" ::)
 
-/** Macro for testing condition "x" and breaking via \ref JTAG_DEBUG_BREAK() if the condition is false.
+/** Macro for testing condition "x" and breaking via \ref JTAG_DEBUG_BREAK() if
+ * the condition is false.
  *
  *  \note This macro is not available for all architectures.
  *
@@ -141,11 +148,13 @@ extern "C" {
 			JTAG_DEBUG_BREAK();                                                                                                            \
 	} while (0)
 
-/** Macro for testing condition \c "x" and writing debug data to the stdout stream if \c false. The stdout stream
- *  must be pre-initialized before this macro is run and linked to an output device, such as the microcontroller's
+/** Macro for testing condition \c "x" and writing debug data to the stdout
+ * stream if \c false. The stdout stream must be pre-initialized before this
+ * macro is run and linked to an output device, such as the microcontroller's
  *  USART peripheral.
  *
- *  The output takes the form "{FILENAME}: Function {FUNCTION NAME}, Line {LINE NUMBER}: Assertion {Condition} failed."
+ *  The output takes the form "{FILENAME}: Function {FUNCTION NAME}, Line {LINE
+ * NUMBER}: Assertion {Condition} failed."
  *
  *  \note This macro is not available for all architectures.
  *
@@ -161,9 +170,10 @@ extern "C" {
 	} while (0)
 
 #if !defined(pgm_read_ptr) || defined(__DOXYGEN__)
-/** Reads a pointer out of PROGMEM space on the AVR8 architecture. This is a wrapper for the avr-libc
- *  \c pgm_read_word() macro with a \c void* cast, so that its value can be assigned directly to a
- *  pointer variable or used in pointer arithmetic without further casting in C.
+/** Reads a pointer out of PROGMEM space on the AVR8 architecture. This is a
+ * wrapper for the avr-libc \c pgm_read_word() macro with a \c void* cast, so
+ * that its value can be assigned directly to a pointer variable or used in
+ * pointer arithmetic without further casting in C.
  *
  *  \note This macro is not available for all architectures.
  *

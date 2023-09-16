@@ -25,8 +25,9 @@
 #include "Utility.h"
 
 // static const uintptr_t TimerPointers[NUM_TIMER_PERIPHERALS] PROGMEM = {
-// 	[TIMER_TCC0] = &TCC0, [TIMER_TCC1] = &TCC1, [TIMER_TCC2] = &TCC2, [TIMER_TCD0] = &TCD0,
-// 	[TIMER_TCD1] = &TCD1, [TIMER_TCD2] = &TCD2, [TIMER_TCE0] = &TCE0,
+// 	[TIMER_TCC0] = &TCC0, [TIMER_TCC1] = &TCC1, [TIMER_TCC2] = &TCC2,
+// [TIMER_TCD0] = &TCD0, 	[TIMER_TCD1] = &TCD1, [TIMER_TCD2] = &TCD2,
+// [TIMER_TCE0] = &TCE0,
 // };
 
 // static inline uintptr_t GetTimerPointer(eTimer_Peripheral Timer)

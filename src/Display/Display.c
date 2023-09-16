@@ -28,6 +28,7 @@
 #include "Timer.h"
 #include "Settings.h"
 #include "GPIO.h"
+#include "SoftTimer.h"
 
 #define DISPLAY_DMA_CH	(0)
 #define DISPLAY_USART	(USARTD0)
@@ -87,6 +88,35 @@ void Display_Test(void)
 	testEncoder = (testEncoder + 1) % NUM_ENCODERS;
 }
 
+void Display_Flash(int intervalMS, int Count)
+{
+	sSoftTimer timer = {0};
+	SoftTimer_Start(&timer);
+
+	do
+	{
+		while (SoftTimer_Elapsed(&timer) < intervalMS) {}
+		SoftTimer_Start(&timer);
+		for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+		{
+			for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
+			{
+				DisplayBuffer[frame][encoder] = LEDS_ON;
+			}
+		}
+
+		while (SoftTimer_Elapsed(&timer) < intervalMS) {}
+		SoftTimer_Start(&timer);
+		for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+		{
+			for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
+			{
+				DisplayBuffer[frame][encoder] = LEDS_OFF;
+			}
+		}
+	} while (--Count > 0);
+}
+
 void Display_Init(void)
 {
 	Display_ClearAll();
@@ -111,8 +141,10 @@ void Display_Init(void)
 		.Repeats			  = 0, // Single shot
 		.SrcAddress			  = (u16)(uintptr_t)DisplayBuffer,
 		.SrcAddressingMode	  = DMA_CH_SRCDIR_INC_gc,		   // Auto increment through buffer array
-		.SrcReloadMode		  = DMA_CH_SRCRELOAD_NONE_gc,	   // Address reload handled manually in display update isr
-		.TriggerSource		  = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // USART SPI Master will trigger DMA transaction
+		.SrcReloadMode		  = DMA_CH_SRCRELOAD_NONE_gc,	   // Address reload handled manually in
+															   // display update isr
+		.TriggerSource		  = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // USART SPI Master will trigger DMA
+															   // transaction
 	};
 
 	DMA_InitChannel(&dmaConfig);
@@ -153,7 +185,8 @@ ISR(TCC0_CCA_vect)
 	// Increment the timer
 	DISPLAY_TIMER.CCA = DISPLAY_REFRESH_RATE + DISPLAY_TIMER.CNT;
 
-	// Latch the SR so the data that has been previously transmitted gets set to the SR outputs
+	// Latch the SR so the data that has been previously transmitted gets set to
+	// the SR outputs
 	GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, HIGH);
 	GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, LOW);
 

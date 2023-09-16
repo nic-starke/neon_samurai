@@ -30,20 +30,22 @@
 */
 
 /** \file
- *  \brief Common definitions and declarations for the library USB CCID Class driver.
+ *  \brief Common definitions and declarations for the library USB CCID Class
+ * driver.
  *
  *  Common definitions and declarations for the library USB CCID Class driver.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LUFA/Drivers/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB module driver dispatch header located in
+ * LUFA/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassCCID
  *  \defgroup Group_USBClassCCIDCommon  Common Class Definitions
  *
  *  \section Sec_USBClassCCIDCommon_ModDescription Module Description
- *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
- *  CCID Class.
+ *  Constants, Types and Enum definitions that are common to both Device and
+ * Host modes for the USB CCID Class.
  *
  *  @{
  */
@@ -100,19 +102,19 @@ extern "C" {
 #define CCID_DESCRIPTOR_CLOCK_MHZ(mhz) ((mhz)*1000)
 
 /* Enums: */
-/** Enum for possible Class, Subclass and Protocol values of device and interface descriptors relating to the CCID
- *  device class.
+/** Enum for possible Class, Subclass and Protocol values of device and
+ * interface descriptors relating to the CCID device class.
  */
 enum CCID_Descriptor_ClassSubclassProtocol_t
 {
-	CCID_CSCP_CCIDClass			 = 0x0b, /**< Descriptor Class value indicating that the device or interface
-										  *   belongs to the CCID class.
+	CCID_CSCP_CCIDClass			 = 0x0b, /**< Descriptor Class value indicating that the device or
+										  * interface belongs to the CCID class.
 										  */
-	CCID_CSCP_NoSpecificSubclass = 0x00, /**< Descriptor Subclass value indicating that the device or interface
-										  *   belongs to no specific subclass of the CCID class.
+	CCID_CSCP_NoSpecificSubclass = 0x00, /**< Descriptor Subclass value indicating that the device or
+										  * interface belongs to no specific subclass of the CCID class.
 										  */
-	CCID_CSCP_NoSpecificProtocol = 0x00, /**< Descriptor Protocol value indicating that the device or interface
-										  *   belongs to no specific protocol of the CCID class.
+	CCID_CSCP_NoSpecificProtocol = 0x00, /**< Descriptor Protocol value indicating that the device or
+										  * interface belongs to no specific protocol of the CCID class.
 										  */
 };
 
@@ -141,7 +143,8 @@ enum CCID_BulkOutMessages_t
 	CCID_RDR_to_PC_DataRateAndClockFrequency = 0x84,
 };
 
-/** Enum for the CCID class specific control requests that can be issued by the USB bus host. */
+/** Enum for the CCID class specific control requests that can be issued by the
+ * USB bus host. */
 enum CCID_ClassRequests_t
 {
 	CCID_ABORT				   = 0x1,
@@ -178,7 +181,8 @@ enum CCID_Features_ExchangeLevel_t
 /* Type Defines: */
 typedef struct
 {
-	USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
+	USB_Descriptor_Header_t Header; /**< Regular descriptor header containing
+									   the descriptor's type and length. */
 
 	uint16_t CCID;
 	uint8_t	 MaxSlotIndex;

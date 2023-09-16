@@ -151,13 +151,18 @@ typedef struct
 
 typedef struct
 {
-	u8 State;
+	u8 State	: 1;
+	u8 Mode		: 4;
+	u8 Reserved : 3;
 
 	sSwitchMidiConfig MidiConfig;
 } sVirtualSwitch; // Runtime state of a virtual switch
 
 typedef struct
 {
+	u8 Mode		: 4;
+	u8 Reserved : 4;
+
 	sSwitchMidiConfig MidiConfig;
 } sEEVirtualSwitch; // Stored state of a virtual switch
 
@@ -178,9 +183,6 @@ typedef struct
 	sVirtualUber	PrimaryUber;
 	sVirtualUber	SecondaryUber;
 	sVirtualSwitch	Switch;
-
-	u8 SecondaryEnabled : 1;
-	u8 Reserved			: 7;
 } sEncoderState;
 
 typedef struct
@@ -191,3 +193,7 @@ typedef struct
 	u8	Sample;
 	u32 Bits;
 } sHardwareEncoder;
+
+void Encoder_Init(void);
+void Encoder_SetDefaultConfig(sEncoderState* pEncoder);
+void Encoder_FactoryReset(void);

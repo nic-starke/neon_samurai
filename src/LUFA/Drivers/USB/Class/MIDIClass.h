@@ -31,10 +31,13 @@
 /** \file
  *  \brief Master include file for the library USB MIDI Class driver.
  *
- *  Master include file for the library USB MIDI Class driver, for both host and device modes, where available.
+ *  Master include file for the library USB MIDI Class driver, for both host and
+ * device modes, where available.
  *
- *  This file should be included in all user projects making use of this optional class driver, instead of
- *  including any headers in the USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common subdirectories.
+ *  This file should be included in all user projects making use of this
+ * optional class driver, instead of including any headers in the
+ * USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common
+ * subdirectories.
  */
 
 /** \ingroup Group_USBClassDrivers
@@ -42,20 +45,26 @@
  *  \brief USB class driver for the USB-IF MIDI class standard.
  *
  *  \section Sec_USBClassMIDI_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
- *    - LUFA/Drivers/USB/Class/Device/MIDIClassDevice.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
- *    - LUFA/Drivers/USB/Class/Host/MIDIClassHost.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
+ *  The following files must be built with any user project that uses this
+ * module:
+ *    - LUFA/Drivers/USB/Class/Device/MIDIClassDevice.c <i>(Makefile source
+ * module name: LUFA_SRC_USBCLASS)</i>
+ *    - LUFA/Drivers/USB/Class/Host/MIDIClassHost.c <i>(Makefile source module
+ * name: LUFA_SRC_USBCLASS)</i>
  *
  *  \section Sec_USBClassMIDI_ModDescription Module Description
- *  MIDI Class Driver module. This module contains an internal implementation of the USB MIDI Class, for both Device
- *  and Host USB modes. User applications can use this class driver instead of implementing the MIDI class manually
- *  via the low-level LUFA APIs.
+ *  MIDI Class Driver module. This module contains an internal implementation of
+ * the USB MIDI Class, for both Device and Host USB modes. User applications can
+ * use this class driver instead of implementing the MIDI class manually via the
+ * low-level LUFA APIs.
  *
- *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
- *  Hosts or Devices using the USB MIDI Class.
+ *  This module is designed to simplify the user code by exposing only the
+ * required interface needed to interface with Hosts or Devices using the USB
+ * MIDI Class.
  *
- *  \note The USB MIDI class is actually a special case of the regular Audio class, thus this module depends on
- *        structure definitions from the \ref Group_USBClassAudioDevice class driver module.
+ *  \note The USB MIDI class is actually a special case of the regular Audio
+ * class, thus this module depends on structure definitions from the \ref
+ * Group_USBClassAudioDevice class driver module.
  *
  *  @{
  */

@@ -29,20 +29,23 @@
 */
 
 /** \file
- *  \brief Common definitions and declarations for the library USB Android Open Accessory Class driver.
+ *  \brief Common definitions and declarations for the library USB Android Open
+ * Accessory Class driver.
  *
- *  Common definitions and declarations for the library USB Android Open Accessory Class driver.
+ *  Common definitions and declarations for the library USB Android Open
+ * Accessory Class driver.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LUFA/Drivers/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB module driver dispatch header located in
+ * LUFA/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassAOA
  *  \defgroup Group_USBClassAOACommon  Common Class Definitions
  *
  *  \section Sec_USBClassAOACommon_ModDescription Module Description
- *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
- *  Android Open Accessory Class.
+ *  Constants, Types and Enum definitions that are common to both Device and
+ * Host modes for the USB Android Open Accessory Class.
  *
  *  @{
  */
@@ -64,36 +67,41 @@ extern "C" {
 #endif
 
 /* Macros: */
-/** Product ID value in a Device Descriptor to indicate an Android device in Open Accessory mode. */
+/** Product ID value in a Device Descriptor to indicate an Android device in
+ * Open Accessory mode. */
 #define ANDROID_ACCESSORY_PRODUCT_ID 0x2D00
 
-/** Product ID value in a Device Descriptor to indicate an Android device in Open Accessory and Android Debug mode. */
+/** Product ID value in a Device Descriptor to indicate an Android device in
+ * Open Accessory and Android Debug mode. */
 #define ANDROID_ACCESSORY_ADB_PRODUCT_ID 0x2D01
 
 /* Enums: */
-/** Enum for possible Class, Subclass and Protocol values of device and interface descriptors relating to the
- *  Android Open Accessory class.
+/** Enum for possible Class, Subclass and Protocol values of device and
+ * interface descriptors relating to the Android Open Accessory class.
  */
 enum AOA_Descriptor_ClassSubclassProtocol_t
 {
-	AOA_CSCP_AOADataClass	 = 0xFF, /**< Descriptor Class value indicating that the device or interface
-									  *   belongs to the AOA data class.
+	AOA_CSCP_AOADataClass	 = 0xFF, /**< Descriptor Class value indicating that the device or
+									  * interface belongs to the AOA data class.
 									  */
-	AOA_CSCP_AOADataSubclass = 0xFF, /**< Descriptor Subclass value indicating that the device or interface
-									  *   belongs to AOA data subclass.
+	AOA_CSCP_AOADataSubclass = 0xFF, /**< Descriptor Subclass value indicating that the device or
+									  * interface belongs to AOA data subclass.
 									  */
-	AOA_CSCP_AOADataProtocol = 0x00, /**< Descriptor Protocol value indicating that the device or interface
-									  *   belongs to the AOA data class protocol.
+	AOA_CSCP_AOADataProtocol = 0x00, /**< Descriptor Protocol value indicating that the device or
+									  * interface belongs to the AOA data class protocol.
 									  */
 };
 
-/** Enum for the Android Open Accessory class specific control requests that can be issued by the USB bus host. */
+/** Enum for the Android Open Accessory class specific control requests that can
+ * be issued by the USB bus host. */
 enum AOA_ClassRequests_t
 {
-	AOA_REQ_GetAccessoryProtocol =
-		0x33, /**< Android Open Accessory control request to retrieve the device's supported Accessory Protocol version. */
-	AOA_REQ_SendString		   = 0x34, /**< Android Open Accessory control request to set an accessory property string in the device. */
-	AOA_REQ_StartAccessoryMode = 0x35, /**< Android Open Accessory control request to switch the device into Accessory mode. */
+	AOA_REQ_GetAccessoryProtocol = 0x33, /**< Android Open Accessory control request to retrieve the
+											device's supported Accessory Protocol version. */
+	AOA_REQ_SendString			 = 0x34, /**< Android Open Accessory control request to set an accessory
+											property string in the device. */
+	AOA_REQ_StartAccessoryMode	 = 0x35, /**< Android Open Accessory control request to switch the device
+											into Accessory mode. */
 };
 
 /** Enum for the possible Android Open Accessory property string indexes. */

@@ -6,19 +6,23 @@
 #include <Drivers/USB/USB.h>
 
 /* Macros: */
-/** Endpoint address of the MIDI streaming data IN endpoint, for device-to-host data transfers. */
+/** Endpoint address of the MIDI streaming data IN endpoint, for device-to-host
+ * data transfers. */
 #define MIDI_STREAM_IN_EPADDR (ENDPOINT_DIR_IN | 2)
 
-/** Endpoint address of the MIDI streaming data OUT endpoint, for host-to-device data transfers. */
+/** Endpoint address of the MIDI streaming data OUT endpoint, for host-to-device
+ * data transfers. */
 #define MIDI_STREAM_OUT_EPADDR (ENDPOINT_DIR_OUT | 1)
 
-/** Endpoint size in bytes of the Audio isochronous streaming data IN and OUT endpoints. */
+/** Endpoint size in bytes of the Audio isochronous streaming data IN and OUT
+ * endpoints. */
 #define MIDI_STREAM_EPSIZE 64
 
 /* Type Defines: */
-/** Type define for the device configuration descriptor structure. This must be defined in the
- *  application code, as the configuration descriptor contains several sub-descriptors which
- *  vary between devices, and which describe the device's usage to the host.
+/** Type define for the device configuration descriptor structure. This must be
+ * defined in the application code, as the configuration descriptor contains
+ * several sub-descriptors which vary between devices, and which describe the
+ * device's usage to the host.
  */
 typedef struct
 {
@@ -41,9 +45,9 @@ typedef struct
 	USB_MIDI_Descriptor_Jack_Endpoint_t		  MIDI_Out_Jack_Endpoint_SPC;
 } USB_Descriptor_Configuration_t;
 
-/** Enum for the device interface descriptor IDs within the device. Each interface descriptor
- *  should have a unique ID index associated with it, which can be used to refer to the
- *  interface from other descriptors.
+/** Enum for the device interface descriptor IDs within the device. Each
+ * interface descriptor should have a unique ID index associated with it, which
+ * can be used to refer to the interface from other descriptors.
  */
 enum InterfaceDescriptors_t
 {
@@ -51,9 +55,9 @@ enum InterfaceDescriptors_t
 	INTERFACE_ID_AudioStream  = 1, /**< Audio streaming interface descriptor ID */
 };
 
-/** Enum for the device string descriptor IDs within the device. Each string descriptor should
- *  have a unique ID index associated with it, which can be used to refer to the string from
- *  other descriptors.
+/** Enum for the device string descriptor IDs within the device. Each string
+ * descriptor should have a unique ID index associated with it, which can be
+ * used to refer to the string from other descriptors.
  */
 enum StringDescriptors_t
 {

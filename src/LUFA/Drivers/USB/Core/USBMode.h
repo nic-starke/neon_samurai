@@ -32,22 +32,25 @@
  *  \brief USB mode and feature support definitions.
  *  \copydetails Group_USBMode
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
  *  \defgroup Group_USBMode USB Mode Tokens
  *  \brief USB mode and feature support definitions.
  *
- *  This file defines macros indicating the type of USB controller the library is being compiled for, and its
- *  capabilities. These macros may then be referenced in the user application to selectively enable or disable
- *  code sections depending on if they are defined or not.
+ *  This file defines macros indicating the type of USB controller the library
+ * is being compiled for, and its capabilities. These macros may then be
+ * referenced in the user application to selectively enable or disable code
+ * sections depending on if they are defined or not.
  *
- *  After the inclusion of the master USB driver header, one or more of the following tokens may be defined, to
- *  allow the user code to conditionally enable or disable code based on the USB controller family and allowable
- *  USB modes. These tokens may be tested against to eliminate code relating to a USB mode which is not enabled for
- *  the given compilation.
+ *  After the inclusion of the master USB driver header, one or more of the
+ * following tokens may be defined, to allow the user code to conditionally
+ * enable or disable code based on the USB controller family and allowable USB
+ * modes. These tokens may be tested against to eliminate code relating to a USB
+ * mode which is not enabled for the given compilation.
  *
  *  @{
  */
@@ -70,103 +73,103 @@ extern "C" {
 
 /* Public Interface - May be used in end-application: */
 #if defined(__DOXYGEN__)
-/** Indicates that the target AVR microcontroller belongs to the Series 2 AVR8 USB controller
- *  (i.e. AT90USBxxx2 or ATMEGAxxU2) when defined.
+/** Indicates that the target AVR microcontroller belongs to the Series 2 AVR8
+ * USB controller (i.e. AT90USBxxx2 or ATMEGAxxU2) when defined.
  */
 #define USB_SERIES_2_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the Series 4 AVR8 USB controller
- *  (i.e. ATMEGAxxU4) when defined.
+/** Indicates that the target AVR microcontroller belongs to the Series 4 AVR8
+ * USB controller (i.e. ATMEGAxxU4) when defined.
  */
 #define USB_SERIES_4_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the Series 6 AVR8 USB controller
- *  (i.e. AT90USBxxx6) when defined.
+/** Indicates that the target AVR microcontroller belongs to the Series 6 AVR8
+ * USB controller (i.e. AT90USBxxx6) when defined.
  */
 #define USB_SERIES_6_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the Series 7 AVR8 USB controller
- *  (i.e. AT90USBxxx7) when defined.
+/** Indicates that the target AVR microcontroller belongs to the Series 7 AVR8
+ * USB controller (i.e. AT90USBxxx7) when defined.
  */
 #define USB_SERIES_7_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A0 Series USB controller
- *  (i.e. AT32UC3A0*) when defined.
+/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A0
+ * Series USB controller (i.e. AT32UC3A0*) when defined.
  */
 #define USB_SERIES_UC3A0_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A1 Series USB controller
- *  (i.e. AT32UC3A1*) when defined.
+/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A1
+ * Series USB controller (i.e. AT32UC3A1*) when defined.
  */
 #define USB_SERIES_UC3A1_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A3 Series USB controller
- *  (i.e. AT32UC3A3*) when defined.
+/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A3
+ * Series USB controller (i.e. AT32UC3A3*) when defined.
  */
 #define USB_SERIES_UC3A3_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A4 Series USB controller
- *  (i.e. AT32UC3A4*) when defined.
+/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3A4
+ * Series USB controller (i.e. AT32UC3A4*) when defined.
  */
 #define USB_SERIES_UC3A4_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3B0 Series USB controller
- *  (i.e. AT32UC3B0*) when defined.
+/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3B0
+ * Series USB controller (i.e. AT32UC3B0*) when defined.
  */
 #define USB_SERIES_UC3B0_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3B1 Series USB controller
- *  (i.e. AT32UC3B1*) when defined.
+/** Indicates that the target AVR microcontroller belongs to the AVR32 UC3B1
+ * Series USB controller (i.e. AT32UC3B1*) when defined.
  */
 #define USB_SERIES_UC3B1_AVR
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA A1U Series USB controller
- *  (i.e. ATXMEGA*A1U) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA A1U
+ * Series USB controller (i.e. ATXMEGA*A1U) when defined.
  */
 #define USB_SERIES_A1U_XMEGA
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA A3U Series USB controller
- *  (i.e. ATXMEGA*A3U) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA A3U
+ * Series USB controller (i.e. ATXMEGA*A3U) when defined.
  */
 #define USB_SERIES_A3U_XMEGA
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA A4U Series USB controller
- *  (i.e. ATXMEGA*A4U) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA A4U
+ * Series USB controller (i.e. ATXMEGA*A4U) when defined.
  */
 #define USB_SERIES_A4U_XMEGA
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA B1 Series USB controller
- *  (i.e. ATXMEGA*B1) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA B1 Series
+ * USB controller (i.e. ATXMEGA*B1) when defined.
  */
 #define USB_SERIES_B1_XMEGA
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA B3 Series USB controller
- *  (i.e. ATXMEGA*B3) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA B3 Series
+ * USB controller (i.e. ATXMEGA*B3) when defined.
  */
 #define USB_SERIES_B3_XMEGA
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA C3 Series USB controller
- *  (i.e. ATXMEGA*C3) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA C3 Series
+ * USB controller (i.e. ATXMEGA*C3) when defined.
  */
 #define USB_SERIES_C3_XMEGA
 
-/** Indicates that the target AVR microcontroller belongs to the XMEGA C4 Series USB controller
- *  (i.e. ATXMEGA*C4) when defined.
+/** Indicates that the target AVR microcontroller belongs to the XMEGA C4 Series
+ * USB controller (i.e. ATXMEGA*C4) when defined.
  */
 #define USB_SERIES_C4_XMEGA
 
-/** Indicates that the target microcontroller and compilation settings allow for the
- *  target to be configured in USB Device mode when defined.
+/** Indicates that the target microcontroller and compilation settings allow for
+ * the target to be configured in USB Device mode when defined.
  */
 #define USB_CAN_BE_DEVICE
 
-/** Indicates that the target microcontroller and compilation settings allow for the
- *  target to be configured in USB Host mode when defined.
+/** Indicates that the target microcontroller and compilation settings allow for
+ * the target to be configured in USB Host mode when defined.
  */
 #define USB_CAN_BE_HOST
 
-/** Indicates that the target microcontroller and compilation settings allow for the
- *  target to be configured in either USB Device or Host mode when defined.
+/** Indicates that the target microcontroller and compilation settings allow for
+ * the target to be configured in either USB Device or Host mode when defined.
  */
 #define USB_CAN_BE_BOTH
 #else

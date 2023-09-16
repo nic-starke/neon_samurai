@@ -29,13 +29,15 @@
 */
 
 /** \file
- *  \brief USB Controller Interrupt definitions for the AVR32 UC3 microcontrollers.
+ *  \brief USB Controller Interrupt definitions for the AVR32 UC3
+ * microcontrollers.
  *
- *  This file contains definitions required for the correct handling of low level USB service routine interrupts
- *  from the USB controller.
+ *  This file contains definitions required for the correct handling of low
+ * level USB service routine interrupts from the USB controller.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 #ifndef __USBINTERRUPT_UC3_H__
@@ -273,9 +275,10 @@ void USB_INT_DisableAllInterrupts(void);
 /* Public Interface - May be used in end-application: */
 /* Function Prototypes: */
 #if defined(__DOXYGEN__)
-/** Interrupt service routine handler for the USB controller ISR group. This interrupt routine <b>must</b> be
- *  linked to the entire USB controller ISR vector group inside the AVR32's interrupt controller peripheral,
- *  using the user application's preferred USB controller driver.
+/** Interrupt service routine handler for the USB controller ISR group. This
+ * interrupt routine <b>must</b> be linked to the entire USB controller ISR
+ * vector group inside the AVR32's interrupt controller peripheral, using the
+ * user application's preferred USB controller driver.
  */
 void USB_GEN_vect(void);
 #else

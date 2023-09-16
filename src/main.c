@@ -53,17 +53,26 @@ static inline void RunTest(void)
 
 int main(void)
 {
+	// Do not adjust the order of these init functions!
+
 	System_Init();
 	DMA_Init();
 	USART_Init();
 	SoftTimer_Init();
 	Display_Init();
 	Input_Init();
-	Data_Init();
+	Encoder_Init();
 
 	USB_Init();
 
 	GlobalInterruptEnable();
+	
+    Data_Init();
+
+	if (gData.OperatingMode == TEST_MODE)
+	{
+		SetupTest();
+	}
 
 	while (1)
 	{
@@ -77,6 +86,8 @@ int main(void)
 				// Encoder_Update();
 				// USBMidi_Update();
 				break;
+
+			case TEST_MODE: RunTest(); break;
 
 			default: break;
 		}

@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <avr/pgmspace.h>
+
 #include "Types.h"
 #include "Encoder.h"
 #include "HardwareDescription.h"
@@ -26,6 +28,7 @@
 typedef enum
 {
 	DEFAULT_MODE,
+	TEST_MODE,
 
 	NUM_OPERATING_MODES,
 } eOperatingMode;
@@ -33,6 +36,10 @@ typedef enum
 typedef struct
 {
 	eOperatingMode OperatingMode;
+
+	u8	 FirmwareVersion;
+	u8	 DataVersion;
+	bool FactoryReset;
 
 	u8 RGBBrightness;
 	u8 DetentBrightness;
@@ -52,4 +59,15 @@ typedef struct
 
 extern sData gData;
 
+static inline void Data_PGMReadBlock(void* pDest, const void* pSrc, u8 size)
+{
+	u8* dest = (u8*)pDest;
+	for (u8 i = 0; i < size; i++)
+	{
+		dest[i] = pgm_read_byte((const u8*)pSrc + i);
+	}
+}
+
 void Data_Init(void);
+void Data_FactoryReset(void);
+void Data_RecallUserSettings(void);

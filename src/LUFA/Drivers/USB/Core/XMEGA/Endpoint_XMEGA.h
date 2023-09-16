@@ -32,39 +32,45 @@
  *  \brief USB Endpoint definitions for the AVR XMEGA microcontrollers.
  *  \copydetails Group_EndpointManagement_XMEGA
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_EndpointRW
  *  \defgroup Group_EndpointRW_XMEGA Endpoint Data Reading and Writing (XMEGA)
- *  \brief Endpoint data read/write definitions for the Atmel AVR XMEGA architecture.
+ *  \brief Endpoint data read/write definitions for the Atmel AVR XMEGA
+ * architecture.
  *
- *  Functions, macros, variables, enums and types related to data reading and writing from and to endpoints.
+ *  Functions, macros, variables, enums and types related to data reading and
+ * writing from and to endpoints.
  */
 
 /** \ingroup Group_EndpointPrimitiveRW
- *  \defgroup Group_EndpointPrimitiveRW_XMEGA Read/Write of Primitive Data Types (XMEGA)
- *  \brief Endpoint primitive read/write definitions for the Atmel AVR XMEGA architecture.
+ *  \defgroup Group_EndpointPrimitiveRW_XMEGA Read/Write of Primitive Data Types
+ * (XMEGA) \brief Endpoint primitive read/write definitions for the Atmel AVR
+ * XMEGA architecture.
  *
- *  Functions, macros, variables, enums and types related to data reading and writing of primitive data types
- *  from and to endpoints.
+ *  Functions, macros, variables, enums and types related to data reading and
+ * writing of primitive data types from and to endpoints.
  */
 
 /** \ingroup Group_EndpointPacketManagement
- *  \defgroup Group_EndpointPacketManagement_XMEGA Endpoint Packet Management (XMEGA)
- *  \brief Endpoint packet management definitions for the Atmel AVR XMEGA architecture.
+ *  \defgroup Group_EndpointPacketManagement_XMEGA Endpoint Packet Management
+ * (XMEGA) \brief Endpoint packet management definitions for the Atmel AVR XMEGA
+ * architecture.
  *
- *  Functions, macros, variables, enums and types related to packet management of endpoints.
+ *  Functions, macros, variables, enums and types related to packet management
+ * of endpoints.
  */
 
 /** \ingroup Group_EndpointManagement
  *  \defgroup Group_EndpointManagement_XMEGA Endpoint Management (XMEGA)
  *  \brief Endpoint management definitions for the Atmel AVR XMEGA architecture.
  *
- *  Functions, macros and enums related to endpoint management when in USB Device mode. This
- *  module contains the endpoint management macros, as well as endpoint interrupt and data
- *  send/receive functions for various data types.
+ *  Functions, macros and enums related to endpoint management when in USB
+ * Device mode. This module contains the endpoint management macros, as well as
+ * endpoint interrupt and data send/receive functions for various data types.
  *
  *  @{
  */
@@ -91,9 +97,10 @@ extern "C" {
 /* Public Interface - May be used in end-application: */
 /* Macros: */
 #if (!defined(MAX_ENDPOINT_INDEX) && !defined(CONTROL_ONLY_DEVICE)) || defined(__DOXYGEN__)
-/** Total number of endpoints (including the default control endpoint at address 0) which may
- *  be used in the device. Different USB AVR models support different amounts of endpoints,
- *  this value reflects the maximum number of endpoints for the currently selected AVR model.
+/** Total number of endpoints (including the default control endpoint at address
+ * 0) which may be used in the device. Different USB AVR models support
+ * different amounts of endpoints, this value reflects the maximum number of
+ * endpoints for the currently selected AVR model.
  */
 #define ENDPOINT_TOTAL_ENDPOINTS 16
 #else
@@ -151,14 +158,16 @@ void Endpoint_ClearEndpoints(void);
 /* Public Interface - May be used in end-application: */
 /* Macros: */
 #if (!defined(FIXED_CONTROL_ENDPOINT_SIZE) || defined(__DOXYGEN__))
-/** Default size of the default control endpoint's bank, until altered by the control endpoint bank size
- *  value in the device descriptor. Not available if the \c FIXED_CONTROL_ENDPOINT_SIZE token is defined.
+/** Default size of the default control endpoint's bank, until altered by the
+ * control endpoint bank size value in the device descriptor. Not available if
+ * the \c FIXED_CONTROL_ENDPOINT_SIZE token is defined.
  */
 #define ENDPOINT_CONTROLEP_DEFAULT_SIZE 8
 #endif
 
 /* Enums: */
-/** Enum for the possible error return codes of the \ref Endpoint_WaitUntilReady() function.
+/** Enum for the possible error return codes of the \ref
+ * Endpoint_WaitUntilReady() function.
  *
  *  \ingroup Group_EndpointRW_XMEGA
  */
@@ -171,9 +180,9 @@ enum Endpoint_WaitUntilReady_ErrorCodes_t
 	ENDPOINT_READYWAIT_DeviceDisconnected = 2, /**< Device was disconnected from the host while
 												*   waiting for the endpoint to become ready.
 												*/
-	ENDPOINT_READYWAIT_BusSuspended		  = 3, /**< The USB bus has been suspended by the host and
-												*   no USB endpoint traffic can occur until the bus
-												*   has resumed.
+	ENDPOINT_READYWAIT_BusSuspended		  = 3, /**< The USB bus has been suspended by
+												* the host and no USB endpoint traffic
+												* can occur until the bus has resumed.
 												*/
 	ENDPOINT_READYWAIT_Timeout			  = 4, /**< The host failed to accept or send the next packet
 												*   within the software timeout period set by the
@@ -184,31 +193,34 @@ enum Endpoint_WaitUntilReady_ErrorCodes_t
 /* Inline Functions: */
 /** Selects the given endpoint address.
  *
- *  Any endpoint operations which do not require the endpoint address to be indicated will operate on
- *  the currently selected endpoint.
+ *  Any endpoint operations which do not require the endpoint address to be
+ * indicated will operate on the currently selected endpoint.
  *
  *  \param[in] Address  Endpoint address to select.
  */
 void Endpoint_SelectEndpoint(const uint8_t Address);
 
-/** Configures the specified endpoint address with the given endpoint type, bank size and number of hardware
- *  banks. Once configured, the endpoint may be read from or written to, depending on its direction.
+/** Configures the specified endpoint address with the given endpoint type, bank
+ * size and number of hardware banks. Once configured, the endpoint may be read
+ * from or written to, depending on its direction.
  *
  *  \param[in] Address    Endpoint address to configure.
  *
- *  \param[in] Type       Type of endpoint to configure, a \c EP_TYPE_* mask. Not all endpoint types
- *                        are available on Low Speed USB devices - refer to the USB 2.0 specification.
+ *  \param[in] Type       Type of endpoint to configure, a \c EP_TYPE_* mask.
+ * Not all endpoint types are available on Low Speed USB devices - refer to the
+ * USB 2.0 specification.
  *
- *  \param[in] Size       Size of the endpoint's bank, where packets are stored before they are transmitted
- *                        to the USB host, or after they have been received from the USB host (depending on
- *                        the endpoint's data direction). The bank size must indicate the maximum packet size
- *                        that the endpoint can handle.
+ *  \param[in] Size       Size of the endpoint's bank, where packets are stored
+ * before they are transmitted to the USB host, or after they have been received
+ * from the USB host (depending on the endpoint's data direction). The bank size
+ * must indicate the maximum packet size that the endpoint can handle.
  *
- *  \param[in] Banks      Number of hardware banks to use for the endpoint being configured.
+ *  \param[in] Banks      Number of hardware banks to use for the endpoint being
+ * configured.
  *
- *  \note The default control endpoint should not be manually configured by the user application, as
- *        it is automatically configured by the library internally.
- *        \n\n
+ *  \note The default control endpoint should not be manually configured by the
+ * user application, as it is automatically configured by the library
+ * internally. \n\n
  *
  *  \note This routine will automatically select the specified endpoint.
  *
@@ -241,11 +253,13 @@ static inline bool Endpoint_ConfigureEndpoint(const uint8_t Address, const uint8
 	return Endpoint_ConfigureEndpoint_PRV(Address, EPConfigMask, Size);
 }
 
-/** Indicates the number of bytes currently stored in the current endpoint's selected bank.
+/** Indicates the number of bytes currently stored in the current endpoint's
+ * selected bank.
  *
  *  \ingroup Group_EndpointRW_XMEGA
  *
- *  \return Total number of bytes in the currently selected Endpoint's FIFO buffer.
+ *  \return Total number of bytes in the currently selected Endpoint's FIFO
+ * buffer.
  */
 static inline uint16_t Endpoint_BytesInEndpoint(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint16_t Endpoint_BytesInEndpoint(void)
@@ -256,9 +270,9 @@ static inline uint16_t Endpoint_BytesInEndpoint(void)
 		return (USB_Endpoint_SelectedFIFO->Length - USB_Endpoint_SelectedFIFO->Position);
 }
 
-/** Get the endpoint address of the currently selected endpoint. This is typically used to save
- *  the currently selected endpoint so that it can be restored after another endpoint has been
- *  manipulated.
+/** Get the endpoint address of the currently selected endpoint. This is
+ * typically used to save the currently selected endpoint so that it can be
+ * restored after another endpoint has been manipulated.
  *
  *  \return Index of the currently selected endpoint.
  */
@@ -268,8 +282,8 @@ static inline uint8_t Endpoint_GetCurrentEndpoint(void)
 	return USB_Endpoint_SelectedEndpoint;
 }
 
-/** Resets the endpoint bank FIFO. This clears all the endpoint banks and resets the USB controller's
- *  data In and Out pointers to the bank's contents.
+/** Resets the endpoint bank FIFO. This clears all the endpoint banks and resets
+ * the USB controller's data In and Out pointers to the bank's contents.
  *
  *  \param[in] Address  Endpoint address whose FIFO buffers are to be reset.
  */
@@ -282,9 +296,11 @@ static inline void Endpoint_ResetEndpoint(const uint8_t Address)
 		USB_Endpoint_FIFOs[Address & ENDPOINT_EPNUM_MASK].OUT.Position = 0;
 }
 
-/** Determines if the currently selected endpoint is enabled, but not necessarily configured.
+/** Determines if the currently selected endpoint is enabled, but not
+ * necessarily configured.
  *
- * \return Boolean \c true if the currently selected endpoint is enabled, \c false otherwise.
+ * \return Boolean \c true if the currently selected endpoint is enabled, \c
+ * false otherwise.
  */
 static inline bool Endpoint_IsEnabled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsEnabled(void)
@@ -292,10 +308,10 @@ static inline bool Endpoint_IsEnabled(void)
 	return true;
 }
 
-/** Aborts all pending IN transactions on the currently selected endpoint, once the bank
- *  has been queued for transmission to the host via \ref Endpoint_ClearIN(). This function
- *  will terminate all queued transactions, resetting the endpoint banks ready for a new
- *  packet.
+/** Aborts all pending IN transactions on the currently selected endpoint, once
+ * the bank has been queued for transmission to the host via \ref
+ * Endpoint_ClearIN(). This function will terminate all queued transactions,
+ * resetting the endpoint banks ready for a new packet.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  */
@@ -304,16 +320,17 @@ static inline void Endpoint_AbortPendingIN(void)
 	USB_Endpoint_SelectedHandle->STATUS |= USB_EP_BUSNACK0_bm;
 }
 
-/** Determines if the currently selected endpoint may be read from (if data is waiting in the endpoint
- *  bank and the endpoint is an OUT direction, or if the bank is not yet full if the endpoint is an IN
- *  direction). This function will return false if an error has occurred in the endpoint, if the endpoint
- *  is an OUT direction and no packet (or an empty packet) has been received, or if the endpoint is an IN
- *  direction and the endpoint bank is full.
+/** Determines if the currently selected endpoint may be read from (if data is
+ * waiting in the endpoint bank and the endpoint is an OUT direction, or if the
+ * bank is not yet full if the endpoint is an IN direction). This function will
+ * return false if an error has occurred in the endpoint, if the endpoint is an
+ * OUT direction and no packet (or an empty packet) has been received, or if the
+ * endpoint is an IN direction and the endpoint bank is full.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  *
- *  \return Boolean \c true if the currently selected endpoint may be read from or written to, depending
- *          on its direction.
+ *  \return Boolean \c true if the currently selected endpoint may be read from
+ * or written to, depending on its direction.
  */
 static inline bool Endpoint_IsReadWriteAllowed(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsReadWriteAllowed(void)
@@ -323,7 +340,8 @@ static inline bool Endpoint_IsReadWriteAllowed(void)
 
 /** Determines if the currently selected endpoint is configured.
  *
- *  \return Boolean \c true if the currently selected endpoint has been configured, \c false otherwise.
+ *  \return Boolean \c true if the currently selected endpoint has been
+ * configured, \c false otherwise.
  */
 static inline bool Endpoint_IsConfigured(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsConfigured(void)
@@ -331,19 +349,23 @@ static inline bool Endpoint_IsConfigured(void)
 	return ((USB_Endpoint_SelectedHandle->CTRL & USB_EP_TYPE_gm) ? true : false);
 }
 
-/** Determines if the selected IN endpoint is ready for a new packet to be sent to the host.
+/** Determines if the selected IN endpoint is ready for a new packet to be sent
+ * to the host.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  *
- *  \return Boolean \c true if the current endpoint is ready for an IN packet, \c false otherwise.
+ *  \return Boolean \c true if the current endpoint is ready for an IN packet,
+ * \c false otherwise.
  */
 bool Endpoint_IsINReady(void) ATTR_WARN_UNUSED_RESULT;
 
-/** Determines if the selected OUT endpoint has received new packet from the host.
+/** Determines if the selected OUT endpoint has received new packet from the
+ * host.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  *
- *  \return Boolean \c true if current endpoint is has received an OUT packet, \c false otherwise.
+ *  \return Boolean \c true if current endpoint is has received an OUT packet,
+ * \c false otherwise.
  */
 bool Endpoint_IsOUTReceived(void) ATTR_WARN_UNUSED_RESULT;
 
@@ -351,12 +373,13 @@ bool Endpoint_IsOUTReceived(void) ATTR_WARN_UNUSED_RESULT;
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  *
- *  \return Boolean \c true if the selected endpoint has received a SETUP packet, \c false otherwise.
+ *  \return Boolean \c true if the selected endpoint has received a SETUP
+ * packet, \c false otherwise.
  */
 bool Endpoint_IsSETUPReceived(void) ATTR_WARN_UNUSED_RESULT;
 
-/** Clears a received SETUP packet on the currently selected CONTROL type endpoint, freeing up the
- *  endpoint for the next packet.
+/** Clears a received SETUP packet on the currently selected CONTROL type
+ * endpoint, freeing up the endpoint for the next packet.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  *
@@ -364,28 +387,31 @@ bool Endpoint_IsSETUPReceived(void) ATTR_WARN_UNUSED_RESULT;
  */
 void Endpoint_ClearSETUP(void);
 
-/** Sends an IN packet to the host on the currently selected endpoint, freeing up the endpoint for the
- *  next packet and switching to the alternative endpoint bank if double banked.
+/** Sends an IN packet to the host on the currently selected endpoint, freeing
+ * up the endpoint for the next packet and switching to the alternative endpoint
+ * bank if double banked.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  */
 void Endpoint_ClearIN(void);
 
-/** Acknowledges an OUT packet to the host on the currently selected endpoint, freeing up the endpoint
- *  for the next packet and switching to the alternative endpoint bank if double banked.
+/** Acknowledges an OUT packet to the host on the currently selected endpoint,
+ * freeing up the endpoint for the next packet and switching to the alternative
+ * endpoint bank if double banked.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  */
 void Endpoint_ClearOUT(void);
 
-/** Stalls the current endpoint, indicating to the host that a logical problem occurred with the
- *  indicated endpoint and that the current transfer sequence should be aborted. This provides a
- *  way for devices to indicate invalid commands to the host so that the current transfer can be
- *  aborted and the host can begin its own recovery sequence.
+/** Stalls the current endpoint, indicating to the host that a logical problem
+ * occurred with the indicated endpoint and that the current transfer sequence
+ * should be aborted. This provides a way for devices to indicate invalid
+ * commands to the host so that the current transfer can be aborted and the host
+ * can begin its own recovery sequence.
  *
- *  The currently selected endpoint remains stalled until either the \ref Endpoint_ClearStall() macro
- *  is called, or the host issues a CLEAR FEATURE request to the device for the currently selected
- *  endpoint.
+ *  The currently selected endpoint remains stalled until either the \ref
+ * Endpoint_ClearStall() macro is called, or the host issues a CLEAR FEATURE
+ * request to the device for the currently selected endpoint.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  */
@@ -401,11 +427,13 @@ static inline void Endpoint_ClearStall(void)
 	USB_Endpoint_SelectedHandle->CTRL &= ~USB_EP_STALL_bm;
 }
 
-/** Determines if the currently selected endpoint is stalled, \c false otherwise.
+/** Determines if the currently selected endpoint is stalled, \c false
+ * otherwise.
  *
  *  \ingroup Group_EndpointPacketManagement_XMEGA
  *
- *  \return Boolean \c true if the currently selected endpoint is stalled, \c false otherwise.
+ *  \return Boolean \c true if the currently selected endpoint is stalled, \c
+ * false otherwise.
  */
 static inline bool Endpoint_IsStalled(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline bool Endpoint_IsStalled(void)
@@ -422,7 +450,8 @@ static inline void Endpoint_ResetDataToggle(void)
 
 /** Determines the currently selected endpoint's direction.
  *
- *  \return The currently selected endpoint's direction, as a \c ENDPOINT_DIR_* mask.
+ *  \return The currently selected endpoint's direction, as a \c ENDPOINT_DIR_*
+ * mask.
  */
 static inline uint8_t Endpoint_GetEndpointDirection(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 static inline uint8_t Endpoint_GetEndpointDirection(void)
@@ -430,7 +459,8 @@ static inline uint8_t Endpoint_GetEndpointDirection(void)
 	return (USB_Endpoint_SelectedEndpoint & ENDPOINT_DIR_IN);
 }
 
-/** Reads one byte from the currently selected endpoint's bank, for OUT direction endpoints.
+/** Reads one byte from the currently selected endpoint's bank, for OUT
+ * direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
@@ -438,15 +468,18 @@ static inline uint8_t Endpoint_GetEndpointDirection(void)
  */
 uint8_t Endpoint_Read_8(void) ATTR_WARN_UNUSED_RESULT;
 
-/** Writes one byte to the currently selected endpoint's bank, for IN direction endpoints.
+/** Writes one byte to the currently selected endpoint's bank, for IN direction
+ * endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
- *  \param[in] Data  Data to write into the the currently selected endpoint's FIFO buffer.
+ *  \param[in] Data  Data to write into the the currently selected endpoint's
+ * FIFO buffer.
  */
 void Endpoint_Write_8(const uint8_t Data);
 
-/** Discards one byte from the currently selected endpoint's bank, for OUT direction endpoints.
+/** Discards one byte from the currently selected endpoint's bank, for OUT
+ * direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  */
@@ -456,8 +489,8 @@ static inline void Endpoint_Discard_8(void)
 	USB_Endpoint_SelectedFIFO->Position++;
 }
 
-/** Reads two bytes from the currently selected endpoint's bank in little endian format, for OUT
- *  direction endpoints.
+/** Reads two bytes from the currently selected endpoint's bank in little endian
+ * format, for OUT direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
@@ -472,8 +505,8 @@ static inline uint16_t Endpoint_Read_16_LE(void)
 	return ((Byte1 << 8) | Byte0);
 }
 
-/** Reads two bytes from the currently selected endpoint's bank in big endian format, for OUT
- *  direction endpoints.
+/** Reads two bytes from the currently selected endpoint's bank in big endian
+ * format, for OUT direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
@@ -488,12 +521,13 @@ static inline uint16_t Endpoint_Read_16_BE(void)
 	return ((Byte0 << 8) | Byte1);
 }
 
-/** Writes two bytes to the currently selected endpoint's bank in little endian format, for IN
- *  direction endpoints.
+/** Writes two bytes to the currently selected endpoint's bank in little endian
+ * format, for IN direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
- *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
+ *  \param[in] Data  Data to write to the currently selected endpoint's FIFO
+ * buffer.
  */
 static inline void Endpoint_Write_16_LE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_16_LE(const uint16_t Data)
@@ -502,12 +536,13 @@ static inline void Endpoint_Write_16_LE(const uint16_t Data)
 	Endpoint_Write_8(Data >> 8);
 }
 
-/** Writes two bytes to the currently selected endpoint's bank in big endian format, for IN
- *  direction endpoints.
+/** Writes two bytes to the currently selected endpoint's bank in big endian
+ * format, for IN direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
- *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
+ *  \param[in] Data  Data to write to the currently selected endpoint's FIFO
+ * buffer.
  */
 static inline void Endpoint_Write_16_BE(const uint16_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_16_BE(const uint16_t Data)
@@ -516,7 +551,8 @@ static inline void Endpoint_Write_16_BE(const uint16_t Data)
 	Endpoint_Write_8(Data & 0xFF);
 }
 
-/** Discards two bytes from the currently selected endpoint's bank, for OUT direction endpoints.
+/** Discards two bytes from the currently selected endpoint's bank, for OUT
+ * direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  */
@@ -527,8 +563,8 @@ static inline void Endpoint_Discard_16(void)
 	Endpoint_Discard_8();
 }
 
-/** Reads four bytes from the currently selected endpoint's bank in little endian format, for OUT
- *  direction endpoints.
+/** Reads four bytes from the currently selected endpoint's bank in little
+ * endian format, for OUT direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
@@ -545,8 +581,8 @@ static inline uint32_t Endpoint_Read_32_LE(void)
 	return ((Byte3 << 24) | (Byte2 << 16) | (Byte1 << 8) | Byte0);
 }
 
-/** Reads four bytes from the currently selected endpoint's bank in big endian format, for OUT
- *  direction endpoints.
+/** Reads four bytes from the currently selected endpoint's bank in big endian
+ * format, for OUT direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
@@ -563,12 +599,13 @@ static inline uint32_t Endpoint_Read_32_BE(void)
 	return ((Byte0 << 24) | (Byte1 << 16) | (Byte2 << 8) | Byte3);
 }
 
-/** Writes four bytes to the currently selected endpoint's bank in little endian format, for IN
- *  direction endpoints.
+/** Writes four bytes to the currently selected endpoint's bank in little endian
+ * format, for IN direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
- *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
+ *  \param[in] Data  Data to write to the currently selected endpoint's FIFO
+ * buffer.
  */
 static inline void Endpoint_Write_32_LE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_32_LE(const uint32_t Data)
@@ -579,12 +616,13 @@ static inline void Endpoint_Write_32_LE(const uint32_t Data)
 	Endpoint_Write_8(Data >> 24);
 }
 
-/** Writes four bytes to the currently selected endpoint's bank in big endian format, for IN
- *  direction endpoints.
+/** Writes four bytes to the currently selected endpoint's bank in big endian
+ * format, for IN direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  *
- *  \param[in] Data  Data to write to the currently selected endpoint's FIFO buffer.
+ *  \param[in] Data  Data to write to the currently selected endpoint's FIFO
+ * buffer.
  */
 static inline void Endpoint_Write_32_BE(const uint32_t Data) ATTR_ALWAYS_INLINE;
 static inline void Endpoint_Write_32_BE(const uint32_t Data)
@@ -595,7 +633,8 @@ static inline void Endpoint_Write_32_BE(const uint32_t Data)
 	Endpoint_Write_8(Data & 0xFF);
 }
 
-/** Discards four bytes from the currently selected endpoint's bank, for OUT direction endpoints.
+/** Discards four bytes from the currently selected endpoint's bank, for OUT
+ * direction endpoints.
  *
  *  \ingroup Group_EndpointPrimitiveRW_XMEGA
  */
@@ -609,20 +648,23 @@ static inline void Endpoint_Discard_32(void)
 }
 
 /* External Variables: */
-/** Global indicating the maximum packet size of the default control endpoint located at address
- *  0 in the device. This value is set to the value indicated in the device descriptor in the user
- *  project once the USB interface is initialized into device mode.
+/** Global indicating the maximum packet size of the default control endpoint
+ * located at address 0 in the device. This value is set to the value indicated
+ * in the device descriptor in the user project once the USB interface is
+ * initialized into device mode.
  *
- *  If space is an issue, it is possible to fix this to a static value by defining the control
- *  endpoint size in the \c FIXED_CONTROL_ENDPOINT_SIZE token passed to the compiler in the makefile
- *  via the -D switch. When a fixed control endpoint size is used, the size is no longer dynamically
- *  read from the descriptors at runtime and instead fixed to the given value. When used, it is
- *  important that the descriptor control endpoint size value matches the size given as the
- *  \c FIXED_CONTROL_ENDPOINT_SIZE token - it is recommended that the \c FIXED_CONTROL_ENDPOINT_SIZE token
- *  be used in the device descriptors to ensure this.
+ *  If space is an issue, it is possible to fix this to a static value by
+ * defining the control endpoint size in the \c FIXED_CONTROL_ENDPOINT_SIZE
+ * token passed to the compiler in the makefile via the -D switch. When a fixed
+ * control endpoint size is used, the size is no longer dynamically read from
+ * the descriptors at runtime and instead fixed to the given value. When used,
+ * it is important that the descriptor control endpoint size value matches the
+ * size given as the \c FIXED_CONTROL_ENDPOINT_SIZE token - it is recommended
+ * that the \c FIXED_CONTROL_ENDPOINT_SIZE token be used in the device
+ * descriptors to ensure this.
  *
- *  \attention This variable should be treated as read-only in the user application, and never manually
- *             changed in value.
+ *  \attention This variable should be treated as read-only in the user
+ * application, and never manually changed in value.
  */
 #if (!defined(FIXED_CONTROL_ENDPOINT_SIZE) || defined(__DOXYGEN__))
 extern uint8_t USB_Device_ControlEndpointSize;
@@ -631,29 +673,30 @@ extern uint8_t USB_Device_ControlEndpointSize;
 #endif
 
 /* Function Prototypes: */
-/** Configures a table of endpoint descriptions, in sequence. This function can be used to configure multiple
- *  endpoints at the same time.
+/** Configures a table of endpoint descriptions, in sequence. This function can
+ * be used to configure multiple endpoints at the same time.
  *
- *  \note Endpoints with a zero address will be ignored, thus this function cannot be used to configure the
- *        control endpoint.
+ *  \note Endpoints with a zero address will be ignored, thus this function
+ * cannot be used to configure the control endpoint.
  *
  *  \param[in] Table    Pointer to a table of endpoint descriptions.
  *  \param[in] Entries  Number of entries in the endpoint table to configure.
  *
- *  \return Boolean \c true if all endpoints configured successfully, \c false otherwise.
+ *  \return Boolean \c true if all endpoints configured successfully, \c false
+ * otherwise.
  */
 bool Endpoint_ConfigureEndpointTable(const USB_Endpoint_Table_t* const Table, const uint8_t Entries);
 
-/** Completes the status stage of a control transfer on a CONTROL type endpoint automatically,
- *  with respect to the data direction. This is a convenience function which can be used to
- *  simplify user control request handling.
+/** Completes the status stage of a control transfer on a CONTROL type endpoint
+ * automatically, with respect to the data direction. This is a convenience
+ * function which can be used to simplify user control request handling.
  *
  *  \note This routine should not be called on non CONTROL type endpoints.
  */
 void Endpoint_ClearStatusStage(void);
 
-/** Spin-loops until the currently selected non-control endpoint is ready for the next packet of data
- *  to be read or written to it.
+/** Spin-loops until the currently selected non-control endpoint is ready for
+ * the next packet of data to be read or written to it.
  *
  *  \note This routine should not be called on CONTROL type endpoints.
  *

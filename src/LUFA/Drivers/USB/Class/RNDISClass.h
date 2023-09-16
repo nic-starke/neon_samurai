@@ -31,28 +31,36 @@
 /** \file
  *  \brief Master include file for the library USB RNDIS Class driver.
  *
- *  Master include file for the library USB RNDIS Class driver, for both host and device modes, where available.
+ *  Master include file for the library USB RNDIS Class driver, for both host
+ * and device modes, where available.
  *
- *  This file should be included in all user projects making use of this optional class driver, instead of
- *  including any headers in the USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common subdirectories.
+ *  This file should be included in all user projects making use of this
+ * optional class driver, instead of including any headers in the
+ * USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common
+ * subdirectories.
  */
 
 /** \ingroup Group_USBClassDrivers
  *  \defgroup Group_USBClassRNDIS RNDIS (Networking) Class Driver
- *  \brief USB class driver for the Microsoft Remote Network Driver Interface Specification (RNDIS) class standard.
+ *  \brief USB class driver for the Microsoft Remote Network Driver Interface
+ * Specification (RNDIS) class standard.
  *
  *  \section Sec_USBClassRNDIS_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
- *    - LUFA/Drivers/USB/Class/Device/RNDISClassDevice.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
- *    - LUFA/Drivers/USB/Class/Host/RNDISClassHost.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
+ *  The following files must be built with any user project that uses this
+ * module:
+ *    - LUFA/Drivers/USB/Class/Device/RNDISClassDevice.c <i>(Makefile source
+ * module name: LUFA_SRC_USBCLASS)</i>
+ *    - LUFA/Drivers/USB/Class/Host/RNDISClassHost.c <i>(Makefile source module
+ * name: LUFA_SRC_USBCLASS)</i>
  *
  *  \section Sec_USBClassRNDIS_ModDescription Module Description
- *  RNDIS Class Driver module. This module contains an internal implementation of the Microsoft USB RNDIS Networking
- *  Class, for both Device and Host USB modes. User applications can use this class driver instead of implementing the
- *  RNDIS class manually via the low-level LUFA APIs.
+ *  RNDIS Class Driver module. This module contains an internal implementation
+ * of the Microsoft USB RNDIS Networking Class, for both Device and Host USB
+ * modes. User applications can use this class driver instead of implementing
+ * the RNDIS class manually via the low-level LUFA APIs.
  *
- *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
- *  Hosts using the USB RNDIS Class.
+ *  This module is designed to simplify the user code by exposing only the
+ * required interface needed to interface with Hosts using the USB RNDIS Class.
  *
  *  @{
  */

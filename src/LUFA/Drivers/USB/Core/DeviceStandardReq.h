@@ -31,11 +31,12 @@
 /** \file
  *  \brief USB device standard request management.
  *
- *  This file contains the function prototypes necessary for the processing of incoming standard control requests
- *  when the library is in USB device mode.
+ *  This file contains the function prototypes necessary for the processing of
+ * incoming standard control requests when the library is in USB device mode.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 #ifndef __DEVICESTDREQ_H__
@@ -63,47 +64,52 @@ extern "C" {
 /* Public Interface - May be used in end-application: */
 /* Enums: */
 #if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) || defined(__DOXYGEN__)
-/** Enum for the possible descriptor memory spaces, for the \c MemoryAddressSpace parameter of the
- *  \ref CALLBACK_USB_GetDescriptor() function. This can be used when none of the \c USE_*_DESCRIPTORS
- *  compile time options are used, to indicate in which memory space the descriptor is stored.
+/** Enum for the possible descriptor memory spaces, for the \c
+ * MemoryAddressSpace parameter of the \ref CALLBACK_USB_GetDescriptor()
+ * function. This can be used when none of the \c USE_*_DESCRIPTORS compile time
+ * options are used, to indicate in which memory space the descriptor is stored.
  *
  *  \ingroup Group_Device
  */
 enum USB_DescriptorMemorySpaces_t
 {
 #if defined(ARCH_HAS_FLASH_ADDRESS_SPACE) || defined(__DOXYGEN__)
-	MEMSPACE_FLASH = 0, /**< Indicates the requested descriptor is located in FLASH memory. */
+	MEMSPACE_FLASH = 0, /**< Indicates the requested descriptor is located in
+						   FLASH memory. */
 #endif
 #if defined(ARCH_HAS_EEPROM_ADDRESS_SPACE) || defined(__DOXYGEN__)
-	MEMSPACE_EEPROM = 1, /**< Indicates the requested descriptor is located in EEPROM memory. */
+	MEMSPACE_EEPROM = 1, /**< Indicates the requested descriptor is located in
+							EEPROM memory. */
 #endif
 	MEMSPACE_RAM = 2, /**< Indicates the requested descriptor is located in RAM memory. */
 };
 #endif
 
 /* Global Variables: */
-/** Indicates the currently set configuration number of the device. USB devices may have several
- *  different configurations which the host can select between; this indicates the currently selected
- *  value, or 0 if no configuration has been selected.
+/** Indicates the currently set configuration number of the device. USB devices
+ * may have several different configurations which the host can select between;
+ * this indicates the currently selected value, or 0 if no configuration has
+ * been selected.
  *
- *  \attention This variable should be treated as read-only in the user application, and never manually
- *             changed in value.
+ *  \attention This variable should be treated as read-only in the user
+ * application, and never manually changed in value.
  *
  *  \ingroup Group_Device
  */
 extern uint8_t USB_Device_ConfigurationNumber;
 
 #if !defined(NO_DEVICE_REMOTE_WAKEUP)
-/** Indicates if the host is currently allowing the device to issue remote wakeup events. If this
- *  flag is cleared, the device should not issue remote wakeup events to the host.
+/** Indicates if the host is currently allowing the device to issue remote
+ * wakeup events. If this flag is cleared, the device should not issue remote
+ * wakeup events to the host.
  *
- *  \attention This variable should be treated as read-only in the user application, and never manually
- *             changed in value.
+ *  \attention This variable should be treated as read-only in the user
+ * application, and never manually changed in value.
  *
- *  \note To reduce FLASH usage of the compiled applications where Remote Wakeup is not supported,
- *        this global and the underlying management code can be disabled by defining the
- *        \c NO_DEVICE_REMOTE_WAKEUP token in the project makefile and passing it to the compiler via
- *        the -D switch.
+ *  \note To reduce FLASH usage of the compiled applications where Remote Wakeup
+ * is not supported, this global and the underlying management code can be
+ * disabled by defining the \c NO_DEVICE_REMOTE_WAKEUP token in the project
+ * makefile and passing it to the compiler via the -D switch.
  *
  *  \ingroup Group_Device
  */
@@ -111,9 +117,10 @@ extern bool USB_Device_RemoteWakeupEnabled;
 #endif
 
 #if !defined(NO_DEVICE_SELF_POWER)
-/** Indicates if the device is currently being powered by its own power supply, rather than being
- *  powered by the host's USB supply. This flag should remain cleared if the device does not
- *  support self powered mode, as indicated in the device descriptors.
+/** Indicates if the device is currently being powered by its own power supply,
+ * rather than being powered by the host's USB supply. This flag should remain
+ * cleared if the device does not support self powered mode, as indicated in the
+ * device descriptors.
  *
  *  \ingroup Group_Device
  */

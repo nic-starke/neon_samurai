@@ -69,7 +69,8 @@
 // 	MIDI_Device_SendEventPacket(&mMIDI_Interface, &packet);
 // }
 
-// inline static void TransmitMidiNote(u8 Channel, u8 Note, u8 Velocity, bool NoteOn)
+// inline static void TransmitMidiNote(u8 Channel, u8 Note, u8 Velocity, bool
+// NoteOn)
 // {
 // 	MIDI_EventPacket_t packet = {0};
 // 	u8 cmd = NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF;
@@ -80,14 +81,15 @@
 // 	MIDI_Device_SendEventPacket(&mMIDI_Interface, &packet);
 // }
 
-// inline static void ProcessKnobMIDI(eKnobMidiMode Mode, u8 Channel, u8 CC, u16 Value, u16 PreviousValue)
+// inline static void ProcessKnobMIDI(eKnobMidiMode Mode, u8 Channel, u8 CC, u16
+// Value, u16 PreviousValue)
 // {
 // 	switch((eKnobMidiMode)Mode)
 // 	{
 // 		case KNOB_MIDI_CC:
 // 		{
-// 			TransmitMidiCC(Channel, CC, Value >> 9);	// convert to 7 bit value (probably not a good way to do this)
-// 			break;
+// 			TransmitMidiCC(Channel, CC, Value >> 9);	// convert to 7 bit
+// value (probably not a good way to do this) 			break;
 // 		}
 
 // 		case KNOB_MIDI_REL_CC:
@@ -119,12 +121,15 @@
 // {
 // 	if (pKnob->Mode != KNOB_DISABLED)
 // 	{
-// 		ProcessKnobMIDI(pKnob->Mode, pKnob->MidiChannel, pKnob->MidiCC, pKnob->CurrentValue, pKnob->PreviousValue);
+// 		ProcessKnobMIDI(pKnob->Mode, pKnob->MidiChannel, pKnob->MidiCC,
+// pKnob->CurrentValue, pKnob->PreviousValue);
 // 	}
 
-// 	if (pKnob->SuperMode != KNOB_DISABLED && (pKnob->CurrentValue >= pKnob->SuperMinValue) && (pKnob->CurrentValue <= pKnob->SuperMaxValue))
+// 	if (pKnob->SuperMode != KNOB_DISABLED && (pKnob->CurrentValue >=
+// pKnob->SuperMinValue) && (pKnob->CurrentValue <= pKnob->SuperMaxValue))
 // 	{
-// 		ProcessKnobMIDI(pKnob->SuperMode, pKnob->SuperMidiChannel, pKnob->SuperCC, pKnob->CurrentValue, pKnob->PreviousValue);
+// 		ProcessKnobMIDI(pKnob->SuperMode, pKnob->SuperMidiChannel,
+// pKnob->SuperCC, pKnob->CurrentValue, pKnob->PreviousValue);
 // 	}
 // }
 

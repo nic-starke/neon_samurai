@@ -29,20 +29,22 @@
 */
 
 /** \file
- *  \brief Common definitions and declarations for the library USB RNDIS Class driver.
+ *  \brief Common definitions and declarations for the library USB RNDIS Class
+ * driver.
  *
  *  Common definitions and declarations for the library USB RNDIS Class driver.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LUFA/Drivers/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB module driver dispatch header located in
+ * LUFA/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassRNDIS
  *  \defgroup Group_USBClassRNDISCommon  Common Class Definitions
  *
  *  \section Sec_USBClassRNDISCommon_ModDescription Module Description
- *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
- *  RNDIS Class.
+ *  Constants, Types and Enum definitions that are common to both Device and
+ * Host modes for the USB RNDIS Class.
  *
  *  @{
  */
@@ -68,7 +70,8 @@ extern "C" {
 #endif
 
 /* Macros: */
-/** Additional error code for RNDIS functions when a device returns a logical command failure. */
+/** Additional error code for RNDIS functions when a device returns a logical
+ * command failure. */
 #define RNDIS_ERROR_LOGICAL_CMD_FAILED 0x80
 
 /** Implemented RNDIS Version Major. */
@@ -172,11 +175,13 @@ extern "C" {
 #define OID_802_3_XMIT_MORE_COLLISIONS 0x01020103UL
 /**@}*/
 
-/** Maximum size in bytes of an Ethernet frame according to the Ethernet standard. */
+/** Maximum size in bytes of an Ethernet frame according to the Ethernet
+ * standard. */
 #define ETHERNET_FRAME_SIZE_MAX 1500
 
 /* Enums: */
-/** Enum for the RNDIS class specific control requests that can be issued by the USB bus host. */
+/** Enum for the RNDIS class specific control requests that can be issued by the
+ * USB bus host. */
 enum RNDIS_ClassRequests_t
 {
 	RNDIS_REQ_SendEncapsulatedCommand = 0x00, /**< RNDIS request to issue a host-to-device NDIS command. */
@@ -187,24 +192,29 @@ enum RNDIS_ClassRequests_t
 enum RNDIS_States_t
 {
 	RNDIS_Uninitialized	   = 0, /**< Adapter currently uninitialized. */
-	RNDIS_Initialized	   = 1, /**< Adapter currently initialized but not ready for data transfers. */
+	RNDIS_Initialized	   = 1, /**< Adapter currently initialized but not ready for
+								   data transfers. */
 	RNDIS_Data_Initialized = 2, /**< Adapter currently initialized and ready for data transfers. */
 };
 
-/** Enum for the RNDIS class specific notification requests that can be issued by a RNDIS device to a host. */
+/** Enum for the RNDIS class specific notification requests that can be issued
+ * by a RNDIS device to a host. */
 enum RNDIS_ClassNotifications_t
 {
-	RNDIS_NOTIF_ResponseAvailable = 0x01, /**< Notification request value for a RNDIS Response Available notification. */
+	RNDIS_NOTIF_ResponseAvailable = 0x01, /**< Notification request value for a RNDIS Response Available
+											 notification. */
 };
 
 /** Enum for the NDIS hardware states. */
 enum NDIS_Hardware_Status_t
 {
-	NDIS_HardwareStatus_Ready,		  /**< Hardware Ready to accept commands from the host. */
+	NDIS_HardwareStatus_Ready,		  /**< Hardware Ready to accept commands from the
+										 host. */
 	NDIS_HardwareStatus_Initializing, /**< Hardware busy initializing. */
 	NDIS_HardwareStatus_Reset,		  /**< Hardware reset. */
 	NDIS_HardwareStatus_Closing,	  /**< Hardware currently closing. */
-	NDIS_HardwareStatus_NotReady	  /**< Hardware not ready to accept commands from the host. */
+	NDIS_HardwareStatus_NotReady	  /**< Hardware not ready to accept commands from
+										 the host. */
 };
 
 /* Type Defines: */
@@ -221,7 +231,8 @@ typedef struct
  *
  *  Type define for a RNDIS message header, sent before RNDIS messages.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -231,9 +242,11 @@ typedef struct
 
 /** \brief RNDIS Message Structure.
  *
- *  Type define for a RNDIS packet message, used to encapsulate Ethernet packets sent to and from the adapter.
+ *  Type define for a RNDIS packet message, used to encapsulate Ethernet packets
+ * sent to and from the adapter.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -254,7 +267,8 @@ typedef struct
  *
  *  Type define for a RNDIS Initialize command message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -271,7 +285,8 @@ typedef struct
  *
  *  Type define for a RNDIS Initialize Complete response message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -295,7 +310,8 @@ typedef struct
  *
  *  Type define for a RNDIS Keep Alive command message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -308,7 +324,8 @@ typedef struct
  *
  *  Type define for a RNDIS Keep Alive Complete response message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -322,7 +339,8 @@ typedef struct
  *
  *  Type define for a RNDIS Reset Complete response message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -337,7 +355,8 @@ typedef struct
  *
  *  Type define for a RNDIS OID Property Set command message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -355,7 +374,8 @@ typedef struct
  *
  *  Type define for a RNDIS OID Property Set Complete response message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -369,7 +389,8 @@ typedef struct
  *
  *  Type define for a RNDIS OID Property Query command message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
@@ -387,7 +408,8 @@ typedef struct
  *
  *  Type define for a RNDIS OID Property Query Complete response message.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {

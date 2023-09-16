@@ -32,10 +32,13 @@
 /** \file
  *  \brief Master include file for the library USB CCID Class driver.
  *
- *  Master include file for the library USB CCID Class driver, for both host and device modes, where available.
+ *  Master include file for the library USB CCID Class driver, for both host and
+ * device modes, where available.
  *
- *  This file should be included in all user projects making use of this optional class driver, instead of
- *  including any headers in the USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common subdirectories.
+ *  This file should be included in all user projects making use of this
+ * optional class driver, instead of including any headers in the
+ * USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common
+ * subdirectories.
  */
 
 /** \ingroup Group_USBClassDrivers
@@ -43,21 +46,25 @@
  *  \brief USB class driver for the USB-IF CCID class standard.
  *
  *  \section Sec_USBClassCCID_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
- *    - LUFA/Drivers/USB/Class/Device/CCIDClassDevice.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
+ *  The following files must be built with any user project that uses this
+ * module:
+ *    - LUFA/Drivers/USB/Class/Device/CCIDClassDevice.c <i>(Makefile source
+ * module name: LUFA_SRC_USBCLASS)</i>
  *
  *  \section Sec_USBClassCCID_ModDescription Module Description
- *  CCID Class Driver module. This module contains an internal implementation of the USB CCID Class, for Device USB
- *  mode. User applications can use this class driver instead of implementing the CCID class manually via the low-level
- *  LUFA APIs.
+ *  CCID Class Driver module. This module contains an internal implementation of
+ * the USB CCID Class, for Device USB mode. User applications can use this class
+ * driver instead of implementing the CCID class manually via the low-level LUFA
+ * APIs.
  *
- *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
- *  Devices using the USB CCID Class.
+ *  This module is designed to simplify the user code by exposing only the
+ * required interface needed to interface with Devices using the USB CCID Class.
  *
  *  \warning
- *  LUFA is not a secure USB stack, and has not undergone, not is it expected to pass, any form of security audit. The
- *  CCID class here is presented as-is and is intended for research purposes only, and *should not* be used in a security
- *  critical application under any circumstances.
+ *  LUFA is not a secure USB stack, and has not undergone, not is it expected to
+ * pass, any form of security audit. The CCID class here is presented as-is and
+ * is intended for research purposes only, and *should not* be used in a
+ * security critical application under any circumstances.
  *
  *  @{
  */

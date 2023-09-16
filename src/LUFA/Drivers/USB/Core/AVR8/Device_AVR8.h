@@ -32,15 +32,17 @@
  *  \brief USB Device definitions for the AVR8 microcontrollers.
  *  \copydetails Group_Device_AVR8
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_Device
  *  \defgroup Group_Device_AVR8 Device Management (AVR8)
  *  \brief USB Device definitions for the AVR8 microcontrollers.
  *
- *  Architecture specific USB Device definitions for the Atmel 8-bit AVR microcontrollers.
+ *  Architecture specific USB Device definitions for the Atmel 8-bit AVR
+ * microcontrollers.
  *
  *  @{
  */
@@ -82,46 +84,51 @@ extern "C" {
 /** \name USB Device Mode Option Masks */
 /**@{*/
 #if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR) || defined(__DOXYGEN__)
-/** Mask for the Options parameter of the \ref USB_Init() function. This indicates that the
- *  USB interface should be initialized in low speed (1.5Mb/s) mode.
+/** Mask for the Options parameter of the \ref USB_Init() function. This
+ * indicates that the USB interface should be initialized in low speed (1.5Mb/s)
+ * mode.
  *
  *  \note Low Speed mode is not available on all USB AVR models.
  *        \n
  *
- *  \note Restrictions apply on the number, size and type of endpoints which can be used
- *        when running in low speed mode - please refer to the USB 2.0 specification.
+ *  \note Restrictions apply on the number, size and type of endpoints which can
+ * be used when running in low speed mode - please refer to the USB 2.0
+ * specification.
  */
 #define USB_DEVICE_OPT_LOWSPEED (1 << 0)
 #endif
 
-/** Mask for the Options parameter of the \ref USB_Init() function. This indicates that the
- *  USB interface should be initialized in full speed (12Mb/s) mode.
+/** Mask for the Options parameter of the \ref USB_Init() function. This
+ * indicates that the USB interface should be initialized in full speed (12Mb/s)
+ * mode.
  */
 #define USB_DEVICE_OPT_FULLSPEED (0 << 0)
 /**@}*/
 
 #if (!defined(NO_INTERNAL_SERIAL) && (defined(USB_SERIES_7_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_4_AVR) ||               \
 									  defined(USB_SERIES_2_AVR) || defined(__DOXYGEN__)))
-/** String descriptor index for the device's unique serial number string descriptor within the device.
- *  This unique serial number is used by the host to associate resources to the device (such as drivers or COM port
- *  number allocations) to a device regardless of the port it is plugged in to on the host. Some microcontrollers contain
- *  a unique serial number internally, and setting the device descriptors serial number string index to this value
- *  will cause it to use the internal serial number.
+/** String descriptor index for the device's unique serial number string
+ * descriptor within the device. This unique serial number is used by the host
+ * to associate resources to the device (such as drivers or COM port number
+ * allocations) to a device regardless of the port it is plugged in to on the
+ * host. Some microcontrollers contain a unique serial number internally, and
+ * setting the device descriptors serial number string index to this value will
+ * cause it to use the internal serial number.
  *
- *  On unsupported devices, this will evaluate to \ref NO_DESCRIPTOR and so will force the host to create a pseudo-serial
- *  number for the device.
+ *  On unsupported devices, this will evaluate to \ref NO_DESCRIPTOR and so will
+ * force the host to create a pseudo-serial number for the device.
  */
 #ifndef USE_INTERNAL_SERIAL
 #define USE_INTERNAL_SERIAL 0xDC
 #endif
 
-/** Length of the device's unique internal serial number, in bits, if present on the selected microcontroller
- *  model.
+/** Length of the device's unique internal serial number, in bits, if present on
+ * the selected microcontroller model.
  */
 #define INTERNAL_SERIAL_LENGTH_BITS 80
 
-/** Start address of the internal serial number, in the appropriate address space, if present on the selected microcontroller
- *  model.
+/** Start address of the internal serial number, in the appropriate address
+ * space, if present on the selected microcontroller model.
  */
 #define INTERNAL_SERIAL_START_ADDRESS 0x0E
 #else
@@ -133,30 +140,36 @@ extern "C" {
 #endif
 
 /* Function Prototypes: */
-/** Sends a Remote Wakeup request to the host. This signals to the host that the device should
- *  be taken out of suspended mode, and communications should resume.
+/** Sends a Remote Wakeup request to the host. This signals to the host that the
+ * device should be taken out of suspended mode, and communications should
+ * resume.
  *
- *  Typically, this is implemented so that HID devices (mice, keyboards, etc.) can wake up the
- *  host computer when the host has suspended all USB devices to enter a low power state.
+ *  Typically, this is implemented so that HID devices (mice, keyboards, etc.)
+ * can wake up the host computer when the host has suspended all USB devices to
+ * enter a low power state.
  *
- *  \attention This function should only be used if the device has indicated to the host that it
- *             supports the Remote Wakeup feature in the device descriptors, and should only be
- *             issued if the host is currently allowing remote wakeup events from the device (i.e.,
- *             the \ref USB_Device_RemoteWakeupEnabled flag is set). When the \c NO_DEVICE_REMOTE_WAKEUP
- *             compile time option is used, this function is unavailable.
- *             \n\n
+ *  \attention This function should only be used if the device has indicated to
+ * the host that it supports the Remote Wakeup feature in the device
+ * descriptors, and should only be issued if the host is currently allowing
+ * remote wakeup events from the device (i.e., the \ref
+ * USB_Device_RemoteWakeupEnabled flag is set). When the \c
+ * NO_DEVICE_REMOTE_WAKEUP compile time option is used, this function is
+ * unavailable. \n\n
  *
- *  \attention The USB clock must be running for this function to operate. If the stack is initialized with
- *             the \ref USB_OPT_MANUAL_PLL option enabled, the user must ensure that the PLL is running
- *             before attempting to call this function.
+ *  \attention The USB clock must be running for this function to operate. If
+ * the stack is initialized with the \ref USB_OPT_MANUAL_PLL option enabled, the
+ * user must ensure that the PLL is running before attempting to call this
+ * function.
  *
- *  \see \ref Group_StdDescriptors for more information on the RMWAKEUP feature and device descriptors.
+ *  \see \ref Group_StdDescriptors for more information on the RMWAKEUP feature
+ * and device descriptors.
  */
 void USB_Device_SendRemoteWakeup(void);
 
 /* Inline Functions: */
-/** Returns the current USB frame number, when in device mode. Every millisecond the USB bus is active (i.e. enumerated to a host)
- *  the frame number is incremented by one.
+/** Returns the current USB frame number, when in device mode. Every millisecond
+ * the USB bus is active (i.e. enumerated to a host) the frame number is
+ * incremented by one.
  *
  *  \return Current USB frame number from the USB controller.
  */
@@ -168,10 +181,12 @@ static inline uint16_t USB_Device_GetFrameNumber(void)
 
 #if !defined(NO_SOF_EVENTS)
 /** Enables the device mode Start Of Frame events. When enabled, this causes the
- *  \ref EVENT_USB_Device_StartOfFrame() event to fire once per millisecond, synchronized to the USB bus,
- *  at the start of each USB frame when enumerated in device mode.
+ *  \ref EVENT_USB_Device_StartOfFrame() event to fire once per millisecond,
+ * synchronized to the USB bus, at the start of each USB frame when enumerated
+ * in device mode.
  *
- *  \note This function is not available when the \c NO_SOF_EVENTS compile time token is defined.
+ *  \note This function is not available when the \c NO_SOF_EVENTS compile time
+ * token is defined.
  */
 static inline void USB_Device_EnableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_EnableSOFEvents(void)
@@ -179,10 +194,12 @@ static inline void USB_Device_EnableSOFEvents(void)
 	USB_INT_Enable(USB_INT_SOFI);
 }
 
-/** Disables the device mode Start Of Frame events. When disabled, this stops the firing of the
- *  \ref EVENT_USB_Device_StartOfFrame() event when enumerated in device mode.
+/** Disables the device mode Start Of Frame events. When disabled, this stops
+ * the firing of the \ref EVENT_USB_Device_StartOfFrame() event when enumerated
+ * in device mode.
  *
- *  \note This function is not available when the \c NO_SOF_EVENTS compile time token is defined.
+ *  \note This function is not available when the \c NO_SOF_EVENTS compile time
+ * token is defined.
  */
 static inline void USB_Device_DisableSOFEvents(void) ATTR_ALWAYS_INLINE;
 static inline void USB_Device_DisableSOFEvents(void)

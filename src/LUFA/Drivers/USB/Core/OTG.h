@@ -32,17 +32,18 @@
  *  \brief Common USB OTG definitions for all architectures.
  *  \copydetails Group_OTG
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_USB
  *  \defgroup Group_OTG USB On The Go (OTG) Management
  *  \brief USB OTG management definitions.
  *
- *  This module contains macros for embedded USB hosts with dual role On The Go capabilities, for managing role
- *  exchange. OTG is a way for two USB dual role devices to talk to one another directly without fixed device/host
- *  roles.
+ *  This module contains macros for embedded USB hosts with dual role On The Go
+ * capabilities, for managing role exchange. OTG is a way for two USB dual role
+ * devices to talk to one another directly without fixed device/host roles.
  *
  *  @{
  */

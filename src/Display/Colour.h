@@ -22,5 +22,7 @@
 #include "RGB.h"
 #include "Types.h"
 
+#define HUE_MAX (UINT16_MAX)
+
 void Hue2RGB(u16 Hue, sRGB* pRGB);
 void RGB2Hue(u16* pHue, sRGB* pRGB);

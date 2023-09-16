@@ -29,20 +29,22 @@
 */
 
 /** \file
- *  \brief Common definitions and declarations for the library USB HID Class driver.
+ *  \brief Common definitions and declarations for the library USB HID Class
+ * driver.
  *
  *  Common definitions and declarations for the library USB HID Class driver.
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB module driver
- *        dispatch header located in LUFA/Drivers/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB module driver dispatch header located in
+ * LUFA/Drivers/USB.h.
  */
 
 /** \ingroup Group_USBClassHID
  *  \defgroup Group_USBClassHIDCommon  Common Class Definitions
  *
  *  \section Sec_USBClassHIDCommon_ModDescription Module Description
- *  Constants, Types and Enum definitions that are common to both Device and Host modes for the USB
- *  HID Class.
+ *  Constants, Types and Enum definitions that are common to both Device and
+ * Host modes for the USB HID Class.
  *
  *  @{
  */
@@ -67,46 +69,62 @@ extern "C" {
 /* Macros: */
 /** \name Keyboard Standard Report Modifier Masks */
 /**@{*/
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's left control key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * left control key is currently pressed.
+ */
 #define HID_KEYBOARD_MODIFIER_LEFTCTRL (1 << 0)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's left shift key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * left shift key is currently pressed. */
 #define HID_KEYBOARD_MODIFIER_LEFTSHIFT (1 << 1)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's left alt key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * left alt key is currently pressed. */
 #define HID_KEYBOARD_MODIFIER_LEFTALT (1 << 2)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's left GUI key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * left GUI key is currently pressed. */
 #define HID_KEYBOARD_MODIFIER_LEFTGUI (1 << 3)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's right control key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * right control key is currently pressed.
+ */
 #define HID_KEYBOARD_MODIFIER_RIGHTCTRL (1 << 4)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's right shift key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * right shift key is currently pressed.
+ */
 #define HID_KEYBOARD_MODIFIER_RIGHTSHIFT (1 << 5)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's right alt key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * right alt key is currently pressed. */
 #define HID_KEYBOARD_MODIFIER_RIGHTALT (1 << 6)
 
-/** Constant for a keyboard report modifier byte, indicating that the keyboard's right GUI key is currently pressed. */
+/** Constant for a keyboard report modifier byte, indicating that the keyboard's
+ * right GUI key is currently pressed. */
 #define HID_KEYBOARD_MODIFIER_RIGHTGUI (1 << 7)
 /**@}*/
 
 /** \name Keyboard Standard Report LED Masks */
 /**@{*/
-/** Constant for a keyboard output report LED byte, indicating that the host's NUM LOCK mode is currently set. */
+/** Constant for a keyboard output report LED byte, indicating that the host's
+ * NUM LOCK mode is currently set. */
 #define HID_KEYBOARD_LED_NUMLOCK (1 << 0)
 
-/** Constant for a keyboard output report LED byte, indicating that the host's CAPS LOCK mode is currently set. */
+/** Constant for a keyboard output report LED byte, indicating that the host's
+ * CAPS LOCK mode is currently set. */
 #define HID_KEYBOARD_LED_CAPSLOCK (1 << 1)
 
-/** Constant for a keyboard output report LED byte, indicating that the host's SCROLL LOCK mode is currently set. */
+/** Constant for a keyboard output report LED byte, indicating that the host's
+ * SCROLL LOCK mode is currently set. */
 #define HID_KEYBOARD_LED_SCROLLLOCK (1 << 2)
 
-/** Constant for a keyboard output report LED byte, indicating that the host's COMPOSE mode is currently set. */
+/** Constant for a keyboard output report LED byte, indicating that the host's
+ * COMPOSE mode is currently set. */
 #define HID_KEYBOARD_LED_COMPOSE (1 << 3)
 
-/** Constant for a keyboard output report LED byte, indicating that the host's KANA mode is currently set. */
+/** Constant for a keyboard output report LED byte, indicating that the host's
+ * KANA mode is currently set. */
 #define HID_KEYBOARD_LED_KANA (1 << 4)
 /**@}*/
 
@@ -353,8 +371,9 @@ extern "C" {
 /** \name Common HID Device Report Descriptors */
 /**@{*/
 /** \hideinitializer
- *  A list of HID report item array elements that describe a typical HID USB Joystick. The resulting report
- *  descriptor is structured according to the following layout:
+ *  A list of HID report item array elements that describe a typical HID USB
+ * Joystick. The resulting report descriptor is structured according to the
+ * following layout:
  *
  *  \code
  *  struct
@@ -366,14 +385,16 @@ extern "C" {
  *  } Joystick_Report;
  *  \endcode
  *
- *  Where \c uintA_t is a type large enough to hold the ranges of the signed \c MinAxisVal and \c MaxAxisVal values,
- *  and \c intB_t is a type large enough to hold one bit per button.
+ *  Where \c uintA_t is a type large enough to hold the ranges of the signed \c
+ * MinAxisVal and \c MaxAxisVal values, and \c intB_t is a type large enough to
+ * hold one bit per button.
  *
  *  \param[in] MinAxisVal      Minimum logical axis value (16-bit).
  *  \param[in] MaxAxisVal      Maximum logical axis value (16-bit).
- *  \param[in] MinPhysicalVal  Minimum physical axis value, for movement resolution calculations (16-bit).
- *  \param[in] MaxPhysicalVal  Maximum physical axis value, for movement resolution calculations (16-bit).
- *  \param[in] Buttons         Total number of buttons in the device (8-bit).
+ *  \param[in] MinPhysicalVal  Minimum physical axis value, for movement
+ * resolution calculations (16-bit). \param[in] MaxPhysicalVal  Maximum physical
+ * axis value, for movement resolution calculations (16-bit). \param[in] Buttons
+ * Total number of buttons in the device (8-bit).
  */
 #define HID_DESCRIPTOR_JOYSTICK(MinAxisVal, MaxAxisVal, MinPhysicalVal, MaxPhysicalVal, Buttons)                                           \
 	HID_RI_USAGE_PAGE(8, 0x01), HID_RI_USAGE(8, 0x04), HID_RI_COLLECTION(8, 0x01), HID_RI_USAGE(8, 0x01), HID_RI_COLLECTION(8, 0x00),      \
@@ -387,20 +408,21 @@ extern "C" {
 		HID_RI_END_COLLECTION(0)
 
 /** \hideinitializer
- *  A list of HID report item array elements that describe a typical HID USB keyboard. The resulting report descriptor
- *  is compatible with \ref USB_KeyboardReport_Data_t when \c MaxKeys is equal to 6. For other values, the report will
- *  be structured according to the following layout:
+ *  A list of HID report item array elements that describe a typical HID USB
+ * keyboard. The resulting report descriptor is compatible with \ref
+ * USB_KeyboardReport_Data_t when \c MaxKeys is equal to 6. For other values,
+ * the report will be structured according to the following layout:
  *
  *  \code
  *  struct
  *  {
- *      uint8_t Modifier; // Keyboard modifier byte indicating pressed modifier keys (\c HID_KEYBOARD_MODIFER_* masks)
- *      uint8_t Reserved; // Reserved for OEM use, always set to 0.
- *      uint8_t KeyCode[MaxKeys]; // Length determined by the number of keys that can be reported
- *  } Keyboard_Report;
- *  \endcode
+ *      uint8_t Modifier; // Keyboard modifier byte indicating pressed modifier
+ * keys (\c HID_KEYBOARD_MODIFER_* masks) uint8_t Reserved; // Reserved for OEM
+ * use, always set to 0. uint8_t KeyCode[MaxKeys]; // Length determined by the
+ * number of keys that can be reported } Keyboard_Report; \endcode
  *
- *  \param[in] MaxKeys  Number of simultaneous keys that can be reported at the one time (8-bit).
+ *  \param[in] MaxKeys  Number of simultaneous keys that can be reported at the
+ * one time (8-bit).
  */
 #define HID_DESCRIPTOR_KEYBOARD(MaxKeys)                                                                                                   \
 	HID_RI_USAGE_PAGE(8, 0x01), HID_RI_USAGE(8, 0x06), HID_RI_COLLECTION(8, 0x01), HID_RI_USAGE_PAGE(8, 0x07),                             \
@@ -415,9 +437,11 @@ extern "C" {
 		HID_RI_END_COLLECTION(0)
 
 /** \hideinitializer
- *  A list of HID report item array elements that describe a typical HID USB mouse. The resulting report descriptor
- *  is compatible with \ref USB_MouseReport_Data_t if the \c MinAxisVal and \c MaxAxisVal values fit within a \c int8_t range
- *  and the number of Buttons is less than 8. For other values, the report is structured according to the following layout:
+ *  A list of HID report item array elements that describe a typical HID USB
+ * mouse. The resulting report descriptor is compatible with \ref
+ * USB_MouseReport_Data_t if the \c MinAxisVal and \c MaxAxisVal values fit
+ * within a \c int8_t range and the number of Buttons is less than 8. For other
+ * values, the report is structured according to the following layout:
  *
  *  \code
  *  struct
@@ -428,15 +452,18 @@ extern "C" {
  *  } Mouse_Report;
  *  \endcode
  *
- *  Where \c intA_t is a type large enough to hold one bit per button, and \c intB_t is a type large enough to hold the
- *  ranges of the signed \c MinAxisVal and \c MaxAxisVal values.
+ *  Where \c intA_t is a type large enough to hold one bit per button, and \c
+ * intB_t is a type large enough to hold the ranges of the signed \c MinAxisVal
+ * and \c MaxAxisVal values.
  *
  *  \param[in] MinAxisVal      Minimum X/Y logical axis value (16-bit).
  *  \param[in] MaxAxisVal      Maximum X/Y logical axis value (16-bit).
- *  \param[in] MinPhysicalVal  Minimum X/Y physical axis value, for movement resolution calculations (16-bit).
- *  \param[in] MaxPhysicalVal  Maximum X/Y physical axis value, for movement resolution calculations (16-bit).
+ *  \param[in] MinPhysicalVal  Minimum X/Y physical axis value, for movement
+ * resolution calculations (16-bit). \param[in] MaxPhysicalVal  Maximum X/Y
+ * physical axis value, for movement resolution calculations (16-bit).
  *  \param[in] Buttons         Total number of buttons in the device (8-bit).
- *  \param[in] AbsoluteCoords  Boolean \c true to use absolute X/Y coordinates (e.g. touchscreen).
+ *  \param[in] AbsoluteCoords  Boolean \c true to use absolute X/Y coordinates
+ * (e.g. touchscreen).
  */
 #define HID_DESCRIPTOR_MOUSE(MinAxisVal, MaxAxisVal, MinPhysicalVal, MaxPhysicalVal, Buttons, AbsoluteCoords)                              \
 	HID_RI_USAGE_PAGE(8, 0x01), HID_RI_USAGE(8, 0x02), HID_RI_COLLECTION(8, 0x01), HID_RI_USAGE(8, 0x01), HID_RI_COLLECTION(8, 0x00),      \
@@ -451,15 +478,19 @@ extern "C" {
 		HID_RI_END_COLLECTION(0), HID_RI_END_COLLECTION(0)
 
 /** \hideinitializer
- *  A list of HID report item array elements that describe a typical Vendor Defined byte array HID report descriptor,
- *  used for transporting arbitrary data between the USB host and device via HID reports. The resulting report should be
- *  a \c uint8_t byte array of the specified length in both Device to Host (IN) and Host to Device (OUT) directions.
+ *  A list of HID report item array elements that describe a typical Vendor
+ * Defined byte array HID report descriptor, used for transporting arbitrary
+ * data between the USB host and device via HID reports. The resulting report
+ * should be a \c uint8_t byte array of the specified length in both Device to
+ * Host (IN) and Host to Device (OUT) directions.
  *
- *  \param[in] VendorPageNum    Vendor Defined HID Usage Page index, ranging from 0x00 to 0xFF.
- *  \param[in] CollectionUsage  Vendor Usage for the encompassing report IN and OUT collection, ranging from 0x00 to 0xFF.
- *  \param[in] DataINUsage      Vendor Usage for the IN report data, ranging from 0x00 to 0xFF.
- *  \param[in] DataOUTUsage     Vendor Usage for the OUT report data, ranging from 0x00 to 0xFF.
- *  \param[in] NumBytes         Length of the data IN and OUT reports.
+ *  \param[in] VendorPageNum    Vendor Defined HID Usage Page index, ranging
+ * from 0x00 to 0xFF. \param[in] CollectionUsage  Vendor Usage for the
+ * encompassing report IN and OUT collection, ranging from 0x00 to 0xFF.
+ * \param[in] DataINUsage      Vendor Usage for the IN report data, ranging from
+ * 0x00 to 0xFF. \param[in] DataOUTUsage     Vendor Usage for the OUT report
+ * data, ranging from 0x00 to 0xFF. \param[in] NumBytes         Length of the
+ * data IN and OUT reports.
  */
 #define HID_DESCRIPTOR_VENDOR(VendorPageNum, CollectionUsage, DataINUsage, DataOUTUsage, NumBytes)                                         \
 	HID_RI_USAGE_PAGE(16, (0xFF00 | VendorPageNum)), HID_RI_USAGE(8, CollectionUsage), HID_RI_COLLECTION(8, 0x01),                         \
@@ -471,47 +502,55 @@ extern "C" {
 /**@}*/
 
 /* Type Defines: */
-/** Enum for possible Class, Subclass and Protocol values of device and interface descriptors relating to the HID
- *  device class.
+/** Enum for possible Class, Subclass and Protocol values of device and
+ * interface descriptors relating to the HID device class.
  */
 enum HID_Descriptor_ClassSubclassProtocol_t
 {
-	HID_CSCP_HIDClass			  = 0x03, /**< Descriptor Class value indicating that the device or interface
-										   *   belongs to the HID class.
+	HID_CSCP_HIDClass			  = 0x03, /**< Descriptor Class value indicating that the
+										   * device or interface belongs to the HID class.
 										   */
-	HID_CSCP_NonBootSubclass	  = 0x00, /**< Descriptor Subclass value indicating that the device or interface
-										   *   does not implement a HID boot protocol.
+	HID_CSCP_NonBootSubclass	  = 0x00, /**< Descriptor Subclass value indicating that the device or
+										   * interface does not implement a HID boot protocol.
 										   */
-	HID_CSCP_BootSubclass		  = 0x01, /**< Descriptor Subclass value indicating that the device or interface
-										   *   implements a HID boot protocol.
+	HID_CSCP_BootSubclass		  = 0x01, /**< Descriptor Subclass value indicating that the device or
+										   * interface implements a HID boot protocol.
 										   */
-	HID_CSCP_NonBootProtocol	  = 0x00, /**< Descriptor Protocol value indicating that the device or interface
-										   *   does not belong to a HID boot protocol.
+	HID_CSCP_NonBootProtocol	  = 0x00, /**< Descriptor Protocol value indicating that the device or
+										   * interface does not belong to a HID boot protocol.
 										   */
-	HID_CSCP_KeyboardBootProtocol = 0x01, /**< Descriptor Protocol value indicating that the device or interface
-										   *   belongs to the Keyboard HID boot protocol.
+	HID_CSCP_KeyboardBootProtocol = 0x01, /**< Descriptor Protocol value indicating that the device or
+										   * interface belongs to the Keyboard HID boot protocol.
 										   */
-	HID_CSCP_MouseBootProtocol	  = 0x02, /**< Descriptor Protocol value indicating that the device or interface
-										   *   belongs to the Mouse HID boot protocol.
+	HID_CSCP_MouseBootProtocol	  = 0x02, /**< Descriptor Protocol value indicating that the device or
+										   * interface belongs to the Mouse HID boot protocol.
 										   */
 };
 
-/** Enum for the HID class specific control requests that can be issued by the USB bus host. */
+/** Enum for the HID class specific control requests that can be issued by the
+ * USB bus host. */
 enum HID_ClassRequests_t
 {
-	HID_REQ_GetReport	= 0x01, /**< HID class-specific Request to get the current HID report from the device. */
-	HID_REQ_GetIdle		= 0x02, /**< HID class-specific Request to get the current device idle count. */
-	HID_REQ_GetProtocol = 0x03, /**< HID class-specific Request to get the current HID report protocol mode. */
-	HID_REQ_SetReport	= 0x09, /**< HID class-specific Request to set the current HID report to the device. */
+	HID_REQ_GetReport	= 0x01, /**< HID class-specific Request to get the current
+								   HID report from the device. */
+	HID_REQ_GetIdle		= 0x02, /**< HID class-specific Request to get the current
+								   device idle count. */
+	HID_REQ_GetProtocol = 0x03, /**< HID class-specific Request to get the
+								   current HID report protocol mode. */
+	HID_REQ_SetReport	= 0x09, /**< HID class-specific Request to set the current
+								   HID report to the device. */
 	HID_REQ_SetIdle		= 0x0A, /**< HID class-specific Request to set the device's idle count. */
-	HID_REQ_SetProtocol = 0x0B, /**< HID class-specific Request to set the current HID report protocol mode. */
+	HID_REQ_SetProtocol = 0x0B, /**< HID class-specific Request to set the
+								   current HID report protocol mode. */
 };
 
 /** Enum for the HID class specific descriptor types. */
 enum HID_DescriptorTypes_t
 {
-	HID_DTYPE_HID	 = 0x21, /**< Descriptor header type value, to indicate a HID class HID descriptor. */
-	HID_DTYPE_Report = 0x22, /**< Descriptor header type value, to indicate a HID class HID report descriptor. */
+	HID_DTYPE_HID	 = 0x21, /**< Descriptor header type value, to indicate a HID
+								class HID descriptor. */
+	HID_DTYPE_Report = 0x22, /**< Descriptor header type value, to indicate a
+								HID class HID report descriptor. */
 };
 
 /** Enum for the different types of HID reports. */
@@ -524,56 +563,72 @@ enum HID_ReportItemTypes_t
 
 /** \brief HID class-specific HID Descriptor (LUFA naming conventions).
  *
- *  Type define for the HID class-specific HID descriptor, to describe the HID device's specifications. Refer to the HID
- *  specification for details on the structure elements.
+ *  Type define for the HID class-specific HID descriptor, to describe the HID
+ * device's specifications. Refer to the HID specification for details on the
+ * structure elements.
  *
- *  \see \ref USB_HID_StdDescriptor_HID_t for the version of this type with standard element names.
+ *  \see \ref USB_HID_StdDescriptor_HID_t for the version of this type with
+ * standard element names.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
-	USB_Descriptor_Header_t Header; /**< Regular descriptor header containing the descriptor's type and length. */
+	USB_Descriptor_Header_t Header; /**< Regular descriptor header containing
+									   the descriptor's type and length. */
 
-	uint16_t HIDSpec;	  /**< BCD encoded version that the HID descriptor and device complies to.
+	uint16_t HIDSpec;	  /**< BCD encoded version that the HID descriptor and
+						   * device complies to.
 						   *
 						   *   \see \ref VERSION_BCD() utility macro.
 						   */
-	uint8_t	 CountryCode; /**< Country code of the localized device, or zero if universal. */
+	uint8_t	 CountryCode; /**< Country code of the localized device, or zero if
+							 universal. */
 
-	uint8_t TotalReportDescriptors; /**< Total number of HID report descriptors for the interface. */
+	uint8_t TotalReportDescriptors; /**< Total number of HID report descriptors
+									   for the interface. */
 
 	uint8_t	 HIDReportType;	  /**< Type of HID report, set to \ref HID_DTYPE_Report. */
-	uint16_t HIDReportLength; /**< Length of the associated HID report descriptor, in bytes. */
+	uint16_t HIDReportLength; /**< Length of the associated HID report
+								 descriptor, in bytes. */
 } ATTR_PACKED USB_HID_Descriptor_HID_t;
 
 /** \brief HID class-specific HID Descriptor (USB-IF naming conventions).
  *
- *  Type define for the HID class-specific HID descriptor, to describe the HID device's specifications. Refer to the HID
- *  specification for details on the structure elements.
+ *  Type define for the HID class-specific HID descriptor, to describe the HID
+ * device's specifications. Refer to the HID specification for details on the
+ * structure elements.
  *
- *  \see \ref USB_HID_Descriptor_HID_t for the version of this type with non-standard LUFA specific
- *       element names.
+ *  \see \ref USB_HID_Descriptor_HID_t for the version of this type with
+ * non-standard LUFA specific element names.
  *
- *  \note Regardless of CPU architecture, these values should be stored as little endian.
+ *  \note Regardless of CPU architecture, these values should be stored as
+ * little endian.
  */
 typedef struct
 {
 	uint8_t bLength;		 /**< Size of the descriptor, in bytes. */
-	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
-							  *   given by the specific class.
+	uint8_t bDescriptorType; /**< Type of the descriptor, either a value in \ref
+							  * USB_DescriptorTypes_t or a value given by the
+							  * specific class.
 							  */
 
-	uint16_t bcdHID;	   /**< BCD encoded version that the HID descriptor and device complies to.
+	uint16_t bcdHID;	   /**< BCD encoded version that the HID descriptor and device
+							* complies to.
 							*
 							*   \see \ref VERSION_BCD() utility macro.
 							*/
-	uint8_t	 bCountryCode; /**< Country code of the localized device, or zero if universal. */
+	uint8_t	 bCountryCode; /**< Country code of the localized device, or zero if
+							  universal. */
 
-	uint8_t bNumDescriptors; /**< Total number of HID report descriptors for the interface. */
+	uint8_t bNumDescriptors; /**< Total number of HID report descriptors for the
+								interface. */
 
-	uint8_t	 bDescriptorType2;	/**< Type of HID report, set to \ref HID_DTYPE_Report. */
-	uint16_t wDescriptorLength; /**< Length of the associated HID report descriptor, in bytes. */
+	uint8_t	 bDescriptorType2;	/**< Type of HID report, set to \ref
+								   HID_DTYPE_Report. */
+	uint16_t wDescriptorLength; /**< Length of the associated HID report
+								   descriptor, in bytes. */
 } ATTR_PACKED USB_HID_StdDescriptor_HID_t;
 
 /** \brief Standard HID Boot Protocol Mouse Report.
@@ -593,14 +648,15 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t Modifier;	/**< Keyboard modifier byte, indicating pressed modifier keys (a combination of
-						 *   \c HID_KEYBOARD_MODIFER_* masks).
+	uint8_t Modifier;	/**< Keyboard modifier byte, indicating pressed modifier keys
+						 * (a combination of \c HID_KEYBOARD_MODIFER_* masks).
 						 */
 	uint8_t Reserved;	/**< Reserved for OEM use, always set to 0. */
 	uint8_t KeyCode[6]; /**< Key codes of the currently pressed keys. */
 } ATTR_PACKED USB_KeyboardReport_Data_t;
 
-/** Type define for the data type used to store HID report descriptor elements. */
+/** Type define for the data type used to store HID report descriptor elements.
+ */
 typedef uint8_t USB_Descriptor_HIDReport_Datatype_t;
 
 /* Disable C linkage for C++ Compilers: */

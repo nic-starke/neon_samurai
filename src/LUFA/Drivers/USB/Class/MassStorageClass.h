@@ -31,28 +31,37 @@
 /** \file
  *  \brief Master include file for the library USB Mass Storage Class driver.
  *
- *  Master include file for the library USB Mass Storage Class driver, for both host and device modes, where available.
+ *  Master include file for the library USB Mass Storage Class driver, for both
+ * host and device modes, where available.
  *
- *  This file should be included in all user projects making use of this optional class driver, instead of
- *  including any headers in the USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common subdirectories.
+ *  This file should be included in all user projects making use of this
+ * optional class driver, instead of including any headers in the
+ * USB/ClassDriver/Device, USB/ClassDriver/Host or USB/ClassDriver/Common
+ * subdirectories.
  */
 
 /** \ingroup Group_USBClassDrivers
  *  \defgroup Group_USBClassMS Mass Storage Class Driver
- *  \brief USB class driver for the USB-IF Bulk-Only Transport Mass Storage class standard.
+ *  \brief USB class driver for the USB-IF Bulk-Only Transport Mass Storage
+ * class standard.
  *
  *  \section Sec_USBClassMS_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
- *    - LUFA/Drivers/USB/Class/Device/MassStorageClassDevice.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
- *    - LUFA/Drivers/USB/Class/Host/MassStorageClassHost.c <i>(Makefile source module name: LUFA_SRC_USBCLASS)</i>
+ *  The following files must be built with any user project that uses this
+ * module:
+ *    - LUFA/Drivers/USB/Class/Device/MassStorageClassDevice.c <i>(Makefile
+ * source module name: LUFA_SRC_USBCLASS)</i>
+ *    - LUFA/Drivers/USB/Class/Host/MassStorageClassHost.c <i>(Makefile source
+ * module name: LUFA_SRC_USBCLASS)</i>
  *
  *  \section Sec_USBClassMS_ModDescription Module Description
- *  Mass Storage Class Driver module. This module contains an internal implementation of the USB Mass Storage Class, for both
- *  Device and Host USB modes. User applications can use this class driver instead of implementing the Mass Storage class
- *  manually via the low-level LUFA APIs.
+ *  Mass Storage Class Driver module. This module contains an internal
+ * implementation of the USB Mass Storage Class, for both Device and Host USB
+ * modes. User applications can use this class driver instead of implementing
+ * the Mass Storage class manually via the low-level LUFA APIs.
  *
- *  This module is designed to simplify the user code by exposing only the required interface needed to interface with
- *  Hosts or Devices using the USB Mass Storage Class.
+ *  This module is designed to simplify the user code by exposing only the
+ * required interface needed to interface with Hosts or Devices using the USB
+ * Mass Storage Class.
  *
  *  @{
  */

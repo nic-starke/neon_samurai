@@ -18,7 +18,7 @@
 
 project(
 	'muffin', 'c',
-	version : '0.1',
+	version : '1',
 	default_options: [
 		'buildtype=release',
 		'c_std=c99',
@@ -37,6 +37,7 @@ PROGRAMMER_PORT     = 'usb'
 
 conf_data = configuration_data()
 conf_data.set('version', meson.project_version())
+conf_data.set('EEKEY', 0x33)
 configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configuration: conf_data)
 
 configuration_inc = include_directories('.')

@@ -24,7 +24,8 @@
 #include "Types.h"
 #include "Utility.h"
 
-// This implementation is fixed to USART in Master SPI Mode (additional modes exist but are not implemented).
+// This implementation is fixed to USART in Master SPI Mode (additional modes
+// exist but are not implemented).
 
 typedef enum
 {

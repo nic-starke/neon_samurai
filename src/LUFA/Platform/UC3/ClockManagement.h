@@ -31,21 +31,25 @@
 /** \file
  *  \brief Module Clock Driver for the AVR32 UC3 microcontrollers.
  *
- *  Clock management driver for the AVR32 UC3 microcontrollers. This driver allows for the configuration
- *  of the various clocks within the device to clock the various peripherals.
+ *  Clock management driver for the AVR32 UC3 microcontrollers. This driver
+ * allows for the configuration of the various clocks within the device to clock
+ * the various peripherals.
  */
 
 /** \ingroup Group_PlatformDrivers_UC3
- *  \defgroup Group_PlatformDrivers_UC3Clocks Clock Management Driver - LUFA/Platform/UC3/ClockManagement.h
- *  \brief Module Clock Driver for the AVR32 UC3 microcontrollers.
+ *  \defgroup Group_PlatformDrivers_UC3Clocks Clock Management Driver -
+ *LUFA/Platform/UC3/ClockManagement.h \brief Module Clock Driver for the AVR32
+ *UC3 microcontrollers.
  *
- *  \section Sec_PlatformDrivers_UC3Clocks_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
+ *  \section Sec_PlatformDrivers_UC3Clocks_Dependencies Module Source
+ *Dependencies The following files must be built with any user project that uses
+ *this module:
  *    - None
  *
  *  \section Sec_PlatformDrivers_UC3Clocks_ModDescription Module Description
- *  Clock management driver for the AVR32 UC3 microcontrollers. This driver allows for the configuration
- *  of the various clocks within the device to clock the various peripherals.
+ *  Clock management driver for the AVR32 UC3 microcontrollers. This driver
+ *allows for the configuration of the various clocks within the device to clock
+ *the various peripherals.
  *
  *  Usage Example:
  *  \code
@@ -53,8 +57,9 @@
  *
  *		void main(void)
  *		{
- *			// Start the master external oscillator which will be used as the main clock reference
- *			UC3CLK_StartExternalOscillator(0, EXOSC_MODE_8MHZ_OR_MORE, EXOSC_START_0CLK);
+ *			// Start the master external oscillator which will be used as the
+ *main clock reference UC3CLK_StartExternalOscillator(0,
+ *EXOSC_MODE_8MHZ_OR_MORE, EXOSC_START_0CLK);
  *
  *			// Start the PLL for the CPU clock, switch CPU to it
  *			UC3CLK_StartPLL(0, CLOCK_SRC_OSC0, 12000000, F_CPU);
@@ -84,23 +89,35 @@ extern "C" {
 /** Enum for the possible external oscillator types. */
 enum UC3_Extern_OSC_ClockTypes_t
 {
-	EXOSC_MODE_CLOCK		= AVR32_PM_OSCCTRL0_MODE_EXT_CLOCK,	 /**< External clock (non-crystal) mode. */
-	EXOSC_MODE_900KHZ_MAX	= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G0, /**< External crystal oscillator equal to or slower than 900KHz. */
-	EXOSC_MODE_3MHZ_MAX		= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G1, /**< External crystal oscillator equal to or slower than 3MHz. */
-	EXOSC_MODE_8MHZ_MAX		= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G2, /**< External crystal oscillator equal to or slower than 8MHz. */
-	EXOSC_MODE_8MHZ_OR_MORE = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G3, /**< External crystal oscillator equal to or faster than 8MHz. */
+	EXOSC_MODE_CLOCK		= AVR32_PM_OSCCTRL0_MODE_EXT_CLOCK,	 /**< External clock (non-crystal)
+																	mode. */
+	EXOSC_MODE_900KHZ_MAX	= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G0, /**< External crystal oscillator
+																	equal to or slower than 900KHz. */
+	EXOSC_MODE_3MHZ_MAX		= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G1, /**< External crystal oscillator
+																	equal to or slower than 3MHz. */
+	EXOSC_MODE_8MHZ_MAX		= AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G2, /**< External crystal oscillator
+																	equal to or slower than 8MHz. */
+	EXOSC_MODE_8MHZ_OR_MORE = AVR32_PM_OSCCTRL0_MODE_CRYSTAL_G3, /**< External crystal oscillator
+																	equal to or faster than 8MHz. */
 };
 
 /** Enum for the possible external oscillator startup times. */
 enum UC3_Extern_OSC_ClockStartup_t
 {
 	EXOSC_START_0CLK	 = AVR32_PM_OSCCTRL0_STARTUP_0_RCOSC,	  /**< Immediate startup, no delay. */
-	EXOSC_START_64CLK	 = AVR32_PM_OSCCTRL0_STARTUP_64_RCOSC,	  /**< Wait 64 clock cycles before startup for stability. */
-	EXOSC_START_128CLK	 = AVR32_PM_OSCCTRL0_STARTUP_128_RCOSC,	  /**< Wait 128 clock cycles before startup for stability. */
-	EXOSC_START_2048CLK	 = AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC,  /**< Wait 2048 clock cycles before startup for stability. */
-	EXOSC_START_4096CLK	 = AVR32_PM_OSCCTRL0_STARTUP_4096_RCOSC,  /**< Wait 4096 clock cycles before startup for stability. */
-	EXOSC_START_8192CLK	 = AVR32_PM_OSCCTRL0_STARTUP_8192_RCOSC,  /**< Wait 8192 clock cycles before startup for stability. */
-	EXOSC_START_16384CLK = AVR32_PM_OSCCTRL0_STARTUP_16384_RCOSC, /**< Wait 16384 clock cycles before startup for stability. */
+	EXOSC_START_64CLK	 = AVR32_PM_OSCCTRL0_STARTUP_64_RCOSC,	  /**< Wait 64 clock cycles before
+																	 startup for stability. */
+	EXOSC_START_128CLK	 = AVR32_PM_OSCCTRL0_STARTUP_128_RCOSC,	  /**< Wait 128 clock cycles before
+																	 startup for stability. */
+	EXOSC_START_2048CLK	 = AVR32_PM_OSCCTRL0_STARTUP_2048_RCOSC,  /**< Wait 2048 clock cycles before
+																	 startup for stability. */
+	EXOSC_START_4096CLK	 = AVR32_PM_OSCCTRL0_STARTUP_4096_RCOSC,  /**< Wait 4096 clock cycles before
+																	 startup for stability. */
+	EXOSC_START_8192CLK	 = AVR32_PM_OSCCTRL0_STARTUP_8192_RCOSC,  /**< Wait 8192 clock cycles before
+																	 startup for stability. */
+	EXOSC_START_16384CLK = AVR32_PM_OSCCTRL0_STARTUP_16384_RCOSC, /**< Wait 16384 clock cycles
+																	 before startup for stability.
+																   */
 };
 
 /** Enum for the possible module clock sources. */
@@ -114,14 +131,17 @@ enum UC3_System_ClockSource_t
 };
 
 /* Inline Functions: */
-/** Starts the given external oscillator of the UC3 microcontroller, with the given options. This routine blocks until
- *  the oscillator is ready for use.
+/** Starts the given external oscillator of the UC3 microcontroller, with the
+ * given options. This routine blocks until the oscillator is ready for use.
  *
  *  \param[in] Channel  Index of the external oscillator to start.
- *  \param[in] Type     Type of clock attached to the given oscillator channel, a value from \ref UC3_Extern_OSC_ClockTypes_t.
- *  \param[in] Startup  Startup time of the external oscillator, a value from \ref UC3_Extern_OSC_ClockStartup_t.
+ *  \param[in] Type     Type of clock attached to the given oscillator channel,
+ * a value from \ref UC3_Extern_OSC_ClockTypes_t. \param[in] Startup  Startup
+ * time of the external oscillator, a value from \ref
+ * UC3_Extern_OSC_ClockStartup_t.
  *
- *  \return Boolean \c true if the external oscillator was successfully started, \c false if invalid parameters specified.
+ *  \return Boolean \c true if the external oscillator was successfully started,
+ * \c false if invalid parameters specified.
  */
 static inline bool UC3CLK_StartExternalOscillator(const uint8_t Channel, const uint8_t Type, const uint8_t Startup) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_StartExternalOscillator(const uint8_t Channel, const uint8_t Type, const uint8_t Startup)
@@ -156,16 +176,19 @@ static inline void UC3CLK_StopExternalOscillator(const uint8_t Channel)
 	AVR32_PM.mcctrl &= ~(1 << (AVR32_PM_MCCTRL_OSC0EN_OFFSET + Channel));
 }
 
-/** Starts the given PLL of the UC3 microcontroller, with the given options. This routine blocks until the PLL is ready for use.
+/** Starts the given PLL of the UC3 microcontroller, with the given options.
+ * This routine blocks until the PLL is ready for use.
  *
- *  \attention The output frequency must be equal to or greater than the source frequency.
+ *  \attention The output frequency must be equal to or greater than the source
+ * frequency.
  *
  *  \param[in] Channel     Index of the PLL to start.
- *  \param[in] Source      Clock source for the PLL, a value from \ref UC3_System_ClockSource_t.
- *  \param[in] SourceFreq  Frequency of the PLL's clock source, in Hz.
- *  \param[in] Frequency   Target frequency of the PLL's output.
+ *  \param[in] Source      Clock source for the PLL, a value from \ref
+ * UC3_System_ClockSource_t. \param[in] SourceFreq  Frequency of the PLL's clock
+ * source, in Hz. \param[in] Frequency   Target frequency of the PLL's output.
  *
- *  \return Boolean \c true if the PLL was successfully started, \c false if invalid parameters specified.
+ *  \return Boolean \c true if the PLL was successfully started, \c false if
+ * invalid parameters specified.
  */
 static inline bool UC3CLK_StartPLL(const uint8_t Channel, const uint8_t Source, const uint32_t SourceFreq,
 								   const uint32_t Frequency) ATTR_ALWAYS_INLINE;
@@ -200,14 +223,17 @@ static inline void UC3CLK_StopPLL(const uint8_t Channel)
 	AVR32_PM.PLL[Channel].pllen = false;
 }
 
-/** Starts the given Generic Clock of the UC3 microcontroller, with the given options.
+/** Starts the given Generic Clock of the UC3 microcontroller, with the given
+ * options.
  *
  *  \param[in] Channel     Index of the Generic Clock to start.
- *  \param[in] Source      Clock source for the Generic Clock, a value from \ref UC3_System_ClockSource_t.
- *  \param[in] SourceFreq  Frequency of the Generic Clock's clock source, in Hz.
- *  \param[in] Frequency   Target frequency of the Generic Clock's output.
+ *  \param[in] Source      Clock source for the Generic Clock, a value from \ref
+ * UC3_System_ClockSource_t. \param[in] SourceFreq  Frequency of the Generic
+ * Clock's clock source, in Hz. \param[in] Frequency   Target frequency of the
+ * Generic Clock's output.
  *
- *  \return Boolean \c true if the Generic Clock was successfully started, \c false if invalid parameters specified.
+ *  \return Boolean \c true if the Generic Clock was successfully started, \c
+ * false if invalid parameters specified.
  */
 static inline bool UC3CLK_StartGenericClock(const uint8_t Channel, const uint8_t Source, const uint32_t SourceFreq,
 											const uint32_t Frequency) ATTR_ALWAYS_INLINE;
@@ -252,7 +278,8 @@ static inline bool UC3CLK_StartGenericClock(const uint8_t Channel, const uint8_t
  *
  *  \param[in] Channel  Index of the generic clock to stop.
  *
- *  \return Boolean \c true if the generic clock was successfully stopped, \c false if invalid parameters specified.
+ *  \return Boolean \c true if the generic clock was successfully stopped, \c
+ * false if invalid parameters specified.
  */
 static inline bool UC3CLK_StopGenericClock(const uint8_t Channel) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_StopGenericClock(const uint8_t Channel)
@@ -265,15 +292,18 @@ static inline bool UC3CLK_StopGenericClock(const uint8_t Channel)
 	return true;
 }
 
-/** Sets the clock source for the main microcontroller core. The given clock source should be configured
- *  and ready for use before this function is called.
+/** Sets the clock source for the main microcontroller core. The given clock
+ * source should be configured and ready for use before this function is called.
  *
- *  This function will configure the FLASH controller's wait states automatically to suit the given clock source.
+ *  This function will configure the FLASH controller's wait states
+ * automatically to suit the given clock source.
  *
- *  \param[in] Source      Clock source for the CPU core, a value from \ref UC3_System_ClockSource_t.
- *  \param[in] SourceFreq  Frequency of the CPU core's clock source, in Hz.
+ *  \param[in] Source      Clock source for the CPU core, a value from \ref
+ * UC3_System_ClockSource_t. \param[in] SourceFreq  Frequency of the CPU core's
+ * clock source, in Hz.
  *
- *  \return Boolean \c true if the CPU core clock was successfully altered, \c false if invalid parameters specified.
+ *  \return Boolean \c true if the CPU core clock was successfully altered, \c
+ * false if invalid parameters specified.
  */
 static inline bool UC3CLK_SetCPUClockSource(const uint8_t Source, const uint32_t SourceFreq) ATTR_ALWAYS_INLINE;
 static inline bool UC3CLK_SetCPUClockSource(const uint8_t Source, const uint32_t SourceFreq)

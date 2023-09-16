@@ -48,7 +48,8 @@
  *  \defgroup Group_Endianness Endianness and Byte Ordering
  *  \brief Convenience macros and functions relating to byte (re-)ordering
  *
- *  Common library convenience macros and functions relating to byte (re-)ordering.
+ *  Common library convenience macros and functions relating to byte
+ * (re-)ordering.
  *
  *  @{
  */
@@ -72,10 +73,11 @@ extern "C" {
 
 /* Public Interface - May be used in end-application: */
 /* Macros: */
-/** Swaps the byte ordering of a 16-bit value at compile-time. Do not use this macro for swapping byte orderings
- *  of dynamic values computed at runtime, use \ref SwapEndian_16() instead. The result of this macro can be used
- *  inside struct or other variable initializers outside of a function, something that is not possible with the
- *  inline function variant.
+/** Swaps the byte ordering of a 16-bit value at compile-time. Do not use this
+ * macro for swapping byte orderings of dynamic values computed at runtime, use
+ * \ref SwapEndian_16() instead. The result of this macro can be used inside
+ * struct or other variable initializers outside of a function, something that
+ * is not possible with the inline function variant.
  *
  *  \hideinitializer
  *
@@ -87,10 +89,11 @@ extern "C" {
  */
 #define SWAPENDIAN_16(x) (uint16_t)((((x)&0xFF00) >> 8) | (((x)&0x00FF) << 8))
 
-/** Swaps the byte ordering of a 32-bit value at compile-time. Do not use this macro for swapping byte orderings
- *  of dynamic values computed at runtime- use \ref SwapEndian_32() instead. The result of this macro can be used
- *  inside struct or other variable initializers outside of a function, something that is not possible with the
- *  inline function variant.
+/** Swaps the byte ordering of a 32-bit value at compile-time. Do not use this
+ * macro for swapping byte orderings of dynamic values computed at runtime- use
+ * \ref SwapEndian_32() instead. The result of this macro can be used inside
+ * struct or other variable initializers outside of a function, something that
+ * is not possible with the inline function variant.
  *
  *  \hideinitializer
  *
@@ -124,13 +127,13 @@ extern "C" {
 /** \name Run-time endianness conversion */
 /**@{*/
 
-/** Performs a conversion between a Little Endian encoded 16-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Little Endian encoded 16-bit piece of data
+ * and the Endianness of the currently selected CPU architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref LE16_TO_CPU instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref LE16_TO_CPU instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -140,13 +143,13 @@ extern "C" {
  */
 #define le16_to_cpu(x) (x)
 
-/** Performs a conversion between a Little Endian encoded 32-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Little Endian encoded 32-bit piece of data
+ * and the Endianness of the currently selected CPU architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref LE32_TO_CPU instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref LE32_TO_CPU instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -156,13 +159,13 @@ extern "C" {
  */
 #define le32_to_cpu(x) (x)
 
-/** Performs a conversion between a Big Endian encoded 16-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Big Endian encoded 16-bit piece of data and
+ * the Endianness of the currently selected CPU architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref BE16_TO_CPU instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref BE16_TO_CPU instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -172,13 +175,13 @@ extern "C" {
  */
 #define be16_to_cpu(x) SwapEndian_16(x)
 
-/** Performs a conversion between a Big Endian encoded 32-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Big Endian encoded 32-bit piece of data and
+ * the Endianness of the currently selected CPU architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref BE32_TO_CPU instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref BE32_TO_CPU instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -188,13 +191,14 @@ extern "C" {
  */
 #define be32_to_cpu(x) SwapEndian_32(x)
 
-/** Performs a conversion on a natively encoded 16-bit piece of data to ensure that it
- *  is in Little Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 16-bit piece of data to ensure
+ * that it is in Little Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref CPU_TO_LE16 instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref CPU_TO_LE16 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -204,13 +208,14 @@ extern "C" {
  */
 #define cpu_to_le16(x) (x)
 
-/** Performs a conversion on a natively encoded 32-bit piece of data to ensure that it
- *  is in Little Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 32-bit piece of data to ensure
+ * that it is in Little Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref CPU_TO_LE32 instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref CPU_TO_LE32 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -220,13 +225,14 @@ extern "C" {
  */
 #define cpu_to_le32(x) (x)
 
-/** Performs a conversion on a natively encoded 16-bit piece of data to ensure that it
- *  is in Big Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 16-bit piece of data to ensure
+ * that it is in Big Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref CPU_TO_BE16 instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref CPU_TO_BE16 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -236,13 +242,14 @@ extern "C" {
  */
 #define cpu_to_be16(x) SwapEndian_16(x)
 
-/** Performs a conversion on a natively encoded 32-bit piece of data to ensure that it
- *  is in Big Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 32-bit piece of data to ensure
+ * that it is in Big Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for run-time conversion of data - for compile-time endianness
- *        conversion, use \ref CPU_TO_BE32 instead.
+ *  \note This macro is designed for run-time conversion of data - for
+ * compile-time endianness conversion, use \ref CPU_TO_BE32 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -257,13 +264,13 @@ extern "C" {
 /** \name Compile-time endianness conversion */
 /**@{*/
 
-/** Performs a conversion between a Little Endian encoded 16-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Little Endian encoded 16-bit piece of data
+ * and the Endianness of the currently selected CPU architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run time endianness
- *        conversion, use \ref le16_to_cpu instead.
+ *  \note This macro is designed for compile-time conversion of data - for run
+ * time endianness conversion, use \ref le16_to_cpu instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -273,13 +280,13 @@ extern "C" {
  */
 #define LE16_TO_CPU(x) (x)
 
-/** Performs a conversion between a Little Endian encoded 32-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Little Endian encoded 32-bit piece of data
+ * and the Endianness of the currently selected CPU architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run time endianness
- *        conversion, use \ref le32_to_cpu instead.
+ *  \note This macro is designed for compile-time conversion of data - for run
+ * time endianness conversion, use \ref le32_to_cpu instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -289,13 +296,13 @@ extern "C" {
  */
 #define LE32_TO_CPU(x) (x)
 
-/** Performs a conversion between a Big Endian encoded 16-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Big Endian encoded 16-bit piece of data and
+ * the Endianness of the currently selected CPU architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run-time endianness
- *        conversion, use \ref be16_to_cpu instead.
+ *  \note This macro is designed for compile-time conversion of data - for
+ * run-time endianness conversion, use \ref be16_to_cpu instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -305,13 +312,13 @@ extern "C" {
  */
 #define BE16_TO_CPU(x) SWAPENDIAN_16(x)
 
-/** Performs a conversion between a Big Endian encoded 32-bit piece of data and the
- *  Endianness of the currently selected CPU architecture.
+/** Performs a conversion between a Big Endian encoded 32-bit piece of data and
+ * the Endianness of the currently selected CPU architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run-time endianness
- *        conversion, use \ref be32_to_cpu instead.
+ *  \note This macro is designed for compile-time conversion of data - for
+ * run-time endianness conversion, use \ref be32_to_cpu instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -321,13 +328,14 @@ extern "C" {
  */
 #define BE32_TO_CPU(x) SWAPENDIAN_32(x)
 
-/** Performs a conversion on a natively encoded 16-bit piece of data to ensure that it
- *  is in Little Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 16-bit piece of data to ensure
+ * that it is in Little Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run-time endianness
- *        conversion, use \ref cpu_to_le16 instead.
+ *  \note This macro is designed for compile-time conversion of data - for
+ * run-time endianness conversion, use \ref cpu_to_le16 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -337,13 +345,14 @@ extern "C" {
  */
 #define CPU_TO_LE16(x) (x)
 
-/** Performs a conversion on a natively encoded 32-bit piece of data to ensure that it
- *  is in Little Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 32-bit piece of data to ensure
+ * that it is in Little Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On little endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run-time endianness
- *        conversion, use \ref cpu_to_le32 instead.
+ *  \note This macro is designed for compile-time conversion of data - for
+ * run-time endianness conversion, use \ref cpu_to_le32 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -353,13 +362,14 @@ extern "C" {
  */
 #define CPU_TO_LE32(x) (x)
 
-/** Performs a conversion on a natively encoded 16-bit piece of data to ensure that it
- *  is in Big Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 16-bit piece of data to ensure
+ * that it is in Big Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run-time endianness
- *        conversion, use \ref cpu_to_be16 instead.
+ *  \note This macro is designed for compile-time conversion of data - for
+ * run-time endianness conversion, use \ref cpu_to_be16 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -369,13 +379,14 @@ extern "C" {
  */
 #define CPU_TO_BE16(x) SWAPENDIAN_16(x)
 
-/** Performs a conversion on a natively encoded 32-bit piece of data to ensure that it
- *  is in Big Endian format regardless of the currently selected CPU architecture.
+/** Performs a conversion on a natively encoded 32-bit piece of data to ensure
+ * that it is in Big Endian format regardless of the currently selected CPU
+ * architecture.
  *
  *  On big endian architectures, this macro does nothing.
  *
- *  \note This macro is designed for compile-time conversion of data - for run-time endianness
- *        conversion, use \ref cpu_to_be32 instead.
+ *  \note This macro is designed for compile-time conversion of data - for
+ * run-time endianness conversion, use \ref cpu_to_be32 instead.
  *
  *  \ingroup Group_EndianConversion
  *
@@ -389,7 +400,8 @@ extern "C" {
 #endif
 
 /* Inline Functions: */
-/** Function to reverse the byte ordering of the individual bytes in a 16 bit value.
+/** Function to reverse the byte ordering of the individual bytes in a 16 bit
+ * value.
  *
  *  \ingroup Group_ByteSwapping
  *
@@ -420,7 +432,8 @@ static inline uint16_t SwapEndian_16(const uint16_t Word)
 	return Data.Word;
 }
 
-/** Function to reverse the byte ordering of the individual bytes in a 32 bit value.
+/** Function to reverse the byte ordering of the individual bytes in a 32 bit
+ * value.
  *
  *  \ingroup Group_ByteSwapping
  *
@@ -455,12 +468,13 @@ static inline uint32_t SwapEndian_32(const uint32_t DWord)
 	return Data.DWord;
 }
 
-/** Function to reverse the byte ordering of the individual bytes in a n byte value.
+/** Function to reverse the byte ordering of the individual bytes in a n byte
+ * value.
  *
  *  \ingroup Group_ByteSwapping
  *
- *  \param[in,out] Data    Pointer to a number containing an even number of bytes to be reversed.
- *  \param[in]     Length  Length of the data in bytes.
+ *  \param[in,out] Data    Pointer to a number containing an even number of
+ * bytes to be reversed. \param[in]     Length  Length of the data in bytes.
  *
  *  \return Input data with the individual bytes reversed.
  */

@@ -31,22 +31,26 @@
 /** \file
  *  \brief Interrupt Controller Driver for the AVR32 UC3 microcontrollers.
  *
- *  Interrupt controller driver for the AVR32 UC3 microcontrollers, for the configuration of interrupt
- *  handlers within the device.
+ *  Interrupt controller driver for the AVR32 UC3 microcontrollers, for the
+ * configuration of interrupt handlers within the device.
  */
 
 /** \ingroup Group_PlatformDrivers_UC3
- *  \defgroup Group_PlatformDrivers_UC3Interrupts Interrupt Controller Driver - LUFA/Platform/UC3/InterruptManagement.h
- *  \brief Interrupt Controller Driver for the AVR32 UC3 microcontrollers.
+ *  \defgroup Group_PlatformDrivers_UC3Interrupts Interrupt Controller Driver -
+ *LUFA/Platform/UC3/InterruptManagement.h \brief Interrupt Controller Driver for
+ *the AVR32 UC3 microcontrollers.
  *
- *  \section Sec_PlatformDrivers_UC3Interrupts_Dependencies Module Source Dependencies
- *  The following files must be built with any user project that uses this module:
- *    - LUFA/Platform/UC3/InterruptManagement.c <i>(Makefile source module name: LUFA_SRC_PLATFORM)</i>
- *    - LUFA/Platform/UC3/Exception.S <i>(Makefile source module name: LUFA_SRC_PLATFORM)</i>
+ *  \section Sec_PlatformDrivers_UC3Interrupts_Dependencies Module Source
+ *Dependencies The following files must be built with any user project that uses
+ *this module:
+ *    - LUFA/Platform/UC3/InterruptManagement.c <i>(Makefile source module name:
+ *LUFA_SRC_PLATFORM)</i>
+ *    - LUFA/Platform/UC3/Exception.S <i>(Makefile source module name:
+ *LUFA_SRC_PLATFORM)</i>
  *
  *  \section Sec_PlatformDrivers_UC3Interrupts_ModDescription Module Description
- *  Interrupt controller driver for the AVR32 UC3 microcontrollers, for the configuration of interrupt
- *  handlers within the device.
+ *  Interrupt controller driver for the AVR32 UC3 microcontrollers, for the
+ *configuration of interrupt handlers within the device.
  *
  *  Usage Example:
  *  \code
@@ -60,7 +64,8 @@
  *		void main(void)
  *		{
  *			INTC_Init();
- *			INTC_RegisterGroupHandler(INTC_IRQ_GROUP(AVR32_USBB_IRQ), AVR32_INTC_INT0, USB_Group_IRQ_Handler);
+ *			INTC_RegisterGroupHandler(INTC_IRQ_GROUP(AVR32_USBB_IRQ),
+ *AVR32_INTC_INT0, USB_Group_IRQ_Handler);
  *		}
  *  \endcode
  *
@@ -110,33 +115,41 @@ extern const uint32_t		 Autovector_Table[];
 #define INTC_IRQ_LINE(IRQIndex) (IRQIndex % 32)
 
 /* Function Prototypes: */
-/** Initializes the interrupt controller ready to handle interrupts. This must be called at the
- *  start of the user program before any interrupts are registered or enabled.
+/** Initializes the interrupt controller ready to handle interrupts. This must
+ * be called at the start of the user program before any interrupts are
+ * registered or enabled.
  */
 void INTC_Init(void);
 
-/** Retrieves the associated interrupt handler for the interrupt group currently being fired. This
- *  is called directly from the exception handler routine before dispatching to the ISR.
+/** Retrieves the associated interrupt handler for the interrupt group currently
+ * being fired. This is called directly from the exception handler routine
+ * before dispatching to the ISR.
  *
  *  \param[in] InterruptLevel  Priority level of the interrupt.
  *
- *  \return Pointer to the associated interrupt handler function, or NULL if no handler set.
+ *  \return Pointer to the associated interrupt handler function, or NULL if no
+ * handler set.
  */
 InterruptHandlerPtr_t INTC_GetInterruptHandler(const uint_reg_t InterruptLevel);
 
 /* Inline Functions: */
-/** Registers a handler for a given interrupt group. On the AVR32 UC3 devices, interrupts are grouped by
- *  peripheral. To save on SRAM used, a single ISR handles all interrupt lines within a single group - to
- *  determine the exact line that has interrupted within the group ISR handler, use \ref INTC_GetGroupInterrupts().
+/** Registers a handler for a given interrupt group. On the AVR32 UC3 devices,
+ * interrupts are grouped by peripheral. To save on SRAM used, a single ISR
+ * handles all interrupt lines within a single group - to determine the exact
+ * line that has interrupted within the group ISR handler, use \ref
+ * INTC_GetGroupInterrupts().
  *
- *  If multiple interrupts with the same group are registered, the last registered handler will become the
- *  handler called for interrupts raised within that group.
+ *  If multiple interrupts with the same group are registered, the last
+ * registered handler will become the handler called for interrupts raised
+ * within that group.
  *
- *  To obtain the group number of a specific interrupt index, use the \ref INTC_IRQ_GROUP() macro.
+ *  To obtain the group number of a specific interrupt index, use the \ref
+ * INTC_IRQ_GROUP() macro.
  *
- *  \param[in] GroupNumber       Group number of the interrupt group to register a handler for.
- *  \param[in] InterruptLevel    Priority level for the specified interrupt, a \c AVR32_INTC_INT* mask.
- *  \param[in] Handler           Address of the ISR handler for the interrupt group.
+ *  \param[in] GroupNumber       Group number of the interrupt group to register
+ * a handler for. \param[in] InterruptLevel    Priority level for the specified
+ * interrupt, a \c AVR32_INTC_INT* mask. \param[in] Handler           Address of
+ * the ISR handler for the interrupt group.
  */
 static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const uint8_t InterruptLevel,
 											 const InterruptHandlerPtr_t Handler) ATTR_ALWAYS_INLINE;
@@ -146,9 +159,10 @@ static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const u
 	AVR32_INTC.ipr[GroupNumber]	   = Autovector_Table[InterruptLevel];
 }
 
-/** Retrieves the pending interrupts for a given interrupt group. The result of this function should be masked
- *  against interrupt request indexes converted to a request line number via the \ref INTC_IRQ_LINE() macro. To
- *  obtain the group number of a given interrupt request, use the \ref INTC_IRQ_GROUP() macro.
+/** Retrieves the pending interrupts for a given interrupt group. The result of
+ * this function should be masked against interrupt request indexes converted to
+ * a request line number via the \ref INTC_IRQ_LINE() macro. To obtain the group
+ * number of a given interrupt request, use the \ref INTC_IRQ_GROUP() macro.
  *
  *  \param[in] GroupNumber Group number of the interrupt group to check.
  *

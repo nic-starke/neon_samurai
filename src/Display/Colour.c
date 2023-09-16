@@ -21,10 +21,10 @@
 
 void Hue2RGB(u16 Hue, sRGB* pRGB)
 {
-    pRGB->Blue = (u8)Hue;
+	pRGB->Blue = (u8)Hue;
 }
 
 void RGB2Hue(u16* pHue, sRGB* pRGB)
 {
-    pRGB->Blue = (u8)*pHue;
+	pRGB->Blue = (u8)*pHue;
 }

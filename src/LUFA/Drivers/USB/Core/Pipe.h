@@ -32,38 +32,42 @@
  *  \brief Common USB Pipe definitions for all architectures.
  *  \copydetails Group_PipeManagement
  *
- *  \note This file should not be included directly. It is automatically included as needed by the USB driver
- *        dispatch header located in LUFA/Drivers/USB/USB.h.
+ *  \note This file should not be included directly. It is automatically
+ * included as needed by the USB driver dispatch header located in
+ * LUFA/Drivers/USB/USB.h.
  */
 
 /** \ingroup Group_PipeManagement
  *  \defgroup Group_PipeRW Pipe Data Reading and Writing
  *  \brief Pipe data read/write definitions.
  *
- *  Functions, macros, variables, enums and types related to data reading and writing from and to pipes.
+ *  Functions, macros, variables, enums and types related to data reading and
+ * writing from and to pipes.
  */
 
 /** \ingroup Group_PipeRW
  *  \defgroup Group_PipePrimitiveRW Read/Write of Primitive Data Types
  *  \brief Pipe data primitive read/write definitions.
  *
- *  Functions, macros, variables, enums and types related to data reading and writing of primitive data types
- *  from and to pipes.
+ *  Functions, macros, variables, enums and types related to data reading and
+ * writing of primitive data types from and to pipes.
  */
 
 /** \ingroup Group_PipeManagement
  *  \defgroup Group_PipePacketManagement Pipe Packet Management
  *  \brief Pipe packet management definitions.
  *
- *  Functions, macros, variables, enums and types related to packet management of pipes.
+ *  Functions, macros, variables, enums and types related to packet management
+ * of pipes.
  */
 
 /** \ingroup Group_PipeManagement
  *  \defgroup Group_PipeControlReq Pipe Control Request Management
  *  \brief Pipe control request definitions.
  *
- *  Module for host mode request processing. This module allows for the transmission of standard, class and
- *  vendor control requests to the default control endpoint of an attached device while in host mode.
+ *  Module for host mode request processing. This module allows for the
+ * transmission of standard, class and vendor control requests to the default
+ * control endpoint of an attached device while in host mode.
  *
  *  \see Chapter 9 of the USB 2.0 specification.
  */
@@ -72,9 +76,10 @@
  *  \defgroup Group_PipeManagement Pipe Management
  *  \brief Pipe management definitions.
  *
- *  This module contains functions, macros and enums related to pipe management when in USB Host mode. This
- *  module contains the pipe management macros, as well as pipe interrupt and data send/receive functions
- *  for various data types.
+ *  This module contains functions, macros and enums related to pipe management
+ * when in USB Host mode. This module contains the pipe management macros, as
+ * well as pipe interrupt and data send/receive functions for various data
+ * types.
  *
  *  @{
  */
@@ -103,26 +108,29 @@ extern "C" {
  */
 typedef struct
 {
-	uint8_t	 Address;		  /**< Address of the pipe to configure, or zero if the table entry is to be unused. */
+	uint8_t	 Address;		  /**< Address of the pipe to configure, or zero if the table
+								 entry is to be unused. */
 	uint16_t Size;			  /**< Size of the pipe bank, in bytes. */
-	uint8_t	 EndpointAddress; /**< Address of the endpoint in the connected device. */
+	uint8_t	 EndpointAddress; /**< Address of the endpoint in the connected
+								 device. */
 	uint8_t	 Type;			  /**< Type of the endpoint, a \c EP_TYPE_* mask. */
 	uint8_t	 Banks;			  /**< Number of hardware banks to use for the pipe. */
 } USB_Pipe_Table_t;
 
 /* Macros: */
-/** Pipe address for the default control pipe, which always resides in address 0. This is
- *  defined for convenience to give more readable code when used with the pipe macros.
+/** Pipe address for the default control pipe, which always resides in address
+ * 0. This is defined for convenience to give more readable code when used with
+ * the pipe macros.
  */
 #define PIPE_CONTROLPIPE 0
 
-/** Pipe number mask, for masking against pipe addresses to retrieve the pipe's numerical address
- *  in the device.
+/** Pipe number mask, for masking against pipe addresses to retrieve the pipe's
+ * numerical address in the device.
  */
 #define PIPE_PIPENUM_MASK 0x0F
 
-/** Endpoint number mask, for masking against endpoint addresses to retrieve the endpoint's
- *  numerical address in the attached device.
+/** Endpoint number mask, for masking against endpoint addresses to retrieve the
+ * endpoint's numerical address in the attached device.
  */
 #define PIPE_EPNUM_MASK 0x0F
 

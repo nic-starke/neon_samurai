@@ -53,7 +53,8 @@ static inline void DMA_SetDoubleBufferMode(DMA_DBUFMODE_t Mode)
 }
 
 /**
- * @brief Must be called once during system power-up and before using any DMA channels.
+ * @brief Must be called once during system power-up and before using any DMA
+ * channels.
  *
  */
 void DMA_Init(void)

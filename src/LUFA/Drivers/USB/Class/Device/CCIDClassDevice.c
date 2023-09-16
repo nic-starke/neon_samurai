@@ -60,14 +60,14 @@ void CCID_Device_ProcessControlRequest(USB_ClassInfo_CCID_Device_t* const CCIDIn
 			//	- CCID_ABORT control request
 			//	- CCID_PC_t_PCo_RDR_Abort command
 			//
-			// If the device is still processing a message, it should fail it until receiving a CCIRPC_to_RDR_Abort
-			// command.
+			// If the device is still processing a message, it should fail it
+			// until receiving a CCIRPC_to_RDR_Abort command.
 			//
-			// When the device receives the CCIRPC_to_RDR_Abort message, it replies with RDR_to_PC_SlotStatus
-			// and the abort process ends.
+			// When the device receives the CCIRPC_to_RDR_Abort message, it
+			// replies with RDR_to_PC_SlotStatus and the abort process ends.
 
-			// The wValue field contains the slot number (bSlot) in the low byte and the sequence number (bSeq) in
-			// the high	byte
+			// The wValue field contains the slot number (bSlot) in the low byte
+			// and the sequence number (bSeq) in the high	byte
 			uint8_t Slot = USB_ControlRequest.wValue & 0xFF;
 			uint8_t Seq	 = USB_ControlRequest.wValue >> 8;
 

@@ -18,9 +18,9 @@
  */
 
 /*
- * Rotory decoder based on https://github.com/buxtronix/arduino/tree/master/libraries/Rotary
- * Copyright 2011 Ben Buxton. Licenced under the GNU GPL Version 3.
- * Contact: bb@cactii.net
+ * Rotory decoder based on
+ * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
+ * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
  */
 
 #include "Input.h"
@@ -44,7 +44,8 @@ typedef struct
 	u16 Buffer[DEBOUNCE_BUF_LEN]; // Raw switch states from shift register
 	u8	Index;
 	u16 bfChangedStates;   // Which switches changed states in current tick
-	u16 bfDebouncedStates; // Debounced switch state - use this as the current switch state
+	u16 bfDebouncedStates; // Debounced switch state - use this as the current
+						   // switch state
 } sEncoderSwitches;
 
 typedef struct
