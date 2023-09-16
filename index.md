@@ -1,3 +1,6 @@
+---
+toc: false
+---
 # Muffin Twister Wiki
 
 Welcome to the Muffin Twister Wiki.
