@@ -82,6 +82,7 @@ int main(void)
 		switch (gData.OperatingMode)
 		{
 			case DEFAULT_MODE:
+                EncoderDisplay_Test();
 				// SideSwitch_Update();
 				// Encoder_Update();
 				// USBMidi_Update();
