@@ -30,7 +30,8 @@
 #include "USB.h"
 #include "EncoderDisplay.h"
 
-static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
+
+static const sVirtualEncoderLayer DEFAULT_LAYER_A = { // TODO move to progmem.
     .StartPosition           = ENCODER_MIN_VAL,
     .StopPosition            = ENCODER_MID_VAL - 1,
     .MinValue                = ENCODER_MIN_VAL,
@@ -42,7 +43,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
     .Enabled                 = true,
 };
 
-static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
+static const sVirtualEncoderLayer DEFAULT_LAYER_B = { // TODO move to progmem.
     .StartPosition           = ENCODER_MID_VAL,
     .StopPosition            = ENCODER_MAX_VAL,
     .MinValue                = ENCODER_MAX_VAL,
@@ -55,7 +56,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
 };
 
 // clang-format off
-static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = {
+static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = { // TODO move to progmem.
     .State               = 0,
     .Mode                = SWITCH_LAYER_CYCLE,
     .MidiConfig.Channel  = 0,
@@ -67,7 +68,7 @@ static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = {
 };
 // clang-format on
 
-static const sEncoderState DEFAULT_ENCODERSTATE = {
+static const sEncoderState DEFAULT_ENCODERSTATE = { // TODO move to progmem.
     .CurrentValue            = 0,
     .PreviousValue           = 0,
     .DetentColour            = {0},

@@ -305,17 +305,21 @@ void EncoderDisplay_SetDetentColour_Hue(sEncoderState* pEncoder, u16 DetentHue)
     Hue2RGB(DetentHue, &pEncoder->DetentColour);
 }
 
-// Initialises the colour structs for the Detent and RGB LEDS
+// Initialises the colour structs for the Detent and RGB LEDS for all encoders
 void EncoderDisplay_UpdateAllColours(void)
 {
-    for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+    for(int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
     {
-        sEncoderState* pEncoder = &gData.EncoderStates[gData.CurrentBank][encoder];
+        for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+        {
+            sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
 
-        EncoderDisplay_SetRGBColour_Hue(pEncoder, pEncoder->Layers[VIRTUAL_LAYER_A].RGBHue);
-        EncoderDisplay_SetDetentColour_Hue(pEncoder, pEncoder->DetentHue);
+            EncoderDisplay_SetRGBColour_Hue(pEncoder, pEncoder->Layers[VIRTUAL_LAYER_A].RGBHue);
+            EncoderDisplay_SetDetentColour_Hue(pEncoder, pEncoder->DetentHue);
 
-        pEncoder->DisplayInvalid = true;
+            pEncoder->DisplayInvalid = true;
+        }
+
     }
 }
 

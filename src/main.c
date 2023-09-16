@@ -54,13 +54,14 @@ static inline void RunTest(void)
 
 static inline void BootAnimation(void)
 {
-    // Display_SetMaxBrightness(0);
-    for (u16 br = 0; br < BRIGHTNESS_MAX; br += 3)
-    {
-        // Display_SetMaxBrightness(br);
-        // Display_Update();
-        //Delay_MS(10);
-    }
+    
+    // for (u16 br = 0; br < BRIGHTNESS_MAX; br += 3)
+    // {
+
+    //     // Display_SetMaxBrightness(br);
+    //     // Display_Update();
+    //     //Delay_MS(10);
+    // }
 }
 
 int main(void)
@@ -88,6 +89,7 @@ int main(void)
         Input_CheckSpecialSwitchCombos();
     }
 
+    // Check if need to start any special modes
     switch (gData.OperatingMode)
     {
         case TEST_MODE: SetupTest(); break;
@@ -98,10 +100,9 @@ int main(void)
         default: BootAnimation(); break;
     }
 
+    // Reset encoders, read user settings (or reset eeprom), then update displays
     Encoders_ResetToDefaultConfig();
-
     Data_Init();
-
     EncoderDisplay_UpdateAllColours();
 
     while (1)
@@ -123,6 +124,7 @@ int main(void)
 
             default: break;
         }
+        
         USB_USBTask();
     }
 }

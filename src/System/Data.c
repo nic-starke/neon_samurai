@@ -29,7 +29,7 @@
 #include "Interrupt.h"
 #include "EncoderDisplay.h"
 
-#define EE_DATA_VERSION (0xAF07)
+#define EE_DATA_VERSION (0xAFF1)
 
 sData gData = {
     .DataVersion          = 0,
@@ -166,7 +166,7 @@ void Data_Init(void)
     const vu8 flags    = IRQ_DisableInterrupts();
     // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
     gData.DataVersion  = eeprom_read_word(&_EEPROM_DATA_.DataVersion);
-    gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
+    gData.FactoryReset = ((gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed());
 
     u8 displayFlashCount = 0;
 

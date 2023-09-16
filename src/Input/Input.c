@@ -155,7 +155,8 @@ void Input_Update(void)
 
 bool Input_IsResetPressed(void)
 {
-    return (bool)(EncoderSwitchWasPressed(RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
+    u16 state = mEncoderSwitchStates.bfDebouncedStates;
+    return ((state & RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
 }
 
 void Input_CheckSpecialSwitchCombos(void)
