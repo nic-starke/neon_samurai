@@ -21,11 +21,31 @@
 
 #include <avr/io.h>
 
-typedef enum {
+typedef enum
+{
     INPUT_PORT,
     OUTPUT_PORT,
 } ePortDirection;
 
-typedef enum {
-    PORT_MODE_
+typedef enum
+{
+    PORT_MODE_TOTEM_POLE,
+    PORT_MODE_BUS_KEEPER,
+    PORT_MODE_PULL_DOWN,
+    PORT_MODE_PULL_UP,
+    PORT_MODE_WIRED_OR,
+    PORT_MODE_WIRED_OR_PULL_DOWN,
+    PORT_MODE_WIRED_AND,
+    PORT_MODE_WIRED_AND_PULL_UP,
+    PORT_MODE_INVERT_PIN,
+    PORT_MODE_SLEW_RATE_LIMIT,
 } ePortMode;
+
+typedef enum
+{
+    SENSE_MODE_BOTH_EDGES,
+    SENSE_MODE_RISING,
+    SENSE_MODE_FALLING,
+    SENSE_MODE_LEVEL_LOW,
+} eSenseMode;
+

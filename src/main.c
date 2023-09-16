@@ -23,7 +23,10 @@
 
 int main(void)
 {
-	SYS_Init();
+	if ( !SYS_Init() )
+    {
+        // execute system error interrupt vector
+    }
 	Display_Init();
 
 	while (1) {}

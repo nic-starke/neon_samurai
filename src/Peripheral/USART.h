@@ -21,13 +21,15 @@
 
 #include "Utils.h"
 #include "Types.h"
+#include "Peripheral.h"
 
 typedef struct USART
 {
     u32 BaudRate;
     u8 SPIMode;
     eDataOrder DataOrder;
-} sUSARTConfig;
+} sUSART_SPIConfig;
 
 
-void USART_Init(USART_t* pUSART, sUSARTConfig* pConfig);
+bool USART_Init(ePeripheral USART);
+void USART_SetSPIConfig(USART_t *pUSART, sUSART_SPIConfig* pConfig);

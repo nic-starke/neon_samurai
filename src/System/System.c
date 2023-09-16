@@ -19,12 +19,20 @@
 
 #include "System.h"
 #include "DMA.h"
+#include "USART.h"
+#include "Types.h"
 
-void SYS_Init(void)
+bool SYS_Init(void)
 {
-	SYS_EnableDMA();
+	SYS_DisableWDT();
+    
+    if ( !SYS_EnableDMA() )
+    {
+        return false;
+    }
+
+    
+
+    return true;
 }
 
-void SYS_DisableWDT(void)
-{
-}

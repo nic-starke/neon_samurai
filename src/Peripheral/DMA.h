@@ -48,7 +48,7 @@ typedef struct
 	DMA_CH_BURSTLEN_t	BurstLength;
 } sDMAChannelConfig;
 
-void SYS_EnableDMA(void);
+bool SYS_EnableDMA(void);
 void DMA_SetChannelConfig(DMA_CH_t* pDMA, sDMAChannelConfig* pConfig);
 void DMA_Start(DMA_CH_t* pDMA);
 void DMA_Stop(DMA_CH_t* pDMA);

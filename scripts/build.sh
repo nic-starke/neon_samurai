@@ -2,7 +2,10 @@
 if [ -d "$BUILD_DIR" ]; then
   # ninja clang-format
   cd $BUILD_DIR
-  ninja clean
+
+  if [[ $1 == clean ]]; then
+    ninja clean
+  fi
   
   if ninja; then
     ninja muffin.hex

@@ -19,4 +19,28 @@
 
 #pragma once
 
-void SYS_Init(void);
+#include <avr/io.h>
+#include <Platform/XMEGA/ClockManagement.h>
+
+#include "Types.h"
+
+bool SYS_Init(void);
+
+// Wait for the WDT to be synced to the WDT time clock domain
+inline static void WDT_WaitForSync(void)
+{
+    while ((WDT.STATUS & WDT_SYNCBUSY_bm) == WDT_SYNCBUSY_bm) {}
+}
+
+inline static void SYS_EnableWDT(void)
+{
+    u8 val = (WDT.CTRL & WDT_PER_gm) | (1 << WDT_ENABLE_bp) | (1 << WDT_CEN_bp);
+	XMEGACLK_CCP_Write((void *)&WDT.CTRL, val);
+	WDT_WaitForSync();
+}
+
+inline static void SYS_DisableWDT(void)
+{
+    u8 val = (WDT.CTRL & ~WDT_ENABLE_bm) | (1 << WDT_CEN_bp);
+    XMEGACLK_CCP_Write((void *)&WDT.CTRL, val);
+}

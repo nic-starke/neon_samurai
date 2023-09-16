@@ -22,6 +22,8 @@
 
 #include "Display.h"
 #include "DMA.h"
+#include "USART.h"
+#include "Peripheral.h"
 #include "Types.h"
 #include "HardwareDefines.h"
 
@@ -37,16 +39,12 @@
 // #define SR_LATCH				IOPORT_CREATE_PIN(PORTD, 4)
 // #define SR_RESET				IOPORT_CREATE_PIN(PORTD, 5)
 
-// #define USART_SPI				(USARTD0)
-// #define USART_SPI_BAUDRATE      (4000000)
-// #define USART_SPI_MODE          (0)			// Sample on rising edge.
-// #define USART_SPI_DATA_ORDER    (1)			// MSB First.
-
 static volatile Frame DisplayBuffer[DISPLAY_BUF_SIZE][NUM_ENCODERS];
 
 void Display_Init(void)
 {
 	memset(&DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
+
 	DMA_CH_t* pDMA = DMA_GetChannelPtr(DMA_CHANNEL);
 
 	sDMAChannelConfig dmaConfig = {
@@ -62,5 +60,21 @@ void Display_Init(void)
 		.DstReloadMode		= DMA_CH_DESTRELOAD_NONE_gc,
 	};
 
+    DMA_EnableDoubleBuffer(DMA_DBUFMODE_CH01_gc);
 	DMA_SetChannelConfig(pDMA, &dmaConfig);
+
+
+    if( USART_Init(PERIPH_D_USART0) )
+    {
+
+        sUSART_SPIConfig usartConfig = {
+            .BaudRate   = 4000000,
+            .DataOrder  = MSB_FIRST,
+            .SPIMode    = 0, 
+        };
+
+        USART_SetSPIConfig(&USARTD0, &usartConfig);
+    }
+
+
 }

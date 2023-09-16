@@ -20,17 +20,49 @@
 #include <avr/io.h>
 
 #include "USART.h"
+#include "Peripheral.h"
+#include "Types.h"
 
-void USART_Init(USART_t* pUSART, sUSARTConfig* pConfig)
+#define USART_DORD_bm   (0x04) // missing define from xmega IO.h
+
+
+bool USART_Init(ePeripheral USART)
 {
-    // if (opt->spimode == 1 || opt->spimode == 3) {
-	// 	usart->CTRLC |= USART_UCPHA_bm;
-	// } else {
-	// 	usart->CTRLC &= ~USART_UCPHA_bm;
-	// }
-	// if (opt->data_order) {
-	// 	(usart)->CTRLC |= USART_DORD_bm;
-	// } else {
-	// 	(usart)->CTRLC &= ~USART_DORD_bm;
-	// }
+    return PeripheralClock_Enable(USART);
+}
+
+inline static void SetBaud (USART_t* pUSART, u32 BaudRate, u32 CPUFreq)
+{
+    u16 baudRegValue;
+    if (BaudRate < (CPUFreq / 2))
+    {
+        baudRegValue = (CPUFreq / (BaudRate * 2) - 1);
+    }
+    else
+    {
+        baudRegValue = 0;
+    }
+
+    (pUSART)->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baudRegValue >> 8));
+	(pUSART)->BAUDCTRLA = (u8)(baudRegValue);
+}
+
+// Initialises the USART in SPI master mode
+void USART_SetSPIConfig(USART_t *pUSART, sUSART_SPIConfig* pConfig)
+{
+    // Configure GPIO first!
+    
+    SetBaud(pUSART, pConfig->BaudRate, F_CPU);
+    pUSART->CTRLC = USART_CMODE_MSPI_gc;
+
+    if(pConfig->DataOrder == LSB_FIRST)
+    {
+        SET_BIT(pUSART->CTRLC, USART_DORD_bm);
+    }
+    else
+    {
+        CLR_BIT(pUSART->CTRLC, USART_DORD_bm);
+    }
+
+    pUSART->CTRLB = USART_RXEN_bm | USART_TXEN_bm;
 }

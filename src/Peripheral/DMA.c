@@ -23,10 +23,17 @@
 #include "DMA.h"
 #include "HardwareDefines.h"
 #include "Interrupt.h"
+#include "Peripheral.h"
 #include "Utils.h"
+#include "Types.h"
 
-void SYS_EnableDMA(void)
+bool SYS_EnableDMA(void)
 {
+    if (!PeripheralClock_Enable(PERIPH_DMA))
+    {
+        return false;
+    }
+
 	vu8 oldSREG = IRQ_DisableGlobalInterrupts();
 
 	// Reset and enable DMA controller
@@ -34,6 +41,7 @@ void SYS_EnableDMA(void)
 	DMA.CTRL = DMA_ENABLE_bm;
 
 	IRQ_RestoreSREG(oldSREG);
+    return true;
 }
 
 void DMA_SetChannelConfig(DMA_CH_t* pDMA, sDMAChannelConfig* pConfig)
