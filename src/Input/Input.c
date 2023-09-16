@@ -31,6 +31,7 @@
 #include "Display.h"
 #include "Data.h"
 #include "USB.h"
+#include "MIDI.h"
 
 #define SIDE_SWITCH_PORT    (PORTA)
 #define ENCODER_PORT        (PORTC)
@@ -172,7 +173,7 @@ void Input_CheckSpecialSwitchCombos(void)
 
     if ((state & MIDI_MIRROR_SWITCH_MASK) == MIDI_MIRROR_SWITCH_VAL)
     {
-        USBMidi_MirrorInput(true);
+        MIDI_MirrorInput(true);
     }
 }
 

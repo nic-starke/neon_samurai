@@ -308,7 +308,7 @@ void EncoderDisplay_SetDetentColour_Hue(sEncoderState* pEncoder, u16 DetentHue)
 // Initialises the colour structs for the Detent and RGB LEDS for all encoders
 void EncoderDisplay_UpdateAllColours(void)
 {
-    for(int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
+    for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
     {
         for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
         {
@@ -319,7 +319,6 @@ void EncoderDisplay_UpdateAllColours(void)
 
             pEncoder->DisplayInvalid = true;
         }
-
     }
 }
 

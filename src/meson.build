@@ -23,7 +23,9 @@ project_src += files(
 
     'Input/Encoder.c',
     'Input/Input.c',
-    'Input/SideSwitch.c',    
+    'Input/SideSwitch.c',
+
+    'MIDI/MIDI.c',
     
     'Peripheral/DMA.c',
     'Peripheral/GPIO.c',
@@ -35,5 +37,6 @@ project_src += files(
     'System/System.c',
 
     'USB/Descriptors.c',
+    'USB/VirtualSerial.c',
     'USB/USB.c',
 )

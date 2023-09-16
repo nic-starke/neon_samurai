@@ -154,7 +154,7 @@ static inline void WriteEEPROMEncoderSettings(void)
                 pShadowLayer->MidiConfig.MidiValue.CC              = pLayer->MidiConfig.MidiValue.CC;
             }
 
-            eeprom_update_block((const void *)&shadow, (void *) &_EEPROM_DATA_.Encoders[bank][encoder], sizeof(shadow));
+            eeprom_update_block((const void*)&shadow, (void*)&_EEPROM_DATA_.Encoders[bank][encoder], sizeof(shadow));
         }
     }
 }

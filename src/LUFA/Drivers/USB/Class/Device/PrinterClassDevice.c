@@ -27,7 +27,8 @@
   arising out of or in connection with the use or performance of
   this software.
 */
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #define __INCLUDE_FROM_USB_DRIVER
 #include "../../Core/USBMode.h"
 

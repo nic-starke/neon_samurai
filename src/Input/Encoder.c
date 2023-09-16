@@ -29,9 +29,10 @@
 #include "Utility.h"
 #include "USB.h"
 #include "EncoderDisplay.h"
+#include "MIDI.h"
 
-
-static const sVirtualEncoderLayer DEFAULT_LAYER_A = { // TODO move to progmem.
+static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
+    // TODO move to progmem.
     .StartPosition           = ENCODER_MIN_VAL,
     .StopPosition            = ENCODER_MID_VAL - 1,
     .MinValue                = ENCODER_MIN_VAL,
@@ -43,7 +44,8 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_A = { // TODO move to progmem.
     .Enabled                 = true,
 };
 
-static const sVirtualEncoderLayer DEFAULT_LAYER_B = { // TODO move to progmem.
+static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
+    // TODO move to progmem.
     .StartPosition           = ENCODER_MID_VAL,
     .StopPosition            = ENCODER_MAX_VAL,
     .MinValue                = ENCODER_MAX_VAL,
@@ -68,7 +70,8 @@ static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = { // TODO move to progmem.
 };
 // clang-format on
 
-static const sEncoderState DEFAULT_ENCODERSTATE = { // TODO move to progmem.
+static const sEncoderState DEFAULT_ENCODERSTATE = {
+    // TODO move to progmem.
     .CurrentValue            = 0,
     .PreviousValue           = 0,
     .DetentColour            = {0},
@@ -307,8 +310,8 @@ static inline void ProcessEncoderLayers(sEncoderState* pEncoderState)
                     virtualValue = (u16)((1.0f - percent) * pLayer->MinValue);
                 }
 
-                USBMidi_ProcessLayer(pEncoderState, pLayer,
-                                     virtualValue >> 9); // TODO - 7-bit lazy conversion is bad, what about NRPN/14-bit?
+                MIDI_ProcessLayer(pEncoderState, pLayer,
+                                  virtualValue >> 9); // TODO - 7-bit lazy conversion is bad, what about NRPN/14-bit?
             }
         }
     }

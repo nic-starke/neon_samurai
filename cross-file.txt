@@ -94,12 +94,15 @@ objcopy_eep_args = [
 _MCU_ = MCU
 
 [built-in options]
+warning_level='1'
+
 c_args = [
   '-I' + AVR_LIBC_PATH,
   '-O3',
-  '-Wall',
-  '-Wextra',
-  '-Wpedantic',
+  '-Wno-pedantic',
+  # '-Wall',
+  # '-Wextra',
+  # '-Wpedantic',
   '-mmcu=' + MCU,
   '-DARCH=' + MCU_ARCH,
   '-D' + MCU_DEFINE,

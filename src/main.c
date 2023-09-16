@@ -35,6 +35,8 @@
 #include "SoftTimer.h"
 #include "Data.h"
 #include "USB.h"
+#include "VirtualSerial.h"
+#include "MIDI.h"
 
 static sSoftTimer timer = {0};
 
@@ -54,7 +56,7 @@ static inline void RunTest(void)
 
 static inline void BootAnimation(void)
 {
-    
+
     // for (u16 br = 0; br < BRIGHTNESS_MAX; br += 3)
     // {
 
@@ -76,8 +78,8 @@ int main(void)
     Encoder_Init();
 
     USB_Init();
-    USBMidi_Init();
-
+    MIDI_Init();
+    Serial_Init();
     Display_Init();
 
     GlobalInterruptEnable();
@@ -116,7 +118,7 @@ int main(void)
                 Display_Update();
                 Encoder_Update();
                 // SideSwitch_Update();
-                USBMidi_Update();
+                MIDI_Update();
                 break;
             }
 
@@ -124,7 +126,9 @@ int main(void)
 
             default: break;
         }
-        
+
+        Serial_Update();
+        Serial_Print("Test\r\n");
         USB_USBTask();
     }
 }

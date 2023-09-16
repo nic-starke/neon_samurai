@@ -22,7 +22,7 @@ project(
 	default_options: [
 		'buildtype=release',
 		'c_std=c99',
-		'warning_level=3',
+		'warning_level=1',
 		'b_staticpic=false',
 		'b_lto=true',
 	],

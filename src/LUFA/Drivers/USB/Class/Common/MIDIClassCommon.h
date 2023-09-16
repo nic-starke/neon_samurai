@@ -27,7 +27,8 @@
   arising out of or in connection with the use or performance of
   this software.
 */
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 /** \file
  *  \brief Common definitions and declarations for the library USB MIDI Class
  * driver.
@@ -425,9 +426,16 @@ typedef struct
     uint8_t Event; /**< MIDI event type, constructed with the \ref MIDI_EVENT()
 					  macro. */
 
-    uint8_t Data1; /**< First byte of data in the MIDI event. */
-    uint8_t Data2; /**< Second byte of data in the MIDI event. */
-    uint8_t Data3; /**< Third byte of data in the MIDI event. */
+    union
+    {
+        struct
+        {
+            uint8_t Data1; /**< First byte of data in the MIDI event. */
+            uint8_t Data2; /**< Second byte of data in the MIDI event. */
+            uint8_t Data3; /**< Third byte of data in the MIDI event. */
+        };
+        uint8_t Data[3];
+    };
 } ATTR_PACKED MIDI_EventPacket_t;
 
 /* Disable C linkage for C++ Compilers: */

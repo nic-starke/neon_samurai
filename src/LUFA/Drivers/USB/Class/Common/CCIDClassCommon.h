@@ -28,7 +28,8 @@
   arising out of or in connection with the use or performance of
   this software.
 */
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 /** \file
  *  \brief Common definitions and declarations for the library USB CCID Class
  * driver.

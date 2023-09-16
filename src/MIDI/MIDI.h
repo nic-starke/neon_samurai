@@ -19,7 +19,16 @@
 
 #pragma once
 
-
 #include <avr/pgmspace.h>
 
-static const uint8_t MIDI_SYSEX_ID[] = [0x00, 0x48, 0x01];
+#include "Drivers/USB/USB.h"
+#include "Encoder.h"
+#include "MIDICommandDefines.h"
+#include "DataTypes.h"
+
+void MIDI_Init(void);
+void MIDI_Update(void);
+void MIDI_MirrorInput(bool Enable);
+void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg);
+void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit);
+void MIDI_SendMMCMD(u8* pData, eMuffinMidiCommand Command, u16 DataLength);
