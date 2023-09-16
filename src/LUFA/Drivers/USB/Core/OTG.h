@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -50,31 +50,30 @@
 #ifndef __USBOTG_H__
 #define __USBOTG_H__
 
-	/* Includes: */
-		#include "../../../Common/Common.h"
-		#include "USBMode.h"
+/* Includes: */
+#include "../../../Common/Common.h"
+#include "USBMode.h"
 
-	/* Enable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			extern "C" {
-		#endif
+/* Enable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-	/* Preprocessor Checks: */
-		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include LUFA/Drivers/USB/USB.h instead.
-		#endif
+/* Preprocessor Checks: */
+#if !defined(__INCLUDE_FROM_USB_DRIVER)
+#error Do not include this file directly. Include LUFA/Drivers/USB/USB.h instead.
+#endif
 
-	/* Architecture Includes: */
-		#if (ARCH == ARCH_AVR8)
-			#include "AVR8/OTG_AVR8.h"
-		#endif
+/* Architecture Includes: */
+#if (ARCH == ARCH_AVR8)
+#include "AVR8/OTG_AVR8.h"
+#endif
 
-	/* Disable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			}
-		#endif
+/* Disable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+}
+#endif
 
 #endif
 
 /** @} */
-

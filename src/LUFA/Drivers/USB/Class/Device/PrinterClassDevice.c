@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -28,22 +28,22 @@
   this software.
 */
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "../../Core/USBMode.h"
 
 #if defined(USB_CAN_BE_DEVICE)
 
-#define  __INCLUDE_FROM_PRINTER_DRIVER
-#define  __INCLUDE_FROM_PRINTER_DEVICE_C
+#define __INCLUDE_FROM_PRINTER_DRIVER
+#define __INCLUDE_FROM_PRINTER_DEVICE_C
 #include "PrinterClassDevice.h"
 
 void PRNT_Device_ProcessControlRequest(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 {
 	if (!(Endpoint_IsSETUPReceived()))
-	  return;
+		return;
 
 	if (USB_ControlRequest.wIndex != PRNTInterfaceInfo->Config.InterfaceNumber)
-	  return;
+		return;
 
 	switch (USB_ControlRequest.bRequest)
 	{
@@ -55,7 +55,7 @@ void PRNT_Device_ProcessControlRequest(USB_ClassInfo_PRNT_Device_t* const PRNTIn
 				while (!(Endpoint_IsINReady()))
 				{
 					if (USB_DeviceState == DEVICE_STATE_Unattached)
-					  return;
+						return;
 				}
 
 				uint16_t IEEEStringLen = strlen(PRNTInterfaceInfo->Config.IEEE1284String);
@@ -73,7 +73,7 @@ void PRNT_Device_ProcessControlRequest(USB_ClassInfo_PRNT_Device_t* const PRNTIn
 				while (!(Endpoint_IsINReady()))
 				{
 					if (USB_DeviceState == DEVICE_STATE_Unattached)
-					  return;
+						return;
 				}
 
 				Endpoint_Write_8(PRNTInterfaceInfo->State.PortStatus);
@@ -107,10 +107,10 @@ bool PRNT_Device_ConfigureEndpoints(USB_ClassInfo_PRNT_Device_t* const PRNTInter
 	PRNTInterfaceInfo->Config.DataOUTEndpoint.Type = EP_TYPE_BULK;
 
 	if (!(Endpoint_ConfigureEndpointTable(&PRNTInterfaceInfo->Config.DataINEndpoint, 1)))
-	  return false;
+		return false;
 
 	if (!(Endpoint_ConfigureEndpointTable(&PRNTInterfaceInfo->Config.DataOUTEndpoint, 1)))
-	  return false;
+		return false;
 
 	return true;
 }
@@ -118,14 +118,14 @@ bool PRNT_Device_ConfigureEndpoints(USB_ClassInfo_PRNT_Device_t* const PRNTInter
 void PRNT_Device_USBTask(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
+		return;
 
-	#if !defined(NO_CLASS_DRIVER_AUTOFLUSH)
+#if !defined(NO_CLASS_DRIVER_AUTOFLUSH)
 	Endpoint_SelectEndpoint(PRNTInterfaceInfo->Config.DataINEndpoint.Address);
 
 	if (Endpoint_IsINReady())
-	  PRNT_Device_Flush(PRNTInterfaceInfo);
-	#endif
+		PRNT_Device_Flush(PRNTInterfaceInfo);
+#endif
 
 	if (PRNTInterfaceInfo->State.IsPrinterReset)
 	{
@@ -143,32 +143,28 @@ void PRNT_Device_USBTask(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 	}
 }
 
-uint8_t PRNT_Device_SendString(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo,
-                               const char* const String)
+uint8_t PRNT_Device_SendString(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, const char* const String)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return ENDPOINT_RWSTREAM_DeviceDisconnected;
+		return ENDPOINT_RWSTREAM_DeviceDisconnected;
 
 	Endpoint_SelectEndpoint(PRNTInterfaceInfo->Config.DataINEndpoint.Address);
 	return Endpoint_Write_Stream_LE(String, strlen(String), NULL);
 }
 
-uint8_t PRNT_Device_SendData(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo,
-                             const void* const Buffer,
-                             const uint16_t Length)
+uint8_t PRNT_Device_SendData(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, const void* const Buffer, const uint16_t Length)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return ENDPOINT_RWSTREAM_DeviceDisconnected;
+		return ENDPOINT_RWSTREAM_DeviceDisconnected;
 
 	Endpoint_SelectEndpoint(PRNTInterfaceInfo->Config.DataINEndpoint.Address);
 	return Endpoint_Write_Stream_LE(Buffer, Length, NULL);
 }
 
-uint8_t PRNT_Device_SendByte(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo,
-                             const uint8_t Data)
+uint8_t PRNT_Device_SendByte(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, const uint8_t Data)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return ENDPOINT_RWSTREAM_DeviceDisconnected;
+		return ENDPOINT_RWSTREAM_DeviceDisconnected;
 
 	Endpoint_SelectEndpoint(PRNTInterfaceInfo->Config.DataINEndpoint.Address);
 
@@ -179,7 +175,7 @@ uint8_t PRNT_Device_SendByte(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInf
 		uint8_t ErrorCode;
 
 		if ((ErrorCode = Endpoint_WaitUntilReady()) != ENDPOINT_READYWAIT_NoError)
-		  return ErrorCode;
+			return ErrorCode;
 	}
 
 	Endpoint_Write_8(Data);
@@ -189,14 +185,14 @@ uint8_t PRNT_Device_SendByte(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInf
 uint8_t PRNT_Device_Flush(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return ENDPOINT_RWSTREAM_DeviceDisconnected;
+		return ENDPOINT_RWSTREAM_DeviceDisconnected;
 
 	uint8_t ErrorCode;
 
 	Endpoint_SelectEndpoint(PRNTInterfaceInfo->Config.DataINEndpoint.Address);
 
 	if (!(Endpoint_BytesInEndpoint()))
-	  return ENDPOINT_READYWAIT_NoError;
+		return ENDPOINT_READYWAIT_NoError;
 
 	bool BankFull = !(Endpoint_IsReadWriteAllowed());
 
@@ -205,7 +201,7 @@ uint8_t PRNT_Device_Flush(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 	if (BankFull)
 	{
 		if ((ErrorCode = Endpoint_WaitUntilReady()) != ENDPOINT_READYWAIT_NoError)
-		  return ErrorCode;
+			return ErrorCode;
 
 		Endpoint_ClearIN();
 	}
@@ -216,7 +212,7 @@ uint8_t PRNT_Device_Flush(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 uint16_t PRNT_Device_BytesReceived(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return 0;
+		return 0;
 
 	Endpoint_SelectEndpoint(PRNTInterfaceInfo->Config.DataOUTEndpoint.Address);
 
@@ -241,7 +237,7 @@ uint16_t PRNT_Device_BytesReceived(USB_ClassInfo_PRNT_Device_t* const PRNTInterf
 int16_t PRNT_Device_ReceiveByte(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 {
 	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return -1;
+		return -1;
 
 	int16_t ReceivedByte = -1;
 
@@ -250,32 +246,29 @@ int16_t PRNT_Device_ReceiveByte(USB_ClassInfo_PRNT_Device_t* const PRNTInterface
 	if (Endpoint_IsOUTReceived())
 	{
 		if (Endpoint_BytesInEndpoint())
-		  ReceivedByte = Endpoint_Read_8();
+			ReceivedByte = Endpoint_Read_8();
 
 		if (!(Endpoint_BytesInEndpoint()))
-		  Endpoint_ClearOUT();
+			Endpoint_ClearOUT();
 	}
 
 	return ReceivedByte;
 }
 
 #if defined(FDEV_SETUP_STREAM)
-void PRNT_Device_CreateStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo,
-                              FILE* const Stream)
+void PRNT_Device_CreateStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, FILE* const Stream)
 {
 	*Stream = (FILE)FDEV_SETUP_STREAM(PRNT_Device_putchar, PRNT_Device_getchar, _FDEV_SETUP_RW);
 	fdev_set_udata(Stream, PRNTInterfaceInfo);
 }
 
-void PRNT_Device_CreateBlockingStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo,
-                                      FILE* const Stream)
+void PRNT_Device_CreateBlockingStream(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo, FILE* const Stream)
 {
 	*Stream = (FILE)FDEV_SETUP_STREAM(PRNT_Device_putchar, PRNT_Device_getchar_Blocking, _FDEV_SETUP_RW);
 	fdev_set_udata(Stream, PRNTInterfaceInfo);
 }
 
-static int PRNT_Device_putchar(char c,
-                               FILE* Stream)
+static int PRNT_Device_putchar(char c, FILE* Stream)
 {
 	return PRNT_Device_SendByte((USB_ClassInfo_PRNT_Device_t*)fdev_get_udata(Stream), c) ? _FDEV_ERR : 0;
 }
@@ -285,7 +278,7 @@ static int PRNT_Device_getchar(FILE* Stream)
 	int16_t ReceivedByte = PRNT_Device_ReceiveByte((USB_ClassInfo_PRNT_Device_t*)fdev_get_udata(Stream));
 
 	if (ReceivedByte < 0)
-	  return _FDEV_EOF;
+		return _FDEV_EOF;
 
 	return ReceivedByte;
 }
@@ -297,7 +290,7 @@ static int PRNT_Device_getchar_Blocking(FILE* Stream)
 	while ((ReceivedByte = PRNT_Device_ReceiveByte((USB_ClassInfo_PRNT_Device_t*)fdev_get_udata(Stream))) < 0)
 	{
 		if (USB_DeviceState == DEVICE_STATE_Unattached)
-		  return _FDEV_EOF;
+			return _FDEV_EOF;
 
 		PRNT_Device_USBTask((USB_ClassInfo_PRNT_Device_t*)fdev_get_udata(Stream));
 		USB_USBTask();
@@ -309,8 +302,6 @@ static int PRNT_Device_getchar_Blocking(FILE* Stream)
 
 void PRNT_Device_Event_Stub(USB_ClassInfo_PRNT_Device_t* const PRNTInterfaceInfo)
 {
-
 }
 
 #endif
-

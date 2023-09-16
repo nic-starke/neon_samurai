@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -375,49 +375,48 @@
 #ifndef __USB_H__
 #define __USB_H__
 
-	/* Macros: */
-		#define __INCLUDE_FROM_USB_DRIVER
+/* Macros: */
+#define __INCLUDE_FROM_USB_DRIVER
 
-	/* Includes: */
-		#include "../../Common/Common.h"
-		#include "Core/USBMode.h"
+/* Includes: */
+#include "../../Common/Common.h"
+#include "Core/USBMode.h"
 
-	/* Includes: */
-		#include "Core/USBTask.h"
-		#include "Core/Events.h"
-		#include "Core/StdDescriptors.h"
-		#include "Core/ConfigDescriptors.h"
-		#include "Core/USBController.h"
-		#include "Core/USBInterrupt.h"
+/* Includes: */
+#include "Core/USBTask.h"
+#include "Core/Events.h"
+#include "Core/StdDescriptors.h"
+#include "Core/ConfigDescriptors.h"
+#include "Core/USBController.h"
+#include "Core/USBInterrupt.h"
 
-		#if defined(USB_CAN_BE_HOST) || defined(__DOXYGEN__)
-			#include "Core/Host.h"
-			#include "Core/Pipe.h"
-			#include "Core/HostStandardReq.h"
-			#include "Core/PipeStream.h"
-		#endif
-
-		#if defined(USB_CAN_BE_DEVICE) || defined(__DOXYGEN__)
-			#include "Core/Device.h"
-			#include "Core/Endpoint.h"
-			#include "Core/DeviceStandardReq.h"
-			#include "Core/EndpointStream.h"
-		#endif
-
-		#if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
-			#include "Core/OTG.h"
-		#endif
-
-		#include "Class/AndroidAccessoryClass.h"
-		#include "Class/AudioClass.h"
-		#include "Class/CCIDClass.h"
-		#include "Class/CDCClass.h"
-		#include "Class/HIDClass.h"
-		#include "Class/MassStorageClass.h"
-		#include "Class/MIDIClass.h"
-		#include "Class/PrinterClass.h"
-		#include "Class/RNDISClass.h"
-		#include "Class/StillImageClass.h"
-
+#if defined(USB_CAN_BE_HOST) || defined(__DOXYGEN__)
+#include "Core/Host.h"
+#include "Core/Pipe.h"
+#include "Core/HostStandardReq.h"
+#include "Core/PipeStream.h"
 #endif
 
+#if defined(USB_CAN_BE_DEVICE) || defined(__DOXYGEN__)
+#include "Core/Device.h"
+#include "Core/Endpoint.h"
+#include "Core/DeviceStandardReq.h"
+#include "Core/EndpointStream.h"
+#endif
+
+#if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
+#include "Core/OTG.h"
+#endif
+
+#include "Class/AndroidAccessoryClass.h"
+#include "Class/AudioClass.h"
+#include "Class/CCIDClass.h"
+#include "Class/CDCClass.h"
+#include "Class/HIDClass.h"
+#include "Class/MassStorageClass.h"
+#include "Class/MIDIClass.h"
+#include "Class/PrinterClass.h"
+#include "Class/RNDISClass.h"
+#include "Class/StillImageClass.h"
+
+#endif

@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -30,26 +30,25 @@
 
 #if defined(TEMPLATE_FUNC_NAME)
 
-uint8_t TEMPLATE_FUNC_NAME (void* const Buffer,
-                            uint16_t Length)
+uint8_t TEMPLATE_FUNC_NAME(void* const Buffer, uint16_t Length)
 {
 	uint8_t* DataStream = ((uint8_t*)Buffer + TEMPLATE_BUFFER_OFFSET(Length));
 
 	Endpoint_SelectEndpoint(USB_Endpoint_SelectedEndpoint & ~ENDPOINT_DIR_IN);
 
 	if (!(Length))
-	  Endpoint_ClearOUT();
+		Endpoint_ClearOUT();
 
 	while (Length)
 	{
 		uint8_t USB_DeviceState_LCL = USB_DeviceState;
 
 		if (USB_DeviceState_LCL == DEVICE_STATE_Unattached)
-		  return ENDPOINT_RWCSTREAM_DeviceDisconnected;
+			return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 		else if (USB_DeviceState_LCL == DEVICE_STATE_Suspended)
-		  return ENDPOINT_RWCSTREAM_BusSuspended;
+			return ENDPOINT_RWCSTREAM_BusSuspended;
 		else if (Endpoint_IsSETUPReceived())
-		  return ENDPOINT_RWCSTREAM_HostAborted;
+			return ENDPOINT_RWCSTREAM_HostAborted;
 
 		if (Endpoint_IsOUTReceived())
 		{
@@ -69,9 +68,9 @@ uint8_t TEMPLATE_FUNC_NAME (void* const Buffer,
 		uint8_t USB_DeviceState_LCL = USB_DeviceState;
 
 		if (USB_DeviceState_LCL == DEVICE_STATE_Unattached)
-		  return ENDPOINT_RWCSTREAM_DeviceDisconnected;
+			return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 		else if (USB_DeviceState_LCL == DEVICE_STATE_Suspended)
-		  return ENDPOINT_RWCSTREAM_BusSuspended;
+			return ENDPOINT_RWCSTREAM_BusSuspended;
 	}
 
 	return ENDPOINT_RWCSTREAM_NoError;
@@ -83,4 +82,3 @@ uint8_t TEMPLATE_FUNC_NAME (void* const Buffer,
 #undef TEMPLATE_TRANSFER_BYTE
 
 #endif
-

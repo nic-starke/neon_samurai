@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -28,66 +28,58 @@
   this software.
 */
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "ConfigDescriptors.h"
 
 #if defined(USB_CAN_BE_HOST)
-uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber,
-                                           uint16_t* const ConfigSizePtr,
-                                           void* const BufferPtr,
-                                           const uint16_t BufferSize)
+uint8_t USB_Host_GetDeviceConfigDescriptor(const uint8_t ConfigNumber, uint16_t* const ConfigSizePtr, void* const BufferPtr,
+										   const uint16_t BufferSize)
 {
 	uint8_t ErrorCode;
 	uint8_t ConfigHeader[sizeof(USB_Descriptor_Configuration_Header_t)];
 
-	USB_ControlRequest = (USB_Request_Header_t)
-		{
-			.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE),
-			.bRequest      = REQ_GetDescriptor,
-			.wValue        = ((DTYPE_Configuration << 8) | (ConfigNumber - 1)),
-			.wIndex        = 0,
-			.wLength       = sizeof(USB_Descriptor_Configuration_Header_t),
-		};
+	USB_ControlRequest = (USB_Request_Header_t){
+		.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE),
+		.bRequest	   = REQ_GetDescriptor,
+		.wValue		   = ((DTYPE_Configuration << 8) | (ConfigNumber - 1)),
+		.wIndex		   = 0,
+		.wLength	   = sizeof(USB_Descriptor_Configuration_Header_t),
+	};
 
 	Pipe_SelectPipe(PIPE_CONTROLPIPE);
 
 	if ((ErrorCode = USB_Host_SendControlRequest(ConfigHeader)) != HOST_SENDCONTROL_Successful)
-	  return ErrorCode;
+		return ErrorCode;
 
 	*ConfigSizePtr = le16_to_cpu(DESCRIPTOR_PCAST(ConfigHeader, USB_Descriptor_Configuration_Header_t)->TotalConfigurationSize);
 
 	if (*ConfigSizePtr > BufferSize)
-	  return HOST_GETCONFIG_BuffOverflow;
+		return HOST_GETCONFIG_BuffOverflow;
 
 	USB_ControlRequest.wLength = *ConfigSizePtr;
 
 	if ((ErrorCode = USB_Host_SendControlRequest(BufferPtr)) != HOST_SENDCONTROL_Successful)
-	  return ErrorCode;
+		return ErrorCode;
 
 	if (DESCRIPTOR_TYPE(BufferPtr) != DTYPE_Configuration)
-	  return HOST_GETCONFIG_InvalidData;
+		return HOST_GETCONFIG_InvalidData;
 
 	return HOST_GETCONFIG_Successful;
 }
 #endif
 
-void USB_GetNextDescriptorOfType(uint16_t* const BytesRem,
-                                 void** const CurrConfigLoc,
-                                 const uint8_t Type)
+void USB_GetNextDescriptorOfType(uint16_t* const BytesRem, void** const CurrConfigLoc, const uint8_t Type)
 {
 	while (*BytesRem)
 	{
 		USB_GetNextDescriptor(BytesRem, CurrConfigLoc);
 
 		if (DESCRIPTOR_TYPE(*CurrConfigLoc) == Type)
-		  return;
+			return;
 	}
 }
 
-void USB_GetNextDescriptorOfTypeBefore(uint16_t* const BytesRem,
-                                       void** const CurrConfigLoc,
-                                       const uint8_t Type,
-                                       const uint8_t BeforeType)
+void USB_GetNextDescriptorOfTypeBefore(uint16_t* const BytesRem, void** const CurrConfigLoc, const uint8_t Type, const uint8_t BeforeType)
 {
 	while (*BytesRem)
 	{
@@ -105,20 +97,15 @@ void USB_GetNextDescriptorOfTypeBefore(uint16_t* const BytesRem,
 	}
 }
 
-void USB_GetNextDescriptorOfTypeAfter(uint16_t* const BytesRem,
-                                      void** const CurrConfigLoc,
-                                      const uint8_t Type,
-                                      const uint8_t AfterType)
+void USB_GetNextDescriptorOfTypeAfter(uint16_t* const BytesRem, void** const CurrConfigLoc, const uint8_t Type, const uint8_t AfterType)
 {
 	USB_GetNextDescriptorOfType(BytesRem, CurrConfigLoc, AfterType);
 
 	if (*BytesRem)
-	  USB_GetNextDescriptorOfType(BytesRem, CurrConfigLoc, Type);
+		USB_GetNextDescriptorOfType(BytesRem, CurrConfigLoc, Type);
 }
 
-uint8_t USB_GetNextDescriptorComp(uint16_t* const BytesRem,
-                                  void** const CurrConfigLoc,
-                                  ConfigComparatorPtr_t const ComparatorRoutine)
+uint8_t USB_GetNextDescriptorComp(uint16_t* const BytesRem, void** const CurrConfigLoc, ConfigComparatorPtr_t const ComparatorRoutine)
 {
 	uint8_t ErrorCode;
 
@@ -134,7 +121,7 @@ uint8_t USB_GetNextDescriptorComp(uint16_t* const BytesRem,
 			if (ErrorCode == DESCRIPTOR_SEARCH_Fail)
 			{
 				*CurrConfigLoc = PrevDescLoc;
-				*BytesRem      = PrevBytesRem;
+				*BytesRem	   = PrevBytesRem;
 			}
 
 			return ErrorCode;
@@ -143,4 +130,3 @@ uint8_t USB_GetNextDescriptorComp(uint16_t* const BytesRem,
 
 	return DESCRIPTOR_SEARCH_COMP_EndOfDescriptor;
 }
-

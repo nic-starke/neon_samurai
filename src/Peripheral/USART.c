@@ -1,7 +1,7 @@
 /*
- * File: USART.c ( 7th November 2021 )
+ * File: USART.c ( 20th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,100 +17,81 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <avr/io.h>
-
 #include "USART.h"
-#include "Types.h"
-#include "SystemClock.h"
+#include "Utility.h"
+#include "Interrupt.h"
 
-#define USART_DORD_bm   (0x04) // missing define from xmega IO.h
-
-inline static eSysClkPort GetSysClkPort(USART_t* pUSART)
+static inline u8 GetBitMask(USART_t* pUSART)
 {
-    if ( (pUSART == &USARTC0) || (pUSART == &USARTC1) )
-    {
-        return SYSCLK_PORT_C;
-    }
-    else if ( (pUSART == &USARTD0) || (pUSART == &USARTD1) )
-    {
-        return SYSCLK_PORT_D;
-    }
-    else if (pUSART == &USARTE0)
-    {
-        return SYSCLK_PORT_E;
-    }
-
-    return SYSCLK_PORT_INVALID;
-}
-
-inline static u8 GetPRGenBitMask(USART_t* pUSART)
-{
-    if ( (pUSART == &USARTC0) || (pUSART == &USARTD0) || (pUSART == &USARTE0))
+    if(pUSART == &USARTC0 || pUSART == &USARTD0 || pUSART == &USARTE0)
     {
         return PR_USART0_bm;
     }
-    else if ( (pUSART == &USARTC1) || (pUSART == &USARTD1) )
+    else if (pUSART == &USARTC1 || pUSART == &USARTD1)
     {
         return PR_USART1_bm;
     }
-
-    return 
 }
 
-bool USART_Init(USART_t* pUSART)
+static inline void EnablePower(USART_t* pUSART)
 {
-    eSysClkPort = GetSysClkPort(pUSART);
-    ePort port = GetPort(Peripheral);
-
-    if (port == SYSCLK_PORT_INVALID)
-    {
-        return false;
-    }
-
-    u8 prbm = GetPRGenBitMask(pUSART);
-
-    u8 oldSREG = IRQ_DisableGlobalInterrupts();
-
-    *((u8 *)&PR.PRGEN + port) &= ~prbm;
-
-    IRQ_RestoreSREG(oldSREG);
-
-    return true;
-
+    CLR_BIT(PR.PRPC, GetBitMask(pUSART));
 }
 
-inline static void SetBaud (USART_t* pUSART, u32 BaudRate, u32 CPUFreq)
+static inline void DisablePower(USART_t* pUSART)
 {
-    u16 baudRegValue;
-    if (BaudRate < (CPUFreq / 2))
-    {
-        baudRegValue = (CPUFreq / (BaudRate * 2) - 1);
-    }
-    else
-    {
-        baudRegValue = 0;
-    }
-
-    (pUSART)->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baudRegValue >> 8));
-	(pUSART)->BAUDCTRLA = (u8)(baudRegValue);
+    SET_BIT(PR.PRPC, GetBitMask(pUSART));
 }
 
-// Initialises the USART in SPI master mode
-void USART_SetSPIConfig(USART_t *pUSART, sUSART_SPIConfig* pConfig)
+static inline void DisableTX(USART_t* pUSART)
 {
+    CLR_BIT(pUSART->CTRLB, USART_TXEN_bm);
+}
+
+static inline void EnableTX(USART_t* pUSART)
+{
+    SET_BIT(pUSART->CTRLB, USART_TXEN_bm);
+}
+
+static inline void DisableRX(USART_t* pUSART)
+{
+    CLR_BIT(pUSART->CTRLB, USART_RXEN_bm);
+}
+
+static inline void EnableRX(USART_t* pUSART)
+{
+    SET_BIT(pUSART->CTRLB, USART_RXEN_bm);
+}
+
+static inline void SetMode(USART_t* pUSART, USART_CMODE_t Mode)
+{
+    pUSART->CTRLC = (pUSART->CTRLC & (~USART_CMODE_gm)) | Mode;
+}
+
+
+// ----------------- //
+
+void USART_Init(void)
+{
+    // u8 flags = IRQ_DisableInterrupts();
+
+    // No global init required.
+
+    // IRQ_EnableInterrupts(flags);
+}
+
+void USART_InitModule(sUSART_ModuleConfig* pConfig)
+{
+    u8 flags = IRQ_DisableInterrupts();
+
+    EnablePower(pConfig->pUSART);
+
+    DisableRX(pConfig->pUSART);
+    DisableTX(pConfig->pUSART);
     
-    
-    SetBaud(pUSART, pConfig->BaudRate, F_CPU);
-    pUSART->CTRLC = USART_CMODE_MSPI_gc;
+    // GPIO Config here
 
-    if(pConfig->DataOrder == LSB_FIRST)
-    {
-        SET_BIT(pUSART->CTRLC, USART_DORD_bm);
-    }
-    else
-    {
-        CLR_BIT(pUSART->CTRLC, USART_DORD_bm);
-    }
+    SetMode(pConfig->pUSART, USART_CMODE_MSPI_gc); // Mode is fixed to SPI Master for this driver
 
-    pUSART->CTRLB = USART_RXEN_bm | USART_TXEN_bm;
+    IRQ_EnableInterrupts(flags);
 }

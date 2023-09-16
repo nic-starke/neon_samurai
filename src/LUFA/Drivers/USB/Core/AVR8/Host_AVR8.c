@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,21 +31,21 @@
 #include "../../../../Common/Common.h"
 #if (ARCH == ARCH_AVR8)
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "../USBMode.h"
 
 #if defined(USB_CAN_BE_HOST)
 
-#define  __INCLUDE_FROM_HOST_C
+#define __INCLUDE_FROM_HOST_C
 #include "../Host.h"
 
 void USB_Host_ProcessNextHostState(void)
 {
-	uint8_t ErrorCode    = HOST_ENUMERROR_NoError;
+	uint8_t ErrorCode	 = HOST_ENUMERROR_NoError;
 	uint8_t SubErrorCode = HOST_ENUMERROR_NoError;
 
 	static uint16_t WaitMSRemaining;
-	static uint8_t  PostWaitState;
+	static uint8_t	PostWaitState;
 
 	switch (USB_HostState)
 	{
@@ -55,12 +55,12 @@ void USB_Host_ProcessNextHostState(void)
 				if ((SubErrorCode = USB_Host_WaitMS(1)) != HOST_WAITERROR_Successful)
 				{
 					USB_HostState = PostWaitState;
-					ErrorCode     = HOST_ENUMERROR_WaitStage;
+					ErrorCode	  = HOST_ENUMERROR_WaitStage;
 					break;
 				}
 
 				if (!(--WaitMSRemaining))
-				  USB_HostState = PostWaitState;
+					USB_HostState = PostWaitState;
 			}
 
 			break;
@@ -83,10 +83,10 @@ void USB_Host_ProcessNextHostState(void)
 				USB_Host_VBUS_Auto_Enable();
 				USB_Host_VBUS_Auto_On();
 
-				#if defined(NO_AUTO_VBUS_MANAGEMENT)
+#if defined(NO_AUTO_VBUS_MANAGEMENT)
 				USB_Host_VBUS_Manual_Enable();
 				USB_Host_VBUS_Manual_On();
-				#endif
+#endif
 
 				USB_HostState = HOST_STATE_Powered_WaitForConnect;
 			}
@@ -116,7 +116,7 @@ void USB_Host_ProcessNextHostState(void)
 		case HOST_STATE_Powered_ConfigPipe:
 			if (!(Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL, ENDPOINT_CONTROLEP, PIPE_CONTROLPIPE_DEFAULT_SIZE, 1)))
 			{
-				ErrorCode    = HOST_ENUMERROR_PipeConfigError;
+				ErrorCode	 = HOST_ENUMERROR_PipeConfigError;
 				SubErrorCode = 0;
 				break;
 			}
@@ -124,14 +124,13 @@ void USB_Host_ProcessNextHostState(void)
 			USB_HostState = HOST_STATE_Default;
 			break;
 		case HOST_STATE_Default:
-			USB_ControlRequest = (USB_Request_Header_t)
-				{
-					.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE),
-					.bRequest      = REQ_GetDescriptor,
-					.wValue        = (DTYPE_Device << 8),
-					.wIndex        = 0,
-					.wLength       = 8,
-				};
+			USB_ControlRequest = (USB_Request_Header_t){
+				.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE),
+				.bRequest	   = REQ_GetDescriptor,
+				.wValue		   = (DTYPE_Device << 8),
+				.wIndex		   = 0,
+				.wLength	   = 8,
+			};
 
 			uint8_t DataBuffer[8];
 
@@ -151,19 +150,18 @@ void USB_Host_ProcessNextHostState(void)
 		case HOST_STATE_Default_PostReset:
 			if (!(Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL, ENDPOINT_CONTROLEP, USB_Host_ControlPipeSize, 1)))
 			{
-				ErrorCode    = HOST_ENUMERROR_PipeConfigError;
+				ErrorCode	 = HOST_ENUMERROR_PipeConfigError;
 				SubErrorCode = 0;
 				break;
 			}
 
-			USB_ControlRequest = (USB_Request_Header_t)
-				{
-					.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE),
-					.bRequest      = REQ_SetAddress,
-					.wValue        = USB_HOST_DEVICEADDRESS,
-					.wIndex        = 0,
-					.wLength       = 0,
-				};
+			USB_ControlRequest = (USB_Request_Header_t){
+				.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE),
+				.bRequest	   = REQ_SetAddress,
+				.wValue		   = USB_HOST_DEVICEADDRESS,
+				.wIndex		   = 0,
+				.wLength	   = 0,
+			};
 
 			if ((SubErrorCode = USB_Host_SendControlRequest(NULL)) != HOST_SENDCONTROL_Successful)
 			{
@@ -181,8 +179,7 @@ void USB_Host_ProcessNextHostState(void)
 			EVENT_USB_Host_DeviceEnumerationComplete();
 			break;
 
-		default:
-			break;
+		default: break;
 	}
 
 	if ((ErrorCode != HOST_ENUMERROR_NoError) && (USB_HostState != HOST_STATE_Unattached))
@@ -199,9 +196,9 @@ void USB_Host_ProcessNextHostState(void)
 
 uint8_t USB_Host_WaitMS(uint8_t MS)
 {
-	bool    BusSuspended = USB_Host_IsBusSuspended();
-	uint8_t ErrorCode    = HOST_WAITERROR_Successful;
-	bool    HSOFIEnabled = USB_INT_IsEnabled(USB_INT_HSOFI);
+	bool	BusSuspended = USB_Host_IsBusSuspended();
+	uint8_t ErrorCode	 = HOST_WAITERROR_Successful;
+	bool	HSOFIEnabled = USB_INT_IsEnabled(USB_INT_HSOFI);
 
 	USB_INT_Disable(USB_INT_HSOFI);
 	USB_INT_Clear(USB_INT_HSOFI);
@@ -241,10 +238,10 @@ uint8_t USB_Host_WaitMS(uint8_t MS)
 	}
 
 	if (BusSuspended)
-	  USB_Host_SuspendBus();
+		USB_Host_SuspendBus();
 
 	if (HSOFIEnabled)
-	  USB_INT_Enable(USB_INT_HSOFI);
+		USB_INT_Enable(USB_INT_HSOFI);
 
 	return ErrorCode;
 }
@@ -256,7 +253,8 @@ static void USB_Host_ResetDevice(void)
 	USB_INT_Disable(USB_INT_DDISCI);
 
 	USB_Host_ResetBus();
-	while (!(USB_Host_IsBusResetComplete()));
+	while (!(USB_Host_IsBusResetComplete()))
+		;
 	USB_Host_ResumeBus();
 
 	USB_Host_ConfigurationNumber = 0;
@@ -284,10 +282,10 @@ static void USB_Host_ResetDevice(void)
 	}
 
 	if (HSOFIEnabled)
-	  USB_INT_Enable(USB_INT_HSOFI);
+		USB_INT_Enable(USB_INT_HSOFI);
 
 	if (BusSuspended)
-	  USB_Host_SuspendBus();
+		USB_Host_SuspendBus();
 
 	USB_INT_Enable(USB_INT_DDISCI);
 }

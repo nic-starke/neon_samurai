@@ -7,12 +7,12 @@
 //  * it under the terms of the GNU General Public License as published by
 //  * the Free Software Foundation, either version 3 of the License, or
 //  * (at your option) any later version.
-//  * 
+//  *
 //  * This program is distributed in the hope that it will be useful,
 //  * but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  * GNU General Public License for more details.
-//  * 
+//  *
 //  * You should have received a copy of the GNU General Public License
 //  * along with this program. If not, see http://www.gnu.org/licenses/.
 //  */
@@ -34,7 +34,7 @@
 // 			.Size		= MIDI_STREAM_EPSIZE,
 // 			.Banks		= 1,
 // 		},
-		
+
 // 		.DataOUTEndpoint =
 // 		{
 // 			.Address	= MIDI_STREAM_OUT_EPADDR,
@@ -46,17 +46,17 @@
 
 // void USBMidi_Init(void)
 // {
-	
+
 // }
 
 // void USBMidi_Receive(void)
 // {
 // 	MIDI_EventPacket_t rx;
-	
+
 // 	if( MIDI_Device_ReceiveEventPacket(&mMIDI_Interface, &rx) ) {
 // 		// switch on the event type - handle.
 // 	}
-	
+
 // }
 
 // inline static void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
@@ -72,7 +72,7 @@
 // inline static void TransmitMidiNote(u8 Channel, u8 Note, u8 Velocity, bool NoteOn)
 // {
 // 	MIDI_EventPacket_t packet = {0};
-// 	u8 cmd = NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF; 
+// 	u8 cmd = NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF;
 // 	packet.Event = MIDI_EVENT(0, cmd);
 // 	packet.Data1 = (Channel & 0x0F) | cmd;
 // 	packet.Data2 = Note & 0x7F;
@@ -89,7 +89,7 @@
 // 			TransmitMidiCC(Channel, CC, Value >> 9);	// convert to 7 bit value (probably not a good way to do this)
 // 			break;
 // 		}
-		
+
 // 		case KNOB_MIDI_REL_CC:
 // 		{
 // 			if(PreviousValue > Value)
@@ -98,23 +98,22 @@
 // 			}
 // 			else if (PreviousValue < Value)
 // 			{
-// 				TransmitMidiCC(Channel, CC, 0x41);				
+// 				TransmitMidiCC(Channel, CC, 0x41);
 // 			}
 // 			break;
 // 		}
-		
+
 // 		case KNOB_MIDI_NOTE:
 // 		{
 // 			TransmitMidiNote(Channel, CC, Value >> 9, true);
 // 			break;
 // 		}
-		
+
 // 		case KNOB_DISABLED:
 // 		default:
 // 		break;
-// 	}	
+// 	}
 // }
-
 
 // void USBMidi_ProcessKnob(sKnob* pKnob)
 // {
@@ -122,16 +121,16 @@
 // 	{
 // 		ProcessKnobMIDI(pKnob->Mode, pKnob->MidiChannel, pKnob->MidiCC, pKnob->CurrentValue, pKnob->PreviousValue);
 // 	}
-			
+
 // 	if (pKnob->SuperMode != KNOB_DISABLED && (pKnob->CurrentValue >= pKnob->SuperMinValue) && (pKnob->CurrentValue <= pKnob->SuperMaxValue))
 // 	{
 // 		ProcessKnobMIDI(pKnob->SuperMode, pKnob->SuperMidiChannel, pKnob->SuperCC, pKnob->CurrentValue, pKnob->PreviousValue);
-// 	}	
+// 	}
 // }
 
 // void USBMidi_ProcessEncoderSwitch(sSwitch* pSwitch)
 // {
-	
+
 // }
 
 // // Must be called prior to LUFAs master usb task - USB_USBTask()

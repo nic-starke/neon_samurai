@@ -1,5 +1,5 @@
 /*
- * File: Types.h ( 31st October 2021 )
+ * File: HardwareDescription.h ( 13th November 2021 )
  * Project: Muffin
  * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -19,22 +19,11 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-typedef uint8_t	 u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-
-typedef int8_t	s8;
-typedef int16_t s16;
-typedef int32_t s32;
-
-typedef volatile u8	 vu8;
-typedef volatile u16 vu16;
-typedef volatile u32 vu32;
-
-typedef volatile s8	 vs8;
-typedef volatile s16 vs16;
-typedef volatile s32 vs32;
+#define NUM_ENCODERS			  (16)
+#define NUM_ENCODER_SWITCHES	  (NUM_ENCODERS)
+#define NUM_SIDE_SWITCHES		  (6)
+#define NUM_LEDS				  (256)
+#define NUM_LEDS_PER_ENCODER	  (16)
+#define NUM_INDICATOR_LEDS		  (11)
+#define NUM_LED_SHIFT_REGISTERS	  (32)
+#define NUM_INPUT_SHIFT_REGISTERS (6)

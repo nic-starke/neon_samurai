@@ -1,7 +1,7 @@
 /*
- * File: DMA.h ( 6th November 2021 )
+ * File: DMA.h ( 13th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,40 +21,62 @@
 
 #include <avr/io.h>
 
+#include "Utility.h"
 #include "Types.h"
-
-typedef enum
-{
-	DMA_INT_PRIO_OFF = 0x00,
-	DMA_INT_PRIO_LO	 = 0x01,
-	DMA_INT_PRIO_MED = 0x02,
-	DMA_INT_PRIO_HI	 = 0x03,
-
-	NUM_DMA_INT_PRIORITIES,
-} eDMAIntPriority;
+#include "Interrupt.h"
 
 typedef struct
 {
-	u16					BlockTransferCount;
-	u8					RepeatCount; // 1 = single shot mode
-	eDMAIntPriority		IntPriority;
-	DMA_CH_TRIGSRC_t	TriggerSource;
-	u32					SrcAddr;
-	u32					DstAddr;
-	DMA_CH_SRCDIR_t		SrcAddrMode;
-	DMA_CH_DESTDIR_t	DstAddrMode;
-	DMA_CH_SRCRELOAD_t	SrcReloadMode;
-	DMA_CH_DESTRELOAD_t DstReloadMode;
+	DMA_CH_t*			pChannel;
+	u8					Repeats; // <= 1 for single shot mode
+	u16					BytesPerTransfer;
 	DMA_CH_BURSTLEN_t	BurstLength;
-} sDMAChannelConfig;
+	DMA_CH_TRIGSRC_t	TriggerSource;
+	DMA_DBUFMODE_t		DoubleBufferMode;
+	DMA_CH_TRNINTLVL_t	InterruptPriority;
+	DMA_CH_ERRINTLVL_t	ErrInterruptPriority;
+	uintptr_t			SrcAddress;
+	DMA_CH_SRCDIR_t		SrcAddressingMode;
+	DMA_CH_SRCRELOAD_t	SrcReloadMode;
+	uintptr_t			DstAddress;
+	DMA_CH_DESTDIR_t	DstAddressingMode;
+	DMA_CH_DESTRELOAD_t DstReloadMode;
+} sDMA_ChannelConfig;
 
-bool SYS_EnableDMA(void);
-void DMA_SetChannelConfig(DMA_CH_t* pDMA, sDMAChannelConfig* pConfig);
-void DMA_Start(DMA_CH_t* pDMA);
-void DMA_Stop(DMA_CH_t* pDMA);
-void DMA_EnableDoubleBuffer(DMA_DBUFMODE_t Mode);
-
-static inline DMA_CH_t* DMA_GetChannelPtr(u8 ChannelNum)
+static inline DMA_CH_t* DMA_GetChannelPointer(u8 ChannelNumber)
 {
-	return ((DMA_CH_t*)((uintptr_t)(&DMA.CH0) + (sizeof(DMA_CH_t) * ChannelNum)));
+	(DMA_CH_t*)((uintptr_t)(&DMA.CH0) + (sizeof(DMA_CH_t) * ChannelNumber));
 }
+
+/**
+ * @brief Start DMA transactions for channel
+ *
+ * @param pDMA Pointer to DMA channel
+ */
+static inline void DMA_EnableChannel(DMA_CH_t* pDMA)
+{
+	SET_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
+}
+
+/**
+ * @brief Stop DMA transactions for channel
+ *
+ * @param pDMA  Pointer to DMA channel
+ */
+static inline void DMA_DisableChannel(DMA_CH_t* pDMA)
+{
+	CLR_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
+}
+
+/**
+ * @brief Reset the DMA channel
+ *
+ * @param pDMA Pointer to DMA channel
+ */
+static inline void DMA_ResetChannel(DMA_CH_t* pDMA)
+{
+	SET_BIT(pDMA->CTRLA, DMA_CH_RESET_bm);
+}
+
+void DMA_Init(void);
+void DMA_InitChannel(sDMA_ChannelConfig* pConfig);

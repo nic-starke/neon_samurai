@@ -1,7 +1,7 @@
 /*
- * File: USART.h ( 7th November 2021 )
+ * File: USART.h ( 20th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,28 @@
 
 #pragma once
 
-#include "Utils.h"
+#include <avr/io.h>
+
 #include "Types.h"
-#include "Peripheral.h"
 
-typedef struct USART
+// This implementation is fixed to USART in Master SPI Mode (additional modes exist but are not implemented).
+
+typedef enum
 {
+    SPI_MODE_0,  // clock low, phase low
+    SPI_MODE_1,  // clock low, phase high
+    SPI_MODE_2,  // clock high, phase low
+    SPI_MODE_3,  // clock high, phase high
+} eSPI_Mode;
+
+
+typedef struct
+{
+    USART_t* pUSART;
     u32 BaudRate;
-    u8 SPIMode;
+    eSPI_Mode SPIMode;
     eDataOrder DataOrder;
-} sUSART_SPIConfig;
+} sUSART_ModuleConfig;
 
-
-bool USART_Init(ePeripheral USART);
-void USART_SetSPIConfig(USART_t *pUSART, sUSART_SPIConfig* pConfig);
+void USART_Init(void);
+void USART_InitModule(sUSART_ModuleConfig* pConfig);

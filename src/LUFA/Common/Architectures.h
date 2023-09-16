@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -54,31 +54,30 @@
 #ifndef __LUFA_ARCHITECTURES_H__
 #define __LUFA_ARCHITECTURES_H__
 
-	/* Preprocessor Checks: */
-		#if !defined(__INCLUDE_FROM_COMMON_H)
-			#error Do not include this file directly. Include LUFA/Common/Common.h instead to gain this functionality.
-		#endif
+/* Preprocessor Checks: */
+#if !defined(__INCLUDE_FROM_COMMON_H)
+#error Do not include this file directly. Include LUFA/Common/Common.h instead to gain this functionality.
+#endif
 
-	/* Public Interface - May be used in end-application: */
-		/* Macros: */
-			/** Selects the Atmel 8-bit AVR (AT90USB* and ATMEGA*U* chips) architecture. */
-			#define ARCH_AVR8           0
+/* Public Interface - May be used in end-application: */
+/* Macros: */
+/** Selects the Atmel 8-bit AVR (AT90USB* and ATMEGA*U* chips) architecture. */
+#define ARCH_AVR8 0
 
-			/** Selects the Atmel 32-bit UC3 AVR (AT32UC3* chips) architecture. */
-			#define ARCH_UC3            1
+/** Selects the Atmel 32-bit UC3 AVR (AT32UC3* chips) architecture. */
+#define ARCH_UC3 1
 
-			/** Selects the Atmel XMEGA AVR (ATXMEGA* chips) architecture. */
-			#define ARCH_XMEGA          2
+/** Selects the Atmel XMEGA AVR (ATXMEGA* chips) architecture. */
+#define ARCH_XMEGA 2
 
-			#if !defined(__DOXYGEN__)
-				#define ARCH_           ARCH_AVR8
+#if !defined(__DOXYGEN__)
+#define ARCH_ ARCH_AVR8
 
-				#if !defined(ARCH)
-					#define ARCH        ARCH_AVR8
-				#endif
-			#endif
+#if !defined(ARCH)
+#define ARCH ARCH_AVR8
+#endif
+#endif
 
 #endif
 
 /** @} */
-

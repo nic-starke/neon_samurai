@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -62,22 +62,21 @@
 #ifndef _PRINTER_CLASS_H_
 #define _PRINTER_CLASS_H_
 
-	/* Macros: */
-		#define __INCLUDE_FROM_USB_DRIVER
-		#define __INCLUDE_FROM_PRINTER_DRIVER
+/* Macros: */
+#define __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_PRINTER_DRIVER
 
-	/* Includes: */
-		#include "../Core/USBMode.h"
+/* Includes: */
+#include "../Core/USBMode.h"
 
-		#if defined(USB_CAN_BE_DEVICE)
-			#include "Device/PrinterClassDevice.h"
-		#endif
+#if defined(USB_CAN_BE_DEVICE)
+#include "Device/PrinterClassDevice.h"
+#endif
 
-		#if defined(USB_CAN_BE_HOST)
-			#include "Host/PrinterClassHost.h"
-		#endif
+#if defined(USB_CAN_BE_HOST)
+#include "Host/PrinterClassHost.h"
+#endif
 
 #endif
 
 /** @} */
-

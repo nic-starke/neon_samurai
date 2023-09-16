@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,7 +31,7 @@
 #include "../../../../Common/Common.h"
 #if (ARCH == ARCH_UC3)
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "../USBMode.h"
 
 #if defined(USB_CAN_BE_HOST)
@@ -43,13 +43,12 @@ uint8_t USB_Host_ControlPipeSize = PIPE_CONTROLPIPE_DEFAULT_SIZE;
 volatile uint32_t USB_Pipe_SelectedPipe = PIPE_CONTROLPIPE;
 volatile uint8_t* USB_Pipe_FIFOPos[PIPE_TOTAL_PIPES];
 
-bool Pipe_ConfigurePipeTable(const USB_Pipe_Table_t* const Table,
-                             const uint8_t Entries)
+bool Pipe_ConfigurePipeTable(const USB_Pipe_Table_t* const Table, const uint8_t Entries)
 {
 	for (uint8_t i = 0; i < Entries; i++)
 	{
 		if (!(Table[i].Address))
-		  continue;
+			continue;
 
 		if (!(Pipe_ConfigurePipe(Table[i].Address, Table[i].Type, Table[i].EndpointAddress, Table[i].Size, Table[i].Banks)))
 		{
@@ -60,34 +59,27 @@ bool Pipe_ConfigurePipeTable(const USB_Pipe_Table_t* const Table,
 	return true;
 }
 
-bool Pipe_ConfigurePipe(const uint8_t Address,
-                        const uint8_t Type,
-                        const uint8_t EndpointAddress,
-                        const uint16_t Size,
-                        const uint8_t Banks)
+bool Pipe_ConfigurePipe(const uint8_t Address, const uint8_t Type, const uint8_t EndpointAddress, const uint16_t Size, const uint8_t Banks)
 {
 	uint8_t Number = (Address & PIPE_EPNUM_MASK);
 	uint8_t Token  = (Address & PIPE_DIR_IN) ? PIPE_TOKEN_IN : PIPE_TOKEN_OUT;
 
 	if (Number >= PIPE_TOTAL_PIPES)
-	  return false;
+		return false;
 
 	if (Type == EP_TYPE_CONTROL)
-	  Token = PIPE_TOKEN_SETUP;
+		Token = PIPE_TOKEN_SETUP;
 
-	USB_Pipe_FIFOPos[Number]     = &AVR32_USBB_SLAVE[Number * PIPE_HSB_ADDRESS_SPACE_SIZE];
+	USB_Pipe_FIFOPos[Number] = &AVR32_USBB_SLAVE[Number * PIPE_HSB_ADDRESS_SPACE_SIZE];
 
 #if defined(ORDERED_EP_CONFIG)
 	Pipe_SelectPipe(Number);
 	Pipe_EnablePipe();
 
 	(&AVR32_USBB.upcfg0)[Number] = 0;
-	(&AVR32_USBB.upcfg0)[Number] = (AVR32_USBB_ALLOC_MASK |
-	                                ((uint32_t)Type  << AVR32_USBB_PTYPE_OFFSET)  |
-	                                ((uint32_t)Token << AVR32_USBB_PTOKEN_OFFSET) |
-	                                ((Banks > 1) ? AVR32_USBB_PBK_MASK : 0)       |
-	                                Pipe_BytesToEPSizeMask(Size) |
-	                                ((uint32_t)Number << AVR32_USBB_PEPNUM_OFFSET));
+	(&AVR32_USBB.upcfg0)[Number] =
+		(AVR32_USBB_ALLOC_MASK | ((uint32_t)Type << AVR32_USBB_PTYPE_OFFSET) | ((uint32_t)Token << AVR32_USBB_PTOKEN_OFFSET) |
+		 ((Banks > 1) ? AVR32_USBB_PBK_MASK : 0) | Pipe_BytesToEPSizeMask(Size) | ((uint32_t)Number << AVR32_USBB_PEPNUM_OFFSET));
 
 	Pipe_SetInfiniteINRequests();
 
@@ -101,12 +93,9 @@ bool Pipe_ConfigurePipe(const uint8_t Address,
 
 		if (PNum == Number)
 		{
-			UPCFG0Temp = (AVR32_USBB_ALLOC_MASK |
-			              ((uint32_t)Type  << AVR32_USBB_PTYPE_OFFSET)  |
-			              ((uint32_t)Token << AVR32_USBB_PTOKEN_OFFSET) |
-			              ((Banks > 1) ? AVR32_USBB_PBK_MASK : 0)       |
-			              Pipe_BytesToEPSizeMask(Size) |
-			              ((EndpointAddress & PIPE_EPNUM_MASK) << AVR32_USBB_PEPNUM_OFFSET));
+			UPCFG0Temp = (AVR32_USBB_ALLOC_MASK | ((uint32_t)Type << AVR32_USBB_PTYPE_OFFSET) |
+						  ((uint32_t)Token << AVR32_USBB_PTOKEN_OFFSET) | ((Banks > 1) ? AVR32_USBB_PBK_MASK : 0) |
+						  Pipe_BytesToEPSizeMask(Size) | ((EndpointAddress & PIPE_EPNUM_MASK) << AVR32_USBB_PEPNUM_OFFSET));
 		}
 		else
 		{
@@ -114,7 +103,7 @@ bool Pipe_ConfigurePipe(const uint8_t Address,
 		}
 
 		if (!(UPCFG0Temp & AVR32_USBB_ALLOC_MASK))
-		  continue;
+			continue;
 
 		Pipe_DisablePipe();
 		(&AVR32_USBB.upcfg0)[PNum] &= ~AVR32_USBB_ALLOC_MASK;
@@ -125,7 +114,7 @@ bool Pipe_ConfigurePipe(const uint8_t Address,
 		Pipe_SetInfiniteINRequests();
 
 		if (!(Pipe_IsConfigured()))
-		  return false;
+			return false;
 	}
 
 	Pipe_SelectPipe(Number);
@@ -138,9 +127,9 @@ void Pipe_ClearPipes(void)
 	for (uint8_t PNum = 0; PNum < PIPE_TOTAL_PIPES; PNum++)
 	{
 		Pipe_SelectPipe(PNum);
-		(&AVR32_USBB.upcfg0)[PNum]    = 0;
+		(&AVR32_USBB.upcfg0)[PNum]	  = 0;
 		(&AVR32_USBB.upcon0clr)[PNum] = -1;
-		USB_Pipe_FIFOPos[PNum]        = &AVR32_USBB_SLAVE[PNum * 0x10000];
+		USB_Pipe_FIFOPos[PNum]		  = &AVR32_USBB_SLAVE[PNum * 0x10000];
 		Pipe_DisablePipe();
 	}
 }
@@ -154,10 +143,10 @@ bool Pipe_IsEndpointBound(const uint8_t EndpointAddress)
 		Pipe_SelectPipe(PNum);
 
 		if (!(Pipe_IsConfigured()))
-		  continue;
+			continue;
 
 		if (Pipe_GetBoundEndpointAddress() == EndpointAddress)
-		  return true;
+			return true;
 	}
 
 	Pipe_SelectPipe(PrevPipeNumber);
@@ -166,11 +155,11 @@ bool Pipe_IsEndpointBound(const uint8_t EndpointAddress)
 
 uint8_t Pipe_WaitUntilReady(void)
 {
-	#if (USB_STREAM_TIMEOUT_MS < 0xFF)
-	uint8_t  TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
-	#else
+#if (USB_STREAM_TIMEOUT_MS < 0xFF)
+	uint8_t TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
+#else
 	uint16_t TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
-	#endif
+#endif
 
 	uint16_t PreviousFrameNumber = USB_Host_GetFrameNumber();
 
@@ -179,18 +168,18 @@ uint8_t Pipe_WaitUntilReady(void)
 		if (Pipe_GetPipeToken() == PIPE_TOKEN_IN)
 		{
 			if (Pipe_IsINReceived())
-			  return PIPE_READYWAIT_NoError;
+				return PIPE_READYWAIT_NoError;
 		}
 		else
 		{
 			if (Pipe_IsOUTReady())
-			  return PIPE_READYWAIT_NoError;
+				return PIPE_READYWAIT_NoError;
 		}
 
 		if (Pipe_IsStalled())
-		  return PIPE_READYWAIT_PipeStalled;
+			return PIPE_READYWAIT_PipeStalled;
 		else if (USB_HostState == HOST_STATE_Unattached)
-		  return PIPE_READYWAIT_DeviceDisconnected;
+			return PIPE_READYWAIT_DeviceDisconnected;
 
 		uint16_t CurrentFrameNumber = USB_Host_GetFrameNumber();
 
@@ -199,7 +188,7 @@ uint8_t Pipe_WaitUntilReady(void)
 			PreviousFrameNumber = CurrentFrameNumber;
 
 			if (!(TimeoutMSRem--))
-			  return PIPE_READYWAIT_Timeout;
+				return PIPE_READYWAIT_Timeout;
 		}
 	}
 }

@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -53,109 +53,108 @@
 #ifndef _MS_CLASS_DEVICE_H_
 #define _MS_CLASS_DEVICE_H_
 
-	/* Includes: */
-		#include "../../USB.h"
-		#include "../Common/MassStorageClassCommon.h"
+/* Includes: */
+#include "../../USB.h"
+#include "../Common/MassStorageClassCommon.h"
 
-	/* Enable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			extern "C" {
-		#endif
+/* Enable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-	/* Preprocessor Checks: */
-		#if !defined(__INCLUDE_FROM_MS_DRIVER)
-			#error Do not include this file directly. Include LUFA/Drivers/USB.h instead.
-		#endif
+/* Preprocessor Checks: */
+#if !defined(__INCLUDE_FROM_MS_DRIVER)
+#error Do not include this file directly. Include LUFA/Drivers/USB.h instead.
+#endif
 
-	/* Public Interface - May be used in end-application: */
-		/* Type Defines: */
-			/** \brief Mass Storage Class Device Mode Configuration and State Structure.
-			 *
-			 *  Class state structure. An instance of this structure should be made for each Mass Storage interface
-			 *  within the user application, and passed to each of the Mass Storage class driver functions as the
-			 *  \c MSInterfaceInfo parameter. This stores each Mass Storage interface's configuration and state information.
-			 */
-			typedef struct
-			{
-				struct
-				{
-					uint8_t  InterfaceNumber; /**< Interface number of the Mass Storage interface within the device. */
+/* Public Interface - May be used in end-application: */
+/* Type Defines: */
+/** \brief Mass Storage Class Device Mode Configuration and State Structure.
+ *
+ *  Class state structure. An instance of this structure should be made for each Mass Storage interface
+ *  within the user application, and passed to each of the Mass Storage class driver functions as the
+ *  \c MSInterfaceInfo parameter. This stores each Mass Storage interface's configuration and state information.
+ */
+typedef struct
+{
+	struct
+	{
+		uint8_t InterfaceNumber; /**< Interface number of the Mass Storage interface within the device. */
 
-					USB_Endpoint_Table_t DataINEndpoint; /**< Data IN endpoint configuration table. */
-					USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
+		USB_Endpoint_Table_t DataINEndpoint;  /**< Data IN endpoint configuration table. */
+		USB_Endpoint_Table_t DataOUTEndpoint; /**< Data OUT endpoint configuration table. */
 
-					uint8_t  TotalLUNs; /**< Total number of logical drives in the Mass Storage interface. */
-				} Config; /**< Config data for the USB class interface within the device. All elements in this section
-				           *   <b>must</b> be set or the interface will fail to enumerate and operate correctly.
-				           */
-				struct
-				{
-					MS_CommandBlockWrapper_t  CommandBlock; /**< Mass Storage class command block structure, stores the received SCSI
-															 *   command from the host which is to be processed.
-															 */
-					MS_CommandStatusWrapper_t CommandStatus; /**< Mass Storage class command status structure, set elements to indicate
-															  *   the issued command's success or failure to the host.
-															  */
-					volatile bool IsMassStoreReset; /**< Flag indicating that the host has requested that the Mass Storage interface be reset
-											         *   and that all current Mass Storage operations should immediately abort.
-											         */
-				} State; /**< State data for the USB class interface within the device. All elements in this section
-				          *   are reset to their defaults when the interface is enumerated.
-				          */
-			} USB_ClassInfo_MS_Device_t;
+		uint8_t TotalLUNs; /**< Total number of logical drives in the Mass Storage interface. */
+	} Config;			   /**< Config data for the USB class interface within the device. All elements in this section
+							*   <b>must</b> be set or the interface will fail to enumerate and operate correctly.
+							*/
+	struct
+	{
+		MS_CommandBlockWrapper_t  CommandBlock;	 /**< Mass Storage class command block structure, stores the received SCSI
+												  *   command from the host which is to be processed.
+												  */
+		MS_CommandStatusWrapper_t CommandStatus; /**< Mass Storage class command status structure, set elements to indicate
+												  *   the issued command's success or failure to the host.
+												  */
+		volatile bool IsMassStoreReset;			 /**< Flag indicating that the host has requested that the Mass Storage interface be reset
+												  *   and that all current Mass Storage operations should immediately abort.
+												  */
+	} State;									 /**< State data for the USB class interface within the device. All elements in this section
+												  *   are reset to their defaults when the interface is enumerated.
+												  */
+} USB_ClassInfo_MS_Device_t;
 
-		/* Function Prototypes: */
-			/** Configures the endpoints of a given Mass Storage interface, ready for use. This should be linked to the library
-			 *  \ref EVENT_USB_Device_ConfigurationChanged() event so that the endpoints are configured when the configuration
-			 *  containing the given Mass Storage interface is selected.
-			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage Class configuration and state.
-			 *
-			 *  \return Boolean \c true if the endpoints were successfully configured, \c false otherwise.
-			 */
-			bool MS_Device_ConfigureEndpoints(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
+/* Function Prototypes: */
+/** Configures the endpoints of a given Mass Storage interface, ready for use. This should be linked to the library
+ *  \ref EVENT_USB_Device_ConfigurationChanged() event so that the endpoints are configured when the configuration
+ *  containing the given Mass Storage interface is selected.
+ *
+ *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage Class configuration and state.
+ *
+ *  \return Boolean \c true if the endpoints were successfully configured, \c false otherwise.
+ */
+bool MS_Device_ConfigureEndpoints(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Processes incoming control requests from the host, that are directed to the given Mass Storage class interface. This should be
-			 *  linked to the library \ref EVENT_USB_Device_ControlRequest() event.
-			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage Class configuration and state.
-			 */
-			void MS_Device_ProcessControlRequest(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
+/** Processes incoming control requests from the host, that are directed to the given Mass Storage class interface. This should be
+ *  linked to the library \ref EVENT_USB_Device_ControlRequest() event.
+ *
+ *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage Class configuration and state.
+ */
+void MS_Device_ProcessControlRequest(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** General management task for a given Mass Storage class interface, required for the correct operation of the interface. This should
-			 *  be called frequently in the main program loop, before the master USB management task \ref USB_USBTask().
-			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage configuration and state.
-			 */
-			void MS_Device_USBTask(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
+/** General management task for a given Mass Storage class interface, required for the correct operation of the interface. This should
+ *  be called frequently in the main program loop, before the master USB management task \ref USB_USBTask().
+ *
+ *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage configuration and state.
+ */
+void MS_Device_USBTask(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Mass Storage class driver callback for the user processing of a received SCSI command. This callback will fire each time the
-			 *  host sends a SCSI command which requires processing by the user application. Inside this callback the user is responsible
-			 *  for the processing of the received SCSI command from the host. The SCSI command is available in the CommandBlock structure
-			 *  inside the Mass Storage class state structure passed as a parameter to the callback function.
-			 *
-			 *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage Class configuration and state.
-			 *
-			 *  \return Boolean \c true if the SCSI command was successfully processed, \c false otherwise.
-			 */
-			bool CALLBACK_MS_Device_SCSICommandReceived(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
+/** Mass Storage class driver callback for the user processing of a received SCSI command. This callback will fire each time the
+ *  host sends a SCSI command which requires processing by the user application. Inside this callback the user is responsible
+ *  for the processing of the received SCSI command from the host. The SCSI command is available in the CommandBlock structure
+ *  inside the Mass Storage class state structure passed as a parameter to the callback function.
+ *
+ *  \param[in,out] MSInterfaceInfo  Pointer to a structure containing a Mass Storage Class configuration and state.
+ *
+ *  \return Boolean \c true if the SCSI command was successfully processed, \c false otherwise.
+ */
+bool CALLBACK_MS_Device_SCSICommandReceived(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
 
-	/* Private Interface - For use in library only: */
-	#if !defined(__DOXYGEN__)
-		/* Function Prototypes: */
-			#if defined(__INCLUDE_FROM_MASSSTORAGE_DEVICE_C)
-				static void MS_Device_ReturnCommandStatus(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
-				static bool MS_Device_ReadInCommandBlock(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
-			#endif
+/* Private Interface - For use in library only: */
+#if !defined(__DOXYGEN__)
+/* Function Prototypes: */
+#if defined(__INCLUDE_FROM_MASSSTORAGE_DEVICE_C)
+static void MS_Device_ReturnCommandStatus(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
+static bool MS_Device_ReadInCommandBlock(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo) ATTR_NON_NULL_PTR_ARG(1);
+#endif
 
-	#endif
+#endif
 
-	/* Disable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			}
-		#endif
+/* Disable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+}
+#endif
 
 #endif
 
 /** @} */
-

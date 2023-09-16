@@ -1,7 +1,7 @@
 /*
- * File: Display.c ( 31st October 2021 )
+ * File: Display.c ( 13th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,62 +17,45 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <avr/io.h>
-#include <string.h>
-
 #include "Display.h"
+#include "HardwareDescription.h"
 #include "DMA.h"
 #include "USART.h"
-#include "Peripheral.h"
-#include "Types.h"
-#include "HardwareDefines.h"
 
-#define DISPLAY_FRAME_SIZE (NUM_LED_SHIFTREG)
-
-#define DMA_CHANNEL (0)
-
-// #define DISPLAY_CC_VAL			(DISPLAY_REFRESH_RATE)		// n x 8 uS update
-
-
-static volatile Frame DisplayBuffer[DISPLAY_BUF_SIZE][NUM_ENCODERS];
+static volatile DisplayFrame DisplayBuffer[DISPLAY_BUFFER_SIZE][NUM_ENCODERS];
 
 void Display_Init(void)
 {
-	memset(&DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
+	memset(DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
 
-	DMA_CH_t* pDMA = DMA_GetChannelPtr(DMA_CHANNEL);
+	sDMA_ChannelConfig dmaConfig = 
+    {
+		.pChannel = DMA_GetChannelPointer(0),
 
-	sDMAChannelConfig dmaConfig = {
-		.BlockTransferCount = DISPLAY_FRAME_SIZE,
-		.RepeatCount		= 1,
-		.IntPriority		= DMA_INT_PRIO_MED,
-		.TriggerSource		= DMA_CH_TRIGSRC_USARTD0_DRE_gc,
-		.SrcAddr			= (u16)(uintptr_t)DisplayBuffer,
-		.SrcAddrMode		= DMA_CH_SRCDIR_INC_gc,
-		.SrcReloadMode		= DMA_CH_SRCRELOAD_NONE_gc,
-		.DstAddr			= (u16)(uintptr_t)&USARTD0.DATA,
-		.DstAddrMode		= DMA_CH_DESTDIR_FIXED_gc,
-		.DstReloadMode		= DMA_CH_DESTRELOAD_NONE_gc,
+		.BurstLength		  = DMA_CH_BURSTLEN_1BYTE_gc,
+		.BytesPerTransfer	  = NUM_LED_SHIFT_REGISTERS, // 1 byte per SR
+		.DoubleBufferMode	  = DMA_DBUFMODE_CH01_gc,	 // Channels 0 and 1 in double buffer mode
+		.DstAddress			  = (uintptr_t)&USARTD0.DATA,
+		.DstAddressingMode	  = DMA_CH_DESTDIR_FIXED_gc,
+		.DstReloadMode		  = DMA_CH_DESTRELOAD_NONE_gc,
+		.ErrInterruptPriority = DMA_CH_ERRINTLVL_MED_gc,
+		.InterruptPriority	  = DMA_CH_TRNINTLVL_MED_gc,
+		.Repeats			  = 1, // Single shot
+		.SrcAddress			  = (uintptr_t)&DisplayBuffer[0][0],
+		.SrcAddressingMode	  = DMA_CH_SRCDIR_INC_gc,		   // Auto increment through buffer array
+		.SrcReloadMode		  = DMA_CH_SRCRELOAD_NONE_gc,	   // Handle address overflow manually in Display DMA ISR
+		.TriggerSource		  = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // USART SPI Master will trigger DMA transaction
 	};
 
-    DMA_EnableDoubleBuffer(DMA_DBUFMODE_CH01_gc);
-	DMA_SetChannelConfig(pDMA, &dmaConfig);
-    
-    if( USART_Init(PERIPH_D_USART0) )
+	DMA_InitChannel(&dmaConfig);
+
+    sUSART_ModuleConfig usartConfig = 
     {
+        .pUSART     = &USARTD0,
+        .BaudRate   = 4000000,
+        .DataOrder = MSB_FIRST,
+        .SPIMode = SPI_MODE_0,
+    };
 
-        sUSART_SPIConfig usartConfig = {
-            .BaudRate   = 4000000,
-            .DataOrder  = MSB_FIRST,
-            .SPIMode    = 0, 
-        };
-
-        USART_SetSPIConfig(&USARTD0, &usartConfig);
-    }
-
-    // Timer Stuff
-
-
-
-
+    USART_InitModule(&usartConfig);
 }

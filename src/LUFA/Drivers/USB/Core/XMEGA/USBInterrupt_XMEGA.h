@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -41,132 +41,104 @@
 #ifndef __USBINTERRUPT_XMEGA_H__
 #define __USBINTERRUPT_XMEGA_H__
 
-	/* Includes: */
-		#include "../../../../Common/Common.h"
+/* Includes: */
+#include "../../../../Common/Common.h"
 
-	/* Enable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			extern "C" {
-		#endif
-
-	/* Preprocessor Checks: */
-		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include LUFA/Drivers/USB/USB.h instead.
-		#endif
-
-	/* Private Interface - For use in library only: */
-	#if !defined(__DOXYGEN__)
-		/* Enums: */
-			enum USB_Interrupts_t
-			{
-				USB_INT_BUSEVENTI         = 1,
-				USB_INT_BUSEVENTI_Suspend = 2,
-				USB_INT_BUSEVENTI_Resume  = 3,
-				USB_INT_BUSEVENTI_Reset   = 4,
-				USB_INT_SOFI              = 5,
-			};
-
-		/* Inline Functions: */
-			static inline void USB_INT_Enable(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
-			static inline void USB_INT_Enable(const uint8_t Interrupt)
-			{
-				switch (Interrupt)
-				{
-					case USB_INT_BUSEVENTI:
-						USB.INTCTRLA |= USB_BUSEVIE_bm;
-						break;
-					case USB_INT_SOFI:
-						USB.INTCTRLA |= USB_SOFIE_bm;
-						break;
-					default:
-						break;
-				}
-			}
-
-			static inline void USB_INT_Disable(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
-			static inline void USB_INT_Disable(const uint8_t Interrupt)
-			{
-				switch (Interrupt)
-				{
-					case USB_INT_BUSEVENTI:
-						USB.INTCTRLA &= ~USB_BUSEVIE_bm;
-						break;
-					case USB_INT_SOFI:
-						USB.INTCTRLA &= ~USB_SOFIE_bm;
-						break;
-					default:
-						break;
-				}
-			}
-
-			static inline void USB_INT_Clear(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
-			static inline void USB_INT_Clear(const uint8_t Interrupt)
-			{
-				switch (Interrupt)
-				{
-					case USB_INT_BUSEVENTI_Suspend:
-						USB.INTFLAGSACLR = USB_SUSPENDIF_bm;
-						break;
-					case USB_INT_BUSEVENTI_Resume:
-						USB.INTFLAGSACLR = USB_RESUMEIF_bm;
-						break;
-					case USB_INT_BUSEVENTI_Reset:
-						USB.INTFLAGSACLR = USB_RSTIF_bm;
-						break;
-					case USB_INT_SOFI:
-						USB.INTFLAGSACLR = USB_SOFIF_bm;
-						break;
-					default:
-						break;
-				}
-			}
-
-			static inline bool USB_INT_IsEnabled(const uint8_t Interrupt) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
-			static inline bool USB_INT_IsEnabled(const uint8_t Interrupt)
-			{
-				switch (Interrupt)
-				{
-					case USB_INT_BUSEVENTI:
-						return ((USB.INTCTRLA & USB_BUSEVIE_bm) ? true : false);
-					case USB_INT_SOFI:
-						return ((USB.INTCTRLA & USB_SOFIE_bm) ? true : false);
-					default:
-						return false;
-				}
-			}
-
-			static inline bool USB_INT_HasOccurred(const uint8_t Interrupt) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
-			static inline bool USB_INT_HasOccurred(const uint8_t Interrupt)
-			{
-				switch (Interrupt)
-				{
-					case USB_INT_BUSEVENTI_Suspend:
-						return ((USB.INTFLAGSACLR & USB_SUSPENDIF_bm) ? true : false);
-					case USB_INT_BUSEVENTI_Resume:
-						return ((USB.INTFLAGSACLR & USB_RESUMEIF_bm) ? true : false);
-					case USB_INT_BUSEVENTI_Reset:
-						return ((USB.INTFLAGSACLR & USB_RSTIF_bm) ? true : false);
-					case USB_INT_SOFI:
-						return ((USB.INTFLAGSACLR & USB_SOFIF_bm) ? true : false);
-					default:
-						return false;
-				}
-			}
-
-		/* Includes: */
-			#include "../USBMode.h"
-			#include "../Events.h"
-			#include "../USBController.h"
-
-		/* Function Prototypes: */
-			void USB_INT_ClearAllInterrupts(void);
-			void USB_INT_DisableAllInterrupts(void);
-	#endif
-
-	/* Disable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			}
-		#endif
-
+/* Enable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+extern "C" {
 #endif
 
+/* Preprocessor Checks: */
+#if !defined(__INCLUDE_FROM_USB_DRIVER)
+#error Do not include this file directly. Include LUFA/Drivers/USB/USB.h instead.
+#endif
+
+/* Private Interface - For use in library only: */
+#if !defined(__DOXYGEN__)
+/* Enums: */
+enum USB_Interrupts_t
+{
+	USB_INT_BUSEVENTI		  = 1,
+	USB_INT_BUSEVENTI_Suspend = 2,
+	USB_INT_BUSEVENTI_Resume  = 3,
+	USB_INT_BUSEVENTI_Reset	  = 4,
+	USB_INT_SOFI			  = 5,
+};
+
+/* Inline Functions: */
+static inline void USB_INT_Enable(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
+static inline void USB_INT_Enable(const uint8_t Interrupt)
+{
+	switch (Interrupt)
+	{
+		case USB_INT_BUSEVENTI: USB.INTCTRLA |= USB_BUSEVIE_bm; break;
+		case USB_INT_SOFI: USB.INTCTRLA |= USB_SOFIE_bm; break;
+		default: break;
+	}
+}
+
+static inline void USB_INT_Disable(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
+static inline void USB_INT_Disable(const uint8_t Interrupt)
+{
+	switch (Interrupt)
+	{
+		case USB_INT_BUSEVENTI: USB.INTCTRLA &= ~USB_BUSEVIE_bm; break;
+		case USB_INT_SOFI: USB.INTCTRLA &= ~USB_SOFIE_bm; break;
+		default: break;
+	}
+}
+
+static inline void USB_INT_Clear(const uint8_t Interrupt) ATTR_ALWAYS_INLINE;
+static inline void USB_INT_Clear(const uint8_t Interrupt)
+{
+	switch (Interrupt)
+	{
+		case USB_INT_BUSEVENTI_Suspend: USB.INTFLAGSACLR = USB_SUSPENDIF_bm; break;
+		case USB_INT_BUSEVENTI_Resume: USB.INTFLAGSACLR = USB_RESUMEIF_bm; break;
+		case USB_INT_BUSEVENTI_Reset: USB.INTFLAGSACLR = USB_RSTIF_bm; break;
+		case USB_INT_SOFI: USB.INTFLAGSACLR = USB_SOFIF_bm; break;
+		default: break;
+	}
+}
+
+static inline bool USB_INT_IsEnabled(const uint8_t Interrupt) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
+static inline bool USB_INT_IsEnabled(const uint8_t Interrupt)
+{
+	switch (Interrupt)
+	{
+		case USB_INT_BUSEVENTI: return ((USB.INTCTRLA & USB_BUSEVIE_bm) ? true : false);
+		case USB_INT_SOFI: return ((USB.INTCTRLA & USB_SOFIE_bm) ? true : false);
+		default: return false;
+	}
+}
+
+static inline bool USB_INT_HasOccurred(const uint8_t Interrupt) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
+static inline bool USB_INT_HasOccurred(const uint8_t Interrupt)
+{
+	switch (Interrupt)
+	{
+		case USB_INT_BUSEVENTI_Suspend: return ((USB.INTFLAGSACLR & USB_SUSPENDIF_bm) ? true : false);
+		case USB_INT_BUSEVENTI_Resume: return ((USB.INTFLAGSACLR & USB_RESUMEIF_bm) ? true : false);
+		case USB_INT_BUSEVENTI_Reset: return ((USB.INTFLAGSACLR & USB_RSTIF_bm) ? true : false);
+		case USB_INT_SOFI: return ((USB.INTFLAGSACLR & USB_SOFIF_bm) ? true : false);
+		default: return false;
+	}
+}
+
+/* Includes: */
+#include "../USBMode.h"
+#include "../Events.h"
+#include "../USBController.h"
+
+/* Function Prototypes: */
+void USB_INT_ClearAllInterrupts(void);
+void USB_INT_DisableAllInterrupts(void);
+#endif
+
+/* Disable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+}
+#endif
+
+#endif

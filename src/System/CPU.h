@@ -1,7 +1,7 @@
 /*
- * File: Utils.h ( 7th November 2021 )
+ * File: CPU.h ( 13th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,29 @@
 
 #pragma once
 
-#define SET_BIT(reg, val) (reg |= val)
-#define CLR_BIT(reg, val) (reg &= ~val)
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/cpufunc.h>
 
-typedef enum 
+static inline void EnableInterrupts(void)
 {
-    MSB_FIRST,
-    LSB_FIRST,
-} eDataOrder;
+	sei();
+}
+
+static inline void DisableInterrupts(void)
+{
+	cli();
+}
+
+static inline volatile uint8_t IRQ_Save(void)
+{
+	volatile uint8_t irqFlags = SREG;
+	DisableInterrupts();
+	return irqFlags;
+}
+
+static inline void IRQ_Restore(volatile uint8_t IRQFlags)
+{
+	_MemoryBarrier();
+	SREG = IRQFlags;
+}

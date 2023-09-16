@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,7 +31,7 @@
 #include "../../Common/Common.h"
 #if (ARCH == ARCH_UC3)
 
-#define  __INCLUDE_FROM_INTMANAGEMENT_C
+#define __INCLUDE_FROM_INTMANAGEMENT_C
 #include "InterruptManagement.h"
 
 /** Interrupt vector table, containing the ISR to call for each interrupt group */
@@ -40,7 +40,8 @@ InterruptHandlerPtr_t InterruptHandlers[AVR32_INTC_NUM_INT_GRPS];
 /** ISR for unhandled interrupt groups */
 ISR(Unhandled_Interrupt)
 {
-	for (;;);
+	for (;;)
+		;
 }
 
 InterruptHandlerPtr_t INTC_GetInterruptHandler(const uint_reg_t InterruptLevel)
@@ -53,7 +54,7 @@ void INTC_Init(void)
 	for (uint8_t InterruptGroup = 0; InterruptGroup < AVR32_INTC_NUM_INT_GRPS; InterruptGroup++)
 	{
 		InterruptHandlers[InterruptGroup] = Unhandled_Interrupt;
-		AVR32_INTC.ipr[InterruptGroup]    = Autovector_Table[AVR32_INTC_INT0];
+		AVR32_INTC.ipr[InterruptGroup]	  = Autovector_Table[AVR32_INTC_INT0];
 	}
 
 	__builtin_mtsr(AVR32_EVBA, (uintptr_t)&EVBA_Table);

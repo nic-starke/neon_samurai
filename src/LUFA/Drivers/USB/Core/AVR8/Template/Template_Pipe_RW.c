@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -30,18 +30,16 @@
 
 #if defined(TEMPLATE_FUNC_NAME)
 
-uint8_t TEMPLATE_FUNC_NAME (TEMPLATE_BUFFER_TYPE const Buffer,
-                            uint16_t Length,
-                            uint16_t* const BytesProcessed)
+uint8_t TEMPLATE_FUNC_NAME(TEMPLATE_BUFFER_TYPE const Buffer, uint16_t Length, uint16_t* const BytesProcessed)
 {
-	uint8_t* DataStream      = ((uint8_t*)Buffer + TEMPLATE_BUFFER_OFFSET(Length));
+	uint8_t* DataStream		 = ((uint8_t*)Buffer + TEMPLATE_BUFFER_OFFSET(Length));
 	uint16_t BytesInTransfer = 0;
-	uint8_t  ErrorCode;
+	uint8_t	 ErrorCode;
 
 	Pipe_SetPipeToken(TEMPLATE_TOKEN);
 
 	if ((ErrorCode = Pipe_WaitUntilReady()))
-	  return ErrorCode;
+		return ErrorCode;
 
 	if (BytesProcessed != NULL)
 	{
@@ -62,7 +60,7 @@ uint8_t TEMPLATE_FUNC_NAME (TEMPLATE_BUFFER_TYPE const Buffer,
 			}
 
 			if ((ErrorCode = Pipe_WaitUntilReady()))
-			  return ErrorCode;
+				return ErrorCode;
 		}
 		else
 		{
@@ -85,4 +83,3 @@ uint8_t TEMPLATE_FUNC_NAME (TEMPLATE_BUFFER_TYPE const Buffer,
 #undef TEMPLATE_BUFFER_MOVE
 
 #endif
-

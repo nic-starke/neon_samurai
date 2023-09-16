@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -70,105 +70,101 @@
 #ifndef _UC3_INTERRUPT_MANAGEMENT_H_
 #define _UC3_INTERRUPT_MANAGEMENT_H_
 
-	/* Includes: */
-		#include "../../Common/Common.h"
+/* Includes: */
+#include "../../Common/Common.h"
 
-	/* Enable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			extern "C" {
-		#endif
+/* Enable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-	/* Private Interface - For use in library only: */
-	#if !defined(__DOXYGEN__)
-		/* Type Defines: */
-			typedef void (*InterruptHandlerPtr_t)(void);
+/* Private Interface - For use in library only: */
+#if !defined(__DOXYGEN__)
+/* Type Defines: */
+typedef void (*InterruptHandlerPtr_t)(void);
 
-		/* External Variables: */
-			#if defined(__INCLUDE_FROM_INTMANAGEMENT_C)
-				extern const void        EVBA_Table;
-			#endif
-			extern InterruptHandlerPtr_t InterruptHandlers[AVR32_INTC_NUM_INT_GRPS];
-			extern const uint32_t        Autovector_Table[];
-	#endif
+/* External Variables: */
+#if defined(__INCLUDE_FROM_INTMANAGEMENT_C)
+extern const void EVBA_Table;
+#endif
+extern InterruptHandlerPtr_t InterruptHandlers[AVR32_INTC_NUM_INT_GRPS];
+extern const uint32_t		 Autovector_Table[];
+#endif
 
-	/* Public Interface - May be used in end-application: */
-		/* Macros: */
-			/** Converts a given interrupt index into its associated interrupt group.
-			 *
-			 *  \param[in] IRQIndex  Index of the interrupt request to convert.
-			 *
-			 *  \return Interrupt group number associated with the interrupt index.
-			 */
-			#define INTC_IRQ_GROUP(IRQIndex)  (IRQIndex / 32)
+/* Public Interface - May be used in end-application: */
+/* Macros: */
+/** Converts a given interrupt index into its associated interrupt group.
+ *
+ *  \param[in] IRQIndex  Index of the interrupt request to convert.
+ *
+ *  \return Interrupt group number associated with the interrupt index.
+ */
+#define INTC_IRQ_GROUP(IRQIndex) (IRQIndex / 32)
 
-			/** Converts a given interrupt index into its associated interrupt line.
-			 *
-			 *  \param[in] IRQIndex  Index of the interrupt request to convert.
-			 *
-			 *  \return Interrupt line number associated with the interrupt index.
-			 */
-			#define INTC_IRQ_LINE(IRQIndex)   (IRQIndex % 32)
+/** Converts a given interrupt index into its associated interrupt line.
+ *
+ *  \param[in] IRQIndex  Index of the interrupt request to convert.
+ *
+ *  \return Interrupt line number associated with the interrupt index.
+ */
+#define INTC_IRQ_LINE(IRQIndex) (IRQIndex % 32)
 
-		/* Function Prototypes: */
-			/** Initializes the interrupt controller ready to handle interrupts. This must be called at the
-			 *  start of the user program before any interrupts are registered or enabled.
-			 */
-			void INTC_Init(void);
+/* Function Prototypes: */
+/** Initializes the interrupt controller ready to handle interrupts. This must be called at the
+ *  start of the user program before any interrupts are registered or enabled.
+ */
+void INTC_Init(void);
 
-			/** Retrieves the associated interrupt handler for the interrupt group currently being fired. This
-			 *  is called directly from the exception handler routine before dispatching to the ISR.
-			 *
-			 *  \param[in] InterruptLevel  Priority level of the interrupt.
-			 *
-			 *  \return Pointer to the associated interrupt handler function, or NULL if no handler set.
-			 */
-			InterruptHandlerPtr_t INTC_GetInterruptHandler(const uint_reg_t InterruptLevel);
+/** Retrieves the associated interrupt handler for the interrupt group currently being fired. This
+ *  is called directly from the exception handler routine before dispatching to the ISR.
+ *
+ *  \param[in] InterruptLevel  Priority level of the interrupt.
+ *
+ *  \return Pointer to the associated interrupt handler function, or NULL if no handler set.
+ */
+InterruptHandlerPtr_t INTC_GetInterruptHandler(const uint_reg_t InterruptLevel);
 
-		/* Inline Functions: */
-			/** Registers a handler for a given interrupt group. On the AVR32 UC3 devices, interrupts are grouped by
-			 *  peripheral. To save on SRAM used, a single ISR handles all interrupt lines within a single group - to
-			 *  determine the exact line that has interrupted within the group ISR handler, use \ref INTC_GetGroupInterrupts().
-			 *
-			 *  If multiple interrupts with the same group are registered, the last registered handler will become the
-			 *  handler called for interrupts raised within that group.
-			 *
-			 *  To obtain the group number of a specific interrupt index, use the \ref INTC_IRQ_GROUP() macro.
-			 *
-			 *  \param[in] GroupNumber       Group number of the interrupt group to register a handler for.
-			 *  \param[in] InterruptLevel    Priority level for the specified interrupt, a \c AVR32_INTC_INT* mask.
-			 *  \param[in] Handler           Address of the ISR handler for the interrupt group.
-			 */
-			static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber,
-			                                             const uint8_t InterruptLevel,
-			                                             const InterruptHandlerPtr_t Handler) ATTR_ALWAYS_INLINE;
-			static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber,
-			                                             const uint8_t InterruptLevel,
-			                                             const InterruptHandlerPtr_t Handler)
-			{
-				InterruptHandlers[GroupNumber] = Handler;
-				AVR32_INTC.ipr[GroupNumber]    = Autovector_Table[InterruptLevel];
-			}
+/* Inline Functions: */
+/** Registers a handler for a given interrupt group. On the AVR32 UC3 devices, interrupts are grouped by
+ *  peripheral. To save on SRAM used, a single ISR handles all interrupt lines within a single group - to
+ *  determine the exact line that has interrupted within the group ISR handler, use \ref INTC_GetGroupInterrupts().
+ *
+ *  If multiple interrupts with the same group are registered, the last registered handler will become the
+ *  handler called for interrupts raised within that group.
+ *
+ *  To obtain the group number of a specific interrupt index, use the \ref INTC_IRQ_GROUP() macro.
+ *
+ *  \param[in] GroupNumber       Group number of the interrupt group to register a handler for.
+ *  \param[in] InterruptLevel    Priority level for the specified interrupt, a \c AVR32_INTC_INT* mask.
+ *  \param[in] Handler           Address of the ISR handler for the interrupt group.
+ */
+static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const uint8_t InterruptLevel,
+											 const InterruptHandlerPtr_t Handler) ATTR_ALWAYS_INLINE;
+static inline void INTC_RegisterGroupHandler(const uint16_t GroupNumber, const uint8_t InterruptLevel, const InterruptHandlerPtr_t Handler)
+{
+	InterruptHandlers[GroupNumber] = Handler;
+	AVR32_INTC.ipr[GroupNumber]	   = Autovector_Table[InterruptLevel];
+}
 
-			/** Retrieves the pending interrupts for a given interrupt group. The result of this function should be masked
-			 *  against interrupt request indexes converted to a request line number via the \ref INTC_IRQ_LINE() macro. To
-			 *  obtain the group number of a given interrupt request, use the \ref INTC_IRQ_GROUP() macro.
-			 *
-			 *  \param[in] GroupNumber Group number of the interrupt group to check.
-			 *
-			 *  \return Mask of pending interrupt lines for the given interrupt group.
-			 */
-			static inline uint_reg_t INTC_GetGroupInterrupts(const uint16_t GroupNumber) ATTR_ALWAYS_INLINE;
-			static inline uint_reg_t INTC_GetGroupInterrupts(const uint16_t GroupNumber)
-			{
-				return AVR32_INTC.irr[GroupNumber];
-			}
+/** Retrieves the pending interrupts for a given interrupt group. The result of this function should be masked
+ *  against interrupt request indexes converted to a request line number via the \ref INTC_IRQ_LINE() macro. To
+ *  obtain the group number of a given interrupt request, use the \ref INTC_IRQ_GROUP() macro.
+ *
+ *  \param[in] GroupNumber Group number of the interrupt group to check.
+ *
+ *  \return Mask of pending interrupt lines for the given interrupt group.
+ */
+static inline uint_reg_t INTC_GetGroupInterrupts(const uint16_t GroupNumber) ATTR_ALWAYS_INLINE;
+static inline uint_reg_t INTC_GetGroupInterrupts(const uint16_t GroupNumber)
+{
+	return AVR32_INTC.irr[GroupNumber];
+}
 
-	/* Disable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			}
-		#endif
+/* Disable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+}
+#endif
 
 #endif
 
 /** @} */
-

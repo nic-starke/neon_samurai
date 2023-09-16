@@ -1,33 +1,22 @@
 /*
- * File: SystemClock.h ( 14th November 2021 )
+ * File: SystemClock.h ( 13th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
 #pragma once
 
-typedef enum {
-	SYSCLK_PORT_A,
-	SYSCLK_PORT_B,
-	SYSCLK_PORT_C,
-	SYSCLK_PORT_D,
-	SYSCLK_PORT_E,
-	SYSCLK_PORT_F,
-
-	SYSCLK_PORT_GENERIC,
-    SYSCLK_PORT_INVALID,
-
-} eSysClkPort;
+#include <avr/io.h>

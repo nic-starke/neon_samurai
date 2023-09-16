@@ -1,7 +1,7 @@
 /*
- * File: Interrupt.h ( 7th November 2021 )
+ * File: Interrupt.h ( 20th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +17,22 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
+#pragma once
+
 #include <avr/interrupt.h>
 #include <avr/cpufunc.h>
 
 #include "Types.h"
 
-/**
- * @brief Disables interrupts globally.
- *
- * @return u8 Current value of SREG
- */
-static inline u8 IRQ_DisableGlobalInterrupts(void)
+static inline u8 IRQ_DisableInterrupts(void)
 {
-	u8 oldSREG = SREG;
+	u8 flags = SREG;
 	cli();
-	return oldSREG;
+	return flags;
 }
 
-/**
- * @brief Restores state of SREG
- *
- * @param newSREG New value for SREG.
- */
-static inline void IRQ_RestoreSREG(vu8 newSREG)
+static inline void IRQ_EnableInterrupts(vu8 Flags)
 {
-	/* As this is an inline function the assignment operation may be reordered
-	 * even with the volatile qualifier! A memory barrier is required, see
-	 * https://www.nongnu.org/avr-libc/user-manual/optimization.html#optim_code_reorder
-	 * for more information */
 	_MemoryBarrier();
-	SREG = newSREG;
+	SREG = Flags;
 }

@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,8 +31,8 @@
 #include "../../../../Common/Common.h"
 #if (ARCH == ARCH_AVR8)
 
-#define  __INCLUDE_FROM_USB_DRIVER
-#define  __INCLUDE_FROM_USB_CONTROLLER_C
+#define __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_CONTROLLER_C
 #include "../USBController.h"
 
 #if defined(USB_CAN_BE_BOTH)
@@ -44,48 +44,48 @@ volatile uint8_t USB_Options;
 #endif
 
 void USB_Init(
-               #if defined(USB_CAN_BE_BOTH)
-               const uint8_t Mode
-               #endif
+#if defined(USB_CAN_BE_BOTH)
+	const uint8_t Mode
+#endif
 
-               #if (defined(USB_CAN_BE_BOTH) && !defined(USE_STATIC_OPTIONS))
-               ,
-               #elif (!defined(USB_CAN_BE_BOTH) && defined(USE_STATIC_OPTIONS))
-               void
-               #endif
+#if (defined(USB_CAN_BE_BOTH) && !defined(USE_STATIC_OPTIONS))
+	,
+#elif (!defined(USB_CAN_BE_BOTH) && defined(USE_STATIC_OPTIONS))
+	void
+#endif
 
-               #if !defined(USE_STATIC_OPTIONS)
-               const uint8_t Options
-               #endif
-               )
+#if !defined(USE_STATIC_OPTIONS)
+	const uint8_t Options
+#endif
+)
 {
-	#if !defined(USE_STATIC_OPTIONS)
+#if !defined(USE_STATIC_OPTIONS)
 	USB_Options = Options;
-	#endif
+#endif
 
-	#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
+#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
 	/* Workaround for AVR8 bootloaders that fail to turn off the OTG pad before running
 	 * the loaded application. This causes VBUS detection to fail unless we first force
 	 * it off to reset it. */
 	USB_OTGPAD_Off();
-	#endif
+#endif
 
 	if (!(USB_Options & USB_OPT_REG_DISABLED))
-	  USB_REG_On();
+		USB_REG_On();
 	else
-	  USB_REG_Off();
+		USB_REG_Off();
 
 	if (!(USB_Options & USB_OPT_MANUAL_PLL))
 	{
-		#if defined(USB_SERIES_4_AVR)
+#if defined(USB_SERIES_4_AVR)
 		PLLFRQ = (1 << PDIV2);
-		#endif
+#endif
 	}
 
-	#if defined(USB_CAN_BE_BOTH)
+#if defined(USB_CAN_BE_BOTH)
 	if (Mode == USB_MODE_UID)
 	{
-		UHWCON |=  (1 << UIDE);
+		UHWCON |= (1 << UIDE);
 		USB_INT_Enable(USB_INT_IDTI);
 		USB_CurrentMode = USB_GetUSBModeFromUID();
 	}
@@ -94,7 +94,7 @@ void USB_Init(
 		UHWCON &= ~(1 << UIDE);
 		USB_CurrentMode = Mode;
 	}
-	#endif
+#endif
 
 	USB_IsInitialized = true;
 
@@ -110,137 +110,138 @@ void USB_Disable(void)
 	USB_Controller_Disable();
 
 	if (!(USB_Options & USB_OPT_MANUAL_PLL))
-	  USB_PLL_Off();
+		USB_PLL_Off();
 
 	if (!(USB_Options & USB_OPT_REG_KEEP_ENABLED))
-	  USB_REG_Off();
+		USB_REG_Off();
 
-	#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
+#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
 	USB_OTGPAD_Off();
-	#endif
+#endif
 
-	#if defined(USB_CAN_BE_BOTH)
+#if defined(USB_CAN_BE_BOTH)
 	USB_CurrentMode = USB_MODE_None;
-	#endif
+#endif
 
 	USB_IsInitialized = false;
 }
 
 void USB_ResetInterface(void)
 {
-	#if defined(USB_CAN_BE_BOTH)
+#if defined(USB_CAN_BE_BOTH)
 	bool UIDModeSelectEnabled = ((UHWCON & (1 << UIDE)) != 0);
-	#endif
+#endif
 
 	USB_INT_DisableAllInterrupts();
 	USB_INT_ClearAllInterrupts();
 
 	USB_Controller_Reset();
 
-	#if defined(USB_CAN_BE_BOTH)
+#if defined(USB_CAN_BE_BOTH)
 	if (UIDModeSelectEnabled)
-	  USB_INT_Enable(USB_INT_IDTI);
-	#endif
+		USB_INT_Enable(USB_INT_IDTI);
+#endif
 
 	USB_CLK_Unfreeze();
 
 	if (USB_CurrentMode == USB_MODE_Device)
 	{
-		#if defined(USB_CAN_BE_DEVICE)
-		#if (defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
-		UHWCON |=  (1 << UIMOD);
-		#endif
+#if defined(USB_CAN_BE_DEVICE)
+#if (defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
+		UHWCON |= (1 << UIMOD);
+#endif
 
 		if (!(USB_Options & USB_OPT_MANUAL_PLL))
 		{
-			#if defined(USB_SERIES_2_AVR)
+#if defined(USB_SERIES_2_AVR)
 			USB_PLL_On();
-			while (!(USB_PLL_IsReady()));
-			#else
+			while (!(USB_PLL_IsReady()))
+				;
+#else
 			USB_PLL_Off();
-			#endif
+#endif
 		}
 
 		USB_Init_Device();
-		#endif
+#endif
 	}
 	else if (USB_CurrentMode == USB_MODE_Host)
 	{
-		#if defined(USB_CAN_BE_HOST)
+#if defined(USB_CAN_BE_HOST)
 		UHWCON &= ~(1 << UIMOD);
 
 		if (!(USB_Options & USB_OPT_MANUAL_PLL))
 		{
-			#if defined(USB_CAN_BE_HOST)
+#if defined(USB_CAN_BE_HOST)
 			USB_PLL_On();
-			while (!(USB_PLL_IsReady()));
-			#endif
+			while (!(USB_PLL_IsReady()))
+				;
+#endif
 		}
 
 		USB_Init_Host();
-		#endif
+#endif
 	}
 
-	#if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
+#if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
 	USB_OTGPAD_On();
-	#endif
+#endif
 }
 
 #if defined(USB_CAN_BE_DEVICE)
 static void USB_Init_Device(void)
 {
-	USB_DeviceState                 = DEVICE_STATE_Unattached;
-	USB_Device_ConfigurationNumber  = 0;
+	USB_DeviceState				   = DEVICE_STATE_Unattached;
+	USB_Device_ConfigurationNumber = 0;
 
-	#if !defined(NO_DEVICE_REMOTE_WAKEUP)
-	USB_Device_RemoteWakeupEnabled  = false;
-	#endif
+#if !defined(NO_DEVICE_REMOTE_WAKEUP)
+	USB_Device_RemoteWakeupEnabled = false;
+#endif
 
-	#if !defined(NO_DEVICE_SELF_POWER)
+#if !defined(NO_DEVICE_SELF_POWER)
 	USB_Device_CurrentlySelfPowered = false;
-	#endif
+#endif
 
-	#if !defined(FIXED_CONTROL_ENDPOINT_SIZE)
+#if !defined(FIXED_CONTROL_ENDPOINT_SIZE)
 	USB_Descriptor_Device_t* DeviceDescriptorPtr;
 
-	#if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) && \
-	    !(defined(USE_FLASH_DESCRIPTORS) || defined(USE_EEPROM_DESCRIPTORS) || defined(USE_RAM_DESCRIPTORS))
+#if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) &&                                                                                               \
+	!(defined(USE_FLASH_DESCRIPTORS) || defined(USE_EEPROM_DESCRIPTORS) || defined(USE_RAM_DESCRIPTORS))
 	uint8_t DescriptorAddressSpace;
 
 	if (CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DeviceDescriptorPtr, &DescriptorAddressSpace) != NO_DESCRIPTOR)
 	{
 		if (DescriptorAddressSpace == MEMSPACE_FLASH)
-		  USB_Device_ControlEndpointSize = pgm_read_byte(&DeviceDescriptorPtr->Endpoint0Size);
+			USB_Device_ControlEndpointSize = pgm_read_byte(&DeviceDescriptorPtr->Endpoint0Size);
 		else if (DescriptorAddressSpace == MEMSPACE_EEPROM)
-		  USB_Device_ControlEndpointSize = eeprom_read_byte(&DeviceDescriptorPtr->Endpoint0Size);
+			USB_Device_ControlEndpointSize = eeprom_read_byte(&DeviceDescriptorPtr->Endpoint0Size);
 		else
-		  USB_Device_ControlEndpointSize = DeviceDescriptorPtr->Endpoint0Size;
+			USB_Device_ControlEndpointSize = DeviceDescriptorPtr->Endpoint0Size;
 	}
-	#else
+#else
 	if (CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DeviceDescriptorPtr) != NO_DESCRIPTOR)
 	{
-		#if defined(USE_RAM_DESCRIPTORS)
+#if defined(USE_RAM_DESCRIPTORS)
 		USB_Device_ControlEndpointSize = DeviceDescriptorPtr->Endpoint0Size;
-		#elif defined(USE_EEPROM_DESCRIPTORS)
+#elif defined(USE_EEPROM_DESCRIPTORS)
 		USB_Device_ControlEndpointSize = eeprom_read_byte(&DeviceDescriptorPtr->Endpoint0Size);
-		#else
+#else
 		USB_Device_ControlEndpointSize = pgm_read_byte(&DeviceDescriptorPtr->Endpoint0Size);
-		#endif
+#endif
 	}
-	#endif
-	#endif
+#endif
+#endif
 
-	#if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
+#if (defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR))
 	if (USB_Options & USB_DEVICE_OPT_LOWSPEED)
-	  USB_Device_SetLowSpeed();
+		USB_Device_SetLowSpeed();
 	else
-	  USB_Device_SetFullSpeed();
+		USB_Device_SetFullSpeed();
 
 	USB_INT_Enable(USB_INT_VBUSTI);
-	#endif
+#endif
 
-	Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL,
-							   USB_Device_ControlEndpointSize, 1);
+	Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
 
 	USB_INT_Clear(USB_INT_SUSPI);
 	USB_INT_Enable(USB_INT_SUSPI);
@@ -253,9 +254,9 @@ static void USB_Init_Device(void)
 #if defined(USB_CAN_BE_HOST)
 static void USB_Init_Host(void)
 {
-	USB_HostState                = HOST_STATE_Unattached;
+	USB_HostState				 = HOST_STATE_Unattached;
 	USB_Host_ConfigurationNumber = 0;
-	USB_Host_ControlPipeSize     = PIPE_CONTROLPIPE_DEFAULT_SIZE;
+	USB_Host_ControlPipeSize	 = PIPE_CONTROLPIPE_DEFAULT_SIZE;
 
 	USB_Host_HostMode_On();
 

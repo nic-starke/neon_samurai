@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,7 +31,7 @@
 #include "../../../../Common/Common.h"
 #if (ARCH == ARCH_AVR8)
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "../USBMode.h"
 
 #if defined(USB_CAN_BE_DEVICE)
@@ -43,13 +43,15 @@ void USB_Device_SendRemoteWakeup(void)
 	if (!(USB_Options & USB_OPT_MANUAL_PLL))
 	{
 		USB_PLL_On();
-		while (!(USB_PLL_IsReady()));
+		while (!(USB_PLL_IsReady()))
+			;
 	}
 
 	USB_CLK_Unfreeze();
 
 	UDCON |= (1 << RMWKUP);
-	while (UDCON & (1 << RMWKUP));
+	while (UDCON & (1 << RMWKUP))
+		;
 }
 
 #endif

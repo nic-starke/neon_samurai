@@ -1,7 +1,7 @@
 /*
- * File: DMA.c ( 6th November 2021 )
+ * File: DMA.c ( 20th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+ * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,96 +17,113 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#pragma once
 
 #include "DMA.h"
-#include "HardwareDefines.h"
-#include "Interrupt.h"
-#include "Peripheral.h"
-#include "Utils.h"
 #include "Types.h"
 
-bool SYS_EnableDMA(void)
+static inline void DMA_EnablePower(void)
 {
-    if (!PeripheralClock_Enable(PERIPH_DMA))
-    {
-        return false;
-    }
-
-	vu8 oldSREG = IRQ_DisableGlobalInterrupts();
-
-	// Reset and enable DMA controller
-	DMA.CTRL = DMA_RESET_bm;
-	DMA.CTRL = DMA_ENABLE_bm;
-
-	IRQ_RestoreSREG(oldSREG);
-    return true;
+	CLR_BIT(PR.PRGEN, PR_DMA_bm);
 }
 
-void DMA_SetChannelConfig(DMA_CH_t* pDMA, sDMAChannelConfig* pConfig)
+static inline void DMA_DisablePower(void)
 {
-	vu8 oldSREG = IRQ_DisableGlobalInterrupts();
+	SET_BIT(PR.PRGEN, PR_DMA_bm);
+}
+
+static inline void DMA_EnableController(void)
+{
+	SET_BIT(DMA.CTRL, DMA_ENABLE_bm);
+}
+
+static inline void DMA_DisableController(void)
+{
+	CLR_BIT(DMA.CTRL, DMA_ENABLE_bm);
+}
+
+static inline void DMA_ResetController(void)
+{
+	SET_BIT(DMA.CTRL, DMA_RESET_bm);
+}
+
+static inline void DMA_SetDoubleBufferMode(DMA_DBUFMODE_t Mode)
+{
+	DMA.CTRL = (DMA.CTRL & ~DMA_CH_ENABLE_bm) | Mode;
+}
+
+/**
+ * @brief Must be called once during system power-up and before using any DMA channels.
+ *
+ */
+void DMA_Init(void)
+{
+	u8 flags = IRQ_DisableInterrupts();
+
+	DMA_EnablePower();
+	DMA_ResetController();
+	DMA_EnableController();
+
+	IRQ_EnableInterrupts(flags);
+}
+
+/**
+ * @brief Enables and configures a DMA channel.
+ * This does not start DMA transactions.
+ *
+ * @param pConfig Pointer to DMA channel configuration.
+ */
+void DMA_InitChannel(sDMA_ChannelConfig* pConfig)
+{
+	u8 flags = IRQ_DisableInterrupts();
 
 	// Source
-	pDMA->SRCADDR0 = (pConfig->SrcAddr >> 0) & 0XFF;
-	pDMA->SRCADDR1 = (pConfig->SrcAddr >> 8) & 0XFF;
-	pDMA->SRCADDR2 = (pConfig->SrcAddr >> 16) & 0XFF;
+	pConfig->pChannel->SRCADDR0 = (pConfig->SrcAddress >> 0) & 0XFF;
+	pConfig->pChannel->SRCADDR1 = (pConfig->SrcAddress >> 8) & 0XFF;
+	pConfig->pChannel->SRCADDR2 = (pConfig->SrcAddress >> 16) & 0XFF;
 
-	// CLR_BIT(pDMA->ADDRCTRL, DMA_CH_SRCDIR_gm);
-	SET_BIT(pDMA->ADDRCTRL, pConfig->SrcAddrMode);
+	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCDIR_gm);
+	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->SrcAddressingMode);
 
-	// CLR_BIT(pDMA->ADDRCTRL, DMA_CH_SRCRELOAD_gm);
-	SET_BIT(pDMA->ADDRCTRL, pConfig->SrcReloadMode);
+	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCRELOAD_gm);
+	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->SrcReloadMode);
 
 	// Destination
-	pDMA->DESTADDR0 = (pConfig->DstAddr >> 0) & 0XFF;
-	pDMA->DESTADDR1 = (pConfig->DstAddr >> 8) & 0XFF;
-	pDMA->DESTADDR2 = (pConfig->DstAddr >> 16) & 0XFF;
+	pConfig->pChannel->DESTADDR0 = (pConfig->DstAddress >> 0) & 0XFF;
+	pConfig->pChannel->DESTADDR1 = (pConfig->DstAddress >> 8) & 0XFF;
+	pConfig->pChannel->DESTADDR2 = (pConfig->DstAddress >> 16) & 0XFF;
 
-	// CLR_BIT(pDMA->ADDRCTRL, DMA_CH_DESTDIR_gm);
-	SET_BIT(pDMA->ADDRCTRL, pConfig->DstAddrMode);
+	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTDIR_gm);
+	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->DstAddressingMode);
 
-	// CLR_BIT(pDMA->ADDRCTRL, DMA_CH_DESTRELOAD_gm);
-	SET_BIT(pDMA->ADDRCTRL, pConfig->DstReloadMode);
+	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTRELOAD_gm);
+	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->DstReloadMode);
 
 	// DMA Config
-	SET_BIT(pDMA->TRIGSRC, pConfig->TriggerSource);
+	SET_BIT(pConfig->pChannel->TRIGSRC, pConfig->TriggerSource);
 
-	// CLR_BIT(pDMA->CTRLA, DMA_CH_BURSTLEN_gm);
-	SET_BIT(pDMA->CTRLA, pConfig->BurstLength);
+	// CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_BURSTLEN_gm);
+	SET_BIT(pConfig->pChannel->CTRLA, pConfig->BurstLength);
 
-	SET_BIT(pDMA->TRFCNT, pConfig->BlockTransferCount);
+	SET_BIT(pConfig->pChannel->TRFCNT, pConfig->BytesPerTransfer);
 
-	if (pConfig->RepeatCount > 1)
+	if (pConfig->Repeats > 1)
 	{
-		CLR_BIT(pDMA->CTRLA, DMA_CH_SINGLE_bm);
-		SET_BIT(pDMA->CTRLA, DMA_CH_REPEAT_bm);
+		CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_SINGLE_bm);
+		SET_BIT(pConfig->pChannel->CTRLA, DMA_CH_REPEAT_bm);
 	}
 	else
 	{
-		CLR_BIT(pDMA->CTRLA, DMA_CH_REPEAT_bm);
-		SET_BIT(pDMA->CTRLA, DMA_CH_SINGLE_bm);
+		CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_REPEAT_bm);
+		SET_BIT(pConfig->pChannel->CTRLA, DMA_CH_SINGLE_bm);
 	}
-	pDMA->REPCNT = pConfig->RepeatCount;
+	pConfig->pChannel->REPCNT = pConfig->Repeats;
 
-	CLR_BIT(pDMA->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);
-	SET_BIT(pDMA->CTRLB, (pConfig->IntPriority << DMA_CH_ERRINTLVL_gp) | (pConfig->IntPriority << DMA_CH_TRNINTLVL_gp));
+	CLR_BIT(pConfig->pChannel->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);
+	SET_BIT(pConfig->pChannel->CTRLB,
+			(pConfig->ErrInterruptPriority << DMA_CH_ERRINTLVL_gp) | (pConfig->InterruptPriority << DMA_CH_TRNINTLVL_gp));
 
-	IRQ_RestoreSREG(oldSREG);
-}
+	DMA_SetDoubleBufferMode(pConfig->DoubleBufferMode);
 
-void DMA_Start(DMA_CH_t* pDMA)
-{
-	SET_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
-}
-
-void DMA_Stop(DMA_CH_t* pDMA)
-{
-	CLR_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
-}
-
-void DMA_EnableDoubleBuffer(DMA_DBUFMODE_t Mode)
-{
-    DMA.CTRL = DMA_CH_ENABLE_bm | Mode;	
+	IRQ_EnableInterrupts(flags);
 }

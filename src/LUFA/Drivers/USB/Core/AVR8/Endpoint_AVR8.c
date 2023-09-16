@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,7 +31,7 @@
 #include "../../../../Common/Common.h"
 #if (ARCH == ARCH_AVR8)
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "../USBMode.h"
 
 #if defined(USB_CAN_BE_DEVICE)
@@ -42,24 +42,21 @@
 uint8_t USB_Device_ControlEndpointSize = ENDPOINT_CONTROLEP_DEFAULT_SIZE;
 #endif
 
-bool Endpoint_ConfigureEndpointTable(const USB_Endpoint_Table_t* const Table,
-                                     const uint8_t Entries)
+bool Endpoint_ConfigureEndpointTable(const USB_Endpoint_Table_t* const Table, const uint8_t Entries)
 {
 	for (uint8_t i = 0; i < Entries; i++)
 	{
 		if (!(Table[i].Address))
-		  continue;
+			continue;
 
 		if (!(Endpoint_ConfigureEndpoint(Table[i].Address, Table[i].Type, Table[i].Size, Table[i].Banks)))
-		  return false;
+			return false;
 	}
 
 	return true;
 }
 
-bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
-                                    const uint8_t UECFG0XData,
-                                    const uint8_t UECFG1XData)
+bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number, const uint8_t UECFG0XData, const uint8_t UECFG1XData)
 {
 #if defined(CONTROL_ONLY_DEVICE) || defined(ORDERED_EP_CONFIG)
 	Endpoint_SelectEndpoint(Number);
@@ -83,17 +80,17 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 		{
 			UECFG0XTemp = UECFG0XData;
 			UECFG1XTemp = UECFG1XData;
-			UEIENXTemp  = 0;
+			UEIENXTemp	= 0;
 		}
 		else
 		{
 			UECFG0XTemp = UECFG0X;
 			UECFG1XTemp = UECFG1X;
-			UEIENXTemp  = UEIENX;
+			UEIENXTemp	= UEIENX;
 		}
 
 		if (!(UECFG1XTemp & (1 << ALLOC)))
-		  continue;
+			continue;
 
 		Endpoint_DisableEndpoint();
 		UECFG1X &= ~(1 << ALLOC);
@@ -101,10 +98,10 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 		Endpoint_EnableEndpoint();
 		UECFG0X = UECFG0XTemp;
 		UECFG1X = UECFG1XTemp;
-		UEIENX  = UEIENXTemp;
+		UEIENX	= UEIENXTemp;
 
 		if (!(Endpoint_IsConfigured()))
-		  return false;
+			return false;
 	}
 
 	Endpoint_SelectEndpoint(Number);
@@ -119,8 +116,8 @@ void Endpoint_ClearEndpoints(void)
 	for (uint8_t EPNum = 0; EPNum < ENDPOINT_TOTAL_ENDPOINTS; EPNum++)
 	{
 		Endpoint_SelectEndpoint(EPNum);
-		UEIENX  = 0;
-		UEINTX  = 0;
+		UEIENX	= 0;
+		UEINTX	= 0;
 		UECFG1X = 0;
 		Endpoint_DisableEndpoint();
 	}
@@ -133,7 +130,7 @@ void Endpoint_ClearStatusStage(void)
 		while (!(Endpoint_IsOUTReceived()))
 		{
 			if (USB_DeviceState == DEVICE_STATE_Unattached)
-			  return;
+				return;
 		}
 
 		Endpoint_ClearOUT();
@@ -143,7 +140,7 @@ void Endpoint_ClearStatusStage(void)
 		while (!(Endpoint_IsINReady()))
 		{
 			if (USB_DeviceState == DEVICE_STATE_Unattached)
-			  return;
+				return;
 		}
 
 		Endpoint_ClearIN();
@@ -153,11 +150,11 @@ void Endpoint_ClearStatusStage(void)
 #if !defined(CONTROL_ONLY_DEVICE)
 uint8_t Endpoint_WaitUntilReady(void)
 {
-	#if (USB_STREAM_TIMEOUT_MS < 0xFF)
-	uint8_t  TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
-	#else
+#if (USB_STREAM_TIMEOUT_MS < 0xFF)
+	uint8_t TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
+#else
 	uint16_t TimeoutMSRem = USB_STREAM_TIMEOUT_MS;
-	#endif
+#endif
 
 	uint16_t PreviousFrameNumber = USB_Device_GetFrameNumber();
 
@@ -166,22 +163,22 @@ uint8_t Endpoint_WaitUntilReady(void)
 		if (Endpoint_GetEndpointDirection() == ENDPOINT_DIR_IN)
 		{
 			if (Endpoint_IsINReady())
-			  return ENDPOINT_READYWAIT_NoError;
+				return ENDPOINT_READYWAIT_NoError;
 		}
 		else
 		{
 			if (Endpoint_IsOUTReceived())
-			  return ENDPOINT_READYWAIT_NoError;
+				return ENDPOINT_READYWAIT_NoError;
 		}
 
 		uint8_t USB_DeviceState_LCL = USB_DeviceState;
 
 		if (USB_DeviceState_LCL == DEVICE_STATE_Unattached)
-		  return ENDPOINT_READYWAIT_DeviceDisconnected;
+			return ENDPOINT_READYWAIT_DeviceDisconnected;
 		else if (USB_DeviceState_LCL == DEVICE_STATE_Suspended)
-		  return ENDPOINT_READYWAIT_BusSuspended;
+			return ENDPOINT_READYWAIT_BusSuspended;
 		else if (Endpoint_IsStalled())
-		  return ENDPOINT_READYWAIT_EndpointStalled;
+			return ENDPOINT_READYWAIT_EndpointStalled;
 
 		uint16_t CurrentFrameNumber = USB_Device_GetFrameNumber();
 
@@ -190,7 +187,7 @@ uint8_t Endpoint_WaitUntilReady(void)
 			PreviousFrameNumber = CurrentFrameNumber;
 
 			if (!(TimeoutMSRem--))
-			  return ENDPOINT_READYWAIT_Timeout;
+				return ENDPOINT_READYWAIT_Timeout;
 		}
 	}
 }

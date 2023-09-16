@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -28,13 +28,12 @@
   this software.
 */
 
-#define  __INCLUDE_FROM_EVENTS_C
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_EVENTS_C
+#define __INCLUDE_FROM_USB_DRIVER
 #include "Events.h"
 
 void USB_Event_Stub(void)
 {
-
 }
 
 void USB_Event_Stub_2(const uint8_t _1)

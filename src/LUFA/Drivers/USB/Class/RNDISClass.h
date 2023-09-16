@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -60,22 +60,21 @@
 #ifndef _RNDIS_CLASS_H_
 #define _RNDIS_CLASS_H_
 
-	/* Macros: */
-		#define __INCLUDE_FROM_USB_DRIVER
-		#define __INCLUDE_FROM_RNDIS_DRIVER
+/* Macros: */
+#define __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_RNDIS_DRIVER
 
-	/* Includes: */
-		#include "../Core/USBMode.h"
+/* Includes: */
+#include "../Core/USBMode.h"
 
-		#if defined(USB_CAN_BE_DEVICE)
-			#include "Device/RNDISClassDevice.h"
-		#endif
+#if defined(USB_CAN_BE_DEVICE)
+#include "Device/RNDISClassDevice.h"
+#endif
 
-		#if defined(USB_CAN_BE_HOST)
-			#include "Host/RNDISClassHost.h"
-		#endif
+#if defined(USB_CAN_BE_HOST)
+#include "Host/RNDISClassHost.h"
+#endif
 
 #endif
 
 /** @} */
-

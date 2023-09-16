@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -65,16 +65,15 @@
 #ifndef __LUFA_PLATFORM_H__
 #define __LUFA_PLATFORM_H__
 
-	/* Includes: */
-		#include "../Common/Common.h"
+/* Includes: */
+#include "../Common/Common.h"
 
-	/* Includes: */
-		#if (ARCH == ARCH_UC3)
-			#include "UC3/ClockManagement.h"
-			#include "UC3/InterruptManagement.h"
-		#elif (ARCH == ARCH_XMEGA)
-			#include "XMEGA/ClockManagement.h"
-		#endif
-
+/* Includes: */
+#if (ARCH == ARCH_UC3)
+#include "UC3/ClockManagement.h"
+#include "UC3/InterruptManagement.h"
+#elif (ARCH == ARCH_XMEGA)
+#include "XMEGA/ClockManagement.h"
 #endif
 
+#endif

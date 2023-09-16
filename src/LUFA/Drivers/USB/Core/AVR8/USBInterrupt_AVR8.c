@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -31,62 +31,62 @@
 #include "../../../../Common/Common.h"
 #if (ARCH == ARCH_AVR8)
 
-#define  __INCLUDE_FROM_USB_DRIVER
+#define __INCLUDE_FROM_USB_DRIVER
 #include "../USBInterrupt.h"
 
 void USB_INT_DisableAllInterrupts(void)
 {
-	#if defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
+#if defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
 	USBCON &= ~((1 << VBUSTE) | (1 << IDTE));
-	#elif defined(USB_SERIES_4_AVR)
+#elif defined(USB_SERIES_4_AVR)
 	USBCON &= ~(1 << VBUSTE);
-	#endif
+#endif
 
-	#if defined(USB_CAN_BE_BOTH)
-	OTGIEN  = 0;
-	#endif
+#if defined(USB_CAN_BE_BOTH)
+	OTGIEN = 0;
+#endif
 
-	#if defined(USB_CAN_BE_HOST)
-	UHIEN   = 0;
-	#endif
+#if defined(USB_CAN_BE_HOST)
+	UHIEN = 0;
+#endif
 
-	#if defined(USB_CAN_BE_DEVICE)
-	UDIEN   = 0;
-	#endif
+#if defined(USB_CAN_BE_DEVICE)
+	UDIEN = 0;
+#endif
 }
 
 void USB_INT_ClearAllInterrupts(void)
 {
-	#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
+#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
 	USBINT = 0;
-	#endif
+#endif
 
-	#if defined(USB_CAN_BE_BOTH)
+#if defined(USB_CAN_BE_BOTH)
 	OTGINT = 0;
-	#endif
+#endif
 
-	#if defined(USB_CAN_BE_HOST)
-	UHINT  = 0;
-	#endif
+#if defined(USB_CAN_BE_HOST)
+	UHINT = 0;
+#endif
 
-	#if defined(USB_CAN_BE_DEVICE)
-	UDINT  = 0;
-	#endif
+#if defined(USB_CAN_BE_DEVICE)
+	UDINT = 0;
+#endif
 }
 
 ISR(USB_GEN_vect, ISR_BLOCK)
 {
-	#if defined(USB_CAN_BE_DEVICE)
-	#if !defined(NO_SOF_EVENTS)
+#if defined(USB_CAN_BE_DEVICE)
+#if !defined(NO_SOF_EVENTS)
 	if (USB_INT_HasOccurred(USB_INT_SOFI) && USB_INT_IsEnabled(USB_INT_SOFI))
 	{
 		USB_INT_Clear(USB_INT_SOFI);
 
 		EVENT_USB_Device_StartOfFrame();
 	}
-	#endif
+#endif
 
-	#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
+#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
 	if (USB_INT_HasOccurred(USB_INT_VBUSTI) && USB_INT_IsEnabled(USB_INT_VBUSTI))
 	{
 		USB_INT_Clear(USB_INT_VBUSTI);
@@ -96,7 +96,8 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 			if (!(USB_Options & USB_OPT_MANUAL_PLL))
 			{
 				USB_PLL_On();
-				while (!(USB_PLL_IsReady()));
+				while (!(USB_PLL_IsReady()))
+					;
 			}
 
 			USB_DeviceState = DEVICE_STATE_Powered;
@@ -105,13 +106,13 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 		else
 		{
 			if (!(USB_Options & USB_OPT_MANUAL_PLL))
-			  USB_PLL_Off();
+				USB_PLL_Off();
 
 			USB_DeviceState = DEVICE_STATE_Unattached;
 			EVENT_USB_Device_Disconnect();
 		}
 	}
-	#endif
+#endif
 
 	if (USB_INT_HasOccurred(USB_INT_SUSPI) && USB_INT_IsEnabled(USB_INT_SUSPI))
 	{
@@ -121,15 +122,15 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 		USB_CLK_Freeze();
 
 		if (!(USB_Options & USB_OPT_MANUAL_PLL))
-		  USB_PLL_Off();
+			USB_PLL_Off();
 
-		#if defined(USB_SERIES_2_AVR) && !defined(NO_LIMITED_CONTROLLER_CONNECT)
+#if defined(USB_SERIES_2_AVR) && !defined(NO_LIMITED_CONTROLLER_CONNECT)
 		USB_DeviceState = DEVICE_STATE_Unattached;
 		EVENT_USB_Device_Disconnect();
-		#else
+#else
 		USB_DeviceState = DEVICE_STATE_Suspended;
 		EVENT_USB_Device_Suspend();
-		#endif
+#endif
 	}
 
 	if (USB_INT_HasOccurred(USB_INT_WAKEUPI) && USB_INT_IsEnabled(USB_INT_WAKEUPI))
@@ -137,7 +138,8 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 		if (!(USB_Options & USB_OPT_MANUAL_PLL))
 		{
 			USB_PLL_On();
-			while (!(USB_PLL_IsReady()));
+			while (!(USB_PLL_IsReady()))
+				;
 		}
 
 		USB_CLK_Unfreeze();
@@ -148,48 +150,47 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 		USB_INT_Enable(USB_INT_SUSPI);
 
 		if (USB_Device_ConfigurationNumber)
-		  USB_DeviceState = DEVICE_STATE_Configured;
+			USB_DeviceState = DEVICE_STATE_Configured;
 		else
-		  USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Addressed : DEVICE_STATE_Powered;
+			USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Addressed : DEVICE_STATE_Powered;
 
-		#if defined(USB_SERIES_2_AVR) && !defined(NO_LIMITED_CONTROLLER_CONNECT)
+#if defined(USB_SERIES_2_AVR) && !defined(NO_LIMITED_CONTROLLER_CONNECT)
 		EVENT_USB_Device_Connect();
-		#else
+#else
 		EVENT_USB_Device_WakeUp();
-		#endif
+#endif
 	}
 
 	if (USB_INT_HasOccurred(USB_INT_EORSTI) && USB_INT_IsEnabled(USB_INT_EORSTI))
 	{
 		USB_INT_Clear(USB_INT_EORSTI);
 
-		USB_DeviceState                = DEVICE_STATE_Default;
+		USB_DeviceState				   = DEVICE_STATE_Default;
 		USB_Device_ConfigurationNumber = 0;
 
 		USB_INT_Clear(USB_INT_SUSPI);
 		USB_INT_Disable(USB_INT_SUSPI);
 		USB_INT_Enable(USB_INT_WAKEUPI);
 
-		Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL,
-		                           USB_Device_ControlEndpointSize, 1);
+		Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
 
-		#if defined(INTERRUPT_CONTROL_ENDPOINT)
+#if defined(INTERRUPT_CONTROL_ENDPOINT)
 		USB_INT_Enable(USB_INT_RXSTPI);
-		#endif
+#endif
 
 		EVENT_USB_Device_Reset();
 	}
-	#endif
+#endif
 
-	#if defined(USB_CAN_BE_HOST)
-	#if !defined(NO_SOF_EVENTS)
+#if defined(USB_CAN_BE_HOST)
+#if !defined(NO_SOF_EVENTS)
 	if (USB_INT_HasOccurred(USB_INT_HSOFI) && USB_INT_IsEnabled(USB_INT_HSOFI))
 	{
 		USB_INT_Clear(USB_INT_HSOFI);
 
 		EVENT_USB_Host_StartOfFrame();
 	}
-	#endif
+#endif
 
 	if (USB_INT_HasOccurred(USB_INT_DDISCI) && USB_INT_IsEnabled(USB_INT_DDISCI))
 	{
@@ -236,25 +237,25 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 
 		USB_ResetInterface();
 	}
-	#endif
+#endif
 
-	#if defined(USB_CAN_BE_BOTH)
+#if defined(USB_CAN_BE_BOTH)
 	if (USB_INT_HasOccurred(USB_INT_IDTI) && USB_INT_IsEnabled(USB_INT_IDTI))
 	{
 		USB_INT_Clear(USB_INT_IDTI);
 
 		if (USB_DeviceState != DEVICE_STATE_Unattached)
-		  EVENT_USB_Device_Disconnect();
+			EVENT_USB_Device_Disconnect();
 
 		if (USB_HostState != HOST_STATE_Unattached)
-		  EVENT_USB_Host_DeviceUnattached();
+			EVENT_USB_Host_DeviceUnattached();
 
 		USB_CurrentMode = USB_GetUSBModeFromUID();
 		USB_ResetInterface();
 
 		EVENT_USB_UIDChange();
 	}
-	#endif
+#endif
 }
 
 #if defined(INTERRUPT_CONTROL_ENDPOINT) && defined(USB_CAN_BE_DEVICE)
@@ -276,4 +277,3 @@ ISR(USB_COM_vect, ISR_BLOCK)
 #endif
 
 #endif
-

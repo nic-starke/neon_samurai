@@ -1,9 +1,9 @@
 /*
-             LUFA Library
-     Copyright (C) Dean Camera, 2021.
+			 LUFA Library
+	 Copyright (C) Dean Camera, 2021.
 
   dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
+		   www.lufa-lib.org
 */
 
 /*
@@ -72,59 +72,58 @@
 #ifndef __ENDPOINT_H__
 #define __ENDPOINT_H__
 
-	/* Includes: */
-		#include "../../../Common/Common.h"
-		#include "USBMode.h"
+/* Includes: */
+#include "../../../Common/Common.h"
+#include "USBMode.h"
 
-	/* Enable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			extern "C" {
-		#endif
+/* Enable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-	/* Preprocessor Checks: */
-		#if !defined(__INCLUDE_FROM_USB_DRIVER)
-			#error Do not include this file directly. Include LUFA/Drivers/USB/USB.h instead.
-		#endif
+/* Preprocessor Checks: */
+#if !defined(__INCLUDE_FROM_USB_DRIVER)
+#error Do not include this file directly. Include LUFA/Drivers/USB/USB.h instead.
+#endif
 
-	/* Public Interface - May be used in end-application: */
-		/* Type Defines: */
-			/** Type define for a endpoint table entry, used to configure endpoints in groups via
-			 *  \ref Endpoint_ConfigureEndpointTable().
-			 */
-			typedef struct
-			{
-				uint8_t  Address; /**< Address of the endpoint to configure, or zero if the table entry is to be unused. */
-				uint16_t Size; /**< Size of the endpoint bank, in bytes. */
-				uint8_t  Type; /**< Type of the endpoint, a \c EP_TYPE_* mask. */
-				uint8_t  Banks; /**< Number of hardware banks to use for the endpoint. */
-			} USB_Endpoint_Table_t;
+/* Public Interface - May be used in end-application: */
+/* Type Defines: */
+/** Type define for a endpoint table entry, used to configure endpoints in groups via
+ *  \ref Endpoint_ConfigureEndpointTable().
+ */
+typedef struct
+{
+	uint8_t	 Address; /**< Address of the endpoint to configure, or zero if the table entry is to be unused. */
+	uint16_t Size;	  /**< Size of the endpoint bank, in bytes. */
+	uint8_t	 Type;	  /**< Type of the endpoint, a \c EP_TYPE_* mask. */
+	uint8_t	 Banks;	  /**< Number of hardware banks to use for the endpoint. */
+} USB_Endpoint_Table_t;
 
-		/* Macros: */
-			/** Endpoint number mask, for masking against endpoint addresses to retrieve the endpoint's
-			 *  numerical address in the device.
-			 */
-			#define ENDPOINT_EPNUM_MASK                     0x0F
+/* Macros: */
+/** Endpoint number mask, for masking against endpoint addresses to retrieve the endpoint's
+ *  numerical address in the device.
+ */
+#define ENDPOINT_EPNUM_MASK 0x0F
 
-			/** Endpoint address for the default control endpoint, which always resides in address 0. This is
-			 *  defined for convenience to give more readable code when used with the endpoint macros.
-			 */
-			#define ENDPOINT_CONTROLEP                      0
+/** Endpoint address for the default control endpoint, which always resides in address 0. This is
+ *  defined for convenience to give more readable code when used with the endpoint macros.
+ */
+#define ENDPOINT_CONTROLEP 0
 
-	/* Architecture Includes: */
-		#if (ARCH == ARCH_AVR8)
-			#include "AVR8/Endpoint_AVR8.h"
-		#elif (ARCH == ARCH_UC3)
-			#include "UC3/Endpoint_UC3.h"
-		#elif (ARCH == ARCH_XMEGA)
-			#include "XMEGA/Endpoint_XMEGA.h"
-		#endif
+/* Architecture Includes: */
+#if (ARCH == ARCH_AVR8)
+#include "AVR8/Endpoint_AVR8.h"
+#elif (ARCH == ARCH_UC3)
+#include "UC3/Endpoint_UC3.h"
+#elif (ARCH == ARCH_XMEGA)
+#include "XMEGA/Endpoint_XMEGA.h"
+#endif
 
-	/* Disable C linkage for C++ Compilers: */
-		#if defined(__cplusplus)
-			}
-		#endif
+/* Disable C linkage for C++ Compilers: */
+#if defined(__cplusplus)
+}
+#endif
 
 #endif
 
 /** @} */
-
