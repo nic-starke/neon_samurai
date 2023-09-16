@@ -46,3 +46,4 @@ $ ./scripts/build.sh
 Now make some modifications and just run the `build.sh` script when required.
 
 ## Disclaimer
+[Please review the license prior to use](https://github.com/bxzn/Muffin/blob/main/LICENSE)
