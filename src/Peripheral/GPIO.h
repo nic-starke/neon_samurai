@@ -20,6 +20,7 @@
 #pragma once
 
 #include <avr/io.h>
+#include <avr/portpins.h>
 
 typedef enum
 {
@@ -49,3 +50,12 @@ typedef enum
     SENSE_MODE_LEVEL_LOW,
 } eSenseMode;
 
+typedef enum
+{
+    LOW,
+    HIGH,
+} eLogicLevel;
+
+inline void GPIO_SetPinDir(PORT_t* pPort, u8 Pin, ePortDirection Dir);
+inline void GPIO_SetPinLevel(PORT_t* pPrt, u8 Pin, eLogicLevel Level);
+inline void GPIO_InitialisePin(PORT_t* pPort, u8 Pin, ePortDirection Dir, eLogicLevel InitialState);

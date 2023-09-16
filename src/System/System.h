@@ -35,7 +35,7 @@ inline static void WDT_WaitForSync(void)
 inline static void SYS_EnableWDT(void)
 {
     u8 val = (WDT.CTRL & WDT_PER_gm) | (1 << WDT_ENABLE_bp) | (1 << WDT_CEN_bp);
-	XMEGACLK_CCP_Write((void *)&WDT.CTRL, val);
+	XMEGACLK_CCP_Write((void *)&WDT.CTRL, val); // an alternative to _PROTECTED_WRITE in <avr/xmega.h>
 	WDT_WaitForSync();
 }
 

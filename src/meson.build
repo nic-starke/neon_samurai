@@ -18,7 +18,6 @@ project_src += files(
 
     'Peripheral/DMA.c',
     'Peripheral/GPIO.c',
-    'Peripheral/Peripheral.c',
     'Peripheral/USART.c',
 
     'System/System.c',

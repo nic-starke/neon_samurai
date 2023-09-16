@@ -33,11 +33,6 @@
 
 // #define DISPLAY_CC_VAL			(DISPLAY_REFRESH_RATE)		// n x 8 uS update
 
-// #define SR_ENABLE				IOPORT_CREATE_PIN(PORTD, 0)
-// #define SR_CLK					IOPORT_CREATE_PIN(PORTD, 1)
-// #define SR_DATA					IOPORT_CREATE_PIN(PORTD, 3)
-// #define SR_LATCH				IOPORT_CREATE_PIN(PORTD, 4)
-// #define SR_RESET				IOPORT_CREATE_PIN(PORTD, 5)
 
 static volatile Frame DisplayBuffer[DISPLAY_BUF_SIZE][NUM_ENCODERS];
 
@@ -62,8 +57,7 @@ void Display_Init(void)
 
     DMA_EnableDoubleBuffer(DMA_DBUFMODE_CH01_gc);
 	DMA_SetChannelConfig(pDMA, &dmaConfig);
-
-
+    
     if( USART_Init(PERIPH_D_USART0) )
     {
 
@@ -75,6 +69,10 @@ void Display_Init(void)
 
         USART_SetSPIConfig(&USARTD0, &usartConfig);
     }
+
+    // Timer Stuff
+
+
 
 
 }

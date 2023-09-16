@@ -21,6 +21,11 @@
 #include "Display.h"
 #include "System.h"
 
+#ifndef __AVR_ATxmega128A4U__
+#warning "This project has only been tested on the XMEGA 128A4U, continue at your own risk"
+#endif
+
+
 int main(void)
 {
 	if ( !SYS_Init() )

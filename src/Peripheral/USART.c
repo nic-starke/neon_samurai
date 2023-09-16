@@ -20,15 +20,63 @@
 #include <avr/io.h>
 
 #include "USART.h"
-#include "Peripheral.h"
 #include "Types.h"
+#include "SystemClock.h"
 
 #define USART_DORD_bm   (0x04) // missing define from xmega IO.h
 
-
-bool USART_Init(ePeripheral USART)
+inline static eSysClkPort GetSysClkPort(USART_t* pUSART)
 {
-    return PeripheralClock_Enable(USART);
+    if ( (pUSART == &USARTC0) || (pUSART == &USARTC1) )
+    {
+        return SYSCLK_PORT_C;
+    }
+    else if ( (pUSART == &USARTD0) || (pUSART == &USARTD1) )
+    {
+        return SYSCLK_PORT_D;
+    }
+    else if (pUSART == &USARTE0)
+    {
+        return SYSCLK_PORT_E;
+    }
+
+    return SYSCLK_PORT_INVALID;
+}
+
+inline static u8 GetPRGenBitMask(USART_t* pUSART)
+{
+    if ( (pUSART == &USARTC0) || (pUSART == &USARTD0) || (pUSART == &USARTE0))
+    {
+        return PR_USART0_bm;
+    }
+    else if ( (pUSART == &USARTC1) || (pUSART == &USARTD1) )
+    {
+        return PR_USART1_bm;
+    }
+
+    return 
+}
+
+bool USART_Init(USART_t* pUSART)
+{
+    eSysClkPort = GetSysClkPort(pUSART);
+    ePort port = GetPort(Peripheral);
+
+    if (port == SYSCLK_PORT_INVALID)
+    {
+        return false;
+    }
+
+    u8 prbm = GetPRGenBitMask(pUSART);
+
+    u8 oldSREG = IRQ_DisableGlobalInterrupts();
+
+    *((u8 *)&PR.PRGEN + port) &= ~prbm;
+
+    IRQ_RestoreSREG(oldSREG);
+
+    return true;
+
 }
 
 inline static void SetBaud (USART_t* pUSART, u32 BaudRate, u32 CPUFreq)
@@ -50,7 +98,7 @@ inline static void SetBaud (USART_t* pUSART, u32 BaudRate, u32 CPUFreq)
 // Initialises the USART in SPI master mode
 void USART_SetSPIConfig(USART_t *pUSART, sUSART_SPIConfig* pConfig)
 {
-    // Configure GPIO first!
+    
     
     SetBaud(pUSART, pConfig->BaudRate, F_CPU);
     pUSART->CTRLC = USART_CMODE_MSPI_gc;
