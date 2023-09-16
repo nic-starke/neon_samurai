@@ -7,7 +7,10 @@
 This project was started to add new functionality to the Midi Fighter Twister.
 It is based on [AVR-GCC](https://gcc.gnu.org/wiki/avr-gcc) and the excellent [LUFA USB libraries](http://www.fourwalledcubicle.com/LUFA.php)
 
+### [**WIKI** - A FULL WIKI IS AVAILABLE HERE](https://man.sr.ht/~bxzn/Muffin/)
+
 ### **NOTICE**
+
 If you use this software you must accept the License, most importantly you should be aware of the Disclaimer of Warranty and Limitation of Liability. Additionally, using this firmware will likely void any warranty you have with the original equipment manufacturer. The license can be viewed [here](LICENSE), and [here](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
 ## Where Can I Download It?

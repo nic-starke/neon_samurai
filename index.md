@@ -1,11 +1,14 @@
 ---
 title: Muffin Twister Wiki
 ---
+Welcome to the Muffin Twister Wiki.
 
-## Heading 1
+This will be updated as required with the latest information on the project.
 
-This is a test.
+Before using this software you must read and accept the [LICENSE](LICENSE). In general, there is no warranty given, and you may be voiding any existing warranties with the original equipment manufacturer by using this software.
 
-## Heading 2
+## [Features](/wiki/Features.md)
 
-This is alos a test.
+## [Installation Guide](/wiki/InstallationGuide.md)
+
+## [User Manual](wiki/UserManual.md)
