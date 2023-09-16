@@ -14,6 +14,10 @@ If you use this software you must accept the License, most importantly you shoul
 
 Muffin is still in development, when its ready I'll create a release and make downloads available.
 
+## Mailing List
+
+To get periodic updates on the project status you can sign up [here](https://lists.sr.ht/~bxzn/muffin-announce).
+
 ## Planned Features
 
 The overall intention for the project is to remove some of the limitations of the original firmware, such as fixed midi channels, however there is the possibility of adding new features.
