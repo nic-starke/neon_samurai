@@ -17,18 +17,22 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
+#include <string.h>
+
 #include "Display.h"
 #include "HardwareDescription.h"
+#include "Types.h"
 #include "DMA.h"
 #include "USART.h"
+#include "Timer.h"
 
 static volatile DisplayFrame DisplayBuffer[DISPLAY_BUFFER_SIZE][NUM_ENCODERS];
 
 void Display_Init(void)
 {
-	memset(DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
+	memset((DisplayFrame*) &DisplayBuffer[0], LED_OFF, sizeof(DisplayBuffer));
 
-	sDMA_ChannelConfig dmaConfig = {
+	const sDMA_ChannelConfig dmaConfig = {
 		.pChannel = DMA_GetChannelPointer(0),
 
 		.BurstLength		  = DMA_CH_BURSTLEN_1BYTE_gc,
@@ -48,7 +52,7 @@ void Display_Init(void)
 
 	DMA_InitChannel(&dmaConfig);
 
-	sUSART_ModuleConfig usartConfig = {
+	const sUSART_ModuleConfig usartConfig = {
 		.pUSART	   = &USARTD0,
 		.BaudRate  = 4000000,
 		.DataOrder = MSB_FIRST,
@@ -56,4 +60,8 @@ void Display_Init(void)
 	};
 
 	USART_InitModule(&usartConfig);
+
+    sTimer_Type0Config timerConfig = {
+        .ClockSource = 
+    }
 }
