@@ -26,3 +26,4 @@
 void EncoderDisplay_Test(void);
 void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex);
 void EncoderDisplay_SetColour(sVirtualEncoder* pEncoder, sRGB* pEncoderColour, sHSV* pNewColour);
+void EncoderDisplay_InvalidateAll(void);

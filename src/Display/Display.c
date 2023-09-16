@@ -18,6 +18,7 @@
  */
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <string.h>
 
 #include "Display.h"
@@ -31,6 +32,7 @@
 #include "SoftTimer.h"
 #include "EncoderDisplay.h"
 #include "Data.h"
+#include "Gamma.h"
 
 #define DISPLAY_DMA_CH  (0)
 #define DISPLAY_USART   (USARTD0)
@@ -188,6 +190,15 @@ void Display_Update(void)
     {
         EncoderDisplay_Render(&gData.EncoderStates[gData.CurrentBank][encoder], encoder);
     }
+}
+
+void Display_SetMaxBrightness(u8 Brightness)
+{
+    gData.DetentBrightness = pgm_read_byte(&gamma_lut[Brightness]);
+    gData.RGBBrightness = pgm_read_byte(&gamma_lut[Brightness]);
+    gData.IndicatorBrightness = pgm_read_byte(&gamma_lut[Brightness]);
+    
+    EncoderDisplay_InvalidateAll();
 }
 
 // Display Interrupt

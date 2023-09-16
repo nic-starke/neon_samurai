@@ -75,3 +75,4 @@ void Display_ClearAll(void);
 void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames);
 void Display_Test(void);
 void Display_Flash(int intervalMS, int Count);
+void Display_SetMaxBrightness(u8 Brightness);

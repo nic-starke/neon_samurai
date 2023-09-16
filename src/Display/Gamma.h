@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <avr/pgmspace.h>
+
 // Gamma brightness lookup table <https://victornpb.github.io/gamma-table-generator>
 // gamma = 2.20 steps = 256 range = 0-255
 static const uint8_t gamma_lut[256] PROGMEM = {

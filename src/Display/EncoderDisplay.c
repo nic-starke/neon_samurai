@@ -278,3 +278,16 @@ void EncoderDisplay_SetColour(sVirtualEncoder* pEncoder, sRGB* pEncoderColour, s
     fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoderColour->Red, &pEncoderColour->Green, &pEncoderColour->Blue);
     pEncoder->DisplayInvalid = true;
 }
+
+// Invalidates all encoder displays in all banks
+void EncoderDisplay_InvalidateAll(void)
+{
+    for(int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
+    {
+        for(int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+        {
+            gData.EncoderStates[bank][encoder].Primary.DisplayInvalid = true;
+            gData.EncoderStates[bank][encoder].Secondary.DisplayInvalid = true;
+        }
+    }
+}
