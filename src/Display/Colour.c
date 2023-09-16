@@ -35,5 +35,5 @@ static inline u16 ClampHue(u16 Hue)
 void Hue2RGB(u16 Hue, sRGB* pRGB)
 {
     Hue = ClampHue(Hue);
-    fast_hsv2rgb_8bit(Hue, SATURATION_MAX, gData.RGBBrightness, &pRGB->Red, &pRGB->Green, &pRGB->Blue);
+    fast_hsv2rgb_8bit(Hue, SATURATION_MAX, VALUE_MAX, &pRGB->Red, &pRGB->Green, &pRGB->Blue);
 }

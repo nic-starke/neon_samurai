@@ -29,7 +29,7 @@
 #include "Interrupt.h"
 #include "EncoderDisplay.h"
 
-#define EE_DATA_VERSION (0xAF03)
+#define EE_DATA_VERSION (0xAF07)
 
 sData gData = {
     .DataVersion          = 0,
@@ -73,82 +73,97 @@ sEEData _EEPROM_DATA_ EEMEM; // = {
 //     .Encoders            = {0},
 // };
 
-// static inline void EE_ReadVirtualEncoder(sVirtualEncoder* pDest, sEEVirtualEncoder* pSrc)
-// {
-//     sEEVirtualEncoder shadow = {0};
-//     eeprom_read_block(&shadow, pSrc, sizeof(sEEVirtualEncoder));
+static inline void DisplayDataOnLEDS(void)
+{
+    EncoderDisplay_SetIndicatorValueU8(0, eeprom_read_byte((const u8*)&_EEPROM_DATA_.RGBBrightness));
+    EncoderDisplay_SetIndicatorValueU8(1, gData.RGBBrightness);
+    EncoderDisplay_SetIndicatorValueU8(4, eeprom_read_byte((const u8*)&_EEPROM_DATA_.DetentBrightness));
+    EncoderDisplay_SetIndicatorValueU8(5, gData.DetentBrightness);
+    EncoderDisplay_SetIndicatorValueU8(9, gData.IndicatorBrightness);
+    EncoderDisplay_SetIndicatorValueU8(8, eeprom_read_byte((const u8*)&_EEPROM_DATA_.IndicatorBrightness));
+    EncoderDisplay_SetIndicatorValueU8(12, eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode));
+    EncoderDisplay_SetIndicatorValueU8(13, gData.OperatingMode);
+}
 
-//     pDest->FineAdjust   = shadow.FineAdjust;
-//     pDest->DisplayStyle = shadow.DisplayStyle;
-//     pDest->HasDetent    = shadow.HasDetent;
-//     pDest->MidiConfig   = shadow.MidiConfig;
+// Reads the user stored settings in the EEPROM for all encoders - data goes into gData.EncoderStates
+static inline void ReadEEPROMEncoderSettings(void)
+{
+    for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
+    {
+        for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+        {
+            sEE_Encoder shadow = {0};
+            eeprom_read_block((void*)&shadow, (const void*)&_EEPROM_DATA_.Encoders[bank][encoder], sizeof(shadow));
 
-//     Hue2RGB(shadow.DetentHue, &pDest->DetentColour);
-//     Hue2RGB(shadow.RGBHue, &pDest->RGBColour);
+            sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
 
-//     pDest->DisplayInvalid = true;
-// }
+            pEncoder->DisplayStyle   = shadow.BitFieldSettings.BitField.DisplayStyle;
+            pEncoder->FineAdjust     = shadow.BitFieldSettings.BitField.FineAdjust;
+            pEncoder->HasDetent      = shadow.BitFieldSettings.BitField.HasDetent;
+            pEncoder->LayerA_Enabled = shadow.BitFieldSettings.BitField.LayerA_Enabled;
+            pEncoder->LayerB_Enabled = shadow.BitFieldSettings.BitField.LayerB_Enabled;
+            pEncoder->DetentHue      = shadow.DetentHue;
 
-// static inline void EE_WriteVirtualEncoder(sVirtualEncoder* pSrc, sEEVirtualEncoder* pDest)
-// {
-//     sEEVirtualEncoder data = {0};
+            for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
+            {
+                sVirtualEncoderLayer*    pLayer       = &pEncoder->Layers[layer];
+                sEE_VirtualEncoderLayer* pShadowLayer = &shadow.Layers[layer];
 
-//     data.FineAdjust   = pSrc->FineAdjust;
-//     data.DisplayStyle = pSrc->DisplayStyle;
-//     data.HasDetent    = pSrc->HasDetent;
-//     data.MidiConfig   = pSrc->MidiConfig;
+                pLayer->MaxValue                = pShadowLayer->MaxValue;
+                pLayer->MinValue                = pShadowLayer->MinValue;
+                pLayer->StartPosition           = pShadowLayer->StartPosition;
+                pLayer->StopPosition            = pShadowLayer->StopPosition;
+                pLayer->RGBHue                  = pShadowLayer->RGBHue;
+                pLayer->MidiConfig.Channel      = pShadowLayer->MidiConfig.MidiData.BitField.Channel;
+                pLayer->MidiConfig.Mode         = pShadowLayer->MidiConfig.MidiData.BitField.Mode;
+                pLayer->MidiConfig.MidiValue.CC = pShadowLayer->MidiConfig.MidiValue.CC;
+            }
+        }
+    }
+}
 
-//     eeprom_update_block(&data, pDest, sizeof(sEEVirtualEncoder));
-// }
+// Writes the current gData.EncoderStates to eeprom
+static inline void WriteEEPROMEncoderSettings(void)
+{
+    for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
+    {
+        for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+        {
+            sEE_Encoder    shadow   = {0};
+            sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
 
-// /**
-//  * When a user needs to modify the colours there is no conversion from RGB into HSV colour space.
-//  * Instead, the HSV value is stored directly into EEPROM, and then this is converted during
-//  * runtime. Animations require this conversion process as well.
-//  */
-// static inline void EE_WriteEncoderColours(u16 RGBHue, u16 DetentHue, sEEVirtualEncoder* pDest)
-// {
-//     eeprom_update_word(pDest->RGBHue, RGBHue);
-//     eeprom_update_word(pDest->DetentHue, DetentHue);
-// }
+            shadow.BitFieldSettings.BitField.DisplayStyle   = pEncoder->DisplayStyle;
+            shadow.BitFieldSettings.BitField.FineAdjust     = pEncoder->FineAdjust;
+            shadow.BitFieldSettings.BitField.HasDetent      = pEncoder->HasDetent;
+            shadow.BitFieldSettings.BitField.LayerA_Enabled = pEncoder->LayerA_Enabled;
+            shadow.BitFieldSettings.BitField.LayerB_Enabled = pEncoder->LayerB_Enabled;
+            shadow.DetentHue                                = pEncoder->DetentHue;
 
-// static inline void EE_ReadVirtualUber(sVirtualUber* pDest, sEEVirtualUber* pSrc)
-// {
-//     sEEVirtualUber shadow = {0};
-//     eeprom_read_block(&shadow, pSrc, sizeof(sEEVirtualUber));
+            for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
+            {
+                sEE_VirtualEncoderLayer* pShadowLayer = &shadow.Layers[layer];
+                sVirtualEncoderLayer*    pLayer       = &pEncoder->Layers[layer];
 
-//     *pDest = shadow;
-// }
+                pShadowLayer->MaxValue                             = pLayer->MaxValue;
+                pShadowLayer->MinValue                             = pLayer->MinValue;
+                pShadowLayer->StartPosition                        = pLayer->StartPosition;
+                pShadowLayer->StopPosition                         = pLayer->StopPosition;
+                pShadowLayer->RGBHue                               = pLayer->RGBHue;
+                pShadowLayer->MidiConfig.MidiData.BitField.Channel = pLayer->MidiConfig.Channel;
+                pShadowLayer->MidiConfig.MidiData.BitField.Mode    = pLayer->MidiConfig.Mode;
+                pShadowLayer->MidiConfig.MidiValue.CC              = pLayer->MidiConfig.MidiValue.CC;
+            }
 
-// static inline void EE_WriteVirtualUber(sVirtualUber* pSrc, sEEVirtualUber* pDest)
-// {
-//     eeprom_update_block(pSrc, pDest, sizeof(sEEVirtualUber));
-// }
-
-// static inline void EE_ReadVirtualSwitch(sVirtualSwitch* pDest, sEEVirtualSwitch* pSrc)
-// {
-//     sEEVirtualSwitch shadow = {0};
-//     eeprom_read_block(&shadow, pSrc, sizeof(sEEVirtualSwitch));
-
-//     pDest->Mode       = shadow.Mode;
-//     pDest->MidiConfig = shadow.MidiConfig;
-// }
-
-// static inline void EE_WriteVirtualSwitch(sVirtualSwitch* pSrc, sEEVirtualSwitch* pDest)
-// {
-//     sEEVirtualSwitch data = {0};
-
-//     data.Mode       = pSrc->Mode;
-//     data.MidiConfig = pSrc->MidiConfig;
-
-//     eeprom_update_block(&data, pDest, sizeof(sEEVirtualSwitch));
-// }
+            eeprom_update_block((const void *)&shadow, (void *) &_EEPROM_DATA_.Encoders[bank][encoder], sizeof(shadow));
+        }
+    }
+}
 
 void Data_Init(void)
 {
     while (!eeprom_is_ready()) {} // wait for eeprom ready
 
-    const vu8 flags = IRQ_DisableInterrupts();
+    const vu8 flags    = IRQ_DisableInterrupts();
     // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
     gData.DataVersion  = eeprom_read_word(&_EEPROM_DATA_.DataVersion);
     gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed();
@@ -158,14 +173,13 @@ void Data_Init(void)
     if (gData.FactoryReset)
     {
         Data_WriteDefaultsToEEPROM();
-        Data_RecallEEPROMSettings();
-        displayFlashCount = 5;
+        displayFlashCount  = 5;
         gData.FactoryReset = false;
     }
     else
     {
         Data_RecallEEPROMSettings();
-        displayFlashCount = 2;        
+        displayFlashCount = 2;
     }
 
     IRQ_EnableInterrupts(flags);
@@ -175,6 +189,7 @@ void Data_Init(void)
 // Disable interrupts before calling
 void Data_WriteDefaultsToEEPROM(void)
 {
+    eeprom_update_byte(&_EEPROM_DATA_.Reserved, 0xFA);
     eeprom_update_word(&_EEPROM_DATA_.DataVersion, (u16)EE_DATA_VERSION);
 
     // At this point in execution gData should not have been modified and should be initialised
@@ -184,34 +199,9 @@ void Data_WriteDefaultsToEEPROM(void)
     eeprom_update_byte(&_EEPROM_DATA_.IndicatorBrightness, (u8)gData.IndicatorBrightness);
     eeprom_update_byte(&_EEPROM_DATA_.OperatingMode, (u8)gData.OperatingMode);
 
-    // Encoder_FactoryReset(); // firstly reset the encoder states in SRAM, then write this to EEPROM
-    // for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
-    // {
-    //     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
-    //     {
-    //         sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
-
-    //         EE_WriteVirtualEncoder(&pEncoder->Primary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
-    //         EE_WriteVirtualEncoder(&pEncoder->Secondary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
-    //         EE_WriteVirtualUber(&pEncoder->PrimaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
-    //         EE_WriteVirtualUber(&pEncoder->SecondaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
-    //         EE_WriteVirtualSwitch(&pEncoder->Switch, &_EEPROM_DATA_.VirtualSwitches[bank][encoder]);
-    //     }
-    // }
+    WriteEEPROMEncoderSettings();
 
     gData.DataVersion = EE_DATA_VERSION;
-}
-
-static inline void DisplayDataOnLEDS(void)
-{
-    EncoderDisplay_SetValueU8(0, eeprom_read_byte((const u8*)&_EEPROM_DATA_.RGBBrightness));
-    EncoderDisplay_SetValueU8(1, gData.RGBBrightness);
-    EncoderDisplay_SetValueU8(4, eeprom_read_byte((const u8*)&_EEPROM_DATA_.DetentBrightness));
-    EncoderDisplay_SetValueU8(5, gData.DetentBrightness);
-    EncoderDisplay_SetValueU8(9, gData.IndicatorBrightness);
-    EncoderDisplay_SetValueU8(8, eeprom_read_byte((const u8*)&_EEPROM_DATA_.IndicatorBrightness));
-    EncoderDisplay_SetValueU8(12, eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode));
-    EncoderDisplay_SetValueU8(13, gData.OperatingMode);
 }
 
 // Disable interrupts before calling
@@ -222,17 +212,5 @@ void Data_RecallEEPROMSettings(void)
     Display_SetIndicatorBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.IndicatorBrightness));
     gData.OperatingMode = eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode);
 
-    // for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
-    // {
-    //     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
-    //     {
-    //         sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
-
-    //         EE_ReadVirtualEncoder(&pEncoder->Primary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_PRIMARY]);
-    //         EE_ReadVirtualEncoder(&pEncoder->Secondary, &_EEPROM_DATA_.VirtualEncoders[bank][encoder][VIRTUALENCODER_SECONDARY]);
-    //         EE_ReadVirtualUber(&pEncoder->PrimaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_PRIMARY]);
-    //         EE_ReadVirtualUber(&pEncoder->SecondaryUber, &_EEPROM_DATA_.VirtualUbers[bank][encoder][VIRTUALUBER_SECONDARY]);
-    //         EE_ReadVirtualSwitch(&pEncoder->Switch, &_EEPROM_DATA_.VirtualSwitches[bank][encoder]);
-    //     }
-    // }
+    ReadEEPROMEncoderSettings();
 }

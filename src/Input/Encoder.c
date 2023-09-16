@@ -38,7 +38,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
     .MidiConfig.Channel      = 0,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 0,
-    .RGBHue                  = 0,
+    .RGBHue                  = HUE_RED,
     .Enabled                 = true,
 };
 
@@ -50,7 +50,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
     .MidiConfig.Channel      = 1,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 1,
-    .RGBHue                  = 50,
+    .RGBHue                  = HUE_GREEN,
     .Enabled                 = true,
 };
 
@@ -70,15 +70,17 @@ static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = {
 static const sEncoderState DEFAULT_ENCODERSTATE = {
     .CurrentValue            = 0,
     .PreviousValue           = 0,
-    .DetentColour            = RGB_FUSCHIA,
-    .RGBColour               = RGB_WHITE,
+    .DetentColour            = {0},
+    .RGBColour               = {0},
+    .DetentHue               = HSV_BLUE,
     .DisplayInvalid          = true,
     .DisplayStyle            = STYLE_BLENDED_BAR,
     .FineAdjust              = false,
     .HasDetent               = false,
     .Layers[VIRTUAL_LAYER_A] = DEFAULT_LAYER_A,
     .Layers[VIRTUAL_LAYER_B] = DEFAULT_LAYER_B,
-    // .Layers[VIRTUAL_LAYER_C] = DEFAULT_LAYER_C,
+    .LayerA_Enabled          = true,
+    .LayerB_Enabled          = true,
     .Switch                  = DEFAULT_ENCODER_SWITCH,
 };
 
@@ -110,7 +112,7 @@ void Encoder_SetDefaultConfig(sEncoderState* pEncoder)
 }
 
 // Sets the encoder states in SRAM to a default configuration (does not do anything with EEPROM)
-void Encoder_FactoryReset(void)
+void Encoders_ResetToDefaultConfig(void)
 {
     for (int bank = 0; bank < NUM_VIRTUAL_BANKS; bank++)
     {
@@ -120,8 +122,6 @@ void Encoder_FactoryReset(void)
             Encoder_SetDefaultConfig(pEncoder);
         }
     }
-
-    EncoderDisplay_UpdateAllColours();
 }
 
 static inline bool UpdateEncoderRotary(int EncoderIndex, sHardwareEncoder* pHardwareEncoder, sEncoderState* pEncoderState)

@@ -187,6 +187,8 @@ typedef struct
     u8 LayerB_Enabled : 1;
     u8 Reserved       : 1;
 
+    u16 DetentHue;
+
     sVirtualEncoderLayer Layers[NUM_VIRTUAL_ENCODER_LAYERS];
     sVirtualSwitch       Switch;
 } sEncoderState;
@@ -220,5 +222,5 @@ typedef struct
 
 void Encoder_Init(void);
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder);
-void Encoder_FactoryReset(void);
+void Encoders_ResetToDefaultConfig(void);
 void Encoder_Update(void);

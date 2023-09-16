@@ -289,37 +289,44 @@ void EncoderDisplay_SetRGBColour(sEncoderState* pEncoder, sHSV* pNewColour)
                       &pEncoder->RGBColour.Blue);
 }
 
+void EncoderDisplay_SetRGBColour_Hue(sEncoderState* pEncoder, u16 RGBHue)
+{
+    Hue2RGB(RGBHue, &pEncoder->RGBColour);
+}
+
 void EncoderDisplay_SetDetentColour(sEncoderState* pEncoder, sHSV* pNewColour)
 {
     fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->DetentColour.Red,
                       &pEncoder->DetentColour.Green, &pEncoder->DetentColour.Blue);
 }
 
+void EncoderDisplay_SetDetentColour_Hue(sEncoderState* pEncoder, u16 DetentHue)
+{
+    Hue2RGB(DetentHue, &pEncoder->DetentColour);
+}
+
+// Initialises the colour structs for the Detent and RGB LEDS
 void EncoderDisplay_UpdateAllColours(void)
 {
     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
     {
         sEncoderState* pEncoder = &gData.EncoderStates[gData.CurrentBank][encoder];
 
-        sHSV newColour = {
-            .Hue        = pEncoder->Layers->RGBHue,
-            .Saturation = SATURATION_MAX,
-            .Value      = VALUE_MAX,
-        };
+        EncoderDisplay_SetRGBColour_Hue(pEncoder, pEncoder->Layers[VIRTUAL_LAYER_A].RGBHue);
+        EncoderDisplay_SetDetentColour_Hue(pEncoder, pEncoder->DetentHue);
 
-        EncoderDisplay_SetRGBColour(pEncoder, &newColour);
         pEncoder->DisplayInvalid = true;
     }
 }
 
-void EncoderDisplay_SetValueU8(u8 EncoderIndex, u8 Value)
+void EncoderDisplay_SetIndicatorValueU8(u8 EncoderIndex, u8 Value)
 {
-    gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue = (Value << 8);
+    gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue   = (Value << 8);
     gData.EncoderStates[gData.CurrentBank][EncoderIndex].DisplayInvalid = true;
 }
 
-void EncoderDisplay_SetValueU16(u8 EncoderIndex, u16 Value)
+void EncoderDisplay_SetIndicatorValueU16(u8 EncoderIndex, u16 Value)
 {
-    gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue = Value;
+    gData.EncoderStates[gData.CurrentBank][EncoderIndex].CurrentValue   = Value;
     gData.EncoderStates[gData.CurrentBank][EncoderIndex].DisplayInvalid = true;
 }

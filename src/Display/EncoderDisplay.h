@@ -27,8 +27,10 @@ void EncoderDisplay_Test(void);
 void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex);
 void EncoderDisplay_InvalidateAll(void);
 void EncoderDisplay_SetRGBColour(sEncoderState* pEncoder, sHSV* pNewColour);
+void EncoderDisplay_SetRGBColour_Hue(sEncoderState* pEncoder, u16 RGBHue);
 void EncoderDisplay_SetDetentColour(sEncoderState* pEncoder, sHSV* pNewColour);
+void EncoderDisplay_SetDetentColour_Hue(sEncoderState* pEncoder, u16 DetentHue);
 void EncoderDisplay_UpdateAllColours(void);
 
-void EncoderDisplay_SetValueU8(u8 EncoderIndex, u8 Value);
-void EncoderDisplay_SetValueU16(u8 EncoderIndex, u16 Value);
+void EncoderDisplay_SetIndicatorValueU8(u8 EncoderIndex, u8 Value);
+void EncoderDisplay_SetIndicatorValueU16(u8 EncoderIndex, u16 Value);

@@ -23,8 +23,8 @@
 #include "fast_hsv2rgb.h"
 
 #define HUE_MAX        (HSV_HUE_MAX)
-#define SATURATION_MAX (UINT8_MAX)
-#define VALUE_MAX      (UINT8_MAX)
+#define SATURATION_MAX (HSV_SAT_MAX)
+#define VALUE_MAX      (HSV_VAL_MAX)
 
 #define RGB_MAX_VAL (UINT8_MAX)
 #define RGB_MIN_VAL (0)
@@ -40,7 +40,11 @@
 
 #define HSV_RED         {0, SATURATION_MAX, VALUE_MAX}
 #define HSV_BLUE        {50, SATURATION_MAX, VALUE_MAX}
-#define HSV_GREEN        {200, SATURATION_MAX, VALUE_MAX}
+#define HSV_GREEN       {200, SATURATION_MAX, VALUE_MAX}
+
+#define HUE_RED         (0)
+#define HUE_GREEN       (HUE_MAX/2)
+#define HUE_BLUE        (HUE_MAX)
 // clang-format on
 
 typedef struct

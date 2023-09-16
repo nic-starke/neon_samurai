@@ -79,17 +79,15 @@ int main(void)
 
     Display_Init();
 
-
     GlobalInterruptEnable();
-    
-    
+
     // Update inputs, check special input combinations
     for (int i = 0; i < 100; i++)
     {
         Input_Update();
         Input_CheckSpecialSwitchCombos();
     }
-    
+
     switch (gData.OperatingMode)
     {
         case TEST_MODE: SetupTest(); break;
@@ -98,10 +96,13 @@ int main(void)
 
         case DEFAULT_MODE:
         default: BootAnimation(); break;
-    }   
-    
-    Encoder_FactoryReset();
+    }
+
+    Encoders_ResetToDefaultConfig();
+
     Data_Init();
+
+    EncoderDisplay_UpdateAllColours();
 
     while (1)
     {
