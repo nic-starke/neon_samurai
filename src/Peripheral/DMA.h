@@ -43,26 +43,53 @@ typedef struct
     DMA_CH_DESTRELOAD_t DstReloadMode;
 } sDMA_ChannelConfig;
 
+/**
+ * @brief Gets a pointer to a DMA channel.
+ * 
+ * @param ChannelNumber The DMA channel number
+ * @return DMA_CH_t* A pointer to a memory mapped DMA channel.
+ */
 static inline DMA_CH_t* DMA_GetChannelPointer(u8 ChannelNumber)
 {
     return (DMA_CH_t*)((uintptr_t)(&DMA.CH0) + (sizeof(DMA_CH_t) * ChannelNumber));
 }
 
+/**
+ * @brief Enable the DMA channel.
+ * 
+ * @param pDMA A pointer to the memory mapped DMA channel.
+ */
 static inline void DMA_EnableChannel(DMA_CH_t* pDMA)
 {
     SET_REG(pDMA->CTRLA, DMA_CH_ENABLE_bm);
 }
 
+/**
+ * @brief Disable the DMA channel.
+ * 
+ * @param pDMA A pointer to the memory mapped DMA channel.
+ */
 static inline void DMA_DisableChannel(DMA_CH_t* pDMA)
 {
     CLR_REG(pDMA->CTRLA, DMA_CH_ENABLE_bm);
 }
 
+/**
+ * @brief Reset a DMA channel.
+ * 
+ * @param pDMA A pointer to the memory mapped DMA channel.
+ */
 static inline void DMA_ResetChannel(DMA_CH_t* pDMA)
 {
     SET_REG(pDMA->CTRLA, DMA_CH_RESET_bm);
 }
 
+/**
+ * @brief Check if a DMA channel is busy (transaction occuring)
+ * 
+ * @param ChannelNumber The DMA channel number to check
+ * @return True if busy, false otherwise.
+ */
 static inline bool DMA_ChannelBusy(u8 ChannelNumber)
 {
     vu8 busy = DMA.STATUS;
@@ -71,6 +98,12 @@ static inline bool DMA_ChannelBusy(u8 ChannelNumber)
     return (bool)busy;
 }
 
+/**
+ * @brief Set the DMA transaction source/start address for a specific DMA channel.
+ * 
+ * @param pDMA A pointer to a memory mapped DMA channel.
+ * @param Address The address to set the DMA transaction to.
+ */
 static inline void DMA_SetChannelSourceAddress(DMA_CH_t* pDMA, uintptr_t Address)
 {
     pDMA->SRCADDR0 = (Address >> 0) & 0xFF;
@@ -79,6 +112,14 @@ static inline void DMA_SetChannelSourceAddress(DMA_CH_t* pDMA, uintptr_t Address
     pDMA->SRCADDR2 = 0; // On xmega this must be explicitly set to zero otherwise DMA transactions will go out-of-bounds (runaway).
 }
 
+/**
+ * @brief Sets the interrupt configuration for a specific DMA channel.
+ * Interrupts can be disabled by setting the priorities to PRIORITY_OFF.
+ * 
+ * @param pDMA A pointer to a memory mapped DMA channel. 
+ * @param TransactionIntPriority The transaction interrupt priority.
+ * @param ErrorIntPriority The error interrupt priority
+ */
 static inline void DMA_SetChannelInterrupts(DMA_CH_t* pDMA, eInterruptPriority TransactionIntPriority, eInterruptPriority ErrorIntPriority)
 {
     CLR_REG(pDMA->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);

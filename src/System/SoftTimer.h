@@ -38,17 +38,34 @@ typedef struct
 void SoftTimer_Init(void);
 u32  Millis(void);
 
+/**
+ * @brief Start a soft timer.
+ * 
+ * @param pTimer A pointer to the soft timer object
+ */
 static inline void SoftTimer_Start(sSoftTimer* pTimer)
 {
     pTimer->State     = TIMER_RUNNING;
     pTimer->StartTime = Millis();
 }
 
+/**
+ * @brief Get the current elapsed time in milliseconds of a timer.
+ * 
+ * @param pTimer A pointer to the soft timer object.
+ * @return u32 The elapsed time in milliseconds.
+ */
 static inline u32 SoftTimer_Elapsed(sSoftTimer* pTimer)
 {
     return Millis() - pTimer->StartTime;
 }
 
+/**
+ * @brief Stops a soft timer.
+ * 
+ * @param pTimer A pointer to the soft timer object.
+ * @return u32 The total elapsed time of the timer, in milliseconds.
+ */
 static inline u32 SoftTimer_Stop(sSoftTimer* pTimer)
 {
     if (pTimer->State == TIMER_RUNNING)

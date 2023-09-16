@@ -59,7 +59,7 @@ static u8           mOutBuffer[OUTBUFFER_LEN] = {0};
 static bool         mMirrorInput              = false;
 static u8           mSysexChannel             = SYSEX_CH;
 
-static const u8 MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01};
+static const u8 MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01}; //TODO is it worth moving this to progmem?
 static const u8 FMLY_ID[2] PROGMEM = {0x00, 0x00};
 static const u8 PROD_ID[2] PROGMEM = {0x00, 0x01};
 static const u8 VRSN_ID[4] PROGMEM = {0x00, 0x00, 0x00, VERSION};
@@ -78,12 +78,21 @@ static inline void TransmitSysexByte(u8 Byte);
 
 static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId);
 
+/**
+ * @brief The midi module init function.
+ */
 void MIDI_Init(void)
 {
     Comms_RegisterProtocol(PROTOCOL_USBMIDI, Msg_SendHandler);
 }
 
 // Must be called prior to LUFAs master usb task - USB_USBTask()
+/**
+ * @brief The midi module update function.
+ * To be called within the main loop.
+ * WARNING - this should probably be called before the LUFA's USB_USBTask(),
+ * otherwise all midi events will be one loop behind. 
+ */
 void MIDI_Update(void)
 {
     if (USB_IsInitialized)
@@ -103,14 +112,29 @@ void MIDI_Update(void)
     }
 }
 
-// Replies to every midi packet by sending a copy back
+/**
+ * @brief Enable/disable MIDI mirroring.
+ * All received midi messages will be retransmitted.
+ * 
+ * @param Enable - True to enable, false to disable.
+ */
 void MIDI_MirrorInput(bool Enable)
 {
     mMirrorInput = Enable;
 }
 
+/**
+ * @brief The main midi process function for a virtual encoder layer.
+ * This function should only be called once per main loop.
+ * It handles transmitting midi values based on a virtual encoder layers current configuration.
+ * 
+ * @param pEncoderState A pointer to the encode state.
+ * @param pLayer A pointer to the layer to be processed.
+ * @param ValueToTransmit The actual output value to be sent (if appropriate)
+ */
 void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit)
 {
+    //TODO the ValueToTransmit argument seems very odd here - instead perform a lookup on the hardware encoder and calculate the necessary value?
     switch ((eMidiMode)pLayer->MidiConfig.Mode)
     {
         case MIDIMODE_CC:
@@ -147,7 +171,14 @@ void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLaye
 // Transmit sysex data via the lufa midi event packet
 // This does not add sysex headers - ensure pData is a valid midi sysex message!
 // This does not encode data to ensure status bit is valid - ensure data has been encoded.
-static void TransmitSysexData(u8* pData, u16 DataLength)
+
+/**
+ * @brief Transmit an arbitrary byte stream as MIDI sysex.
+ * 
+ * @param pData A pointer to the start of the byte stream.
+ * @param DataLength The number of bytes to be transmitted.
+ */
+static void TransmitDataAsSysex(u8* pData, u16 DataLength)
 {
     int                i = 0;
     MIDI_EventPacket_t msg;
@@ -187,6 +218,11 @@ static void TransmitSysexData(u8* pData, u16 DataLength)
     }
 }
 
+/**
+ * @brief Handle an incoming midi message.
+ * 
+ * @param pMsg A pointer to the Lufa midi msg event.
+ */
 void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
 {
     int count = 0;
@@ -297,7 +333,34 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
     }
 }
 
-// pDest must be atleast 8 bytes!
+/*
+    To use sysex messages as an arbitrary data stream it is necessary to encode/decode data.
+    Data bytes cannot have the midi status bit set (bit 8), therefore the maximum value 
+    for any byte 0x7F. 
+
+    The encoding scheme is simple - always transmit 8 byte blocks.
+    A block contains 7 data bytes, and an MSB byte.
+    The MSB byte contains the MSB bits for the 7 data bytes.
+    
+    The encoder does the following:
+    for the 7 bytes {
+        1. Set bit N in the MSB byte equal to the MSB of data byte.
+        2. Mask off the MSB of data byte N and add it to the encode buffer
+    }
+    
+    If a block contains partial data, it is padded upto the 8 bytes with zeros.
+*/
+
+/**
+ * @brief Encodes 7 bytes of input data into an 8 byte sysex block.
+ * The destination buffer must be at least 8 bytes in length.
+ * 
+ * @param pData A pointer to the byte stream to encode.
+ * @param NumDataBytes The number of bytes in the byte stream.
+ * @param pDest A destination buffer - must be at least 8 bytes regardless of the NumDataBytes
+ * @param DestBufferLen The output buffer length
+ * @return u16 The number of bytes that were encoded.
+ */
 static u16 EncodeSysexBlock(u8* pData, u16 NumDataBytes, u8* pDest, u8 DestBufferLen)
 {
     if (DestBufferLen < SIZEOF_SYSEXBLOCK || NumDataBytes == 0)
@@ -332,23 +395,14 @@ static u16 EncodeSysexBlock(u8* pData, u16 NumDataBytes, u8* pDest, u8 DestBuffe
     return numEncoded;
 }
 
-/*
-    To use sysex messages as an arbitrary data stream it is necessary to encode/decode data.
-    Data bytes cannot have the midi status bit set (bit 8), therefore the maximum value 
-    for any byte 0x7F. 
-
-    The encoding scheme is simple - always transmit 8 byte blocks.
-    A block contains 7 data bytes, and an MSB byte.
-    The MSB byte contains the MSB bits for the 7 data bytes.
-    
-    The encoder does the following:
-    for the 7 bytes {
-        1. Set bit N in the MSB byte equal to the MSB of data byte.
-        2. Mask off the MSB of data byte N and add it to the encode buffer
-    }
-    
-    If a block contains partial data, it is padded upto the 8 bytes with zeros.
-*/
+/**
+ * @brief Encode and transmit an arbitrary length byte stream.
+ * The data will be encoded into 8-byte sysex blocks (see EncodeSysexBlock).
+ * It will then be transmitted via sysex immediately.
+ * 
+ * @param pData A pointer to a byte array/stream.
+ * @param NumDataBytes The number of bytes in the array/stream.
+ */
 static void EncodeAndTransmit(u8* pData, u16 NumDataBytes)
 {
     if (!pData || NumDataBytes == 0)
@@ -370,12 +424,18 @@ static void EncodeAndTransmit(u8* pData, u16 NumDataBytes)
         {
             NumDataBytes -= numEncoded;
             pData += numEncoded;
-            TransmitSysexData(mOutBuffer, OUTBUFFER_LEN);
+            TransmitDataAsSysex(mOutBuffer, OUTBUFFER_LEN);
         }
     }
 }
 
-// Decode from sysex
+/**
+ * @brief Decodes an incoming sysex-block encoded stream into a byte stream.
+ * 
+ * @param pSysexBytes A pointer to the encoded byte array/stream.
+ * @param pDestBuffer A pointer to a destination buffer.
+ * @param NumBlocks The number of 8-byte sysex blocks to be decoded.
+ */
 static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks)
 {
     for (u16 block = 0; block < NumBlocks; block++)
@@ -447,6 +507,13 @@ static u16 DecodedLength_Bytes(u32 NumEncodedBytes)
     return (NumEncodedBytes - (NumEncodedBytes / SIZEOF_SYSEXBLOCK));
 }
 
+/**
+ * @brief The comms message handler for the MIDI module.
+ * 
+ * @param pBytes A pointer to a byte array to transmit.
+ * @param NumBytes The number of bytes in the array to be transmitted.
+ * @return True on success, false on failure.
+ */
 static bool Msg_SendHandler(u8* pBytes, u16 NumBytes)
 {
     if (!pBytes || NumBytes == 0)
@@ -468,9 +535,16 @@ static bool Msg_SendHandler(u8* pBytes, u16 NumBytes)
     EncodeAndTransmit(pBytes, NumBytes);
     TransmitSysexByte(MIDI_CMD_SYSEX_END);
 
-    return true;
+    return true; //TODO - no failure states?
 }
 
+/**
+ * @brief Transmit a MIDI CC message
+ * 
+ * @param Channel The midi channel
+ * @param CC The CC type
+ * @param Value The CC value
+ */
 static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
 {
     MIDI_EventPacket_t packet = {0};
@@ -481,6 +555,14 @@ static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
     MIDI_Device_SendEventPacket(&gMIDI_Interface, &packet);
 }
 
+/**
+ * @brief Transmit a midi note message
+ * 
+ * @param _Channel The midi channel
+ * @param _Note The note value
+ * @param _Velocity The velocity value
+ * @param _NoteOn True if note on, false if note off.
+ */
 static inline void TransmitMidiNote(u8 _Channel, u8 _Note, u8 _Velocity, bool _NoteOn)
 {
     MIDI_EventPacket_t _packet = {0};
@@ -492,6 +574,11 @@ static inline void TransmitMidiNote(u8 _Channel, u8 _Note, u8 _Velocity, bool _N
     MIDI_Device_SendEventPacket(&gMIDI_Interface, &_packet);
 }
 
+/**
+ * @brief Transmit a single sysex byte.
+ * 
+ * @param _Byte The byte to transmit.
+ */
 static inline void TransmitSysexByte(u8 _Byte)
 {
     MIDI_EventPacket_t _msg;
@@ -500,6 +587,11 @@ static inline void TransmitSysexByte(u8 _Byte)
     MIDI_Device_SendEventPacket(&gMIDI_Interface, &_msg);
 }
 
+/**
+ * @brief A stub function to handle non-realtime sysex messages.
+ * 
+ * @param SubId The non-realtime midi message type/parameter.
+ */
 static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId)
 {
     // switch (SubId)
@@ -529,7 +621,7 @@ static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId)
 
     //         // *b++ = MIDI_CMD_SYSEX_END;
     //         // Serial_Print("[MIDI TX] ID reply\r\n");
-    //         // TransmitSysexData(mOutBuffer, b - &mOutBuffer[0]);
+    //         // TransmitDataAsSysex(mOutBuffer, b - &mOutBuffer[0]);
     //         break;
     //     }
 

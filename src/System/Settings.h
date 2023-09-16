@@ -28,11 +28,15 @@
 #define DISPLAY_REFRESH_FAST   (10)
 #define DISPLAY_REFRESH_INSANE (5)
 
-#define DISPLAY_REFRESH_RATE (DISPLAY_REFRESH_AVG)
+// The display refresh rate directly sets the timer interrupt rate for the display DMA transfer
+// Reducing the interval will cause main loop starvation.
+#define DISPLAY_REFRESH_RATE (DISPLAY_REFRESH_AVG) 
 
 #define INPUT_SCAN_SLOW   (40)
 #define INPUT_SCAN_AVG    (10)
 #define INPUT_SCAN_FAST   (5)
 #define INPUT_SCAN_INSANE (1)
 
+// The input can rate directly sets the timer interrupt rate for input scanning
+// Reducing the interval will cause main loop starvation.
 #define INPUT_SCAN_RATE (INPUT_SCAN_AVG)

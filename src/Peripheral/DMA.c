@@ -20,16 +20,28 @@
 #include "DMA.h"
 #include "DataTypes.h"
 
+/**
+ * @brief Enable power to the DMA peripheral
+ * 
+ */
 static inline void DMA_EnablePower(void)
 {
     CLR_REG(PR.PRGEN, PR_DMA_bm);
 }
 
+/**
+ * @brief Disable power to the DMA peripheral
+ * 
+ */
 static inline void DMA_DisablePower(void)
 {
     SET_REG(PR.PRGEN, PR_DMA_bm);
 }
 
+/**
+ * @brief Enable the DMA controller
+ * 
+ */
 static inline void DMA_EnableController(void)
 {
     // SET_REG(DMA.CTRL, DMA_ENABLE_bm);
@@ -37,24 +49,41 @@ static inline void DMA_EnableController(void)
     DMA.CTRL = DMA_ENABLE_bm;
 }
 
+/**
+ * @brief Disable the DMA controller
+ * 
+ */
 static inline void DMA_DisableController(void)
 {
     CLR_REG(DMA.CTRL, DMA_ENABLE_bm);
 }
 
-static inline void DMA_ResetController(void)
+/**
+ * @brief Reset the DMA controller
+ * 
+ */
+static inline void DMA_ResetController(void) // TODO - do interrupts need to be disabled, does the DMA need to be disabled?
 {
     SET_REG(DMA.CTRL, DMA_RESET_bm);
 }
 
+/**
+ * @brief Set the double buffer mode for the DMA controller.
+ * If enabled - this will "interlink" DMA channel 0 and 1, or channel 2 and 3
+ * After the primary channel is complete the secondary channel will fire a dma transaction, which then re-enables the primary channel...
+ * @param Mode 
+ */
 static inline void DMA_SetDoubleBufferMode(DMA_DBUFMODE_t Mode)
 {
     DMA.CTRL = (DMA.CTRL & ~DMA_DBUFMODE_gm) | Mode;
 }
 
 /**
- * @brief Must be called once during system power-up and before using any DMA
+ * @brief Initialise the DMA controller peripheral.
+ *  Must be called once during system power-up and before using any DMA
  * channels.
+ * 
+ * IRQs are disabled during the DMA initialisation.
  */
 void DMA_Init(void)
 {

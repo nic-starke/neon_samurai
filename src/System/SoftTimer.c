@@ -27,9 +27,14 @@
 
 #define SOFT_TIMER (TCD0)
 
-static vu32 mCurrentTick;
+static vu32 mCurrentTick; // The current system tick count - interval is 1ms
 
-// Do not use this to init a soft timer - this is to initialise the entire SoftTimer subsystem
+/**
+ * @brief Initialise the SoftTimer module.
+ * This only needs to be called once during systme initialisation.
+ * WARNING - Do not call this to try and initialise an instance of a soft timer!
+ * 
+ */
 void SoftTimer_Init(void)
 {
     sTimer_Type0Config timerConfig = {
@@ -40,15 +45,24 @@ void SoftTimer_Init(void)
     };
 
     Timer_Type0Init(&timerConfig);
-    timerConfig.pTimer->PER = (u16)32000;
+    timerConfig.pTimer->PER = (u16)32000; // system clock rate is 32 MHz - 32k is used here to obtain a 1ms timer interrupt
     Timer_EnableOverflowInterrupt(&SOFT_TIMER, PRIORITY_LOW);
 }
 
+/**
+ * @brief The soft timer interrupt handler.
+ * 
+ */
 ISR(TCD0_OVF_vect)
 {
     ++mCurrentTick;
 }
 
+/**
+ * @brief Get the current system uptime in milliseconds.
+ * 
+ * @return u32 The uptime in milliseconds.
+ */
 u32 Millis(void)
 {
     u32 m = 0;

@@ -19,4 +19,6 @@
 
 #pragma once
 
+// This file is parsed by the Meson build system. A "Config.h" output file will contain the completed values required for the following defines:
+
 #define VERSION @version@
