@@ -1,4 +1,3 @@
-#
 # File: meson.build ( 1st November 2021 )
 # Project: Muffin
 # Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
