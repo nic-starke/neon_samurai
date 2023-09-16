@@ -66,8 +66,8 @@ int main(void)
 	USB_Init();
 
 	GlobalInterruptEnable();
-	
-    Data_Init();
+
+	Data_Init();
 
 	if (gData.OperatingMode == TEST_MODE)
 	{
@@ -82,7 +82,7 @@ int main(void)
 		switch (gData.OperatingMode)
 		{
 			case DEFAULT_MODE:
-                EncoderDisplay_Test();
+				EncoderDisplay_Test();
 				// SideSwitch_Update();
 				// Encoder_Update();
 				// USBMidi_Update();

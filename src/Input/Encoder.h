@@ -194,6 +194,12 @@ typedef struct
 	u32 Bits;
 } sHardwareEncoder;
 
+static inline bool Encoder_IsSecondaryEnabled(sEncoderState* pEncoder)
+{
+	return ((bool)pEncoder->Switch.State == true &&
+			(pEncoder->Switch.Mode == SWITCH_SECONDARY_TOGGLE || pEncoder->Switch.Mode == SWITCH_SECONDARY_HOLD));
+}
+
 void Encoder_Init(void);
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder);
 void Encoder_FactoryReset(void);

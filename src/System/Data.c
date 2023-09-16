@@ -144,13 +144,13 @@ void Data_Init(void)
 	if (gData.FactoryReset)
 	{
 		Data_FactoryReset();
-        gData.FactoryReset = false;
-        Display_Flash(200, 5);
+		gData.FactoryReset = false;
+		Display_Flash(200, 5);
 	}
 	else
 	{
 		Data_RecallUserSettings();
-        Display_Flash(200, 2);
+		Display_Flash(200, 2);
 	}
 }
 
@@ -185,7 +185,7 @@ void Data_FactoryReset(void)
 
 void Data_RecallUserSettings(void)
 {
-    gData.RGBBrightness		  = eeprom_read_byte(&mEEData.RGBBrightness);
+	gData.RGBBrightness		  = eeprom_read_byte(&mEEData.RGBBrightness);
 	gData.DetentBrightness	  = eeprom_read_byte(&mEEData.DetentBrightness);
 	gData.IndicatorBrightness = eeprom_read_byte(&mEEData.IndicatorBrightness);
 	gData.OperatingMode		  = eeprom_read_byte(&mEEData.OperatingMode);

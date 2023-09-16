@@ -49,3 +49,18 @@ void EncoderDisplay_Test(void)
 		Display_SetEncoderFrames(encoder, frames);
 	}
 }
+
+void EncoderDisplay_Render(sEncoderState* pEncoder, DisplayFrame* pFrames, int EncoderIndex)
+{
+	sVirtualEncoder* pVE = (Encoder_IsSecondaryEnabled(pEncoder) ? &pEncoder->Secondary : &pEncoder->Primary);
+
+	if (pVE->DisplayInvalid == false)
+	{
+		return;
+	}
+    
+    switch((eEncoderDisplayStyle) pVE->DisplayStyle)
+    {
+        case 
+    }
+}
