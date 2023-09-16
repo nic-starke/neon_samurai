@@ -21,18 +21,18 @@
 #include <avr/pgmspace.h>
 #include <string.h>
 
-#include "Display.h"
-#include "HardwareDescription.h"
-#include "DataTypes.h"
 #include "DMA.h"
-#include "USART.h"
-#include "Timer.h"
-#include "Settings.h"
-#include "GPIO.h"
-#include "SoftTimer.h"
-#include "EncoderDisplay.h"
 #include "Data.h"
+#include "DataTypes.h"
+#include "Display.h"
+#include "EncoderDisplay.h"
+#include "GPIO.h"
 #include "Gamma.h"
+#include "HardwareDescription.h"
+#include "Settings.h"
+#include "SoftTimer.h"
+#include "Timer.h"
+#include "USART.h"
 
 #define DISPLAY_DMA_CH  (0)
 #define DISPLAY_USART   (USARTD0)

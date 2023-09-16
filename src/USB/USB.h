@@ -20,15 +20,16 @@
 #pragma once
 
 #include "Common.h"
-#include "Descriptors.h"
 #include "DataTypes.h"
+#include "Descriptors.h"
 #include "Encoder.h"
 
+// refer to descriptors .c for the serial string
 #define DEFAULT_USB_VENDOR_ID  (0x2580) // DJTT Vendor ID
 #define DEFAULT_USB_PRODUCT_ID (0x0007)
 
 extern USB_ClassInfo_MIDI_Device_t gMIDI_Interface;
-extern USB_ClassInfo_CDC_Device_t gCDC_Interface;
+extern USB_ClassInfo_CDC_Device_t  gCDC_Interface;
 
 void EVENT_USB_Device_Connect(void);
 void EVENT_USB_Device_Disconnect(void);

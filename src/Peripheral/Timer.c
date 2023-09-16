@@ -19,9 +19,9 @@
 
 #include <avr/pgmspace.h>
 
-#include "Timer.h"
-#include "Interrupt.h"
 #include "DataTypes.h"
+#include "Interrupt.h"
+#include "Timer.h"
 #include "Utility.h"
 
 static inline u8 GetTimerBitmask(eTimer_Peripheral Timer)

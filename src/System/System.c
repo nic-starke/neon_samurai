@@ -17,16 +17,16 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <avr/wdt.h>
-#include <Platform/XMEGA/ClockManagement.h>
 #include <Common/Common.h>
 #include <Drivers/USB/USB.h>
+#include <Platform/XMEGA/ClockManagement.h>
+#include <avr/wdt.h>
 
-#include "System.h"
 #include "CPU.h"
-#include "Interrupt.h"
 #include "Data.h"
 #include "Display.h"
+#include "Interrupt.h"
+#include "System.h"
 
 void (*bootloader)(void) = (void (*)(void))(BOOT_SECTION_START / 2 + 0x1FC / 2);
 uint32_t mBootKey __attribute__((section(".noinit")));

@@ -20,12 +20,12 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
+#include "CPU.h"
+#include "DataTypes.h"
+#include "GPIO.h"
+#include "Interrupt.h"
 #include "USART.h"
 #include "Utility.h"
-#include "Interrupt.h"
-#include "CPU.h"
-#include "GPIO.h"
-#include "DataTypes.h"
 
 // Missing defines for xmega usart
 #define USART_UCPHA_bm (0x02) // clock phase bitmask

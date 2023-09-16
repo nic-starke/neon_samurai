@@ -52,10 +52,10 @@
 
 /* Includes: */
 #include "../../../../Common/Common.h"
-#include "../USBMode.h"
 #include "../Events.h"
-#include "../USBTask.h"
 #include "../USBInterrupt.h"
+#include "../USBMode.h"
+#include "../USBTask.h"
 
 /* Private Interface - For use in library only: */
 #if !defined(__DOXYGEN__)
@@ -84,8 +84,8 @@ extern uint8_t USB_EndpointTable[];
 /* Includes: */
 #if defined(USB_CAN_BE_DEVICE) || defined(__DOXYGEN__)
 #include "../Device.h"
-#include "../Endpoint.h"
 #include "../DeviceStandardReq.h"
+#include "../Endpoint.h"
 #include "../EndpointStream.h"
 #endif
 

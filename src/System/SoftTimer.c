@@ -20,10 +20,10 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
+#include "DataTypes.h"
+#include "Interrupt.h"
 #include "SoftTimer.h"
 #include "Timer.h"
-#include "Interrupt.h"
-#include "DataTypes.h"
 
 #define SOFT_TIMER (TCD0)
 

@@ -17,16 +17,16 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
-#include "EncoderDisplay.h"
-#include "Encoder.h"
+#include "Data.h"
 #include "DataTypes.h"
 #include "Display.h"
+#include "Encoder.h"
+#include "EncoderDisplay.h"
 #include "HardwareDescription.h"
 #include "Input.h"
-#include "Data.h"
 #include "fast_hsv2rgb.h"
 
 #define INDVAL_2_INDCOUNT(x) (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS)

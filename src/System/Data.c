@@ -19,15 +19,15 @@
 
 #include <avr/eeprom.h>
 
-#include "DataTypes.h"
+#include "Colour.h"
 #include "Config.h"
 #include "Data.h"
+#include "DataTypes.h"
 #include "Display.h"
 #include "Encoder.h"
-#include "Colour.h"
+#include "EncoderDisplay.h"
 #include "Input.h"
 #include "Interrupt.h"
-#include "EncoderDisplay.h"
 
 #define EE_DATA_VERSION (0xAFF1)
 

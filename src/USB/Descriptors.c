@@ -22,6 +22,11 @@
 
 // clang-format off
 
+static const USB_Descriptor_String_t PROGMEM LanguageString     = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
+static const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR(L"www.bxzn.one");
+static const USB_Descriptor_String_t PROGMEM ProductString      = USB_STRING_DESCRIPTOR(L"Muffin Twister");
+static const USB_Descriptor_String_t PROGMEM SerialString       = USB_STRING_DESCRIPTOR(L"666");
+
 /** Device descriptor structure. This descriptor, located in FLASH memory,
  * describes the overall device characteristics, including the supported USB
  * version, control endpoint size and the number of device configurations. The
@@ -326,11 +331,6 @@ static const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
 };
 // clang-format on
 
-static const USB_Descriptor_String_t PROGMEM LanguageString     = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
-static const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR(L"www.bxzn.one");
-static const USB_Descriptor_String_t PROGMEM ProductString      = USB_STRING_DESCRIPTOR(L"Muffin Twister");
-static const USB_Descriptor_String_t PROGMEM SerialString       = USB_STRING_DESCRIPTOR(L"6666666A");
-
 /** This function is called by the library when in device mode, and must be
  * overridden (see library "USB Descriptors" documentation) by the application
  * code so that the address and size of a requested descriptor can be given to
@@ -351,7 +351,7 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex
             Address = &DeviceDescriptor;
             Size    = sizeof(USB_Descriptor_Device_t);
             break;
-            
+
         case DTYPE_Configuration:
             Address = &ConfigurationDescriptor;
             Size    = sizeof(USB_Descriptor_Configuration_t);
@@ -369,7 +369,7 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex
                     Address = &ManufacturerString;
                     Size    = pgm_read_byte(&ManufacturerString.Header.Size);
                     break;
-                    
+
                 case STRING_ID_Product:
                     Address = &ProductString;
                     Size    = pgm_read_byte(&ProductString.Header.Size);

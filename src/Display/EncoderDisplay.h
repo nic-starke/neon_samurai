@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "Encoder.h"
-#include "Display.h"
 #include "Colour.h"
+#include "Display.h"
+#include "Encoder.h"
 
 void EncoderDisplay_Test(void);
 void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex);

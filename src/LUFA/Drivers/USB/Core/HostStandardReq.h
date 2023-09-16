@@ -44,9 +44,9 @@
 
 /* Includes: */
 #include "../../../Common/Common.h"
-#include "USBMode.h"
 #include "StdRequestType.h"
 #include "USBController.h"
+#include "USBMode.h"
 
 /* Enable C linkage for C++ Compilers: */
 #if defined(__cplusplus)

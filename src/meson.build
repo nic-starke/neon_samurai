@@ -1,4 +1,5 @@
 folders = [
+    'Comms',
 	'Display',
     'Input',
     'MIDI',
@@ -15,6 +16,8 @@ endforeach
 
 project_src += files(
     'main.c',
+
+    'Comms/Comms.c',
 
     'Display/Colour.c',
     'Display/Display.c',

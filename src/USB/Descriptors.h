@@ -37,8 +37,8 @@ typedef struct
 #ifdef MIDI_ENABLE
     USB_Descriptor_Interface_Association_t Audio_Interface_Association;
     // MIDI Audio Control Interface
-    USB_Descriptor_Interface_t          Audio_ControlInterface;
-    USB_Audio_Descriptor_Interface_AC_t Audio_ControlInterface_SPC;
+    USB_Descriptor_Interface_t             Audio_ControlInterface;
+    USB_Audio_Descriptor_Interface_AC_t    Audio_ControlInterface_SPC;
 
     // MIDI Audio Streaming Interface
     USB_Descriptor_Interface_t                Audio_StreamInterface;
@@ -76,7 +76,8 @@ typedef struct
 #endif
 } USB_Descriptor_Configuration_t;
 
-typedef enum {
+typedef enum
+{
 #ifdef MIDI_ENABLE
     MIDI_AC_INTERFACE, // Audio control interface
     MIDI_AS_INTERFACE, // Audio stream interface
@@ -102,7 +103,8 @@ typedef enum
     STRING_ID_Serial       = 3, /**< Serial string ID */
 } eStringDescriptors;
 
-typedef enum {
+typedef enum
+{
     ENDPOINT_RESERVED,
 #ifdef MIDI_ENABLE
     MIDI_STREAM_IN_EPNUM,

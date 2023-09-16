@@ -77,8 +77,8 @@
 /* Includes: */
 #include "../../../../Common/Common.h"
 
-#include "HIDReportData.h"
 #include "HIDClassCommon.h"
+#include "HIDReportData.h"
 
 /* Enable C linkage for C++ Compilers: */
 #if defined(__cplusplus)

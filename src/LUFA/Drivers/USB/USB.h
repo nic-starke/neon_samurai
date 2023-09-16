@@ -447,24 +447,24 @@
 #include "Core/USBMode.h"
 
 /* Includes: */
-#include "Core/USBTask.h"
+#include "Core/ConfigDescriptors.h"
 #include "Core/Events.h"
 #include "Core/StdDescriptors.h"
-#include "Core/ConfigDescriptors.h"
 #include "Core/USBController.h"
 #include "Core/USBInterrupt.h"
+#include "Core/USBTask.h"
 
 #if defined(USB_CAN_BE_HOST) || defined(__DOXYGEN__)
 #include "Core/Host.h"
-#include "Core/Pipe.h"
 #include "Core/HostStandardReq.h"
+#include "Core/Pipe.h"
 #include "Core/PipeStream.h"
 #endif
 
 #if defined(USB_CAN_BE_DEVICE) || defined(__DOXYGEN__)
 #include "Core/Device.h"
-#include "Core/Endpoint.h"
 #include "Core/DeviceStandardReq.h"
+#include "Core/Endpoint.h"
 #include "Core/EndpointStream.h"
 #endif
 
@@ -477,8 +477,8 @@
 #include "Class/CCIDClass.h"
 #include "Class/CDCClass.h"
 #include "Class/HIDClass.h"
-#include "Class/MassStorageClass.h"
 #include "Class/MIDIClass.h"
+#include "Class/MassStorageClass.h"
 #include "Class/PrinterClass.h"
 #include "Class/RNDISClass.h"
 #include "Class/StillImageClass.h"

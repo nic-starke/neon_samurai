@@ -19,25 +19,25 @@
 
 #pragma once
 
-#include "Drivers/USB/USB.h"
 #include "Descriptors.h"
+#include "Drivers/USB/USB.h"
 
 #ifdef VSER_ENABLE
-    void _Serial_Init(void);
-    void _Serial_Update(void);
-    void _Serial_Print(char* s);
+void _Serial_Init(void);
+void _Serial_Update(void);
+void _Serial_Print(char* s);
 
-    #define Serial_Init()       _Serial_Init()
-    #define Serial_Update()     _Serial_Update()
-    #ifdef ENABLE_SERIAL
-        #define Serial_Print(s) _Serial_Print(s)
-    #else
-        #define Serial_Print(s)
-    #endif
+#define Serial_Init()   _Serial_Init()
+#define Serial_Update() _Serial_Update()
+#ifdef ENABLE_SERIAL
+#define Serial_Print(s) _Serial_Print(s)
 #else
-    #define Serial_Init()
-    #define Serial_Update()
-    #define Serial_Print(s)
+#define Serial_Print(s)
+#endif
+#else
+#define Serial_Init()
+#define Serial_Update()
+#define Serial_Print(s)
 #endif
 
-void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t *const CDCInterfaceInfo);
+void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo);

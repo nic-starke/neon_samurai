@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "HardwareDescription.h"
 #include "DataTypes.h"
+#include "HardwareDescription.h"
 
 #define DIR_STATIONARY (0x00)
 #define DIR_CW         (0x10)

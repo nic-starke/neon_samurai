@@ -21,9 +21,9 @@
 
 #include <avr/io.h>
 
-#include "Utility.h"
 #include "DataTypes.h"
 #include "Interrupt.h"
+#include "Utility.h"
 
 typedef struct
 {

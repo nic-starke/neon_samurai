@@ -24,14 +24,14 @@
  */
 
 #include "Input.h"
-#include "GPIO.h"
-#include "DataTypes.h"
-#include "Timer.h"
-#include "Settings.h"
-#include "Display.h"
 #include "Data.h"
-#include "USB.h"
+#include "DataTypes.h"
+#include "Display.h"
+#include "GPIO.h"
 #include "MIDI.h"
+#include "Settings.h"
+#include "Timer.h"
+#include "USB.h"
 
 #define SIDE_SWITCH_PORT    (PORTA)
 #define ENCODER_PORT        (PORTC)

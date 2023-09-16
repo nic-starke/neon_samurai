@@ -21,23 +21,21 @@
 #warning "This project has only been tested on the XMEGA 128A4U, continue at your own risk"
 #endif
 
-
-
 #include <Common/Common.h>
 #include <Drivers/USB/USB.h>
 #include <avr/wdt.h>
 
 #include "Config.h"
-#include "System.h"
-#include "Display.h"
 #include "DMA.h"
-#include "USART.h"
-#include "Input.h"
-#include "EncoderDisplay.h"
-#include "SoftTimer.h"
 #include "Data.h"
-#include "USB.h"
+#include "Display.h"
+#include "EncoderDisplay.h"
+#include "Input.h"
 #include "MIDI.h"
+#include "SoftTimer.h"
+#include "System.h"
+#include "USART.h"
+#include "USB.h"
 
 // #define ENABLE_SERIAL
 #include "VirtualSerial.h"
@@ -139,4 +137,3 @@ int main(void)
         USB_USBTask();
     }
 }
-

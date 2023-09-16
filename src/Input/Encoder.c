@@ -20,16 +20,16 @@
 #include <avr/pgmspace.h>
 #include <math.h>
 
-#include "Encoder.h"
-#include "HardwareDescription.h"
-#include "Data.h"
 #include "Colour.h"
+#include "Data.h"
 #include "DataTypes.h"
-#include "Input.h"
-#include "Utility.h"
-#include "USB.h"
+#include "Encoder.h"
 #include "EncoderDisplay.h"
+#include "HardwareDescription.h"
+#include "Input.h"
 #include "MIDI.h"
+#include "USB.h"
+#include "Utility.h"
 
 static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
     // TODO move to progmem.

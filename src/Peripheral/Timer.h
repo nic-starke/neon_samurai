@@ -21,8 +21,8 @@
 
 #include <avr/io.h>
 
-#include "Interrupt.h"
 #include "DataTypes.h"
+#include "Interrupt.h"
 #include "Utility.h"
 
 typedef enum

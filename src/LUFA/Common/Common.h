@@ -65,16 +65,16 @@
 #define __INCLUDE_FROM_COMMON_H
 
 /* Includes: */
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 
-#include "Architectures.h"
-#include "BoardTypes.h"
 #include "ArchitectureSpecific.h"
-#include "CompilerSpecific.h"
+#include "Architectures.h"
 #include "Attributes.h"
+#include "BoardTypes.h"
+#include "CompilerSpecific.h"
 
 #if defined(USE_LUFA_CONFIG_HEADER)
 #include "LUFAConfig.h"
@@ -94,11 +94,11 @@ extern "C" {
  */
 typedef MACHINE_REG_t uint_reg_t;
 #elif (ARCH == ARCH_AVR8)
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-#include <avr/eeprom.h>
 #include <avr/boot.h>
+#include <avr/eeprom.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <math.h>
 #include <util/delay.h>
 
@@ -128,10 +128,10 @@ typedef uint32_t uint_reg_t;
 
 #include "Endianness.h"
 #elif (ARCH == ARCH_XMEGA)
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
 #include <avr/eeprom.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <math.h>
 #include <util/delay.h>
 

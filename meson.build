@@ -52,7 +52,7 @@ subdir('src/LUFA/')
 extra_args = [
     '-DMIDI_ENABLE',
     # '-DHID_ENABLE',
-    '-DVSER_ENABLE',
+    # '-DVSER_ENABLE',
 ]
 
 muffin = executable(

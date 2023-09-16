@@ -129,9 +129,9 @@ static inline bool USB_INT_HasOccurred(const uint8_t Interrupt)
 }
 
 /* Includes: */
-#include "../USBMode.h"
 #include "../Events.h"
 #include "../USBController.h"
+#include "../USBMode.h"
 
 /* Function Prototypes: */
 void USB_INT_ClearAllInterrupts(void);

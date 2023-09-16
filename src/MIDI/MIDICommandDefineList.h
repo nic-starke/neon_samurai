@@ -58,7 +58,7 @@ MIDI_SYSEX_NON_REALTIME_DEF(FILE_DUMP,          "File Dump",                0x07
 MIDI_SYSEX_NON_REALTIME_DEF(TUNING_STANDARD,    "Tuning Standard",          0x08)
 MIDI_SYSEX_NON_REALTIME_DEF(GM,                 "General MIDI System",      0x09)
 MIDI_SYSEX_NON_REALTIME_DEF(DLS,                "Downloadable Sounds System", 0x0A)
-MIDI_SYSEX_NON_REALTIME_DEF(EOF,                "End of File",              0x7B)
+MIDI_SYSEX_NON_REALTIME_DEF(END_OF_FILE,        "End of File",              0x7B)
 MIDI_SYSEX_NON_REALTIME_DEF(WAIT,               "Wait",                     0x7C)
 MIDI_SYSEX_NON_REALTIME_DEF(CANCEL,             "Cancel",                   0x7D)
 MIDI_SYSEX_NON_REALTIME_DEF(NAK,                "NAK",                      0x7E)

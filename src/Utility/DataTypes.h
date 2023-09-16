@@ -20,8 +20,8 @@
 #pragma once
 
 #include <stdbool.h>
-#include <stdint-gcc.h>
 #include <stddef.h>
+#include <stdint-gcc.h>
 
 typedef uint8_t  u8;
 typedef uint16_t u16;

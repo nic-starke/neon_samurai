@@ -18,11 +18,11 @@
  */
 
 #include "USB.h"
-#include "Encoder.h"
 #include "DataTypes.h"
+#include "Display.h"
+#include "Encoder.h"
 #include "Input.h"
 #include "MIDI.h"
-#include "Display.h"
 
 // #define ENABLE_SERIAL
 #include "VirtualSerial.h"
@@ -72,7 +72,6 @@ USB_ClassInfo_CDC_Device_t gCDC_Interface = {
 #endif
 // clang-format on
 
-
 /** Event handler for the library USB Connection event. */
 void EVENT_USB_Device_Connect(void)
 {
@@ -114,7 +113,7 @@ void EVENT_USB_Device_ControlRequest(void)
 #endif
 
 #ifdef HID_ENABLE
-    #error "Need to handle HID class requests here"
+#error "Need to handle HID class requests here"
 #endif
 
 #ifdef VSER_ENABLE

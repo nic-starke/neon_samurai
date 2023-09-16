@@ -52,8 +52,8 @@
 
 /* Includes: */
 #include "../../../../Common/Common.h"
-#include "../StdDescriptors.h"
 #include "../Pipe.h"
+#include "../StdDescriptors.h"
 #include "../USBInterrupt.h"
 
 /* Enable C linkage for C++ Compilers: */
