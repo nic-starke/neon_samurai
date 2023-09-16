@@ -1,0 +1,52 @@
+██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗    ██████╗
+██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝    ╚════██╗
+██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗       █████╔╝
+██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝       ╚═══██╗
+╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗    ██████╔╝
+ ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝    ╚═════╝ 
+                                                              
+Its been a while since the last update, but I've been busy with other things and needed to take a break from personal projects.
+
+
+- Firmware Changes -
+User settings are now stored and retrieved on bootup.
+A midi loopback was added for debug purposes.
+
+
+- Desktop Editor -
+The desktop utility (MuffinEditor) to edit the configuration of the MFT and to update the firmware is underway.
+There is a lot of work that I was not prepared for when I initially started, but I've been making some progress
+ - here is a short list of things that need to be done:
+
+
+* MIDI communications to/from MFT
+MIDI will be used as the primary comms method between the desktop app and the MFT.
+It will be used to send configuration data to/from the MFT, via sysex data messages.
+
+
+* USB DFU (https://en.wikipedia.org/wiki/USB#Device_Firmware_Upgrade_mechanism)
+Luckily, DFU is already implemented within the existing MFT bootloader, which is what the official MFT utility uses for updates.
+But I still need to implement the "host-side" DFU into MuffinEditor -
+I don't think this will be easy, but as a workaround it is possible to use the official MFT utility to handle firmware updates for now.
+
+
+* Cross-Platform and GUI
+I want MuffinEditor to be usable on Mac/Windows/Linux, therefore every feature needs to use the correct system libraries (such as dlls).
+I already have cross-platform MIDI comms handled, and hopefully the GUI will also fall into place as I intend to use RayLib.
+Regarding the USB DFU, I am unsure on how to handle this currently...
+
+
+* Programming Language
+I started writing MuffinEditor in C, this was initially slow as I had to setup a cross-platform build environment and all the associated scripts/tooling that come with this.
+I have experience with this on multiple previous projects, but it is always a pain and never "fun".
+I had been experimenting with the Go programming language recently and found it to be very easy to setup new projects (no complex build system/scripts),
+and it just miles ahead in terms of core features, the standard library, compiler speed, tooling and package handling.
+So I've decided to migrate MuffinEditor to Go. It will take some time to get up to speed with Go, but this will pay off (hopefully) in the end.
+
+
+------
+Thank you for your feature requests, I do read and reply to every one so keep them coming.
+
+
+Cheers,
+BXZN
