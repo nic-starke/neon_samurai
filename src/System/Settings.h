@@ -22,6 +22,7 @@
 /* Faster updates can reduce flickering (some people may be sensitive)
  * But this will slow down input processing */
 
+#define DISPLAY_REFRESH_TEST   (800)
 #define DISPLAY_REFRESH_SLOW   (80)
 #define DISPLAY_REFRESH_AVG	   (40)
 #define DISPLAY_REFRESH_FAST   (10)

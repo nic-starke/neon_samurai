@@ -48,31 +48,16 @@ static inline DMA_CH_t* DMA_GetChannelPointer(u8 ChannelNumber)
 	return (DMA_CH_t*)((uintptr_t)(&DMA.CH0) + (sizeof(DMA_CH_t) * ChannelNumber));
 }
 
-/**
- * @brief Start DMA transactions for channel
- *
- * @param pDMA Pointer to DMA channel
- */
 static inline void DMA_EnableChannel(DMA_CH_t* pDMA)
 {
 	SET_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
 }
 
-/**
- * @brief Stop DMA transactions for channel
- *
- * @param pDMA  Pointer to DMA channel
- */
 static inline void DMA_DisableChannel(DMA_CH_t* pDMA)
 {
 	CLR_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
 }
 
-/**
- * @brief Reset the DMA channel
- *
- * @param pDMA Pointer to DMA channel
- */
 static inline void DMA_ResetChannel(DMA_CH_t* pDMA)
 {
 	SET_BIT(pDMA->CTRLA, DMA_CH_RESET_bm);
@@ -95,8 +80,8 @@ static inline void DMA_SetChannelSourceAddress(DMA_CH_t* pDMA, uintptr_t Address
 {
 	pDMA->SRCADDR0 = (Address >> 0) & 0xFF;
 	pDMA->SRCADDR1 = (Address >> 8) & 0xFF;
-	pDMA->SRCADDR2 = (Address >> 16) & 0xFF;
-	// pDMA->SRCADDR2 = 0; .. runaway something or other...
+	// pDMA->SRCADDR2 = (Address >> 16) & 0xFF;
+	pDMA->SRCADDR2 = 0; // .. runaway something or other...
 }
 
 static inline void DMA_SetChannelInterrupts(DMA_CH_t* pDMA, eInterruptPriority TransactionIntPriority, eInterruptPriority ErrorIntPriority)

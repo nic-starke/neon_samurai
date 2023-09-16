@@ -34,7 +34,7 @@ typedef enum
 
 static inline u8 IRQ_DisableInterrupts(void)
 {
-	u8 flags = SREG;
+	vu8 flags = SREG;
 	cli();
 	return flags;
 }

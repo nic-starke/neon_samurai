@@ -196,6 +196,7 @@ void USART_InitModule(const sUSART_ModuleConfig* pConfig)
 	EnablePower(pConfig->pUSART);
 
 	USART_DisableRX(pConfig->pUSART);
+    USART_EnableTX(pConfig->pUSART);
 
 	ConfigureGPIO(pConfig->pUSART, pConfig->SPIMode);
 	SetMode(pConfig->pUSART, USART_CMODE_MSPI_gc);

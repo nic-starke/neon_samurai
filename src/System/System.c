@@ -21,8 +21,6 @@
 #include <Platform/XMEGA/ClockManagement.h>
 
 #include "System.h"
-#include "DMA.h"
-#include "USART.h"
 #include "CPU.h"
 #include "Interrupt.h"
 
@@ -38,7 +36,4 @@ void System_Init(void)
 
 	// Configure interrupt controller
 	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
-
-	DMA_Init();
-	USART_Init();
 }

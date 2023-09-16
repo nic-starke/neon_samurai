@@ -32,7 +32,9 @@ static inline void DMA_DisablePower(void)
 
 static inline void DMA_EnableController(void)
 {
-	SET_BIT(DMA.CTRL, DMA_ENABLE_bm);
+	// SET_BIT(DMA.CTRL, DMA_ENABLE_bm);
+    DMA.CTRL = DMA_RESET_bm;
+    DMA.CTRL = DMA_ENABLE_bm;
 }
 
 static inline void DMA_DisableController(void)
@@ -47,7 +49,7 @@ static inline void DMA_ResetController(void)
 
 static inline void DMA_SetDoubleBufferMode(DMA_DBUFMODE_t Mode)
 {
-	DMA.CTRL = (DMA.CTRL & ~DMA_CH_ENABLE_bm) | Mode;
+	DMA.CTRL = (DMA.CTRL & ~DMA_DBUFMODE_gm) | Mode;
 }
 
 /**
@@ -75,38 +77,43 @@ void DMA_InitChannel(const sDMA_ChannelConfig* pConfig)
 {
 	const u8 flags = IRQ_DisableInterrupts();
 
+    DMA_DisableChannel(pConfig->pChannel);
+
 	// Source
 	pConfig->pChannel->SRCADDR0 = (pConfig->SrcAddress >> 0) & 0xFF;
 	pConfig->pChannel->SRCADDR1 = (pConfig->SrcAddress >> 8) & 0xFF;
-	pConfig->pChannel->SRCADDR2 = (pConfig->SrcAddress >> 16) & 0xFF;
+	// pConfig->pChannel->SRCADDR2 = (pConfig->SrcAddress >> 16) & 0xFF;
+    pConfig->pChannel->SRCADDR2 = 0;//(pConfig->SrcAddress >> 16) & 0xFF;
 
-	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCDIR_gm);
+	CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCDIR_gm);
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->SrcAddressingMode);
 
-	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCRELOAD_gm);
+	CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_SRCRELOAD_gm);
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->SrcReloadMode);
 
 	// Destination
 	pConfig->pChannel->DESTADDR0 = (pConfig->DstAddress >> 0) & 0xFF;
 	pConfig->pChannel->DESTADDR1 = (pConfig->DstAddress >> 8) & 0xFF;
-	pConfig->pChannel->DESTADDR2 = (pConfig->DstAddress >> 16) & 0xFF;
+    // pConfig->pChannel->DESTADDR2 = (pConfig->DstAddress >> 16) & 0xFF;
+	pConfig->pChannel->DESTADDR2 = 0;//(pConfig->DstAddress >> 16) & 0xFF;
 
-	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTDIR_gm);
+	CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTDIR_gm);
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->DstAddressingMode);
 
-	// CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTRELOAD_gm);
+	CLR_BIT(pConfig->pChannel->ADDRCTRL, DMA_CH_DESTRELOAD_gm);
 	SET_BIT(pConfig->pChannel->ADDRCTRL, pConfig->DstReloadMode);
 
 	// DMA Config
-	SET_BIT(pConfig->pChannel->TRIGSRC, pConfig->TriggerSource);
+	pConfig->pChannel->TRIGSRC = pConfig->TriggerSource;
 
-	// CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_BURSTLEN_gm);
+	CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_BURSTLEN_gm);
 	SET_BIT(pConfig->pChannel->CTRLA, pConfig->BurstLength);
 
-	SET_BIT(pConfig->pChannel->TRFCNT, pConfig->BytesPerTransfer);
+	pConfig->pChannel->TRFCNT = pConfig->BytesPerTransfer;
 
 	if (pConfig->Repeats > 1)
 	{
+        pConfig->pChannel->REPCNT = pConfig->Repeats;
 		CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_SINGLE_bm);
 		SET_BIT(pConfig->pChannel->CTRLA, DMA_CH_REPEAT_bm);
 	}
@@ -115,13 +122,11 @@ void DMA_InitChannel(const sDMA_ChannelConfig* pConfig)
 		CLR_BIT(pConfig->pChannel->CTRLA, DMA_CH_REPEAT_bm);
 		SET_BIT(pConfig->pChannel->CTRLA, DMA_CH_SINGLE_bm);
 	}
-	pConfig->pChannel->REPCNT = pConfig->Repeats;
-
+	
 	CLR_BIT(pConfig->pChannel->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);
 	SET_BIT(pConfig->pChannel->CTRLB,
 			(pConfig->ErrInterruptPriority << DMA_CH_ERRINTLVL_gp) | (pConfig->InterruptPriority << DMA_CH_TRNINTLVL_gp));
 
 	DMA_SetDoubleBufferMode(pConfig->DoubleBufferMode);
-
 	IRQ_EnableInterrupts(flags);
 }

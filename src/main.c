@@ -21,14 +21,23 @@
 #warning "This project has only been tested on the XMEGA 128A4U, continue at your own risk"
 #endif
 
-#include "Config.h"
+#include <Common/Common.h>
+#include <Drivers/USB/USB.h>
 
+#include "Config.h"
 #include "System.h"
 #include "Display.h"
+#include "DMA.h"
+#include "USART.h"
 
 int main(void)
 {
 	System_Init();
+    DMA_Init();
+	USART_Init();
 	Display_Init();
+
+    GlobalInterruptEnable();
+
 	while (1) {}
 }
