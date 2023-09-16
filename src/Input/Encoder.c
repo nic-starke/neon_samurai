@@ -26,7 +26,7 @@
 #include "Types.h"
 #include "Input.h"
 
-static const sVirtualEncoder DEFAULT_PRIMARY_VENCODER  = {
+static const sVirtualEncoder DEFAULT_PRIMARY_VENCODER = {
     .CurrentValue            = ENCODER_MIN_VAL,
     .PreviousValue           = ENCODER_MIN_VAL,
     .DisplayStyle            = STYLE_DOT,
@@ -101,15 +101,19 @@ void Encoder_FactoryReset(void)
         {
             sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
             Encoder_SetDefaultConfig(pEncoder);
-            
+
             pEncoder->Primary.MidiConfig.MidiValue.CC       = encoder;
             pEncoder->Primary.MidiConfig.Channel            = 0;
+
             pEncoder->PrimaryUber.MidiConfig.MidiValue.CC   = encoder;
             pEncoder->PrimaryUber.MidiConfig.Channel        = 1;
+
             pEncoder->Secondary.MidiConfig.MidiValue.CC     = encoder;
             pEncoder->Secondary.MidiConfig.Channel          = 2;
+
             pEncoder->SecondaryUber.MidiConfig.MidiValue.CC = encoder;
             pEncoder->SecondaryUber.MidiConfig.Channel      = 3;
+
             pEncoder->Primary.DisplayInvalid                = true;
             pEncoder->Secondary.DisplayInvalid              = true;
             // pEncoder->Switch.MidiConfig.Channel = 0;
@@ -124,8 +128,8 @@ void Encoder_Update(void)
 {
     for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
     {
-        // Encoder indexing at this stage is in reverse due to hardware design
-        sEncoderState* pEncoderState = &gData.EncoderStates[gData.CurrentBank][NUM_ENCODERS - 1 - encoder];
+        // Encoder indexing is reversed due to hardware design
+        sEncoderState* pEncoderState = &gData.EncoderStates[gData.CurrentBank][(NUM_ENCODERS - 1) - encoder];
 
         bool displayInvalid = false;
         bool transmitValue  = false;
@@ -257,8 +261,8 @@ void Encoder_Update(void)
         // Process Encoder Rotation
         sHardwareEncoder* pHardwareEncoder = &gData.HardwareEncoders[encoder];
         pVE->PreviousValue                 = pVE->CurrentValue;
-        u8  dir  = Encoder_GetDirection(encoder);
-        s16 move = 0;
+        u8  dir                            = Encoder_GetDirection(encoder);
+        s16 move                           = 0;
         if (dir == DIR_STATIONARY)
         {
             move = 0;
@@ -279,6 +283,7 @@ void Encoder_Update(void)
 
             s32 newValue = (s32)pVE->CurrentValue + pHardwareEncoder->CurrentVelocity;
 #else
+            pHardwareEncoder->CurrentVelocity += move;
             s32 newValue = pHardwareEncoder->CurrentVelocity * 1000;
 #endif
 
