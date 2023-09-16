@@ -4,7 +4,7 @@
 
 ---
 
-## [LINK TO PROJECT WIKI](https://man.sr.ht/~Nicolaus Starke/Muffin/)
+## [LINK TO PROJECT WIKI](https://github.com/nic-starke/muffintwister/wiki)
 
 ---
 
@@ -23,15 +23,16 @@ Muffin is still in development, when its ready I'll create a release and make do
 
 ## Mailing List
 
-To get periodic updates on the project status you can sign up [here](https://lists.sr.ht/~Nicolaus Starke/muffin-announce).
+To get periodic updates on the project status you can sign up [here](<https://lists.sr.ht/~Nicolaus> Starke/muffin-announce).
 
 ## Planned Features
 
 The overall intention for the project is to remove some of the limitations of the original firmware, such as fixed midi channels, however there is the possibility of adding new features.
 See below regarding feature requests.
+
 ## Feature Requests and Bug Reports
 
-Please use the [issues](https://todo.sr.ht/~Nicolaus Starke/Muffin) page of the repository to request new features, or to submit a bug.
+Please use the [issues](<https://todo.sr.ht/~Nicolaus> Starke/Muffin) page of the repository to request new features, or to submit a bug.
 
 ## Why Muffin?
 
@@ -43,7 +44,7 @@ Please use the [issues](https://todo.sr.ht/~Nicolaus Starke/Muffin) page of the 
 
 I have created a virtual machine development environment that can be used to quickly get going with the project.
 
-It is available [here](https://git.sr.ht/~Nicolaus Starke/AVR_VM), its a generic Ubuntu VM configured with the latest AVR-GCC.
+It is available [here](<https://git.sr.ht/~Nicolaus> Starke/AVR_VM), its a generic Ubuntu VM configured with the latest AVR-GCC.
 
 It uses a [Vagrant](www.vagrantup.com) configuration script so you don't have to configure anything.
 
@@ -61,9 +62,9 @@ The vagrant environment should drop your terminal directly into the checkout fol
 3. Compile all build-targets
 
 ```bash
-$ . ./scripts/setEnv.sh
-$ ./scripts/mesonGenerate.sh
-$ ./scripts/build.sh
+. ./scripts/setEnv.sh
+./scripts/mesonGenerate.sh
+./scripts/build.sh
 ```
 
 Now make some modifications and just run the `build.sh` script when required.
@@ -75,8 +76,10 @@ If you want a clean build run `build.sh clean`.
 WIP.
 
 ## Serial Monitor
+
 To build serial comms into the firmware check that the flag '-DVSER_ENABLE' is uncommented in meson.build.
 To print to serial in the firmware:
+
 1. Add #define ENABLE_SERIAL to the c source file.
 2. Add #include "Virtual_Serial.h" below the ENABLE_SERIAL define.
 3. Use Serial_Print("my string\r\n") to print.
