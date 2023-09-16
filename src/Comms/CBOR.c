@@ -25,7 +25,12 @@
 #define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
-static inline CheckError(QCBOREncodeContext* _pContext)
+/**
+ * @brief Prints an error to serial if the QCBOR context is in an error state
+ * 
+ * @param _pContext The QCBOR context to check
+ */
+static inline PrintIfError(QCBOREncodeContext* _pContext)
 {
     QCBORError _err = QCBOREncode_GetErrorState(_pContext);
     if (_err != QCBOR_SUCCESS)
@@ -36,7 +41,18 @@ static inline CheckError(QCBOREncodeContext* _pContext)
     }
 }
 
-UsefulBufC CBOR_Encode_Message(const sMessage* pMessage, UsefulBuf Buffer)
+/**
+ * @brief Encodes an sMessage but excludes any data.
+ * Any attached data must be valid CBOR encoded.
+ * Note that this encoding uses tags for each item.
+ * 
+ * To calculate the required size for Buffer - (sizeof(sMessage) + SIZEOF_CBORLABEL * NUM_LABELS_MESSAGE)
+ * 
+ * @param pMessage A pointer to the message to encode.
+ * @param Buffer The UsefulBuf that will store the encoded messages. Must be large enough to store the encoded message.
+ * @return UsefulBufC A pointer to the encoded byte stream - will be NULL if encoding failed.
+ */
+UsefulBufC CBOR_Encode_Message(const sMessage* const pMessage, UsefulBuf Buffer)
 {
     QCBOREncodeContext ctx;
     QCBOREncode_Init(&ctx, Buffer);
@@ -68,7 +84,7 @@ UsefulBufC CBOR_Encode_Message(const sMessage* pMessage, UsefulBuf Buffer)
     QCBOREncode_CloseMap(&ctx);
 
     QCBOREncode_AddUInt64ToMap(&ctx, "v", pMessage->Value);
-    CheckError(&ctx);
+    PrintIfError(&ctx);
     if (!UsefulBuf_IsNULLOrEmptyC(pMessage->Data))
     {
         QCBOREncode_AddEncodedToMap(&ctx, "d", pMessage->Data);
@@ -91,42 +107,4 @@ UsefulBufC CBOR_Encode_Message(const sMessage* pMessage, UsefulBuf Buffer)
     return NULLUsefulBufC;
 }
 
-// UsefulBufC CBOREncode_Encoder(const sEncoderState* pEncoder, UsefulBuf Buffer)
-// {
-//     QCBOREncodeContext ctx;
-//     QCBOREncode_Init(&ctx, Buffer);
-//     QCBOREncode_AddUInt64(&ctx, pEncoder->CurrentValue);
-//     QCBOREncode_AddUInt64(&ctx, pEncoder->PreviousValue);
-
-//     UsefulBufC encodedData;
-//     QCBORError err = QCBOREncode_Finish(&ctx, &encodedData);
-//     if (err != QCBOR_SUCCESS)
-//     {
-//         return NULLUsefulBufC;
-//     }
-//     else
-//     {
-//         return encodedData;
-//     }
-// }
-
-// QCBORError CBORDecode_Encoder(UsefulBufC EncodedStruct, sEncoderState* pDest)
-// {
-//     sEncoderState      pBuffer = {0};
-//     QCBORDecodeContext ctx;
-//     QCBORDecode_Init(&ctx, EncodedStruct, QCBOR_DECODE_MODE_NORMAL);
-//     QCBORDecode_GetUInt64(&ctx, &pBuffer.CurrentValue);
-//     QCBORDecode_GetUInt64(&ctx, &pBuffer.PreviousValue);
-//     QCBORDecode_Finish(&ctx);
-//     QCBORError err = QCBORDecode_GetAndResetError(&ctx);
-
-//     if (err != QCBOR_SUCCESS)
-//     {
-//         return err;
-//     }
-//     else
-//     {
-//         *pDest = pBuffer;
-//         return err;
-//     }
-// }
+// TODO Decode a message.

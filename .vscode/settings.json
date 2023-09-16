@@ -42,4 +42,5 @@
         "compare": "c",
         "type_traits": "c"
     },
+    "docwriter.progress.trackFunctions": false,
 }

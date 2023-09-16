@@ -19,8 +19,6 @@
 
 #pragma once
 
-// Currently this implementation only handles 1 transport protocol - usbmidi
-
 #include "DataTypes.h"
 #include "ModuleIDs.h"
 #include "UsefulBuf.h"
@@ -52,34 +50,7 @@ typedef enum
     NUM_CONNECTION_STATES,
 } eConnectionState;
 
-// clang-format off
-/**
- * @brief Discovery Process
- * At bootup the local address will be recalled from EEPROM.
- * This address will be the last valid address assigned during any previous discovery process.
- * If this unit has never been assigned an address then its local address will be == UNASSIGNED_ADDRESS
- * 
- * The local address is just a uint16 bitfield.
- * A total of 16 muffin units can be connected in a network (designed to be 1 per midi channel)
- * 
- * The discovery process works as follows: 
- * [On Bootup]                  - Retrieve the previously used network address from non-volatile storage, set local discovery state to DISCOVERY_START
- * [DISCOVERY_START]            - Send a network discovery message, set state to DISCOVERY_AWAITING_REPLIES
- * [DISCOVERY_AWAITING_REPLIES] - wait DISCOVERY_WAIT_TIME milliseconds then go to DISCOVERY_COMPLETE
- * [DISCOVERY_COMPLETE]         - 
- *      ? Did we receive any discovery replies?
- *      Yes - Execute AddressResolution() and set state to DISCOVERY_STOPPED
- *      No - Set state to DISCOVERY_START, but only upto 3 times total
- * 
- * The address resolution process works as follows:
- * Check the peers in mConnections, find the first available position (first bit set to zero in uint16 bitfield)
- * Set the local address equal to this value (i.e 1U << FreeConnectionIndex)
- * 
- * Send a DEVICE_REGISTRATION message (the Header.Source.ClientAddress field will now be updated with the local address)
- * This will force any devices that share the local address to restart the discovery process.
- * This should not happen
- */
-// clang-format on
+
 typedef enum
 {
     DISCOVERY_STOPPED,

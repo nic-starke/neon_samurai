@@ -19,6 +19,8 @@
 
 #pragma once
 
+// To be used for special messages that do not originate from comms-enabled modules.
+// FIXME - this could just another enum that after the NUM_MODULE_IDs
 #define INVALID_MODULE_ID (0xFF)
 
 typedef enum
@@ -28,6 +30,9 @@ typedef enum
     NUM_MODULE_IDS,
 } eModuleID;
 
+/**
+ * @brief Checks if a module ID is valid.
+ */
 static inline bool IsValidModuleID(u8 ModuleID)
 {
     return ((ModuleID >= 0) && ModuleID < NUM_MODULE_IDS);

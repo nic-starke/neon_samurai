@@ -26,12 +26,14 @@
 #define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
-#define MAX_INCOMING_MSGS       (5)
-#define MAX_MSG_DATA_SIZE       (128) // bytes
+#define MAX_INCOMING_MSGS       (5) // The number of messages in the incoming message queue
+#define MAX_MSG_DATA_SIZE       (128) // Maximum number of bytes per message (including CBOR encoding requirements)
 
 // clang-format off
 
-// Ensure all fields are set locally, otherwise this message will be broadcasted
+// This is a default struct that can be used to conveniently create a new message.
+// WARNING - the message address is BROADCAST by default, change locally if required.
+// TODO - move this to progmem and write a small helper function "CreateNewMessage(pMsg)..."
 const sMessage MSG_Default = {
     .Header = {
         .Protocol = PROTOCOL_BROADCAST,
@@ -58,26 +60,44 @@ const sMessage MSG_Default = {
 
 static bool ProcessMessage(sMessage* pMessage);
 
+// All protocols must be added to this register during initial system bootup sequence.
 struct _protocols {
     bool Registered;
     fpProtocol_SendMessageHandler fpSendHandler;
     // fpProtocol_UpdateHandler fpUpdateHandler;
 } static mProtocols[NUM_COMMS_PROTOCOLS] = {0};
 
+// All modules must be added to this register during initial system bootup sequence.
 struct _modules {
     fpMessageHandler fpMessageHandler;
 } static mModules[NUM_MODULE_IDS] = {0};
 
+/**
+ * @brief Initialise the comms module.
+ * 
+ */
 void Comms_Init(void)
 {
-
+    // Not yet implemented
 }
 
+/**
+ * @brief The main-loop update function for the comms module
+ * 
+ */
 void Comms_Update(void)
 {
-
+    // Not yet implemented
 }
 
+/**
+ * @brief Calls the appropriate SendMessageHandler based on the "Protocol" argument
+ * 
+ * @param pBytes A pointer to a byte stream.
+ * @param NumBytes The number of bytes in the byte stream.
+ * @param Protocol The protocol to use to transmit the byte stream.
+ * @return True on successful transmission of byte stream. False on failed transmission of byte stream.
+ */
 static bool SendMessage(u8* pBytes, uint16_t NumBytes, eCommsProtocol Protocol)
 {
     if(!mProtocols[Protocol].Registered)
@@ -98,6 +118,12 @@ static bool SendMessage(u8* pBytes, uint16_t NumBytes, eCommsProtocol Protocol)
     return mProtocols[Protocol].fpSendHandler(pBytes, NumBytes);
 }
 
+/**
+ * @brief Transmits a message.
+ * Note - only valid CBOR encoded data will be appended - it will not be encoded, do this yourself.
+ * @param pMessage A pointer to a message that needs to be transmitted.
+ * @return True if message transmission successful, False otherwise.
+ */
 bool Comms_SendMessage(sMessage* pMessage)
 {
     if (pMessage == NULL)
@@ -105,6 +131,7 @@ bool Comms_SendMessage(sMessage* pMessage)
         return false;
     }
 
+    // Get the current network address for this device.
     pMessage->Header.Source.ClientAddress = Network_GetLocalAddress();
     pMessage->Header.Source.ClientType = CLIENT_MUFFIN;
 
@@ -131,10 +158,13 @@ bool Comms_SendMessage(sMessage* pMessage)
     if (pMessage->Header.Protocol == PROTOCOL_BROADCAST)
     {
         Serial_Print("Broadcast\r\n");
-        bool success = true;
+        bool success = true; // FIXME - this provides not information on which protocol failed, what should be done to recover from failure?
         for(eCommsProtocol protocol = 0; protocol < NUM_COMMS_PROTOCOLS; protocol++)
         {
-            success &= SendMessage((u8*) encodedMessage.ptr, encodedMessage.len, protocol);
+            if (SendMessage((u8*) encodedMessage.ptr, encodedMessage.len, protocol) == false)
+            {
+                success = false;
+            }
         }
         return success;
     }
@@ -146,15 +176,22 @@ bool Comms_SendMessage(sMessage* pMessage)
     return false;
 }
 
+/**
+ * @brief Register a new transmission protocol.
+ * 
+ * @param Protocol The unique valid enum for the Protocol.
+ * @param SendHandler A pointer to the send handler for this protocol.
+ * @return True if registration successful, False otherwise.
+ */
 bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_SendMessageHandler SendHandler)
 {
-    if(Protocol >= NUM_COMMS_PROTOCOLS || mProtocols[Protocol].Registered) {
+    if(Protocol >= NUM_COMMS_PROTOCOLS || mProtocols[Protocol].Registered || SendHandler == NULL) {
         return false;
     } 
 
     mProtocols[Protocol].Registered = true;
     
-    // if(UpdateHandler)
+    // if(UpdateHandler) // TODO - may use this another time, commented out for now.
     //     mProtocols[Protocol].fpUpdateHandler = UpdateHandler;
 
     if(SendHandler)
@@ -163,6 +200,13 @@ bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_SendMessageHandl
     return true;
 }
 
+/**
+ * @brief Register a module to be comms enabled.
+ * 
+ * @param ID The unique valid enum for the module.
+ * @param MessageHandler A pointer to the message handler that will be used when messages are received for this module.
+ * @return True if registration successful, False otherwise.
+ */
 bool Comms_RegisterModule(eModuleID ID, fpMessageHandler MessageHandler)
 {
     if (MessageHandler == NULL)
@@ -190,12 +234,12 @@ static bool ProcessMessage(sMessage* pMessage)
 {
     if(pMessage->Header.Destination.ClientAddress != BROADCAST_ADDRESS || pMessage->Header.Destination.ClientAddress != Network_GetLocalAddress())
     {
-        return true; // no need to handle this message - ignore.
+        return true; // no need to handle this message because it wasnt for this unit.
     }
 
     if(pMessage->Header.Priority == PRIORITY_REALTIME)
     {
-        // realtime handling
+        // TODO - no realtime messages are implemented yet.
     }
 
     if(IsValidModuleID(pMessage->Header.Destination.ModuleID))
