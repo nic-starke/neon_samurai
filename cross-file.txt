@@ -82,9 +82,12 @@ objcopy_bin_args = [
 objcopy_eep_args = [
   '-j',
   '.eeprom',
+  '--no-change-warnings',
   '--set-section-flags=.eeprom=alloc,load',
   '--change-section-lma',
   '.eeprom=0',
+  '-O',
+  'ihex',
   '@INPUT@',
   '@OUTPUT@']
 

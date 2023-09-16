@@ -1,5 +1,5 @@
 /*
- * File: Encoder.c ( 27th November 2021 )
+ * File: RGB.h ( 28th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -17,4 +17,13 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Encoder.h"
+#pragma once
+
+#include "Types.h"
+
+typedef struct
+{
+	u8 Red;
+	u8 Green;
+	u8 Blue;
+} sRGB;

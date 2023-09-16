@@ -33,8 +33,23 @@
 #include "Input.h"
 #include "EncoderDisplay.h"
 #include "SoftTimer.h"
+#include "Data.h"
 
-// #define TEST
+static sSoftTimer timer = {0};
+
+static inline void SetupTest(void)
+{
+	SoftTimer_Start(&timer);
+}
+
+static inline void RunTest(void)
+{
+	if (SoftTimer_Elapsed(&timer) >= 250)
+	{
+		Display_Test();
+		SoftTimer_Start(&timer);
+	}
+}
 
 int main(void)
 {
@@ -44,26 +59,28 @@ int main(void)
 	SoftTimer_Init();
 	Display_Init();
 	Input_Init();
+	Data_Init();
+
+	USB_Init();
 
 	GlobalInterruptEnable();
 
-	static sSoftTimer timer = {0};
-
-	SoftTimer_Start(&timer);
-
 	while (1)
 	{
-        #ifdef TEST
-		if (SoftTimer_Elapsed(&timer) >= 250)
-		{
-			Display_Test();
-			SoftTimer_Start(&timer);
-            Input_Update();
-		}
-        #else
+		// Display_Update();
 		Input_Update();
-		EncoderDisplay_Test();
 
-        #endif
+		switch (gData.OperatingMode)
+		{
+			case DEFAULT_MODE:
+				// SideSwitch_Update();
+				// Encoder_Update();
+				// USBMidi_Update();
+				break;
+
+			default: break;
+		}
+
+		USB_USBTask();
 	}
 }

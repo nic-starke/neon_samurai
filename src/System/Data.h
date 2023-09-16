@@ -1,5 +1,5 @@
 /*
- * File: Timer.h ( 28th November 2021 )
+ * File: Data.h ( 28th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -20,41 +20,39 @@
 #pragma once
 
 #include "Types.h"
+#include "Encoder.h"
+#include "HardwareDescription.h"
 
 typedef enum
 {
-	TIMER_STOPPED,
-	TIMER_RUNNING,
+	DEFAULT_MODE,
 
-	NUM_TIMER_STATES,
-} eSoftTimer_State;
+	NUM_OPERATING_MODES,
+} eOperatingMode;
 
 typedef struct
 {
-	u32				 StartTime;
-	eSoftTimer_State State;
-} sSoftTimer;
+	eOperatingMode OperatingMode;
 
-void SoftTimer_Init(void);
-u32	 Millis(void);
+	u8 RGBBrightness;
+	u8 DetentBrightness;
+	u8 IndicatorBrightness;
 
-static inline void SoftTimer_Start(sSoftTimer* pTimer)
-{
-	pTimer->State	  = TIMER_RUNNING;
-	pTimer->StartTime = Millis();
-}
+	sHardwareEncoder HardwareEncoders[NUM_ENCODERS];
+	sEncoderState	 EncoderStates[NUM_ENCODERS];
+	sVirtualEncoder	 VirtualEncoders[NUM_VIRTUAL_ENCODERS];
+	sVirtualUber	 VirtualUbers[NUM_VIRTUAL_UBERS];
+    sVirtualSwitch  VirtualEncoderSwitches[NUM_VIRTUAL_SWITCHES];
 
-static inline u32 SoftTimer_Elapsed(sSoftTimer* pTimer)
-{
-	return Millis() - pTimer->StartTime;
-}
+    // Still need side switches here...
 
-static inline u32 SoftTimer_Stop(sSoftTimer* pTimer)
-{
-	if (pTimer->State == TIMER_RUNNING)
-	{
-		pTimer->State = TIMER_STOPPED;
-	}
+	u8 AccelerationConstant;
+	u8 FineAdjustConstant;
 
-	return SoftTimer_Elapsed(pTimer);
-}
+	u8 CurrentBank : 2;
+	u8 Reserved	   : 6;
+} sData;
+
+extern sData gData;
+
+void Data_Init(void);

@@ -27,6 +27,7 @@ project_src += files(
     'Peripheral/Timer.c',
     'Peripheral/USART.c',
 
+    'System/Data.c',
     'System/SoftTimer.c',
     'System/System.c',
 

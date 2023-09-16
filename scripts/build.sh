@@ -12,7 +12,7 @@ if [ -d "$BUILD_DIR" ]; then
     ninja muffin.bin
     ninja muffin.eep
     ninja BinSize
-    ninja EepromSize
+    # ninja EepromSize
   else
   echo "BUILD FAILED - Stopping here."
 
