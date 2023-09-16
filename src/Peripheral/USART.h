@@ -55,22 +55,22 @@ typedef struct
 
 static inline void USART_DisableTX(USART_t* pUSART)
 {
-	CLR_BIT(pUSART->CTRLB, USART_TXEN_bm);
+	CLR_REG(pUSART->CTRLB, USART_TXEN_bm);
 }
 
 static inline void USART_EnableTX(USART_t* pUSART)
 {
-	SET_BIT(pUSART->CTRLB, USART_TXEN_bm);
+	SET_REG(pUSART->CTRLB, USART_TXEN_bm);
 }
 
 static inline void USART_DisableRX(USART_t* pUSART)
 {
-	CLR_BIT(pUSART->CTRLB, USART_RXEN_bm);
+	CLR_REG(pUSART->CTRLB, USART_RXEN_bm);
 }
 
 static inline void USART_EnableRX(USART_t* pUSART)
 {
-	SET_BIT(pUSART->CTRLB, USART_RXEN_bm);
+	SET_REG(pUSART->CTRLB, USART_RXEN_bm);
 }
 
 void USART_Init(void);

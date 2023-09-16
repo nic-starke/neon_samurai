@@ -1,5 +1,5 @@
 /*
- * File: Utility.h ( 16th November 2021 )
+ * File: Encoder.h ( 27th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -19,5 +19,9 @@
 
 #pragma once
 
-#define SET_REG(reg, val) ((reg) |= (val))
-#define CLR_REG(reg, val) ((reg) &= ~(val))
+#define ENCODER_MIN_VAL (0)
+#define ENCODER_MAX_VAL (UINT16_MAX)
+#define ENCODER_MID_VAL (0x7FFF)
+
+#define ACCEL_CONST		  (225)
+#define FINE_ADJUST_CONST (50)

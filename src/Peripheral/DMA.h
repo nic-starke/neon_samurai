@@ -50,17 +50,17 @@ static inline DMA_CH_t* DMA_GetChannelPointer(u8 ChannelNumber)
 
 static inline void DMA_EnableChannel(DMA_CH_t* pDMA)
 {
-	SET_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
+	SET_REG(pDMA->CTRLA, DMA_CH_ENABLE_bm);
 }
 
 static inline void DMA_DisableChannel(DMA_CH_t* pDMA)
 {
-	CLR_BIT(pDMA->CTRLA, DMA_CH_ENABLE_bm);
+	CLR_REG(pDMA->CTRLA, DMA_CH_ENABLE_bm);
 }
 
 static inline void DMA_ResetChannel(DMA_CH_t* pDMA)
 {
-	SET_BIT(pDMA->CTRLA, DMA_CH_RESET_bm);
+	SET_REG(pDMA->CTRLA, DMA_CH_RESET_bm);
 }
 
 static inline bool DMA_ChannelBusy(u8 ChannelNumber)
@@ -86,8 +86,8 @@ static inline void DMA_SetChannelSourceAddress(DMA_CH_t* pDMA, uintptr_t Address
 
 static inline void DMA_SetChannelInterrupts(DMA_CH_t* pDMA, eInterruptPriority TransactionIntPriority, eInterruptPriority ErrorIntPriority)
 {
-	CLR_BIT(pDMA->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);
-	SET_BIT(pDMA->CTRLB, (ErrorIntPriority << DMA_CH_ERRINTLVL_gp) | (TransactionIntPriority << DMA_CH_TRNINTLVL_gp));
+	CLR_REG(pDMA->CTRLB, DMA_CH_ERRINTLVL_gm | DMA_CH_TRNINTLVL_gm);
+	SET_REG(pDMA->CTRLB, (ErrorIntPriority << DMA_CH_ERRINTLVL_gp) | (TransactionIntPriority << DMA_CH_TRNINTLVL_gp));
 }
 
 void DMA_Init(void);

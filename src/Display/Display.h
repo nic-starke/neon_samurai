@@ -21,24 +21,25 @@
 
 #include "Types.h"
 
-#define LED_ON	 (0x00)
-#define LED_OFF	 (0xFF)
-#define LEDS_ON	 (0x0000)
-#define LEDS_OFF (0xFFFF)
-
+#define LED_ON				 (0x00)
+#define LED_OFF				 (0xFF)
+#define LEDS_ON				 (0x0000)
+#define LEDS_OFF			 (0xFFFF)
 #define LEDMASK(x)			 (1u << x)
 #define LEDMASK_DET			 (0xC000)
 #define LEDMASK_RGB			 (0x3800)
 #define LEDMASK_IND			 (0xFFE0)
 #define LEDMASK_IND_NODETENT (0xFFBF)
+#define BRIGHTNESS_MAX		 (255) // Determines number of discrete PWM LED brightness levels for display driver
+#define BRIGHTNESS_MIN		 (0)
+#define DISPLAY_BUFFER_SIZE	 (32)	 // Number of frames in display buffer
+#define MAGIC_BRIGHTNESS_VAL ((u8)8) // Precalculated - (MAX_BRIGHTNESS / DISPLAY_BUFFER_SIZE)
 
 /* A display frame is a bitfield. Each bit corresponds to the state of a single LED
  * There are 16 LEDS per encoder therefore uint16_t is used. */
 typedef u16 DisplayFrame;
 
-#define DISPLAY_BUFFER_SIZE	 (32)  // Number of frames in display buffer
-#define BRIGHTNESS_MAX		 (255) // Determines number of discrete PWM LED brightness levels for display driver
-#define BRIGHTNESS_MIN		 (0)
-#define MAGIC_BRIGHTNESS_VAL ((u8)8) // Precalculated - (MAX_BRIGHTNESS / DISPLAY_BUFFER_SIZE)
-
 void Display_Init(void);
+void Display_ClearAll(void);
+void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames);
+void Display_Test(void);

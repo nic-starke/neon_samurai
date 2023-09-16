@@ -30,7 +30,7 @@ typedef enum
 	GPIO_OUTPUT,
 } eGPIO_Direction;
 
-#define PIN_MASK(x) (1u << ((x) & 0x07))
+#define PIN_MASK(x) (1u << ((x)&0x07))
 
 static inline void GPIO_SetPinDirection(PORT_t* Port, u8 Pin, eGPIO_Direction Direction)
 {
@@ -61,5 +61,10 @@ static inline void GPIO_SetPinMode(PORT_t* pPort, u8 Pin, PORT_OPC_t Mode)
 	vu8* regCTRL = (&pPort->PIN0CTRL + PIN_MASK(Pin));
 
 	*regCTRL &= PORT_ISC_gm;
-	SET_BIT(*regCTRL, Mode);
+	SET_REG(*regCTRL, Mode);
+}
+
+static inline u8 GPIO_GetPinLevel(PORT_t* pPort, u8 Pin)
+{
+	return pPort->IN & PIN_MASK(Pin);
 }

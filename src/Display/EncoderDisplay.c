@@ -17,5 +17,35 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
+#include <string.h>
+
 #include "EncoderDisplay.h"
+#include "Encoder.h"
 #include "Types.h"
+#include "Display.h"
+#include "HardwareDescription.h"
+#include "Input.h"
+
+#define INDVAL_2_INDCOUNT(x) (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS)
+#define SET_FRAME(f, x)		 ((f) &= ~(x))
+#define UNSET_FRAME(f, x)	 ((f) |= (x))
+#define PWM_CHECK(f, br)	 ((f * MAGIC_BRIGHTNESS_VAL) < (br))
+
+void EncoderDisplay_Test(void)
+{
+	for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+	{
+		DisplayFrame frames[DISPLAY_BUFFER_SIZE];
+
+		if ((bool)EncoderSwitchCurrentState(SWITCH_MASK(encoder)))
+		{
+			memset(frames, LED_ON, sizeof(frames));
+		}
+		else
+		{
+			memset(frames, LED_OFF, sizeof(frames));
+		}
+
+		Display_SetEncoderFrames(encoder, frames);
+	}
+}

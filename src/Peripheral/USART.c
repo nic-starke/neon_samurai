@@ -47,12 +47,12 @@ static inline u8 GetBitMask(USART_t* pUSART)
 
 static inline void EnablePower(USART_t* pUSART)
 {
-	CLR_BIT(PR.PRPC, GetBitMask(pUSART));
+	CLR_REG(PR.PRPC, GetBitMask(pUSART));
 }
 
 static inline void DisablePower(USART_t* pUSART)
 {
-	SET_BIT(PR.PRPC, GetBitMask(pUSART));
+	SET_REG(PR.PRPC, GetBitMask(pUSART));
 }
 
 static inline void SetMode(USART_t* pUSART, USART_CMODE_t Mode)
@@ -64,11 +64,11 @@ static inline void SetClockPhase(USART_t* pUSART, eSPI_Mode Mode)
 {
 	if ((Mode == SPI_MODE_1) || (Mode == SPI_MODE_3))
 	{
-		SET_BIT(pUSART->CTRLC, USART_UCPHA_bm);
+		SET_REG(pUSART->CTRLC, USART_UCPHA_bm);
 	}
 	else
 	{
-		CLR_BIT(pUSART->CTRLC, USART_UCPHA_bm);
+		CLR_REG(pUSART->CTRLC, USART_UCPHA_bm);
 	}
 }
 
@@ -76,11 +76,11 @@ static inline void SetDataOrder(USART_t* pUSART, eDataOrder DataOrder)
 {
 	if (DataOrder == LSB_FIRST)
 	{
-		SET_BIT(pUSART->CTRLC, USART_DORD_bm);
+		SET_REG(pUSART->CTRLC, USART_DORD_bm);
 	}
 	else
 	{
-		CLR_BIT(pUSART->CTRLC, USART_DORD_bm);
+		CLR_REG(pUSART->CTRLC, USART_DORD_bm);
 	}
 }
 
@@ -196,7 +196,7 @@ void USART_InitModule(const sUSART_ModuleConfig* pConfig)
 	EnablePower(pConfig->pUSART);
 
 	USART_DisableRX(pConfig->pUSART);
-    USART_EnableTX(pConfig->pUSART);
+	USART_EnableTX(pConfig->pUSART);
 
 	ConfigureGPIO(pConfig->pUSART, pConfig->SPIMode);
 	SetMode(pConfig->pUSART, USART_CMODE_MSPI_gc);

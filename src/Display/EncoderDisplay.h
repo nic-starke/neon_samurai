@@ -19,4 +19,4 @@
 
 #pragma once
 
-#include "Display.h"
+void EncoderDisplay_Test(void);

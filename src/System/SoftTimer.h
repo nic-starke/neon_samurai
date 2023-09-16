@@ -1,5 +1,5 @@
 /*
- * File: Utility.h ( 16th November 2021 )
+ * File: Timer.h ( 28th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -19,5 +19,42 @@
 
 #pragma once
 
-#define SET_REG(reg, val) ((reg) |= (val))
-#define CLR_REG(reg, val) ((reg) &= ~(val))
+#include "Types.h"
+
+typedef enum
+{
+	TIMER_STOPPED,
+	TIMER_RUNNING,
+
+	NUMBER_OF_TIMER_STATES,
+} eSoftTimer_State;
+
+typedef struct
+{
+	u32				 StartTime;
+	eSoftTimer_State State;
+} sSoftTimer;
+
+void SoftTimer_Init(void);
+u32	 Millis(void);
+
+static inline void SoftTimer_Start(sSoftTimer* pTimer)
+{
+	pTimer->State	  = TIMER_RUNNING;
+	pTimer->StartTime = Millis();
+}
+
+static inline u32 SoftTimer_Elapsed(sSoftTimer* pTimer)
+{
+	return Millis() - pTimer->StartTime;
+}
+
+static inline u32 SoftTimer_Stop(sSoftTimer* pTimer)
+{
+	if (pTimer->State == TIMER_RUNNING)
+	{
+		pTimer->State = TIMER_STOPPED;
+	}
+
+	return SoftTimer_Elapsed(pTimer);
+}

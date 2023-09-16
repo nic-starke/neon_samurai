@@ -1,5 +1,5 @@
 /*
- * File: Utility.h ( 16th November 2021 )
+ * File: Encoder.c ( 27th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -17,7 +17,4 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#pragma once
-
-#define SET_REG(reg, val) ((reg) |= (val))
-#define CLR_REG(reg, val) ((reg) &= ~(val))
+#include "Encoder.h"

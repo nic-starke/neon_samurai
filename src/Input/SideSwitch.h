@@ -1,5 +1,5 @@
 /*
- * File: SystemClock.h ( 13th November 2021 )
+ * File: SideSwitch.h ( 27th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -18,5 +18,3 @@
  */
 
 #pragma once
-
-#include <avr/io.h>

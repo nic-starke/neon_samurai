@@ -23,21 +23,47 @@
 
 #include <Common/Common.h>
 #include <Drivers/USB/USB.h>
+#include <avr/wdt.h>
 
 #include "Config.h"
 #include "System.h"
 #include "Display.h"
 #include "DMA.h"
 #include "USART.h"
+#include "Input.h"
+#include "EncoderDisplay.h"
+#include "SoftTimer.h"
+
+// #define TEST
 
 int main(void)
 {
 	System_Init();
-    DMA_Init();
+	DMA_Init();
 	USART_Init();
+	SoftTimer_Init();
 	Display_Init();
+	Input_Init();
 
-    GlobalInterruptEnable();
+	GlobalInterruptEnable();
 
-	while (1) {}
+	static sSoftTimer timer = {0};
+
+	SoftTimer_Start(&timer);
+
+	while (1)
+	{
+        #ifdef TEST
+		if (SoftTimer_Elapsed(&timer) >= 250)
+		{
+			Display_Test();
+			SoftTimer_Start(&timer);
+            Input_Update();
+		}
+        #else
+		Input_Update();
+		EncoderDisplay_Test();
+
+        #endif
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * File: Utility.h ( 16th November 2021 )
+ * File: Input.h ( 27th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nic Starke (mail@bxzn.one)
  * -----
@@ -19,5 +19,25 @@
 
 #pragma once
 
-#define SET_REG(reg, val) ((reg) |= (val))
-#define CLR_REG(reg, val) ((reg) &= ~(val))
+#include "HardwareDescription.h"
+#include "Types.h"
+
+#define DIR_STATIONARY (0x00)
+#define DIR_CW		   (0x10)
+#define DIR_CCW		   (0x20)
+
+#define SWITCH_ACTIVE	(0x01)
+#define SWITCH_INACTIVE (0x00)
+#define SWITCH_MASK(x)	(1u << x)
+
+void Input_Init(void);
+void Input_Update(void);
+
+u8	Encoder_GetDirection(u8 EncoderIndex);
+u16 Encoder_GetSwitchState(u16 Mask); // mask can be (SWITCH_MASK(0) | SWITCH_MASK(3)| ...);
+u16 EncoderSwitchWasPressed(u16 Mask);
+u16 EncoderSwitchWasReleased(u16 Mask);
+u16 EncoderSwitchCurrentState(u16 Mask);
+u8	SideSwitchWasPressed(u8 Mask);
+u8	SideSwitchWasReleased(u8 Mask);
+u8	SideSwitchCurrentState(u8 Mask);

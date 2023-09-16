@@ -95,7 +95,7 @@ static inline void EnablePower(eTimer_Peripheral Timer)
 	vu8		 pp		 = GetTimerPowerPort(Timer);
 	const u8 bitmask = GetTimerBitmask(Timer);
 
-	CLR_BIT(pp, bitmask);
+	SET_REG(pp, bitmask);
 }
 
 static inline void DisablePower(eTimer_Peripheral Timer)
@@ -103,7 +103,7 @@ static inline void DisablePower(eTimer_Peripheral Timer)
 	vu8		 pp		 = GetTimerPowerPort(Timer);
 	const u8 bitmask = GetTimerBitmask(Timer);
 
-	SET_BIT(pp, bitmask);
+	SET_REG(pp, bitmask);
 }
 
 static inline void SetWGM(TC0_t* pTC, TC_WGMODE_t Mode)

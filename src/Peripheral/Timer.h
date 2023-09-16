@@ -85,7 +85,7 @@ static inline void Timer_DisableChannelInterrupt(TC0_t* pTC, eTimer_Channel Chan
 {
 	const u8 shift = Channel << 2;
 	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
-	CLR_BIT(pTC->INTCTRLB, mask);
+	CLR_REG(pTC->INTCTRLB, mask);
 }
 
 static inline void Timer_EnableOverflowInterrupt(TC0_t* pTC, eInterruptPriority Priority)
@@ -95,7 +95,7 @@ static inline void Timer_EnableOverflowInterrupt(TC0_t* pTC, eInterruptPriority 
 
 static inline void Timer_DisableOverflowInterrupt(TC0_t* pTC)
 {
-	CLR_BIT(pTC->INTCTRLA, TC0_OVFINTLVL_gm);
+	CLR_REG(pTC->INTCTRLA, TC0_OVFINTLVL_gm);
 }
 
 void Timer_Type0Init(const sTimer_Type0Config* pConfig);
