@@ -21,6 +21,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+// clang-format off
 #include "fast_hsv2rgb.h"
 
 #if defined(HSV_USE_ASSEMBLY) && !defined(__AVR_ARCH__)
@@ -248,3 +249,4 @@ void fast_hsv2rgb_8bit(uint16_t h, uint8_t s, uint8_t v, uint8_t *r, uint8_t *g 
 #endif
 #endif /* HSV_USE_ASSEMBLY */
 }
+// clang-format on

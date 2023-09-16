@@ -21,6 +21,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+// clang-format off
+
 #ifndef __HSV_FAST_HSV2RGB_H__
 #define __HSV_FAST_HSV2RGB_H__
 
@@ -38,7 +41,7 @@
 
 /* Options: */
 #define HSV_USE_SEXTANT_TEST	/* Limit the hue to 0...360 degrees */
-#define HSV_USE_ASSEMBLY		/* Optimize code using assembly */
+// #define HSV_USE_ASSEMBLY		/* Optimize code using assembly */
 
 #ifdef __cplusplus
 extern "C" {
@@ -195,3 +198,4 @@ void fast_hsv2rgb_32bit(uint16_t h, uint8_t s, uint8_t v, uint8_t *r, uint8_t *g
 #endif /* defined(HSV_USE_ASSEMBLY) */
 
 #endif
+// clang-format on

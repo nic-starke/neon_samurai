@@ -19,19 +19,42 @@
 
 #pragma once
 
-#include "RGB.h"
 #include "DataTypes.h"
 #include "fast_hsv2rgb.h"
 
-#define HUE_MAX				(HSV_HUE_MAX)
-#define SATURATION_MAX		(UINT8_MAX)
-#define VALUE_MAX			(UINT8_MAX)
+#define HUE_MAX        (HSV_HUE_MAX)
+#define SATURATION_MAX (UINT8_MAX)
+#define VALUE_MAX      (UINT8_MAX)
 
-typedef struct  
+#define RGB_MAX_VAL (UINT8_MAX)
+#define RGB_MIN_VAL (0)
+
+// clang-format off
+#define RGB_RED         {255, 0, 0}
+#define RGB_YELLOW      {255, 255, 0}
+#define RGB_GREEN       {0, 255, 0}
+#define RGB_CYAN        {0, 255, 255}
+#define RGB_BLUE        {0, 0, 255}
+#define RGB_FUSCHIA     {255, 0, 255}
+#define RGB_WHITE       {255, 255, 255}
+
+#define HSV_RED         {0, SATURATION_MAX, VALUE_MAX}
+#define HSV_BLUE        {50, SATURATION_MAX, VALUE_MAX}
+#define HSV_GREEN        {200, SATURATION_MAX, VALUE_MAX}
+// clang-format on
+
+typedef struct
 {
-	u16 Hue;
-	u8 Saturation;
-	u8 Value;	
+    u16 Hue;
+    u8  Saturation;
+    u8  Value;
 } sHSV;
+
+typedef struct
+{
+    u8 Red;
+    u8 Green;
+    u8 Blue;
+} sRGB;
 
 void Hue2RGB(u16 Hue, sRGB* pRGB);

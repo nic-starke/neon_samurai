@@ -45,6 +45,8 @@ typedef struct
     u8 DetentBrightness;
     u8 IndicatorBrightness;
 
+    bool LerpLayerRGB; // Interpolate between RGB layer colours within "transition arcs"
+
     sHardwareEncoder HardwareEncoders[NUM_ENCODERS];
     sEncoderState    EncoderStates[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
 
@@ -68,6 +70,6 @@ static inline void Data_PGMReadBlock(void* pDest, const void* pSrc, u8 size)
     memcpy_P(pDest, pSrc, size);
 }
 
-void Data_Init(void);
-void Data_FactoryReset(void);
-void Data_RecallUserSettings(void);
+// void Data_Init(void);
+// void Data_FactoryReset(void);
+// void Data_RecallUserSettings(void);

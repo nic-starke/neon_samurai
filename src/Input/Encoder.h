@@ -20,7 +20,8 @@
 #pragma once
 
 #include "DataTypes.h"
-#include "RGB.h"
+
+#include "Colour.h"
 
 #define ENCODER_MIN_VAL (0)
 #define ENCODER_MAX_VAL (UINT16_MAX)
@@ -29,34 +30,23 @@
 #define ACCEL_CONST       (225)
 #define FINE_ADJUST_CONST (50)
 
-#define NUM_VIRTUAL_ENCODERS (NUM_VIRTUAL_BANKS * NUM_ENCODERS * NUM_VIRTUAL_ENCODER_TYPES)
-#define NUM_VIRTUAL_UBERS    (NUM_VIRTUAL_BANKS * NUM_ENCODERS * NUM_VIRTUAL_UBER_TYPES)
-#define NUM_VIRTUAL_SWITCHES (NUM_VIRTUAL_BANKS * NUM_ENCODERS)
-
 typedef enum
 {
-    VIRTUALBANK_A,
-    VIRTUALBANK_B,
-    VIRTUALBANK_C,
+    VIRTUAL_BANK_A,
+    VIRTUAL_BANK_B,
+    VIRTUAL_BANK_C,
 
     NUM_VIRTUAL_BANKS,
 } eVirtualBank;
 
 typedef enum
 {
-    VIRTUALENCODER_PRIMARY,
-    VIRTUALENCODER_SECONDARY,
+    VIRTUAL_LAYER_A,
+    VIRTUAL_LAYER_B,
+    VIRTUAL_LAYER_C,
 
-    NUM_VIRTUAL_ENCODER_TYPES,
-} eVirtualEncoderTypes;
-
-typedef enum
-{
-    VIRTUALUBER_PRIMARY,
-    VIRTUALUBER_SECONDARY,
-
-    NUM_VIRTUAL_UBER_TYPES,
-} eVirtualUberTypes;
+    NUM_VIRTUAL_ENCODER_LAYERS,
+} eVirtualEncoderLayers;
 
 typedef enum
 {
@@ -83,19 +73,32 @@ typedef enum
 } eMidiMode;
 
 // Mode is stored in 4 bits, max num modes is therefore 16
+// Most of these are activated on switch press (not release)
 typedef enum
 {
     SWITCH_DISABLED,
     SWITCH_MIDI,
-    SWITCH_RESET_VALUE_ON_PRESS,
+    SWITCH_RESET_VALUE_ON_PRESS, // Sets the encoder value to switch->ModeParameter (layer values will also be set accordingly)
     SWITCH_RESET_VALUE_ON_RELEASE,
     SWITCH_FINE_ADJUST_HOLD,
     SWITCH_FINE_ADJUST_TOGGLE,
-    SWITCH_SECONDARY_HOLD,
-    SWITCH_SECONDARY_TOGGLE,
+    SWITCH_LAYER_TOGGLE,     // Enable/disable a specified layer
+    SWITCH_LAYER_HOLD,       // Enable a specified layer while switch is active
+    SWITCH_LAYER_CYCLE_AB,   // Cycle between two layers (enables one, and disables the other)
+    SWITCH_LAYER_CYCLE_NEXT, // Cycle to next layer (disable current, enable next)
 
     NUM_SWITCH_MODES,
 } eSwitchMode;
+
+typedef union
+{
+    struct
+    {
+        u16 CurrentLayer : 8;
+        u16 NextLayer    : 8;
+    } LayerTransition;
+    u16 Value;
+} uSwitchModeParameter;
 
 typedef union
 {
@@ -122,33 +125,14 @@ typedef struct
 
 typedef struct
 {
-    u16 CurrentValue;
-    u16 PreviousValue;
-
-    u8 DisplayStyle   : 2;
-    u8 DisplayInvalid : 1;
-    u8 FineAdjust     : 1;
-    u8 HasDetent      : 1;
-    u8 Reserved       : 3;
-
+    u16               StartPosition;
+    u16               StopPosition;
+    u16               MinValue;
+    u16               MaxValue;
     sRotaryMidiConfig MidiConfig;
-    sRGB              RGBColour;
-    sRGB              DetentColour;
-} sVirtualEncoder; // Runtime state of a virtual encoder
-
-typedef struct
-{
-    u8 DisplayStyle   : 2;
-    u8 DisplayInvalid : 1;
-    u8 FineAdjust     : 1;
-    u8 HasDetent      : 1;
-    u8 Reserved       : 3;
-
-    sRotaryMidiConfig MidiConfig;
-
-    u16 RGBHue;
-    u16 DetentHue;
-} sEEVirtualEncoder; // Stored (EEPROM) state of a virtual encoder
+    sHSV              RGBColour;
+    bool              Enabled;
+} sVirtualEncoderLayer; // Runtime state of an encoder layer
 
 typedef struct
 {
@@ -156,44 +140,31 @@ typedef struct
     u8 Mode     : 4;
     u8 Reserved : 3;
 
-    sSwitchMidiConfig MidiConfig;
+    uSwitchModeParameter ModeParameter;
+    sSwitchMidiConfig    MidiConfig;
 } sVirtualSwitch; // Runtime state of a virtual switch
 
 typedef struct
 {
-    u8 Mode     : 4;
-    u8 Reserved : 4;
+    u16 CurrentValue;
+    u16 PreviousValue;
 
-    sSwitchMidiConfig MidiConfig;
-} sEEVirtualSwitch; // Stored (EEPROM) state of a virtual switch
+    sRGB DetentColour;
+    sRGB RGBColour;
 
-typedef struct
-{
-    u16 StartValue;
-    u16 StopValue;
+    u8 DisplayStyle   : 2;
+    u8 DisplayInvalid : 1;
+    u8 FineAdjust     : 1;
+    u8 HasDetent      : 1;
+    u8 Reserved       : 3;
 
-    sRotaryMidiConfig MidiConfig;
-} sVirtualUber; // Runtime state of an virtual uber encoder
-
-typedef sVirtualUber sEEVirtualUber; // Stored (EEPROM) state of an uber encoder.
-
-typedef struct
-{
-    sVirtualEncoder Primary;
-    sVirtualEncoder Secondary;
-    sVirtualUber    PrimaryUber;
-    sVirtualUber    SecondaryUber;
-    sVirtualSwitch  Switch;
-    bool            PrimaryEnabled;
+    sVirtualEncoderLayer Layers[NUM_VIRTUAL_ENCODER_LAYERS];
+    sVirtualSwitch       Switch;
 } sEncoderState;
 
 typedef struct
 {
-    s16 PreviousMovement;
     s16 CurrentVelocity;
-    u8  Speed;
-    u8  Sample;
-    u32 Bits;
 } sHardwareEncoder;
 
 void Encoder_Init(void);

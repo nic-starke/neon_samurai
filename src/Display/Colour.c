@@ -22,14 +22,14 @@
 
 static inline u16 ClampHue(u16 Hue)
 {
-	if (Hue >= HUE_MAX)
-	{
-		return HUE_MAX;
-	}
-	else
-	{
-		return Hue;
-	}
+    if (Hue >= HUE_MAX)
+    {
+        return HUE_MAX;
+    }
+    else
+    {
+        return Hue;
+    }
 }
 
 void Hue2RGB(u16 Hue, sRGB* pRGB)

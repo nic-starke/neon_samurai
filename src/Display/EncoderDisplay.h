@@ -25,5 +25,7 @@
 
 void EncoderDisplay_Test(void);
 void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex);
-void EncoderDisplay_SetColour(sVirtualEncoder* pEncoder, sRGB* pEncoderColour, sHSV* pNewColour);
 void EncoderDisplay_InvalidateAll(void);
+void EncoderDisplay_SetRGBColour(sEncoderState* pEncoder, sHSV* pNewColour);
+void EncoderDisplay_SetDetentColour(sEncoderState* pEncoder, sHSV* pNewColour);
+void EncoderDisplay_UpdateAllColours(void);

@@ -26,72 +26,99 @@
 #include "Colour.h"
 #include "DataTypes.h"
 #include "Input.h"
+#include "Utility.h"
+#include "USB.h"
+#include "EncoderDisplay.h"
 
-static const sVirtualEncoder DEFAULT_PRIMARY_VENCODER = {
-    .CurrentValue            = ENCODER_MIN_VAL,
-    .PreviousValue           = ENCODER_MIN_VAL,
-    .DisplayStyle            = STYLE_BLENDED_BAR,
-    .HasDetent               = false,
-    .FineAdjust              = false,
+static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
+    .StartPosition           = ENCODER_MIN_VAL,
+    .StopPosition            = ENCODER_MID_VAL - 1,
+    .MinValue                = ENCODER_MIN_VAL,
+    .MaxValue                = ENCODER_MAX_VAL,
     .MidiConfig.Channel      = 0,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 0,
-    .RGBColour               = RGB_RED,
-    .DetentColour            = RGB_FUSCHIA,
-    .DisplayInvalid          = true,
+    .RGBColour               = HSV_RED,
+    .Enabled                 = true,
 };
 
-static const sVirtualEncoder DEFAULT_SECONDARY_VENCODER = {
-    .CurrentValue            = ENCODER_MID_VAL,
-    .PreviousValue           = ENCODER_MID_VAL,
-    .DisplayStyle            = STYLE_DOT,
-    .HasDetent               = true,
-    .FineAdjust              = true,
-    .MidiConfig.Channel      = 1,
-    .MidiConfig.Mode         = MIDIMODE_CC,
-    .MidiConfig.MidiValue.CC = 0,
-    .RGBColour               = RGB_BLUE,
-    .DetentColour            = RGB_FUSCHIA,
-    .DisplayInvalid          = true,
-};
-
-static const sVirtualUber DEFAULT_VUBER = {
-    .StartValue              = ENCODER_MAX_VAL / 4,
-    .StopValue               = (ENCODER_MAX_VAL / 4) * 3,
+static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
+    .StartPosition           = ENCODER_MID_VAL,
+    .StopPosition            = ENCODER_MAX_VAL,
+    .MinValue                = ENCODER_MAX_VAL,
+    .MaxValue                = ENCODER_MIN_VAL,
     .MidiConfig.Channel      = 0,
-    .MidiConfig.MidiValue.CC = 0,
     .MidiConfig.Mode         = MIDIMODE_CC,
+    .MidiConfig.MidiValue.CC = 1,
+    .RGBColour               = HSV_BLUE,
+    .Enabled                 = true,
+};
+
+static const sVirtualEncoderLayer DEFAULT_LAYER_C = {
+    .StartPosition           = ENCODER_MIN_VAL,
+    .StopPosition            = ENCODER_MAX_VAL,
+    .MinValue                = ENCODER_MIN_VAL,
+    .MaxValue                = ENCODER_MAX_VAL,
+    .MidiConfig.Channel      = 0,
+    .MidiConfig.Mode         = MIDIMODE_CC,
+    .MidiConfig.MidiValue.CC = 2,
+    .RGBColour               = HSV_GREEN,
+    .Enabled                 = true,
 };
 
 // clang-format off
-static const sVirtualSwitch DEFAULT_ENCODER_VSWITCH = {
+static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = {
     .State               = 0,
-    .Mode                = SWITCH_SECONDARY_TOGGLE,
+    .Mode                = SWITCH_LAYER_CYCLE_NEXT,
     .MidiConfig.Channel  = 0,
     .MidiConfig.Mode     = MIDIMODE_DISABLED,
     .MidiConfig.OffValue = 0,
-    .MidiConfig.OnValue  = 0
+    .MidiConfig.OnValue  = 0,
+    .ModeParameter.LayerTransition.CurrentLayer = VIRTUAL_LAYER_A,
+    .ModeParameter.LayerTransition.NextLayer    = VIRTUAL_LAYER_B,
 };
 // clang-format on
 
 static const sEncoderState DEFAULT_ENCODERSTATE = {
-    .Primary        = DEFAULT_PRIMARY_VENCODER,
-    .Secondary      = DEFAULT_SECONDARY_VENCODER,
-    .PrimaryUber    = DEFAULT_VUBER,
-    .SecondaryUber  = DEFAULT_VUBER,
-    .Switch         = DEFAULT_ENCODER_VSWITCH,
-    .PrimaryEnabled = true,
+    .CurrentValue            = 0,
+    .PreviousValue           = 0,
+    .DetentColour            = RGB_FUSCHIA,
+    .RGBColour               = RGB_WHITE,
+    .DisplayInvalid          = true,
+    .DisplayStyle            = STYLE_BLENDED_BAR,
+    .FineAdjust              = false,
+    .HasDetent               = false,
+    .Layers[VIRTUAL_LAYER_A] = DEFAULT_LAYER_A,
+    .Layers[VIRTUAL_LAYER_B] = DEFAULT_LAYER_B,
+    .Layers[VIRTUAL_LAYER_C] = DEFAULT_LAYER_C,
+    .Switch                  = DEFAULT_ENCODER_SWITCH,
 };
 
-static s16 Acceleration(sHardwareEncoder* pHWEncoder, s8 Movement, bool FineAdjust);
+static inline bool IsLayerActive(sVirtualEncoderLayer* pLayer)
+{
+    return (pLayer->Enabled && (pLayer->MidiConfig.Mode != MIDIMODE_DISABLED));
+}
+
+static inline bool IsAnyLayerActive(sEncoderState* pEncoderState)
+{
+    for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
+    {
+        if (IsLayerActive(&pEncoderState->Layers[layer]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void Encoder_Init(void)
 {
+    
 }
 
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder)
 {
-    // Data_PGMReadBlock(pEncoder, &DEFAULT_ENCODERSTATE, sizeof(sEncoderState));
     *pEncoder = DEFAULT_ENCODERSTATE;
 }
 
@@ -105,24 +132,200 @@ void Encoder_FactoryReset(void)
             sEncoderState* pEncoder = &gData.EncoderStates[bank][encoder];
             Encoder_SetDefaultConfig(pEncoder);
 
-            pEncoder->Primary.MidiConfig.MidiValue.CC = encoder;
-            pEncoder->Primary.MidiConfig.Channel      = 0;
+            for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
+            {
+                pEncoder->Layers[layer].MidiConfig.Channel = encoder;
+            }
+        }
+    }
 
-            pEncoder->PrimaryUber.MidiConfig.MidiValue.CC = encoder;
-            pEncoder->PrimaryUber.MidiConfig.Channel      = 1;
+    EncoderDisplay_UpdateAllColours();
+}
 
-            pEncoder->Secondary.MidiConfig.MidiValue.CC = encoder;
-            pEncoder->Secondary.MidiConfig.Channel      = 2;
+static inline bool UpdateEncoderRotary(int EncoderIndex, sHardwareEncoder* pHardwareEncoder, sEncoderState* pEncoderState)
+{
+    pEncoderState->PreviousValue = pEncoderState->CurrentValue;
 
-            pEncoder->SecondaryUber.MidiConfig.MidiValue.CC = encoder;
-            pEncoder->SecondaryUber.MidiConfig.Channel      = 3;
+    u8  dir  = Encoder_GetDirection(EncoderIndex);
+    s16 move = 0;
 
-            pEncoder->Primary.DisplayInvalid   = true;
-            pEncoder->Secondary.DisplayInvalid = true;
-            // pEncoder->Switch.MidiConfig.Channel = 0;
-            // pEncoder->Switch.MidiConfig.OnValue = 1;
-            // pEncoder->Switch.MidiConfig.OffValue = 0;
-            // pEncoder->Switch.MidiConfig.Mode = MIDIMODE_CC;
+    if (dir == DIR_STATIONARY)
+    {
+        return false; // nothing to do, return
+    }
+    else
+    {
+        if (dir == DIR_CW)
+        {
+            move = 1;
+        }
+        else if (dir == DIR_CCW)
+        {
+            move = -1;
+        }
+
+#define ACC_ENABLED 0
+#if (ACC_ENABLED == 1)
+        pHardwareEncoder->CurrentVelocity = move * Acceleration(pHardwareEncoder, move, pVE->FineAdjust);
+#else
+        pHardwareEncoder->CurrentVelocity = move * 1000;
+#endif
+        s32 newValue = (s32)pEncoderState->CurrentValue + pHardwareEncoder->CurrentVelocity;
+
+        if (newValue >= ENCODER_MAX_VAL)
+        {
+            pEncoderState->CurrentValue = ENCODER_MAX_VAL;
+        }
+        else if (newValue < ENCODER_MIN_VAL)
+        {
+            pEncoderState->CurrentValue = ENCODER_MIN_VAL;
+        }
+        else
+        {
+            pEncoderState->CurrentValue += pHardwareEncoder->CurrentVelocity;
+        }
+
+        if (pEncoderState->CurrentValue != pEncoderState->PreviousValue)
+        {
+            pEncoderState->DisplayInvalid = true;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static inline void UpdateEncoderSwitch(int EncoderIndex, sEncoderState* pEncoderState)
+{
+    // Process Encoder Switch
+    if (pEncoderState->Switch.Mode != SWITCH_DISABLED)
+    {
+        pEncoderState->Switch.State = (bool)EncoderSwitchCurrentState(SWITCH_MASK(EncoderIndex));
+
+        switch (pEncoderState->Switch.Mode)
+        {
+            case SWITCH_MIDI:
+            {
+                switch (pEncoderState->Switch.MidiConfig.Mode)
+                {
+                    case MIDIMODE_DISABLED: break;
+
+                    case MIDIMODE_SW_CC_TOGGLE:
+                    case MIDIMODE_SW_NOTE_HOLD:
+                    case MIDIMODE_SW_NOTE_TOGGLE:
+                        // USBMidi_ProcessEncoderSwitch(&pEncoderState->Switch);
+                        break;
+                }
+                break;
+            }
+
+            case SWITCH_RESET_VALUE_ON_PRESS:
+            {
+                if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+                {
+                    pEncoderState->CurrentValue = pEncoderState->Switch.ModeParameter.Value;
+                }
+                break;
+            }
+
+            case SWITCH_RESET_VALUE_ON_RELEASE:
+            {
+                if (EncoderSwitchWasReleased(SWITCH_MASK(EncoderIndex)))
+                {
+                    pEncoderState->CurrentValue = pEncoderState->Switch.ModeParameter.Value;
+                }
+                break;
+            }
+
+            case SWITCH_FINE_ADJUST_HOLD:
+            {
+                pEncoderState->FineAdjust = pEncoderState->Switch.State;
+                break;
+            }
+
+            case SWITCH_FINE_ADJUST_TOGGLE:
+            {
+                if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+                {
+                    pEncoderState->FineAdjust = !pEncoderState->FineAdjust;
+                }
+                break;
+            }
+
+            case SWITCH_LAYER_TOGGLE:
+            {
+                if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+                {
+                    pEncoderState->Layers[pEncoderState->Switch.ModeParameter.Value].Enabled =
+                        !pEncoderState->Layers[pEncoderState->Switch.ModeParameter.Value].Enabled;
+                }
+                break;
+            }
+            case SWITCH_LAYER_HOLD:
+            {
+                pEncoderState->Layers[pEncoderState->Switch.ModeParameter.Value].Enabled = pEncoderState->Switch.State;
+                break;
+            }
+            case SWITCH_LAYER_CYCLE_AB:
+            {
+                if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+                {
+                    u8 currentLayer                             = pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer;
+                    pEncoderState->Layers[currentLayer].Enabled = false;
+                    pEncoderState->Layers[pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer].Enabled = true;
+                    pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer =
+                        pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer;
+                    pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer = currentLayer;
+                }
+                break;
+            }
+            case SWITCH_LAYER_CYCLE_NEXT:
+            {
+                if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+                {
+                    u8 nextLayer = (pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
+                    pEncoderState->Layers[pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer].Enabled = false;
+                    pEncoderState->Layers[nextLayer].Enabled                                                        = true;
+                    pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer                                = nextLayer;
+                    pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer = (nextLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
+                }
+                break;
+            }
+
+            default:
+            case SWITCH_DISABLED: break;
+        }
+    }
+}
+
+static inline void ProcessEncoderLayers(sEncoderState* pEncoderState)
+{
+    for (int layer = 0; layer < NUM_VIRTUAL_ENCODER_LAYERS; layer++)
+    {
+        sVirtualEncoderLayer* pLayer = &pEncoderState->Layers[layer];
+
+        if (IsLayerActive(pLayer))
+        {
+            if (IN_RANGE(pEncoderState->CurrentValue, pLayer->StartPosition, pLayer->StopPosition))
+            {
+                // Conversion from encoder value to virtual layer value.
+                float percent =
+                    (float)(pEncoderState->CurrentValue - pLayer->StartPosition) / (pLayer->StopPosition - pLayer->StartPosition);
+
+                u16 virtualValue = 0;
+
+                // Check if min/max are reversed (i.e the range is counting down)
+                if (pLayer->MinValue < pLayer->MaxValue)
+                {
+                    virtualValue = (u16)(percent * pLayer->MaxValue);
+                }
+                else
+                {
+                    virtualValue = (u16)((1.0f - percent) * pLayer->MinValue);
+                }
+
+                USBMidi_ProcessLayer(pEncoderState, pLayer, virtualValue);
+            }
         }
     }
 }
@@ -134,185 +337,17 @@ void Encoder_Update(void)
         // Encoder indexing is reversed due to hardware design
         sEncoderState* pEncoderState = &gData.EncoderStates[gData.CurrentBank][(NUM_ENCODERS - 1) - encoder];
 
-        bool displayInvalid = false;
-        bool transmitValue  = false;
+        UpdateEncoderSwitch(encoder, pEncoderState);
 
-        // Process Encoder Switch
-        if (pEncoderState->Switch.Mode != SWITCH_DISABLED)
+        // Check if one of layers is active (otherwise skip processing)
+        // Check if the encoder has rotated at all (otherwise skip processing)
+        // Process/transmit midi for each active layer.
+        if (IsAnyLayerActive(pEncoderState))
         {
-            pEncoderState->Switch.State = (bool)EncoderSwitchCurrentState(SWITCH_MASK(encoder));
-
-            switch (pEncoderState->Switch.Mode)
+            if (UpdateEncoderRotary(encoder, &gData.HardwareEncoders[encoder], pEncoderState))
             {
-                case SWITCH_MIDI:
-                {
-                    switch (pEncoderState->Switch.MidiConfig.Mode)
-                    {
-                        case MIDIMODE_DISABLED: break;
-
-                        case MIDIMODE_SW_CC_TOGGLE:
-                        case MIDIMODE_SW_NOTE_HOLD:
-                        case MIDIMODE_SW_NOTE_TOGGLE:
-                            // USBMidi_ProcessEncoderSwitch(&pEncoderState->Switch);
-                            break;
-                    }
-                    break;
-                }
-
-                case SWITCH_RESET_VALUE_ON_PRESS:
-                    if (EncoderSwitchWasPressed(SWITCH_MASK(encoder)))
-                    {
-                        if (pEncoderState->PrimaryEnabled)
-                        {
-                            pEncoderState->Primary.CurrentValue = ENCODER_MIN_VAL;
-                        }
-                        else
-                        {
-                            pEncoderState->Secondary.CurrentValue = ENCODER_MIN_VAL;
-                        }
-
-                        displayInvalid = true;
-                        transmitValue  = true;
-                    }
-                    break;
-
-                case SWITCH_RESET_VALUE_ON_RELEASE:
-                    if (EncoderSwitchWasReleased(SWITCH_MASK(encoder)))
-                    {
-                        if (pEncoderState->PrimaryEnabled)
-                        {
-                            pEncoderState->Primary.CurrentValue = ENCODER_MIN_VAL;
-                        }
-                        else
-                        {
-                            pEncoderState->Secondary.CurrentValue = ENCODER_MIN_VAL;
-                        }
-
-                        displayInvalid = true;
-                        transmitValue  = true;
-                    }
-                    break;
-
-                case SWITCH_FINE_ADJUST_HOLD:
-                    if (pEncoderState->PrimaryEnabled)
-                    {
-                        pEncoderState->Primary.FineAdjust   = pEncoderState->Switch.State;
-                        pEncoderState->Secondary.FineAdjust = false;
-                    }
-                    else
-                    {
-                        pEncoderState->Secondary.FineAdjust = pEncoderState->Switch.State;
-                        pEncoderState->Primary.FineAdjust   = false;
-                    }
-                    break;
-
-                case SWITCH_FINE_ADJUST_TOGGLE:
-                    if (EncoderSwitchWasPressed(SWITCH_MASK(encoder)))
-                    {
-                        if (pEncoderState->PrimaryEnabled)
-                        {
-                            pEncoderState->Primary.FineAdjust = !pEncoderState->Primary.FineAdjust;
-                        }
-                        else
-                        {
-                            pEncoderState->Secondary.FineAdjust = !pEncoderState->Primary.FineAdjust;
-                        }
-                    }
-                    break;
-
-                case SWITCH_SECONDARY_HOLD:
-                {
-                    bool oldState                 = pEncoderState->PrimaryEnabled;
-                    pEncoderState->PrimaryEnabled = !pEncoderState->Switch.State;
-                    if (oldState != pEncoderState->PrimaryEnabled)
-                    {
-                        displayInvalid = true;
-                    }
-
-                    break;
-                }
-
-                case SWITCH_SECONDARY_TOGGLE:
-                    if (EncoderSwitchWasPressed(SWITCH_MASK(encoder)))
-                    {
-                        pEncoderState->PrimaryEnabled = !pEncoderState->PrimaryEnabled;
-                        displayInvalid                = true;
-                    }
-                    break;
-
-                default:
-                case SWITCH_DISABLED: break;
+                ProcessEncoderLayers(pEncoderState);
             }
-        }
-
-        sVirtualEncoder* pVE = NULL;
-
-        if (pEncoderState->PrimaryEnabled)
-        {
-            pVE = &pEncoderState->Primary;
-        }
-        else
-        {
-            pVE = &pEncoderState->Secondary;
-        }
-
-        if (pVE->MidiConfig.Mode == MIDIMODE_DISABLED)
-        {
-            continue; // skip to next encoder
-        }
-
-        // Process Encoder Rotation
-        sHardwareEncoder* pHardwareEncoder = &gData.HardwareEncoders[encoder];
-        pVE->PreviousValue                 = pVE->CurrentValue;
-        u8  dir                            = Encoder_GetDirection(encoder);
-        s16 move                           = 0;
-        if (dir == DIR_STATIONARY)
-        {
-            move = 0;
-        }
-        else
-        {
-            if (dir == DIR_CW)
-            {
-                move = 1;
-            }
-            else if (dir == DIR_CCW)
-            {
-                move = -1;
-            }
-#define ACC_ENABLED 0
-#if (ACC_ENABLED == 1)
-            pHardwareEncoder->CurrentVelocity = move * Acceleration(pHardwareEncoder, move, pVE->FineAdjust);
-#else
-            pHardwareEncoder->CurrentVelocity = move * 1000;
-#endif
-            s32 newValue = (s32)pVE->CurrentValue + pHardwareEncoder->CurrentVelocity;
-
-            if (newValue >= ENCODER_MAX_VAL)
-            {
-                pVE->CurrentValue = ENCODER_MAX_VAL;
-            }
-            else if (newValue < ENCODER_MIN_VAL)
-            {
-                pVE->CurrentValue = ENCODER_MIN_VAL;
-            }
-            else
-            {
-                pVE->CurrentValue += pHardwareEncoder->CurrentVelocity;
-            }
-
-            if (pVE->CurrentValue != pVE->PreviousValue)
-            {
-                transmitValue  = true;
-                displayInvalid = true;
-            }
-        }
-
-        pVE->DisplayInvalid = displayInvalid;
-
-        if (transmitValue)
-        {
-            //USBMidi_ProcessKnob(pVE);
         }
     }
 }

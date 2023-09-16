@@ -19,19 +19,17 @@
 
 #pragma once
 
+#include "DataTypes.h"
+#include "Encoder.h"
+
 #define DEFAULT_USB_VENDOR_ID  (0x2580) // DJTT Vendor ID
 #define DEFAULT_USB_PRODUCT_ID (0x0007)
 
-#include "DataTypes.h"
-// #include "Encoder.h"
+void USBMidi_Init(void);
+void USBMidi_Update(void);
+void USBMidi_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit);
 
-// void USBMidi_Receive(void);
-// void USBMidi_Init(void);
-// void USBMidi_ProcessKnob(sKnob* pKnob);
-// void USBMidi_ProcessEncoderSwitch(sSwitch* pSwitch);
-// void USBMidi_Update(void);
-
-// void EVENT_USB_Device_Connect(void);
-// void EVENT_USB_Device_Disconnect(void);
-// void EVENT_USB_Device_ConfigurationChanged(void);
-// void EVENT_USB_Device_ControlRequest(void);
+void EVENT_USB_Device_Connect(void);
+void EVENT_USB_Device_Disconnect(void);
+void EVENT_USB_Device_ConfigurationChanged(void);
+void EVENT_USB_Device_ControlRequest(void);

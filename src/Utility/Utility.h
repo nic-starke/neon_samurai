@@ -19,5 +19,10 @@
 
 #pragma once
 
+#include "DataTypes.h"
+
 #define SET_REG(reg, val) ((reg) |= (val))
 #define CLR_REG(reg, val) ((reg) &= ~(val))
+
+// Check if a value is within a range (inclusive)
+#define IN_RANGE(x, min, max) (((x) >= min) && ((x) <= max))

@@ -59,6 +59,15 @@ static inline void DisableDisplay(void)
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_ENABLE, HIGH);
 }
 
+static inline void FlushDisplayRegisters(void)
+{
+    for (int frame = 0; frame < DISPLAY_BUFFER_SIZE; frame++)
+    {
+        GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, HIGH);
+        GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_LATCH, LOW);
+    }
+}
+
 void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames)
 {
     if (pFrames == NULL)
@@ -75,7 +84,7 @@ void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames)
 
 void Display_ClearAll(void)
 {
-    memset(DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
+    memset(&DisplayBuffer, LED_OFF, sizeof(DisplayBuffer));
 }
 
 void Display_Test(void)
@@ -174,11 +183,8 @@ void Display_Init(void)
     Timer_EnableChannelInterrupt(timerConfig.pTimer, TIMER_CHANNEL_A, PRIORITY_HI);
     DISPLAY_TIMER.CCA = (u16)DISPLAY_REFRESH_RATE;
 
-    // EncoderDisplays_Invalidate()
-
-    EnableDisplay();
-
-    DMA_EnableChannel(DMA_GetChannelPointer(DISPLAY_DMA_CH));
+    EncoderDisplay_InvalidateAll();
+    FlushDisplayRegisters();
 
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_RESET, LOW);
     GPIO_SetPinLevel(&DISPLAY_SR_PORT, PIN_SR_RESET, HIGH);
@@ -194,10 +200,10 @@ void Display_Update(void)
 
 void Display_SetMaxBrightness(u8 Brightness)
 {
-    gData.DetentBrightness = pgm_read_byte(&gamma_lut[Brightness]);
-    gData.RGBBrightness = pgm_read_byte(&gamma_lut[Brightness]);
+    gData.DetentBrightness    = pgm_read_byte(&gamma_lut[Brightness]);
+    gData.RGBBrightness       = pgm_read_byte(&gamma_lut[Brightness]);
     gData.IndicatorBrightness = pgm_read_byte(&gamma_lut[Brightness]);
-    
+
     EncoderDisplay_InvalidateAll();
 }
 

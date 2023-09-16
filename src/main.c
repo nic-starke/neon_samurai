@@ -34,6 +34,7 @@
 #include "EncoderDisplay.h"
 #include "SoftTimer.h"
 #include "Data.h"
+#include "USB.h"
 
 static sSoftTimer timer = {0};
 
@@ -51,6 +52,17 @@ static inline void RunTest(void)
     }
 }
 
+static inline void BootAnimation(void)
+{
+
+    for (u16 br = 0; br < BRIGHTNESS_MAX; br += 3)
+    {
+        Display_SetMaxBrightness(br);
+        Display_Update();
+        //Delay_MS(10);
+    }
+}
+
 int main(void)
 {
     // Do not adjust the order of these init functions!
@@ -59,11 +71,14 @@ int main(void)
     DMA_Init();
     USART_Init();
     SoftTimer_Init();
-    Display_Init();
     Input_Init();
     Encoder_Init();
 
     USB_Init();
+    USBMidi_Init();
+
+    Display_SetMaxBrightness(0);
+    Display_Init();
 
     GlobalInterruptEnable();
 
@@ -75,6 +90,8 @@ int main(void)
     {
         SetupTest();
     }
+
+    BootAnimation();
 
     while (1)
     {
@@ -88,7 +105,7 @@ int main(void)
                 Encoder_Update();
                 // SideSwitch_Update();
                 // Encoder_Update();
-                // USBMidi_Update();
+                USBMidi_Update();
                 break;
             }
 
