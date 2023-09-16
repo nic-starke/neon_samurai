@@ -319,7 +319,8 @@ ISR(TCC0_CCA_vect)
     // Reset the source address if we are at the end of the display buffer
     if (mCurrentFrame++ >= (DISPLAY_BUFFER_SIZE - 1))
     {
-        while (DMA_ChannelBusy(DISPLAY_DMA_CH)) {} // TODO - is blocking here a good idea? maybe the address increment should be automatically handled.
+        while (DMA_ChannelBusy(DISPLAY_DMA_CH)) {
+        } // TODO - is blocking here a good idea? maybe the address increment should be automatically handled.
         u8 flags = IRQ_DisableInterrupts();
         DMA_SetChannelSourceAddress(DMA_GetChannelPointer(DISPLAY_DMA_CH), (u16)(uintptr_t)DisplayBuffer);
         mCurrentFrame = 0;

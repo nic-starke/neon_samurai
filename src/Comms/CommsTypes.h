@@ -23,14 +23,14 @@
 #include "ModuleIDs.h"
 #include "UsefulBuf.h"
 
-#define MAX_MUFFIN_CONNS    (16) // One muffin per MIDI channel
-#define MAX_EDITOR_CONNS    (1) // Only one editor can be connected at any time.
-#define MAX_CONNECTIONS     (MAX_MUFFIN_CONNS + MAX_EDITOR_CONNS)
-#define UNASSIGNED_ADDRESS  (0)
-#define BROADCAST_ADDRESS   (0)
-#define SIZEOF_CBORLABEL    (sizeof(char[2])) // all cbor labels/keys are char[2] size
+#define MAX_MUFFIN_CONNS   (16) // One muffin per MIDI channel
+#define MAX_EDITOR_CONNS   (1)  // Only one editor can be connected at any time.
+#define MAX_CONNECTIONS    (MAX_MUFFIN_CONNS + MAX_EDITOR_CONNS)
+#define UNASSIGNED_ADDRESS (0)
+#define BROADCAST_ADDRESS  (0)
+#define SIZEOF_CBORLABEL   (sizeof(char[2])) // all cbor labels/keys are char[2] size
 
-#define MAX_DISCOVERY_ATTEMPTS (3)  // Only attempt to discover other units this many times.
+#define MAX_DISCOVERY_ATTEMPTS (3)    // Only attempt to discover other units this many times.
 #define DISCOVERY_WAIT_TIME    (3000) // Number of milliseconds to wait for discovery replies from peers.
 
 typedef uint16_t NetAddress;
@@ -106,11 +106,11 @@ typedef struct
 
 typedef struct
 {
-    eCommsProtocol  Protocol;
+    eCommsProtocol   Protocol;
     eMessagePriority Priority;
-    uint8_t         ModuleParameter;
-    sNetworkAddress Source;
-    sNetworkAddress Destination;
+    uint8_t          ModuleParameter;
+    sNetworkAddress  Source;
+    sNetworkAddress  Destination;
 } sMessageHeader;
 
 #define NUM_LABELS_MESSAGEHEADER (5 + NUM_LABELS_NETWORKADDRESS * 2)

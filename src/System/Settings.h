@@ -30,7 +30,7 @@
 
 // The display refresh rate directly sets the timer interrupt rate for the display DMA transfer
 // Reducing the interval will cause main loop starvation.
-#define DISPLAY_REFRESH_RATE (DISPLAY_REFRESH_AVG) 
+#define DISPLAY_REFRESH_RATE (DISPLAY_REFRESH_AVG)
 
 #define INPUT_SCAN_SLOW   (40)
 #define INPUT_SCAN_AVG    (10)

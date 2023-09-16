@@ -64,7 +64,7 @@ void System_BootloaderCheck(void)
          * there is a special function register called EIND that serves as most significant 
          * part of the target address when EICALL or EIJMP instructions are used. 
          * */
-        EIND     = BOOT_SECTION_START >> 17;
+        EIND = BOOT_SECTION_START >> 17;
         bootloader();
     }
 }

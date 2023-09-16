@@ -411,11 +411,11 @@ static void EncodeAndTransmit(u8* pData, u16 NumDataBytes)
     }
 
     u16 totalBlocks = EncodedLength_Blocks(NumDataBytes);
-// #ifdef ENABLE_SERIAL
-//     char buf[64] = {0};
-//     sprintf(buf, "InCnt: %d - NumEncBlocks: %d\r\n", NumDataBytes, totalBlocks);
-//     Serial_Print(buf);
-// #endif
+    // #ifdef ENABLE_SERIAL
+    //     char buf[64] = {0};
+    //     sprintf(buf, "InCnt: %d - NumEncBlocks: %d\r\n", NumDataBytes, totalBlocks);
+    //     Serial_Print(buf);
+    // #endif
     for (u16 currentBlock = 0; currentBlock < totalBlocks; currentBlock++)
     {
         memset(mOutBuffer, 0x00, OUTBUFFER_LEN);

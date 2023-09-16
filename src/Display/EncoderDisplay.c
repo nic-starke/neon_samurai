@@ -30,10 +30,11 @@
 #include "fast_hsv2rgb.h"
 
 // Converts an integer range to a number of indicator LEDs
-#define INDVAL_2_INDCOUNT(x) (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS) // FIXME - there is no division hardware, consider fixed point multiplication.
-#define SET_FRAME(f, x)      ((f) &= ~(x))
-#define UNSET_FRAME(f, x)    ((f) |= (x))
-#define PWM_CHECK(f, br)     ((f * MAGIC_BRIGHTNESS_VAL) < (br)) // Check if this frame needs to be rendered based on a brightness value.
+#define INDVAL_2_INDCOUNT(x)                                                                                                               \
+    (((x) / ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS) // FIXME - there is no division hardware, consider fixed point multiplication.
+#define SET_FRAME(f, x)   ((f) &= ~(x))
+#define UNSET_FRAME(f, x) ((f) |= (x))
+#define PWM_CHECK(f, br)  ((f * MAGIC_BRIGHTNESS_VAL) < (br)) // Check if this frame needs to be rendered based on a brightness value.
 
 /**
  * @brief Renders a single display frame for RGB leds only.
@@ -44,7 +45,8 @@
  */
 static inline void RenderFrame_RGB(DisplayFrame* pFrame, int FrameIndex, sEncoderState* pEncoder) // FIXME - should this be inline?
 {
-    float brightnessCoeff = gData.RGBBrightness / (float)BRIGHTNESS_MAX; // FIXME: floating point division! this is expensive, replace with something else!
+    float brightnessCoeff =
+        gData.RGBBrightness / (float)BRIGHTNESS_MAX; // FIXME: floating point division! this is expensive, replace with something else!
 
     if (PWM_CHECK(FrameIndex, pEncoder->RGBColour.Red * brightnessCoeff))
     {
@@ -114,8 +116,9 @@ static inline void Render_Test(int EncoderIndex) // FIXME - should this be inlin
  */
 static inline void RenderEncoder_Dot(sEncoderState* pEncoder, int EncoderIndex) // FIXME - should this be inline?
 {
-    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
-    u8    indicatorCountInt   = ceilf(indicatorCountFloat);
+    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) *
+                                NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
+    u8 indicatorCountInt = ceilf(indicatorCountFloat);
 
     // Always draw the first indicator if in detent mode, the last one is always drawn based on above calculations.
     if (indicatorCountInt == 0 && pEncoder->HasDetent)
@@ -153,11 +156,12 @@ static inline void RenderEncoder_Dot(sEncoderState* pEncoder, int EncoderIndex) 
  */
 static inline void RenderEncoder_Bar(sEncoderState* pEncoder, int EncoderIndex) // FIXME - should this be inline?
 {
-    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
-    u8    indicatorCountInt   = ceilf(indicatorCountFloat);
-    bool  drawDetent          = (indicatorCountInt == 6);
-    bool  clearLeft           = (indicatorCountInt >= 6);
-    bool  reverse             = (!clearLeft);
+    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) *
+                                NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
+    u8   indicatorCountInt = ceilf(indicatorCountFloat);
+    bool drawDetent        = (indicatorCountInt == 6);
+    bool clearLeft         = (indicatorCountInt >= 6);
+    bool reverse           = (!clearLeft);
 
     if (reverse)
     {
@@ -213,13 +217,14 @@ static inline void RenderEncoder_Bar(sEncoderState* pEncoder, int EncoderIndex) 
  */
 static inline void RenderEncoder_BlendedBar(sEncoderState* pEncoder, int EncoderIndex) // FIXME - should this be inline?
 {
-    float indicatorCountFloat        = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) * NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
-    u8    indicatorCountInt          = floorf(indicatorCountFloat);
-    u8    partialIndicatorBrightness = (u8)((indicatorCountFloat - indicatorCountInt) * BRIGHTNESS_MAX);
-    u8    partialIndicatorIndex      = NUM_ENCODER_LEDS - indicatorCountInt - 1;
-    bool  drawDetent                 = (ceilf(indicatorCountFloat) == 6);
-    bool  clearLeft                  = (indicatorCountInt > 5);
-    bool  reverse                    = (!clearLeft);
+    float indicatorCountFloat = (pEncoder->CurrentValue / (float)ENCODER_MAX_VAL) *
+                                NUM_INDICATOR_LEDS; // FIXME: floating point division! this is expensive, replace with something else!
+    u8   indicatorCountInt          = floorf(indicatorCountFloat);
+    u8   partialIndicatorBrightness = (u8)((indicatorCountFloat - indicatorCountInt) * BRIGHTNESS_MAX);
+    u8   partialIndicatorIndex      = NUM_ENCODER_LEDS - indicatorCountInt - 1;
+    bool drawDetent                 = (ceilf(indicatorCountFloat) == 6);
+    bool clearLeft                  = (indicatorCountInt > 5);
+    bool reverse                    = (!clearLeft);
 
     DisplayFrame frames[DISPLAY_BUFFER_SIZE] = {0};
 

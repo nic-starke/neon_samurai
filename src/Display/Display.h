@@ -72,7 +72,7 @@ typedef u16 DisplayFrame;
 void Display_Init(void);
 void Display_Update(void);
 void Display_ClearAll(void);
-void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame* pFrames);
+void Display_SetEncoderFrames(int EncoderIndex, DisplayFrame (*pFrames)[DISPLAY_BUFFER_SIZE]);
 void Display_Test(void);
 void Display_Flash(int intervalMS, int Count);
 void Display_SetEncoder(int EncoderIndex, bool State);

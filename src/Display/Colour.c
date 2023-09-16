@@ -29,7 +29,7 @@
  */
 static inline u16 ClampHue(u16 Hue) // TODO - maybe this should just be a define?
 {
-    if (Hue >= HUE_MAX)  
+    if (Hue >= HUE_MAX)
     {
         return HUE_MAX;
     }

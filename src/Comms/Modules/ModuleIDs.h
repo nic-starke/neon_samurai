@@ -35,5 +35,5 @@ typedef enum
  */
 static inline bool IsValidModuleID(u8 ModuleID)
 {
-    return ((ModuleID >= 0) && ModuleID < NUM_MODULE_IDS);
+    return (ModuleID < NUM_MODULE_IDS);
 }

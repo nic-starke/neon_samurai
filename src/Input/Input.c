@@ -17,8 +17,6 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-
-
 #include "Input.h"
 #include "Data.h"
 #include "DataTypes.h"

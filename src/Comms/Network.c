@@ -33,11 +33,12 @@
 struct _connections
 {
     // Peer connections
-    NetAddress       LocalAddress;
-    
-    struct {
-        eCommsProtocol Protocol;
-        NetAddress Address;
+    NetAddress LocalAddress;
+
+    struct
+    {
+        eCommsProtocol   Protocol;
+        NetAddress       Address;
         eConnectionState State;
     } MuffinEditor;
 
@@ -63,23 +64,23 @@ struct _connections
     } MuffinConnections;
 } static mConnections = {
     .MuffinEditor.State = STATE_UNINITIALISED,
-    .LocalAddress = UNASSIGNED_ADDRESS,
+    .LocalAddress       = UNASSIGNED_ADDRESS,
 };
 
 static eAddressState   mAddressState   = ADDRESS_UNINITIALISED;
 static eDiscoveryState mDiscoveryState = DISCOVERY_STOPPED;
 
-static void ConnectToEditor(void);
-static void NetworkDiscovery(bool AssignNewAddress);
-static void AddressResolution(void);
-static void SendDiscoveryRequest(void);
-static void SendConnectionRequest(sNetworkAddress* pRemoteDevice, eCommsProtocol Protocol);
-static void SendDeviceRegistrationMessage(void);
-static void PrintLocalAddress(void);
-static void SetLocalAddress(NetAddress NewAddress);
+static void            ConnectToEditor(void);
+static void            NetworkDiscovery(void);
+static void            AddressResolution(void);
+static void            SendDiscoveryRequest(void);
+static void            SendConnectionRequest(sNetworkAddress* pRemoteDevice, eCommsProtocol Protocol);
+static void            SendDeviceRegistrationMessage(void);
+static void            PrintLocalAddress(void);
+static void            SetLocalAddress(NetAddress NewAddress);
 static sNetworkAddress GetMuffinEditorAddress(void);
-static u16 GetNumberOfConnectedPeers(void);
-static bool MessageHandler(sMessage* pMessage);
+static u16             GetNumberOfConnectedPeers(void);
+static bool            MessageHandler(sMessage* pMessage);
 
 /**
  * @brief Initialise the Network module.
@@ -108,13 +109,11 @@ void Network_Update(void)
  */
 void Network_ConnectToEditor(void)
 {
-    if(mConnections.MuffinEditor.State != STATE_CONNECTED)
+    if (mConnections.MuffinEditor.State != STATE_CONNECTED)
     {
         mConnections.MuffinEditor.State = STATE_DISCOVERY;
     }
 }
-
-
 
 /**
  * @brief Attempt discovery of all network clients (Muffin and MuffinEditor)
@@ -177,10 +176,10 @@ static void ConnectToEditor(void)
             if (timer.State == TIMER_STOPPED)
             {
                 SoftTimer_Start(&timer);
-            } 
+            }
             else if (timer.State == TIMER_RUNNING)
             {
-                if(SoftTimer_Elapsed(&timer) > 5000)
+                if (SoftTimer_Elapsed(&timer) > 5000)
                 {
                     SoftTimer_Stop(&timer);
                     Serial_Print("Editor connection timeout\r\n");
@@ -201,8 +200,7 @@ static void ConnectToEditor(void)
         case STATE_CLOSED:
         case STATE_UNINITIALISED:
         case STATE_ERROR:
-        default: 
-            break;
+        default: break;
     }
 }
 
@@ -232,7 +230,7 @@ static void ConnectToEditor(void)
  * Send a DEVICE_REGISTRATION message (the Header.Source.ClientAddress field will now be updated with the local address)
  * This will force any devices that share the local address to restart the discovery process.
  * This should not happen
- */ 
+ */
 // clang-format on
 
 /**
@@ -243,7 +241,7 @@ static void ConnectToEditor(void)
 static void NetworkDiscovery(void)
 {
     static sSoftTimer discoveryTimer = {0};
-    static u8 attempts = MAX_DISCOVERY_ATTEMPTS;
+    static u8         attempts       = MAX_DISCOVERY_ATTEMPTS;
 
     switch (mDiscoveryState)
     {
@@ -294,9 +292,7 @@ static void NetworkDiscovery(void)
         }
 
         case DISCOVERY_STOPPED:
-        default:
-            attempts = MAX_DISCOVERY_ATTEMPTS;
-            break;
+        default: attempts = MAX_DISCOVERY_ATTEMPTS; break;
     }
 }
 
@@ -350,9 +346,9 @@ static void SendDiscoveryRequest(void)
  */
 static void SendConnectionRequest(sNetworkAddress* pRemoteDevice, eCommsProtocol Protocol)
 {
-    sMessage msg = MSG_Default;
-    msg.Header.Protocol = Protocol;
-    msg.Header.Destination = *pRemoteDevice;
+    sMessage msg               = MSG_Default;
+    msg.Header.Protocol        = Protocol;
+    msg.Header.Destination     = *pRemoteDevice;
     msg.Header.Source.ModuleID = MODULE_NETWORK;
     msg.Header.ModuleParameter = CONNECTION_REQUEST;
 
@@ -396,7 +392,7 @@ static void SetLocalAddress(NetAddress NewAddress)
 {
     mConnections.LocalAddress = NewAddress;
 
-    if(NewAddress == UNASSIGNED_ADDRESS)
+    if (NewAddress == UNASSIGNED_ADDRESS)
     {
         mAddressState = ADDRESS_UNINITIALISED;
     }
@@ -404,7 +400,7 @@ static void SetLocalAddress(NetAddress NewAddress)
     {
         mAddressState = ADDRESS_ASSIGNED;
     }
-    
+
     Data_SetNetworkAddress(mConnections.LocalAddress);
     PrintLocalAddress();
 }
@@ -414,12 +410,12 @@ static void SetLocalAddress(NetAddress NewAddress)
  * 
  * @return sNetworkAddress The address for the muffin editor. 
  */
-static sNetworkAddress GetMuffinEditorAddress(void) 
+static sNetworkAddress GetMuffinEditorAddress(void)
 {
     sNetworkAddress address = {
         .ClientAddress = mConnections.MuffinEditor.Address,
-        .ClientType = CLIENT_EDITOR,
-        .ModuleID = MODULE_NETWORK,
+        .ClientType    = CLIENT_EDITOR,
+        .ModuleID      = MODULE_NETWORK,
     };
 
     // FIXME - this will return an invalid address, needs to be state aware (i.e has the editor been discovered?)
@@ -434,7 +430,7 @@ static sNetworkAddress GetMuffinEditorAddress(void)
 static u16 GetNumberOfConnectedPeers(void)
 {
     // Kernighan bit count algorithm
-    u16 numPeers = 0;
+    u16 numPeers    = 0;
     u16 connections = mConnections.MuffinConnections.Peers;
 
     while (connections)
@@ -474,7 +470,7 @@ static bool MessageHandler(sMessage* pMessage)
                 case CLIENT_EDITOR:
                 {
                     //FIXME - what happens if there are two editors attempting to send discovery replies?
-                    mConnections.MuffinEditor.Address = pMessage->Header.Source.ClientAddress;
+                    mConnections.MuffinEditor.Address  = pMessage->Header.Source.ClientAddress;
                     mConnections.MuffinEditor.Protocol = pMessage->Header.Protocol;
 
                     switch (mConnections.MuffinEditor.State)
@@ -486,8 +482,7 @@ static bool MessageHandler(sMessage* pMessage)
                             break;
                         }
 
-                        default:
-                        break;
+                        default: break;
                     }
 
                     break;
@@ -518,7 +513,7 @@ static bool MessageHandler(sMessage* pMessage)
                         SetLocalAddress(UNASSIGNED_ADDRESS);
 
                         // If there are no connection slots available - do not attempt connection!
-                        if(GetNumberOfConnectedPeers() < MAX_CONNECTIONS)
+                        if (GetNumberOfConnectedPeers() < MAX_CONNECTIONS)
                         {
                             Network_StartDiscovery(true);
                         }
@@ -528,7 +523,7 @@ static bool MessageHandler(sMessage* pMessage)
 
                 case CLIENT_EDITOR:
                 {
-                    if(mConnections.MuffinEditor.State == STATE_UNINITIALISED)
+                    if (mConnections.MuffinEditor.State == STATE_UNINITIALISED)
                     {
                         Network_ConnectToEditor();
                     }
@@ -537,8 +532,7 @@ static bool MessageHandler(sMessage* pMessage)
                 default: break;
             }
         }
-        
-        
+
         case CONNECTION_REQUEST:
         {
             // TODO - handle a connection request.
@@ -547,7 +541,7 @@ static bool MessageHandler(sMessage* pMessage)
 
         case CONNECTION_REPLY:
         {
-            switch(pMessage->Header.Source.ClientType)
+            switch (pMessage->Header.Source.ClientType)
             {
                 case CLIENT_MUFFIN:
                 {
@@ -560,7 +554,7 @@ static bool MessageHandler(sMessage* pMessage)
 
                     if (pMessage->Value == 1) // connection accepted
                     {
-                        if(mConnections.MuffinEditor.State == STATE_HANDSHAKE)
+                        if (mConnections.MuffinEditor.State == STATE_HANDSHAKE)
                         {
                             mConnections.MuffinEditor.State = STATE_CONNECTED;
                             Serial_Print("Connected to editor\r\n");
@@ -570,7 +564,7 @@ static bool MessageHandler(sMessage* pMessage)
                     {
                         mConnections.MuffinEditor.State = STATE_CLOSING;
                     }
-  
+
                     break;
                 }
 

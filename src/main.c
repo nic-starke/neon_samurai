@@ -64,15 +64,15 @@ int main(void)
     SoftTimer_Init();
     Encoder_Init();
 
-    GlobalInterruptEnable();    // Enable global interrupts so that the display gets updated, and so I/O can be read.
+    GlobalInterruptEnable(); // Enable global interrupts so that the display gets updated, and so I/O can be read.
     SetupOperatingMode();
 
     Data_Init();
-    Comms_Init();               // Modules that require comms should be initialised after this point.
+    Comms_Init(); // Modules that require comms should be initialised after this point.
     Network_Init();
     MIDI_Init();
 
-    EncoderDisplay_UpdateAllColours();    // FIXME - A better approach would be a single function to completely reset the display.
+    EncoderDisplay_UpdateAllColours(); // FIXME - A better approach would be a single function to completely reset the display.
 
     Serial_Print("Booted\r\n");
 
@@ -87,7 +87,7 @@ int main(void)
     SoftTimer_Stop(&mTestTimer);
 #endif
 
-    Network_StartDiscovery();
+    Network_StartDiscovery(false);
 
     while (1)
     {
@@ -115,8 +115,6 @@ int main(void)
         USB_USBTask();
     }
 }
-
-
 
 /**
  * @brief Sets the operating mode based on special input switch combinations.

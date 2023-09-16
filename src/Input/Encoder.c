@@ -32,7 +32,8 @@
 #include "Utility.h"
 
 // A default configuration for LAYER A of an encoder.
-static const sVirtualEncoderLayer DEFAULT_LAYER_A = {     // TODO move to progmem.
+static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
+    // TODO move to progmem.
     .StartPosition           = ENCODER_MIN_VAL,
     .StopPosition            = ENCODER_MID_VAL - 1,
     .MinValue                = ENCODER_MIN_VAL,
@@ -45,7 +46,8 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_A = {     // TODO move to progme
 };
 
 // A default configuration for LAYER B of an encoder.
-static const sVirtualEncoderLayer DEFAULT_LAYER_B = {     // TODO move to progmem.
+static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
+    // TODO move to progmem.
     .StartPosition           = ENCODER_MID_VAL,
     .StopPosition            = ENCODER_MAX_VAL,
     .MinValue                = ENCODER_MAX_VAL,
