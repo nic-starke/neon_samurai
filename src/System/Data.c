@@ -47,13 +47,13 @@ typedef struct
 {
     u16 DataVersion;
 
-    u8 OperatingMode; // This should be a bitfield, but you cannot take the address of a bitfield when attempting to ready from eeprom/pgmspace.
+    u8 OperatingMode;
 
     u8 RGBBrightness;
     u8 DetentBrightness;
     u8 IndicatorBrightness;
 
-    sEEVirtualEncoderLayer VirtualEncoders[NUM_VIRTUAL_BANKS][NUM_VIRTUAL_ENCODER_LAYERS][NUM_ENCODERS];
+    sEE_Encoder Encoders[NUM_VIRTUAL_BANKS][NUM_ENCODERS];
 } sEEData; // Data stored in EEPROM
 
 // "mEEData" is stored in eeprom - access only via eeprom read/write functions
@@ -66,7 +66,7 @@ sEEData mEEData EEMEM = {
     .RGBBrightness       = BRIGHTNESS_MAX,
     .DetentBrightness    = BRIGHTNESS_MAX,
     .IndicatorBrightness = BRIGHTNESS_MAX,
-    .VirtualEncoders = {0},
+    .Encoders = {0},
 };
 
 // static inline void EE_ReadVirtualEncoder(sVirtualEncoder* pDest, sEEVirtualEncoder* pSrc)
@@ -146,11 +146,11 @@ void Data_Init(void)
 
     while (!eeprom_is_ready()) {} // wait for eeprom ready
 
-    u16 hue = eeprom_read_word(&mEEData.VirtualEncoders[0][0][0].RGBHue);
+    u16 hue = eeprom_read_word(&mEEData.Encoders[0][0].DetentHue);
 
     hue = hue + 1;
 
-    eeprom_update_byte(&mEEData.VirtualEncoders[0][0][0].RGBHue, hue);
+    eeprom_update_word(&mEEData.Encoders[0][0].DetentHue, hue);
 
     // // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
     // gData.DataVersion  = eeprom_read_word(&mEEData.DataVersion);

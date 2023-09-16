@@ -299,7 +299,13 @@ void EncoderDisplay_UpdateAllColours(void)
     {
         sEncoderState* pEncoder = &gData.EncoderStates[gData.CurrentBank][encoder];
 
-        EncoderDisplay_SetRGBColour(pEncoder, &pEncoder->Layers->RGBColour);
+        sHSV newColour = {
+            .Hue = pEncoder->Layers->RGBHue,
+            .Saturation = SATURATION_MAX,
+            .Value = VALUE_MAX,
+        };
+
+        EncoderDisplay_SetRGBColour(pEncoder, &newColour);
         pEncoder->DisplayInvalid = true;
     }
 }

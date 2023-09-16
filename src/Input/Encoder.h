@@ -124,11 +124,11 @@ typedef struct
         struct {
             u8 Mode: 4;
             u8 Channel : 4;
-        } sData;
+        } BitField;
         u8 Byte;
     } MidiData;
     uMidiValue MidiValue;
-} sEERotaryMidiConfig;
+} sEE_RotaryMidiConfig;
 
 typedef struct
 {
@@ -146,8 +146,8 @@ typedef struct
     u16               MinValue;
     u16               MaxValue;
     sRotaryMidiConfig MidiConfig;
-    sHSV              RGBColour;
-    bool              Enabled;
+    u16               RGBHue;
+    bool              Enabled; // Runtime enabled state - can be modified by encoder/side switch.
 } sVirtualEncoderLayer; // Runtime state of an encoder layer
 
 typedef struct 
@@ -156,9 +156,9 @@ typedef struct
     u16               StopPosition;
     u16               MinValue;
     u16               MaxValue;
-    sEERotaryMidiConfig MidiConfig;
+    sEE_RotaryMidiConfig MidiConfig;
     u16               RGBHue;
-} sEEVirtualEncoderLayer;
+} sEE_VirtualEncoderLayer;
 
 typedef struct
 {
@@ -182,11 +182,33 @@ typedef struct
     u8 DisplayInvalid : 1;
     u8 FineAdjust     : 1;
     u8 HasDetent      : 1;
-    u8 Reserved       : 3;
+    u8 LayerA_Enabled : 1;
+    u8 LayerB_Enabled : 1;
+    u8 Reserved         : 1;
 
     sVirtualEncoderLayer Layers[NUM_VIRTUAL_ENCODER_LAYERS];
     sVirtualSwitch       Switch;
 } sEncoderState;
+
+typedef struct
+{
+    union {
+        struct {
+            u8 DisplayStyle   : 2;
+            u8 FineAdjust     : 1;
+            u8 HasDetent      : 1;
+            u8 LayerA_Enabled : 1;
+            u8 LayerB_Enabled : 1;
+            u8 Reserved       : 2;
+        } BitField;
+        u8 Byte;
+    } BitFieldSettings;
+
+    u16 DetentHue;
+
+    sEE_VirtualEncoderLayer Layers[NUM_VIRTUAL_ENCODER_LAYERS];
+
+} sEE_Encoder;
 
 typedef struct
 {

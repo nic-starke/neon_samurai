@@ -38,7 +38,7 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_A = {
     .MidiConfig.Channel      = 0,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 0,
-    .RGBColour               = HSV_RED,
+    .RGBHue                  = 0,
     .Enabled                 = true,
 };
 
@@ -50,14 +50,14 @@ static const sVirtualEncoderLayer DEFAULT_LAYER_B = {
     .MidiConfig.Channel      = 1,
     .MidiConfig.Mode         = MIDIMODE_CC,
     .MidiConfig.MidiValue.CC = 1,
-    .RGBColour               = HSV_BLUE,
+    .RGBHue                  = 50,
     .Enabled                 = true,
 };
 
 // clang-format off
 static const sVirtualSwitch DEFAULT_ENCODER_SWITCH = {
     .State               = 0,
-    .Mode                = SWITCH_LAYER_CYCLE_NEXT,
+    .Mode                = SWITCH_LAYER_CYCLE,
     .MidiConfig.Channel  = 0,
     .MidiConfig.Mode     = MIDIMODE_DISABLED,
     .MidiConfig.OffValue = 0,
@@ -262,18 +262,18 @@ static inline void UpdateEncoderSwitch(int EncoderIndex, sEncoderState* pEncoder
                 }
                 break;
             }
-            case SWITCH_LAYER_CYCLE_NEXT:
-            {
-                if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
-                {
-                    u8 nextLayer = (pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
-                    pEncoderState->Layers[pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer].Enabled = false;
-                    pEncoderState->Layers[nextLayer].Enabled                                                        = true;
-                    pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer                                = nextLayer;
-                    pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer = (nextLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
-                }
-                break;
-            }
+            // case SWITCH_LAYER_CYCLE_NEXT:
+            // {
+            //     if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+            //     {
+            //         u8 nextLayer = (pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
+            //         pEncoderState->Layers[pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer].Enabled = false;
+            //         pEncoderState->Layers[nextLayer].Enabled                                                        = true;
+            //         pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer                                = nextLayer;
+            //         pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer = (nextLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
+            //     }
+            //     break;
+            // }
 
             default:
             case SWITCH_DISABLED: break;
