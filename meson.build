@@ -1,6 +1,6 @@
 # File: meson.build ( 1st November 2021 )
 # Project: Muffin
-# Copyright 2021 - 2021 Nic Starke (mail@bxzn.one)
+# Copyright 2021 - 2021 bxzn (mail@bxzn.one)
 # -----
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
