@@ -21,10 +21,6 @@ If you use this software you must accept the License, most importantly you shoul
 
 Muffin is still in development, when its ready I'll create a release and make downloads available.
 
-## Mailing List
-
-To get periodic updates on the project status you can sign up [here](<https://lists.sr.ht/~Nicolaus> Starke/muffin-announce).
-
 ## Planned Features
 
 The overall intention for the project is to remove some of the limitations of the original firmware, such as fixed midi channels, however there is the possibility of adding new features.
@@ -32,7 +28,7 @@ See below regarding feature requests.
 
 ## Feature Requests and Bug Reports
 
-Please use the [issues](<https://todo.sr.ht/~Nicolaus> Starke/Muffin) page of the repository to request new features, or to submit a bug.
+Please use the [issues](https://github.com/nic-starke/muffintwister/issues) page of the repository to request new features, or to submit a bug.
 
 ## Why Muffin?
 
@@ -40,13 +36,9 @@ Please use the [issues](<https://todo.sr.ht/~Nicolaus> Starke/Muffin) page of th
 - To provide a clean and well organised firmware project that other users can extend for themselves.
 - As a personal project to experiment with the AVR platform.
 
-## Getting Involved
+## I am a developer, how can I get involved?
 
-I have created a virtual machine development environment that can be used to quickly get going with the project.
-
-It is available [here](<https://git.sr.ht/~Nicolaus> Starke/AVR_VM), its a generic Ubuntu VM configured with the latest AVR-GCC.
-
-It uses a [Vagrant](www.vagrantup.com) configuration script so you don't have to configure anything.
+The repository includes a devcontainer definition for vscode, or alternatively you can use the Dockerfile.
 
 ### Line Endings
 
@@ -55,7 +47,7 @@ Alternatively run [scripts/ConvertLineEndings.sh](scripts/ConvertLineEndings.sh)
 
 ## Building the Project
 
-The vagrant environment should drop your terminal directly into the checkout folder. Then just run a few scripts to get started:
+The dev environment should drop your terminal directly into the checkout folder. Then just run a few scripts to get started:
 
 1. Set environment variables (the period before the script is important :)
 2. Generate build files (only needs to be executed once)
