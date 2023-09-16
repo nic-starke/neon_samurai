@@ -19,13 +19,3 @@ option('flash',
   type : 'boolean',
   value : false,
   description : 'Flash binary with AVRDude')
-
-option('print_bin_size',
-  type : 'boolean',
-  value : true,
-  description: 'Print the binary image size after compilation')
-
-  option('print_ram_usage',
-  type : 'boolean',
-  value : true,
-  description: 'Print the ram usage after compilation')

@@ -40,7 +40,7 @@ conf_data = configuration_data()
 conf_data.set('version', meson.project_version())
 configure_file(input: 'src/Config.h.in', output : 'Config.h', configuration: conf_data)
 configuration_inc = include_directories('.')
-vcs_tag(input : 'src/Version.h.in', output : 'Version.h')
+# vcs_tag(input : 'src/Version.h.in', output : 'Version.h')
 
 project_src = []
 project_inc = []
@@ -57,7 +57,7 @@ project_inc += include_directories(f)
 endforeach
 
 muffin = executable(
-  meson.project_name(),
+  meson.project_name() + '.elf',
   [project_src],
   include_directories : [project_inc, configuration_inc]
 )
@@ -66,25 +66,35 @@ hex = custom_target(
   meson.project_name() + '.hex',
   input : muffin,
   output : meson.project_name() + '.hex',
-  command : [find_program('objcopy'), meson.get_cross_property('objcopy_hex_args')]
+  command : [find_program('objcopy'), meson.get_external_property('objcopy_hex_args')]
 )
 
 bin = custom_target(
   meson.project_name() + '.bin',
   input : muffin,
   output : meson.project_name() + '.bin',
-  command : [find_program('objcopy'), meson.get_cross_property('objcopy_bin_args')]
+  command : [find_program('objcopy'), meson.get_external_property('objcopy_bin_args')]
 )
 
 eep = custom_target(
   meson.project_name() + '.eep',
   input : muffin,
   output : meson.project_name() + '.eep',
-  command : [find_program('objcopy'), meson.get_cross_property('objcopy_eep_args')]
+  command : [find_program('objcopy'), meson.get_external_property('objcopy_eep_args')]
+)
+
+run_target(
+  'BinSize',
+  command : [find_program('size'), hex.full_path()]
+)
+
+run_target(
+  'EepromSize',
+  command : [find_program('size'), eep.full_path()]
 )
 
 if get_option('flash') == true
-# AVRDUDE_COM_OPTS = -V -p meson.get_cross_property('MCU')
+# AVRDUDE_COM_OPTS = -V -p meson.get_external_property('MCU')
 # AVRDUDE_ISP_OPTS = -c $(PROGRAMMER) -P $(PROGRAMMER_PORT)
 
 # upload:    $(TARGET_HEX)
@@ -100,21 +110,6 @@ if get_option('flash') == true
   # '-patmega328p', '-carduino', '-P/dev/ttyACM0', '-b115200',
   # '-D', '-Uflash:w:@0@:i'.format(hex.full_path())],
   # depends : hex,
-endif
-
-if get_option('print_bin_size') == true
-# $(TARGET_SIZE):  $(TARGET_ELF)
-# 		$(SIZE) $(TARGET_ELF) > $(TARGET_SIZE)
-
-# size: $(TARGET_SIZE)
-# 		cat $(TARGET_SIZE) | awk '{ print $$1+$$2 }' | tail -n1 | figlet
-
-# size_report:  build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
-endif
-
-if get_option('print_ram_usage') == true
-# size: $(TARGET_SIZE)
-# 		cat $(TARGET_SIZE) | awk '{ print $$1+$$2 }' | tail -n1 | figlet
 endif
 
 summary({'bindir': get_option('bindir'),

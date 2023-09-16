@@ -18,9 +18,10 @@
  */
 
 #include "Display.h"
+
 #include "Types.h"
 
 void Display_Init(void)
 {
-  u8 test = 25;
+  u8 test = 15;
 }

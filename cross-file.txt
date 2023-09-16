@@ -94,6 +94,7 @@ c_args = [
   '-Wall',
   '-Wextra',
   '-Wpedantic',
+  '-mmcu=' + MCU,
   '-DBOARD=USER_BOARD',
   '-DF_USB=' + F_USB,
   '-DF_CPU=' + F_CPU,
