@@ -2,4 +2,4 @@
 
 ## Installation
 
-A complete installation guide is provided [here](InstallationGuide.md).
+A complete installation guide is provided [here](../InstallationGuide.md).
