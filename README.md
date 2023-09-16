@@ -2,12 +2,16 @@
 
 *An open source firmware for the DJTT Midi Fighter Twister*
 
+---
+
+## [LINK TO PROJECT WIKI](https://man.sr.ht/~bxzn/Muffin/)
+
+---
+
 ## About
 
 This project was started to add new functionality to the Midi Fighter Twister.
 It is based on [AVR-GCC](https://gcc.gnu.org/wiki/avr-gcc) and the excellent [LUFA USB libraries](http://www.fourwalledcubicle.com/LUFA.php)
-
-### [**WIKI** - A FULL WIKI IS AVAILABLE HERE](https://man.sr.ht/~bxzn/Muffin/)
 
 ### **NOTICE**
 
@@ -25,9 +29,6 @@ To get periodic updates on the project status you can sign up [here](https://lis
 
 The overall intention for the project is to remove some of the limitations of the original firmware, such as fixed midi channels, however there is the possibility of adding new features.
 See below regarding feature requests.
-
-See [Features](Features.MD) for more information.
-
 ## Feature Requests and Bug Reports
 
 Please use the [issues](https://todo.sr.ht/~bxzn/Muffin) page of the repository to request new features, or to submit a bug.
