@@ -37,4 +37,9 @@
     },
     "files.eol": "\n",
     "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "*.h": "c",
+        "compare": "c",
+        "type_traits": "c"
+    },
 }

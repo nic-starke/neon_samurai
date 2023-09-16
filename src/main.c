@@ -21,7 +21,7 @@
 #warning "This project has only been tested on the XMEGA 128A4U, continue at your own risk"
 #endif
 
-#define ENABLE_SERIAL
+
 
 #include <Common/Common.h>
 #include <Drivers/USB/USB.h>
@@ -37,8 +37,10 @@
 #include "SoftTimer.h"
 #include "Data.h"
 #include "USB.h"
-#include "VirtualSerial.h"
 #include "MIDI.h"
+
+// #define ENABLE_SERIAL
+#include "VirtualSerial.h"
 
 static sSoftTimer timer = {0};
 

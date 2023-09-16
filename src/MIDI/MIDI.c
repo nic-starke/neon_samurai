@@ -26,14 +26,24 @@
 #include "Display.h"
 #include "USB.h"
 #include "DataTypes.h"
+#include "Config.h"
+
+#define ENABLE_SERIAL
+#include "VirtualSerial.h"
+
+#define SYSEX_NONRT         0x7E
+#define SYSEX_RT            0x7F
+#define SYSEX_CH            0x00
+#define SYSEX_BROADCAST_CH  0x7F
+#define MAX_SYSEX_MSG_LEN   32
 
 typedef enum
 {
     PARSER_INIT,
-    PARSER_READ_COMMAND,
-    PARSER_READ_SYSEX_STREAM,
-    PARSER_GOT_COMMAND,
-    PARSER_GOT_SYSEX,
+
+    PARSER_SYSEX_NONRT,
+    PARSER_SYSEX_RT,
+
     PARSER_DONE,
 
     PARSER_ERROR,
@@ -42,314 +52,30 @@ typedef enum
 } eParserState;
 
 static eParserState mParserState = PARSER_INIT;
+static u8 mOutBuffer[MAX_SYSEX_MSG_LEN] = {0};
 
-static const u8 SYSEX_HEADER[] = {
-    0xF0,             // start of sysex
-    0x00, 0x48, 0x01, // manufacturer id
-    0x00, 0x01        // product id
-};
+static const u8 MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01};
+static const u8 FMLY_ID[2] PROGMEM = {0x00, 0x00};
+static const u8 PROD_ID[2] PROGMEM = {0x00, 0x01};
+static const u8 VRSN_ID[4] PROGMEM = {0x00, 0x00, 0x00, VERSION};
 
-typedef struct
-{
-    u8 MSBs;
-    u8 Data[7];
-} sSysExPacket;
+// static const u8 SYSEX_HEADER[] = {
+//     0xF0,             // start of sysex
+//     0x00, 0x48, 0x01, // manufacturer id
+//     0x00, 0x01        // product id
+// };
 
-typedef struct
-{
-    u8 header[sizeof(SYSEX_HEADER)];
-    u8 dataLen;
-} sMuffinSysex;
-
-// Transmit sysex data via the lufa midi event packet
-// This does not add sysex headers - ensure pData is a valid midi sysex message!
-static void TransmitSysexData(u8* pData, u16 DataLength)
-{
-    for (int i = 0; i < DataLength; i++)
-    {
-        u8                 numBytes = 0;
-        MIDI_EventPacket_t msg;
-        if ((DataLength - i) > 3)
-        {
-            numBytes  = 3;
-            msg.Event = MIDI_EVENT(0, 0x40);
-        }
-        else
-        {
-            numBytes  = (DataLength - 1);
-            msg.Event = MIDI_EVENT(0, 0x50 + ((numBytes - 1) * 16));
-        }
-
-        for (int byte = 0; byte < numBytes; byte++)
-        {
-            msg.Data[byte] = *pData++;
-        }
-        MIDI_Device_SendEventPacket(&gMIDI_Interface, &msg);
-        MIDI_Device_Flush(&gMIDI_Interface);
-        DataLength -= numBytes;
-        i += numBytes;
-    }
-}
-
-static inline void TransmitSysexByte(u8 Byte)
-{
-    MIDI_EventPacket_t msg;
-    msg.Event = MIDI_EVENT(0, 0x50);
-    msg.Data1 = Byte;
-    MIDI_Device_SendEventPacket(&gMIDI_Interface, &msg);
-}
-
-void MIDI_SendMMCMD(u8* pData, eMuffinMidiCommand Command, u16 DataLength)
-{
-    TransmitSysexData(SYSEX_HEADER, sizeof(SYSEX_HEADER));
-    TransmitSysexByte(Command);
-    TransmitSysexData(pData, DataLength);
-    TransmitSysexByte(MIDI_CMD_SYSEX_END);
-}
-
-// void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
+// typedef struct
 // {
-//     static u8 bytesRead = 0;
+//     u8 MSBs;
+//     u8 Data[7];
+// } sSysExPacket;
 
-//     if (pMsg->Event == MIDI_EVENT(0, MIDI_COMMAND_SYSEX_1BYTE) 0x80)
-//     switch (pMsg->Event)
-//     {
-//         case
-//     }
-// }
-
-// static inline uint8_t CmdDataSize(uint8_t MidiCommand)
+// typedef struct
 // {
-//     switch (MidiCommand)
-//     {
-//         case MIDI_CMD_NOTE_OFF:
-//         case MIDI_CMD_NOTE_ON:
-//         case MIDI_CMD_AFTERTOUCH:
-//         case MIDI_CMD_CC:
-//         case MIDI_CMD_PITCH_BEND:
-//         case MIDI_CMD_MTC_QUARTER:
-//         case MIDI_CMD_SONG_POS:
-//         case MIDI_CMD_SONG_SELECT: return 2;
-
-//         case MIDI_CMD_PC:
-//         case MIDI_CMD_CHANNEL_PRESSURE: return 1;
-
-//         case MIDI_CMD_SYSEX_START:
-//         case MIDI_CMD_SYSEX_END:
-//         case MIDI_CMD_TUNE_REQUEST:
-//         case MIDI_CMD_CLOCK:
-//         case MIDI_CMD_START:
-//         case MIDI_CMD_CONTINUE:
-//         case MIDI_CMD_STOP:
-//         case MIDI_CMD_SENSING:
-//         case MIDI_CMD_RESET: return 0;
-//     }
-
-//     return 0;
-// }
-
-// void MidiParser_ParseMessage(MIDI_EventPacket_t* pMsg)
-// {
-//     while (mParserState != PARSER_DONE)
-//     {
-//         switch (mParserState)
-//         {
-//             case PARSER_INIT:
-//             {
-//                 // Split upper and lower status byte into command and channel
-//                 eMidiCommand cmd = pMsg->Event & 0xF0;
-//                 u8 channel = pMsg->Event & 0x0F;
-
-//                 if (cmd == MIDI_CMD_SYSEX_START)
-//                 {
-//                     mParserState  = PARSER_READ_SYSEX_STREAM;
-//                     mSysExMsg.DataLen = 0;
-//                 }
-//                 else
-//                 {
-//                     mParserState = PARSER_READ_COMMAND;
-//                 }
-//             }
-//             break;
-
-//             case PARSER_READ_COMMAND:
-//             {
-//                 uint8_t expectedSize = CmdDataSize(cmd);
-//                 if ((MessageSize - 1) != expectedSize)
-//                 {
-//                     mParserState = PARSER_ERROR;
-//                     break;
-//                 }
-
-//                 for (int i = 0; i < MessageSize - 1; i++)
-//                 {
-//                     pMsg->Data[i] = Message[i + 1];
-//                 }
-
-//                 pMsg->DataLen = MessageSize - 1;
-
-//                 mParserState = PARSER_GOT_COMMAND;
-//                 break;
-//             }
-
-//             case PARSER_READ_SYSEX_STREAM:
-//             {
-//                 for (int i = 1; i < MessageSize - 1; i++)
-//                 {
-//                     if (Message[i] == MIDI_CMD_SYSEX_END)
-//                     {
-//                         mParserState = PARSER_GOT_SYSEX;
-//                         break;
-//                     }
-//                     else if (mSysExMsg.DataLen >= MIDI_MSG_MAX_LEN)
-//                     {
-//                         mParserState = PARSER_ERROR;
-//                         break;
-//                     }
-//                     else
-//                     {
-//                         mSysExMsg.Data[mSysExMsg.DataLen] = Message[i];
-
-//                         mSysExMsg.DataLen++;
-//                     }
-//                 }
-//                 break; // probably need a timeout here if no sysex end is received this locks up...
-//             }
-
-//             case PARSER_GOT_COMMAND:
-//             {
-//                 // add message to the midi.c update() queue - let it deal with it
-//                 // dont have a queue here...
-
-//                 mMsgParser.Queue.Index = (mMsgParser.Queue.Index + 1) % MIDI_MSG_Q_LEN;
-
-//                 mParserState = PARSER_DONE;
-//                 break;
-//             }
-
-//             case PARSER_GOT_SYSEX:
-//             {
-//                 // as above - add message to external queue, let it deal with it.
-//                 mParserState = PARSER_DONE;
-//                 break;
-//             }
-
-//             case PARSER_DONE:
-//             {
-//                 break;
-//             }
-
-//             case PARSER_ERROR:
-//             default:
-//             {
-//                 // clear the current message
-//                 pMsg->Channel = 0;
-//                 cmd = 0;
-//                 pMsg->DataLen = 0;
-//                 pMsg->Data[0] = 0;
-//                 pMsg->Data[1] = 0;
-
-//                 mParserState = PARSER_DONE;
-//                 LogError(MIDI_MSG_PARSER_ERROR);
-//                 break;
-//             }
-//         }
-//     }
-
-//     mParserState = PARSER_INIT;
-// }
-
-void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
-{
-    // switch (pMsg->Event)
-    // {
-    //     case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_1BYTE): break;
-    //     case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_2BYTE): break;
-    //     case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_3BYTE): break;
-
-    //     case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE):
-    //     {
-    //         switch(mParserState)
-    //         {
-    //             case PARSER_INIT:
-    //             {
-    //                 // sysex non-realtime on channel 0
-    //                 if (pMsg->Data1 == 0xF0 && pMsg->Data2 == 0x7E && pMsg->Data3 == 0x00)
-    //                 {
-    //                     mParserState = PARSER_READ_SYSEX_STREAM;
-    //                     Display_Flash(200, 1);
-    //                 }
-    //                 break;
-    //             }
-
-    //             case PARSER_READ_SYSEX_STREAM:
-    //             {
-    //                 if(pMsg->Data1 == MMCMD_HEADER[0] && pMsg->Data2 == MMCMD_HEADER[1] && pMsg->Data3 == MMCMD_HEADER[2])
-    //                 {
-    //                     mParserState = PARSER_READ_COMMAND;
-    //                     Display_Flash(200, 1);
-    //                 }
-    //                 break;
-    //             }
-
-    //             case PARSER_READ_COMMAND:
-    //             {
-    //                 switch((eMuffinMidiCommand) pMsg->Data1)
-    //                 {
-    //                     case MMCMD_MED_CONNECT:
-    //                     {
-    //                         Display_Flash(200, 1);
-    //                         mParserState = PARSER_INIT;
-    //                         break;
-    //                     }
-
-    //                     default:
-    //                     break;
-    //                 }
-    //             }
-
-    //             default:
-    //             break;
-    //         }
-
-    //         break;
-    //     }
-
-    //     default:
-    //     //case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE):
-    //     case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_2BYTE):
-    //     case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE):
-    //     {
-    //         break;
-    //     }
-    // }
-
-    // switch((eMidiCommand)pMsg->Event)
-    // {
-    //     case MIDI_CMD_SYSEX_START:
-    //     case MIDI_CMD_SYSEX_END:
-
-    //     default:
-    //     case MIDI_CMD_NOTE_OFF:
-    //     case MIDI_CMD_NOTE_ON:
-    //     case MIDI_CMD_AFTERTOUCH:
-    //     case MIDI_CMD_CC:
-    //     case MIDI_CMD_PC:
-    //     case MIDI_CMD_CHANNEL_PRESSURE:
-    //     case MIDI_CMD_PITCH_BEND:
-    //     case MIDI_CMD_MTC_QUARTER:
-    //     case MIDI_CMD_SONG_POS:
-    //     case MIDI_CMD_SONG_SELECT:
-    //     case MIDI_CMD_TUNE_REQUEST:
-    //     case MIDI_CMD_CLOCK:
-    //     case MIDI_CMD_START:
-    //     case MIDI_CMD_CONTINUE:
-    //     case MIDI_CMD_STOP:
-    //     case MIDI_CMD_SENSING:
-    //     case MIDI_CMD_RESET:
-    //         break;
-    // }
-}
+//     u8 header[sizeof(SYSEX_HEADER)];
+//     u8 dataLen;
+// } sMuffinSysex;
 
 static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
 {
@@ -438,4 +164,238 @@ void MIDI_Update(void)
         }
         MIDI_Device_USBTask(&gMIDI_Interface); // this calls MIDI_Device_Flush
     }
+}
+
+// Transmit sysex data via the lufa midi event packet
+// This does not add sysex headers - ensure pData is a valid midi sysex message!
+static void TransmitSysexData(u8* pData, u16 DataLength)
+{   
+    char str[32] = "";
+    str[sizeof(str) - 1] = '\0';
+    sprintf(str, "[MIDI TX] tx %u bytes\r\n", DataLength);
+    Serial_Print(str);
+
+    int i=0;
+    MIDI_EventPacket_t msg;
+ 
+    while(i != DataLength){
+        if (DataLength-i >3)
+        {
+            msg.Event = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE);
+            msg.Data1 = pData[i++];
+            msg.Data2 = pData[i++];
+            msg.Data3 = pData[i++];
+        }
+        else
+        {
+            switch(DataLength - i)
+            {
+                case 1:
+                    msg.Event = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE);
+                    msg.Data1 = pData[i++];
+                    break;
+                case 2:
+                    msg.Event = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_2BYTE);
+                    msg.Data1 = pData[i++];
+                    msg.Data2 = pData[i++];
+                    break;
+                case 3:
+                    msg.Event = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE);
+                    msg.Data1 = pData[i++];
+                    msg.Data2 = pData[i++];
+                    msg.Data3 = pData[i++];
+                    break;
+            }
+        }
+        MIDI_Device_SendEventPacket(&gMIDI_Interface, &msg);
+        MIDI_Device_Flush(&gMIDI_Interface);
+    }
+
+}
+
+static inline void TransmitSysexByte(u8 Byte)
+{
+    MIDI_EventPacket_t msg;
+    msg.Event = MIDI_EVENT(0, 0x50);
+    msg.Data1 = Byte;
+    MIDI_Device_SendEventPacket(&gMIDI_Interface, &msg);
+}
+
+void MIDI_SendMMCMD(u8* pData, eMuffinMidiCommand Command, u16 DataLength)
+{
+    // TransmitSysexData(SYSEX_HEADER, sizeof(SYSEX_HEADER));
+    // TransmitSysexByte(Command);
+    // TransmitSysexData(pData, DataLength);
+    // TransmitSysexByte(MIDI_CMD_SYSEX_END);
+}
+
+static inline void PrintMsg(MIDI_EventPacket_t* pMsg, int DataCount)
+{
+    if (DataCount > 3){
+        DataCount = 3;
+    } else if (DataCount == 0)
+    {
+        return;
+    }
+
+    for(int i = 0; i < DataCount; i++)
+    {
+        char val[2] = "";
+        sprintf(val, "0x%02x", pMsg->Data[i]);
+        Serial_Print(val);
+        Serial_Print(" ");
+    }
+    Serial_Print("\r\n");
+}
+
+static inline void SysExProcess_NonRT(eMidiSysExNonRealtime SubId)
+{
+    switch(SubId)
+    {
+        case GENERAL_SYS_ID_REQ:
+        {
+            u8* b = &mOutBuffer[0];
+
+            *b++ = MIDI_CMD_SYSEX_START;
+
+            *b++ = SYSEX_NONRT;
+            *b++ = SYSEX_BROADCAST_CH;
+            *b++ = MIDI_SYSEX_NONRT_GENERAL_SYS;
+            *b++ = GENERAL_SYS_ID_REP;
+
+            for (int i = 0; i < sizeof(MANF_ID); i++)
+                *b++ = pgm_read_byte(&MANF_ID[i]);
+
+            for(int i = 0; i < sizeof(FMLY_ID); i++)
+                *b++ = pgm_read_byte(&FMLY_ID[i]);
+
+            for(int i = 0; i < sizeof(PROD_ID); i++)
+                *b++ = pgm_read_byte(&PROD_ID[i]);
+
+            for(int i = 0; i < sizeof(VRSN_ID); i++)
+                *b++ = pgm_read_byte(&VRSN_ID[i]);
+
+            *b++ = MIDI_CMD_SYSEX_END;
+            Serial_Print("[MIDI TX] ID reply\r\n");
+            TransmitSysexData(mOutBuffer, b - &mOutBuffer[0]);
+            break;
+        }
+
+        default:
+        break;
+    }
+}
+
+void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
+{
+    int count = 0;
+
+    switch (pMsg->Event)
+    {
+        case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_1BYTE): 
+        {
+            count = 1;
+            PrintMsg(pMsg, count);
+            Serial_Print("SysEx 1 byte\r\n");
+            break;
+        }
+        case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_2BYTE):
+        {
+            count = 2;
+            PrintMsg(pMsg, count);
+            Serial_Print("SysEx 2 byte\r\n");
+            break;
+        }
+        case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_3BYTE):
+        {
+            count = 3;
+            PrintMsg(pMsg, count);
+            Serial_Print("SysEx 3 byte\r\n");
+            break;
+        }
+        break;
+
+        case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE):
+        {
+            Serial_Print("SysEx stream\r\n");
+            count = 3;
+            PrintMsg(pMsg, count);
+            switch(mParserState)
+            {
+                case PARSER_INIT:
+                {
+                    // redundant as lufa passed sysex message already
+                    // if (pMsg->Data[0] == MIDI_CMD_SYSEX_START)
+                    // {
+
+                    // }
+                    if(pMsg->Data[2] == SYSEX_CH || pMsg->Data[2] == SYSEX_BROADCAST_CH)
+                    {
+                        if (pMsg->Data[1] == SYSEX_NONRT)
+                        {
+                            Serial_Print("Non Realtime\r\n");
+                            mParserState = PARSER_SYSEX_NONRT; 
+                        }
+                        else if (pMsg->Data[1] == SYSEX_RT)
+                        {
+                            Serial_Print("Realtime\r\n");
+                            mParserState = PARSER_SYSEX_RT; 
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                    break;
+                }
+
+                // parser is in an invalid state!
+                default:
+                break;
+            }
+            break;
+        }
+
+        default:
+        //case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE):
+        case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_2BYTE):
+        {
+            count = 2;
+            PrintMsg(pMsg, count);
+            Serial_Print("SysEx end stream 2 byte\r\n");
+            break;
+        }
+        case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE):
+        {
+            count = 3;
+            PrintMsg(pMsg, count);
+            Serial_Print("SysEx end stream 3 byte\r\n");
+            switch(mParserState)
+            {
+                case PARSER_SYSEX_NONRT:
+                {
+                    switch ((eMidiSysExNonRealtime)pMsg->Data[0])
+                    {
+                        case MIDI_SYSEX_NONRT_GENERAL_SYS:
+                        {
+                            SysExProcess_NonRT((eMidiSysExNonRealtime) pMsg->Data[1]);
+                            break;
+                        }
+
+                        default:
+                        break;
+                    }
+
+                    mParserState = PARSER_INIT;
+                    break;
+                }
+
+                default:
+                break;
+            }
+            break;
+        }
+    }
+
+    
 }

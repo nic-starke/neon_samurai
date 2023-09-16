@@ -23,6 +23,8 @@
 #include "Input.h"
 #include "MIDI.h"
 #include "Display.h"
+
+// #define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
 // clang-format off
@@ -96,11 +98,12 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 #endif
 
 #ifdef VSER_ENABLE
-    // ConfigSuccess &= CDC_Device_ConfigureEndpoints(&gCDC_Interface);
-    ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
-    ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1);
-    ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, CDC_EPSIZE, 1);
+    ConfigSuccess &= CDC_Device_ConfigureEndpoints(&gCDC_Interface);
+    // ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
+    // ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1);
+    // ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, CDC_EPSIZE, 1);
 #endif
+    Serial_Print(ConfigSuccess ? "USB configured successfully\r\n" : "USB failed to configure\r\n");
 }
 
 /** Event handler for the library USB Control Request reception event. */

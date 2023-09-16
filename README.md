@@ -74,6 +74,15 @@ If you want a clean build run `build.sh clean`.
 
 WIP.
 
+## Serial Monitor
+To build serial comms into the firmware check that the flag '-DVSER_ENABLE' is uncommented in meson.build.
+To print to serial in the firmware:
+1. Add #define ENABLE_SERIAL to the c source file.
+2. Add #include "Virtual_Serial.h" below the ENABLE_SERIAL define.
+3. Use Serial_Print("my string\r\n") to print.
+4. To monitor, see scripts/monitor.sh
+5. To remove serial, just comment out #define ENABLE_SERIAL
+
 ## Disclaimer
 
 [Please review the license prior to use](LICENSE)

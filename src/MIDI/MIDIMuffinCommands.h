@@ -40,16 +40,16 @@
 // clang-format off
 
 #ifndef MUFFIN_MIDICMD_DEF
-#define MUFFIN_MIDICMD_DEF(type, val, str, inSize, outSize)
+
 #endif
 
-MUFFIN_MIDICMD_DEF(INVALID_CMD,             0x00, "Received command was invalid",   0, 0)
-MUFFIN_MIDICMD_DEF(VALID_CMD,               0x01, "Received command was valid",     0, 0)
-MUFFIN_MIDICMD_DEF(TIMEOUT,                 0x02, "Timeout waiting for data",       0, 0)
-MUFFIN_MIDICMD_DEF(RESET,                   0x03, "Reset",                          0, 0)
-MUFFIN_MIDICMD_DEF(MED_CONNECT,             0x0C, "Muffin Editor - Connect",        0, 0) // This must be followed by a standard sysex Identity Request msg, aidentity reply will be sent
-MUFFIN_MIDICMD_DEF(MED_DISCONNECT,          0x0D, "Muffin Editor - Disconnect",     0, 0)
-MUFFIN_MIDICMD_DEF(SET_MIDI_PRODUCT_STR,    0x0E, "Set MIDI product string",        30, 0)
-MUFFIN_MIDICMD_DEF(SET_USB_VID_PID,         0x0F, "Set USB VID/PID",                8, 0)
+MUFFIN_MIDICMD_DEF(INVALID_CMD,              "Received command was invalid",  0x00,  0, 0)
+MUFFIN_MIDICMD_DEF(VALID_CMD,                "Received command was valid",    0x01,  0, 0)
+MUFFIN_MIDICMD_DEF(TIMEOUT,                  "Timeout waiting for data",      0x02,  0, 0)
+MUFFIN_MIDICMD_DEF(RESET,                    "Reset",                         0x03,  0, 0)
+MUFFIN_MIDICMD_DEF(MED_CONNECT,              "Muffin Editor - Connect",       0x0C,  0, 0)
+MUFFIN_MIDICMD_DEF(MED_DISCONNECT,           "Muffin Editor - Disconnect",    0x0D,  0, 0)
+MUFFIN_MIDICMD_DEF(SET_MIDI_PRODUCT_STR,     "Set MIDI product string",       0x0E, 30, 0)
+MUFFIN_MIDICMD_DEF(SET_USB_VID_PID,          "Set USB VID/PID",               0x0F,  8, 0)
 
 #undef MUFFIN_MIDICMD_DEF
