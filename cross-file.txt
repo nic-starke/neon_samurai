@@ -23,6 +23,7 @@ F_USB           = '48000000'
 MCU             = 'atxmega128a4u'
 MCU_ARCH        = 'ARCH_XMEGA'
 MCU_DEFINE      = 'ATXMEGA128A4U'
+USR_BOARD       = 'USER_BOARD'
 AVR_GCC_PATH	  = '/usr/local/avr/bin/'
 AVR_LIBC_PATH	  = '/usr/local/avr/avr/include/'
 LIB_XMEGA7_PATH	= '/usr/local/avr/avr/lib/avrxmega7'
@@ -56,7 +57,7 @@ objdump 		    = AVR_GCC_PATH / 'avr-objdump'
 #ranlib 		    = AVR_GCC_PATH / 'avr-ranlib'
 readelf 		    = AVR_GCC_PATH / 'avr-readelf'
 run 			      = AVR_GCC_PATH / 'avr-run'
-size 		        = AVR_GCC_PATH / 'avr-size'
+size 		    = AVR_GCC_PATH / 'avr-size'
 strings 		    = AVR_GCC_PATH / 'avr-strings'
 strip 			    = AVR_GCC_PATH / 'avr-strip'
 avrdude 		    = AVR_GCC_PATH / 'avrdude'
@@ -87,6 +88,8 @@ objcopy_eep_args = [
   '@INPUT@',
   '@OUTPUT@']
 
+_MCU_ = MCU
+
 [built-in options]
 c_args = [
   '-I' + AVR_LIBC_PATH,
@@ -95,12 +98,12 @@ c_args = [
   '-Wextra',
   '-Wpedantic',
   '-mmcu=' + MCU,
-  '-DBOARD=USER_BOARD',
-  '-DF_USB=' + F_USB,
-  '-DF_CPU=' + F_CPU,
-  '-DUSE_LUFA_CONFIG_HEADER',
   '-DARCH=' + MCU_ARCH,
   '-D' + MCU_DEFINE,
+  '-DF_USB=' + F_USB,
+  '-DF_CPU=' + F_CPU,
+  '-DBOARD=' + USR_BOARD,
+  '-DUSE_LUFA_CONFIG_HEADER',
   # '-DRELEASE',
   # '-DNDEBUG',
   '-fdata-sections',
