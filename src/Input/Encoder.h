@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "DataTypes.h"
 #include "RGB.h"
 
 #define ENCODER_MIN_VAL (0)
@@ -148,7 +148,7 @@ typedef struct
 
     u16 RGBHue;
     u16 DetentHue;
-} sEEVirtualEncoder; // Stored state of a virtual encoder
+} sEEVirtualEncoder; // Stored (EEPROM) state of a virtual encoder
 
 typedef struct
 {
@@ -165,7 +165,7 @@ typedef struct
     u8 Reserved : 4;
 
     sSwitchMidiConfig MidiConfig;
-} sEEVirtualSwitch; // Stored state of a virtual switch
+} sEEVirtualSwitch; // Stored (EEPROM) state of a virtual switch
 
 typedef struct
 {
@@ -175,7 +175,7 @@ typedef struct
     sRotaryMidiConfig MidiConfig;
 } sVirtualUber; // Runtime state of an virtual uber encoder
 
-typedef sVirtualUber sEEVirtualUber; // Stored state of an uber encoder.
+typedef sVirtualUber sEEVirtualUber; // Stored (EEPROM) state of an uber encoder.
 
 typedef struct
 {

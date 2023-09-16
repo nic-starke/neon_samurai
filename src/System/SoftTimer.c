@@ -23,7 +23,7 @@
 #include "SoftTimer.h"
 #include "Timer.h"
 #include "Interrupt.h"
-#include "Types.h"
+#include "DataTypes.h"
 
 #define SOFT_TIMER (TCD0)
 

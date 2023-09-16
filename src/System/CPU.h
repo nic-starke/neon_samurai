@@ -23,7 +23,7 @@
 #include <avr/interrupt.h>
 #include <avr/cpufunc.h>
 
-#include "Types.h"
+#include "DataTypes.h"
 
 static inline u32 CPU_GetMainClockSpeed(void)
 {

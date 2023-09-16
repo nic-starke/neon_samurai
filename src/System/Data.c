@@ -19,7 +19,7 @@
 
 #include <avr/eeprom.h>
 
-#include "Types.h"
+#include "DataTypes.h"
 #include "Config.h"
 #include "Data.h"
 #include "Display.h"
@@ -94,10 +94,18 @@ static inline void EE_WriteVirtualEncoder(sVirtualEncoder* pSrc, sEEVirtualEncod
     data.HasDetent    = pSrc->HasDetent;
     data.MidiConfig   = pSrc->MidiConfig;
 
-    RGB2Hue(&data.DetentHue, &pSrc->DetentColour);
-    RGB2Hue(&data.RGBHue, &pSrc->RGBColour);
-
     eeprom_update_block(&data, pDest, sizeof(sEEVirtualEncoder));
+}
+
+/**
+ * When a user needs to modify the colours there is no conversion from RGB into HSV colour space.
+ * Instead, the HSV value is stored directly into EEPROM, and then this is converted during
+ * runtime. Animations require this conversion process as well.
+ */
+static inline void EE_WriteEncoderColours(u16 RGBHue, u16 DetentHue, sEEVirtualEncoder* pDest)
+{   
+    eeprom_update_word(pDest->RGBHue, RGBHue);
+    eeprom_update_word(pDest->DetentHue, DetentHue);
 }
 
 static inline void EE_ReadVirtualUber(sVirtualUber* pDest, sEEVirtualUber* pSrc)

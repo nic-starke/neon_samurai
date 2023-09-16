@@ -20,9 +20,18 @@
 #pragma once
 
 #include "RGB.h"
-#include "Types.h"
+#include "DataTypes.h"
+#include "fast_hsv2rgb.h"
 
-#define HUE_MAX (UINT16_MAX)
+#define HUE_MAX				(HSV_HUE_MAX)
+#define SATURATION_MAX		(UINT8_MAX)
+#define VALUE_MAX			(UINT8_MAX)
+
+typedef struct  
+{
+	u16 Hue;
+	u8 Saturation;
+	u8 Value;	
+} sHSV;
 
 void Hue2RGB(u16 Hue, sRGB* pRGB);
-void RGB2Hue(u16* pHue, sRGB* pRGB);

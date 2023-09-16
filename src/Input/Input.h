@@ -20,7 +20,7 @@
 #pragma once
 
 #include "HardwareDescription.h"
-#include "Types.h"
+#include "DataTypes.h"
 
 #define DIR_STATIONARY (0x00)
 #define DIR_CW         (0x10)

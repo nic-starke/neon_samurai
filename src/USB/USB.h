@@ -22,7 +22,7 @@
 #define DEFAULT_USB_VENDOR_ID  (0x2580) // DJTT Vendor ID
 #define DEFAULT_USB_PRODUCT_ID (0x0007)
 
-#include "Types.h"
+#include "DataTypes.h"
 // #include "Encoder.h"
 
 // void USBMidi_Receive(void);

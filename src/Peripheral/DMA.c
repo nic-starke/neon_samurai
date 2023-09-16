@@ -18,7 +18,7 @@
  */
 
 #include "DMA.h"
-#include "Types.h"
+#include "DataTypes.h"
 
 static inline void DMA_EnablePower(void)
 {

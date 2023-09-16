@@ -25,7 +25,7 @@
 #include "Interrupt.h"
 #include "CPU.h"
 #include "GPIO.h"
-#include "Types.h"
+#include "DataTypes.h"
 
 // Missing defines for xmega usart
 #define USART_UCPHA_bm (0x02) // clock phase bitmask

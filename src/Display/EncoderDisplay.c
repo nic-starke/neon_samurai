@@ -22,7 +22,7 @@
 
 #include "EncoderDisplay.h"
 #include "Encoder.h"
-#include "Types.h"
+#include "DataTypes.h"
 #include "Display.h"
 #include "HardwareDescription.h"
 #include "Input.h"
@@ -251,11 +251,12 @@ void EncoderDisplay_Test(void)
 
 void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex)
 {
+
     sVirtualEncoder* pVE = (pEncoder->PrimaryEnabled ? &pEncoder->Primary : &pEncoder->Secondary);
 
     if (pVE->DisplayInvalid == false)
     {
-        return;
+        return; // nothing to do so return
     }
 
     switch ((eEncoderDisplayStyle)pVE->DisplayStyle)
@@ -270,4 +271,10 @@ void EncoderDisplay_Render(sEncoderState* pEncoder, int EncoderIndex)
     }
 
     pVE->DisplayInvalid = false;
+}
+
+void EncoderDisplay_SetColour(sVirtualEncoder* pEncoder, sRGB* pEncoderColour, sHSV* pNewColour)
+{
+    fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoderColour->Red, &pEncoderColour->Green, &pEncoderColour->Blue);
+    pEncoder->DisplayInvalid = true;
 }

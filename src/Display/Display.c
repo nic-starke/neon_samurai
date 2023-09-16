@@ -22,7 +22,7 @@
 
 #include "Display.h"
 #include "HardwareDescription.h"
-#include "Types.h"
+#include "DataTypes.h"
 #include "DMA.h"
 #include "USART.h"
 #include "Timer.h"

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "DataTypes.h"
 
 #define RGB_MAX_VAL (UINT8_MAX)
 #define RGB_MIN_VAL (0)

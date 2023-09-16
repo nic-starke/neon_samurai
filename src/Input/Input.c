@@ -25,7 +25,7 @@
 
 #include "Input.h"
 #include "GPIO.h"
-#include "Types.h"
+#include "DataTypes.h"
 #include "Timer.h"
 #include "Settings.h"
 #include "Display.h"

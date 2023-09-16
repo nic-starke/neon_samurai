@@ -18,13 +18,22 @@
  */
 
 #include "Colour.h"
+#include "Data.h"
+
+static inline u16 ClampHue(u16 Hue)
+{
+	if (Hue >= HUE_MAX)
+	{
+		return HUE_MAX;
+	}
+	else
+	{
+		return Hue;
+	}
+}
 
 void Hue2RGB(u16 Hue, sRGB* pRGB)
 {
-    // pRGB->Blue = (u8)Hue;
-}
-
-void RGB2Hue(u16* pHue, sRGB* pRGB)
-{
-    // pRGB->Blue = (u8)*pHue;
+    Hue = ClampHue(Hue);
+    fast_hsv2rgb_8bit(Hue, SATURATION_MAX, gData.RGBBrightness, &pRGB->Red, &pRGB->Green, &pRGB->Blue);
 }

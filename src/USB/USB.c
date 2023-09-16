@@ -22,7 +22,7 @@
 
 // #include "USB.h"
 // #include "Encoder.h"
-// #include "Types.h"
+// #include "DataTypes.h"
 
 // static const USB_ClassInfo_MIDI_Device_t mMIDI_Interface =
 // {

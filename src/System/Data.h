@@ -21,7 +21,7 @@
 
 #include <avr/pgmspace.h>
 
-#include "Types.h"
+#include "DataTypes.h"
 #include "Encoder.h"
 #include "HardwareDescription.h"
 

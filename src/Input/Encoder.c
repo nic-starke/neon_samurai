@@ -24,7 +24,7 @@
 #include "HardwareDescription.h"
 #include "Data.h"
 #include "Colour.h"
-#include "Types.h"
+#include "DataTypes.h"
 #include "Input.h"
 
 static const sVirtualEncoder DEFAULT_PRIMARY_VENCODER = {

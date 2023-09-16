@@ -21,7 +21,7 @@
 
 #include <avr/io.h>
 
-#include "Types.h"
+#include "DataTypes.h"
 #include "Utility.h"
 
 typedef enum

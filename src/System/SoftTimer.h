@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "DataTypes.h"
 
 typedef enum
 {

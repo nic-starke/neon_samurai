@@ -22,7 +22,7 @@
 #include <avr/io.h>
 
 #include "Utility.h"
-#include "Types.h"
+#include "DataTypes.h"
 #include "Interrupt.h"
 
 typedef struct

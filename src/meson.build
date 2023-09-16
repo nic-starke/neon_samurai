@@ -18,6 +18,7 @@ project_src += files(
     'Display/Colour.c',
     'Display/Display.c',
     'Display/EncoderDisplay.c',
+    'Display/fast_hsv2rgb_8bit.c',
 
     'Input/Encoder.c',
     'Input/Input.c',

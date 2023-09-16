@@ -21,7 +21,7 @@
 
 #include "Timer.h"
 #include "Interrupt.h"
-#include "Types.h"
+#include "DataTypes.h"
 #include "Utility.h"
 
 static inline u8 GetTimerBitmask(eTimer_Peripheral Timer)
