@@ -1,23 +1,18 @@
+// #include <avr/interrupt.h>
+// #include <avr/io.h>
+// #include <avr/wdt.h>
+// #include <stdlib.h>
 
-#include <stdlib.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/wdt.h>
+#include "Config.h"
+#include "Display.h"
 
-static int test = 0;
-
-ISR(testisr)
+int main(void)
 {
-
-}
-
-int main (void)
-{
-  wdt_enable(WDTO_2S);
-  sei();
+  Display_Init();
 
   while (1)
   {
-    wdt_reset();
+    
   }
+
 }
