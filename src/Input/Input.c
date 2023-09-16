@@ -30,6 +30,7 @@
 #include "Settings.h"
 #include "Display.h"
 #include "Data.h"
+#include "USB.h"
 
 #define SIDE_SWITCH_PORT    (PORTA)
 #define ENCODER_PORT        (PORTC)
@@ -47,6 +48,8 @@
 #define ALT_BOOTLOADER_SWITCH_VAL  (0x8800)
 #define RESET_SWITCH_MASK          (SWITCH_MASK(0) | SWITCH_MASK(15))
 #define RESET_SWITCH_VAL           (0x8001)
+#define MIDI_MIRROR_SWITCH_MASK    (SWITCH_MASK(14) | SWITCH_MASK(13))
+#define MIDI_MIRROR_SWITCH_VAL     (0x6000)
 
 typedef struct
 {
@@ -165,6 +168,11 @@ void Input_CheckSpecialSwitchCombos(void)
     if (((state & BOOTLOADER_SWITCH_MASK) == BOOTLOADER_SWITCH_VAL) || ((state & ALT_BOOTLOADER_SWITCH_MASK) == ALT_BOOTLOADER_SWITCH_VAL))
     {
         gData.OperatingMode = BOOTLOADER_MODE;
+    }
+
+    if ((state & MIDI_MIRROR_SWITCH_MASK) == MIDI_MIRROR_SWITCH_VAL)
+    {
+        USBMidi_MirrorInput(true);
     }
 }
 

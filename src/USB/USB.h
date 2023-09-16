@@ -27,6 +27,7 @@
 
 void USBMidi_Init(void);
 void USBMidi_Update(void);
+void USBMidi_MirrorInput(bool Enable);
 void USBMidi_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit);
 
 void EVENT_USB_Device_Connect(void);

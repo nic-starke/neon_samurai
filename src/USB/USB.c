@@ -25,6 +25,8 @@
 #include "DataTypes.h"
 #include "Input.h"
 
+bool mMirrorInput = false;
+
 // clang-format off
 static const USB_ClassInfo_MIDI_Device_t mMIDI_Interface = {
     .Config = 
@@ -55,8 +57,22 @@ void USBMidi_Receive(void)
 
     if (MIDI_Device_ReceiveEventPacket(&mMIDI_Interface, &rx))
     {
+        if (mMirrorInput)
+        {
+            MIDI_Device_SendEventPacket(&mMIDI_Interface, &rx);
+        }
         // switch on the event type - handle.
+        // if (rx.Event == MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE))
+        // {
+
+        // }
     }
+}
+
+// Replies to every midi packet by sending a copy back
+void USBMidi_MirrorInput(bool Enable)
+{
+    mMirrorInput = Enable;
 }
 
 static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
@@ -120,7 +136,7 @@ void USBMidi_Update(void)
 {
     if (USB_IsInitialized)
     {
-        //USBMidi_Receive();
+        USBMidi_Receive();
         MIDI_Device_USBTask(&mMIDI_Interface); // this calls MIDI_Device_Flush
     }
 }
