@@ -46,6 +46,13 @@ void _Serial_Print(char* pString)
     CDC_Device_Flush(&gCDC_Interface);
 }
 
+void _Serial_PrintValue(uint32_t value)
+{
+    static char buf[8] = {0};
+    sprintf(buf, "0x%.4lx", value);
+    _Serial_Print(buf);
+}
+
 bool _Serial_HostReady(void)
 {
     return mHostReady;

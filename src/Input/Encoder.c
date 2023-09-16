@@ -108,6 +108,7 @@ static inline bool IsAnyLayerActive(sEncoderState* pEncoderState)
 
 void Encoder_Init(void)
 {
+    Encoders_ResetToDefaultConfig();
 }
 
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder)

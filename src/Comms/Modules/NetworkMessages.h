@@ -22,6 +22,10 @@ typedef enum
 {
     DISCOVERY_REQUEST,
     DISCOVERY_REPLY,
+    DEVICE_REGISTRATION,
 
-    NUM_NETWORK_MESSAGE_TYPES,
-} eNetworkMessages;
+    CONNECTION_REQUEST,
+    CONNECTION_REPLY,
+
+    NUM_MODULE_PARAMS_NETWORK,
+} eModuleParameter_Network;

@@ -26,21 +26,25 @@
 void _Serial_Init(void);
 void _Serial_Update(void);
 void _Serial_Print(char* s);
+void _Serial_PrintValue(uint32_t value);
 bool _Serial_HostReady(void);
 
 #define Serial_Init()      _Serial_Init()
 #define Serial_Update()    _Serial_Update()
 #define Serial_HostReady() _Serial_HostReady()
 #ifdef ENABLE_SERIAL
-#define Serial_Print(s) _Serial_Print(s)
+#define Serial_Print(s)      _Serial_Print(s)
+#define Serial_PrintValue(v) _Serial_PrintValue(v)
 #else
 #define Serial_Print(s)
+#define Serial_PrintValue(v)
 #endif
 #else
 #define Serial_Init()
 #define Serial_Update()
 #define Serial_HostReady()
 #define Serial_Print(s)
+#define Serial_PrintValue(v)
 #endif
 
 void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo);

@@ -20,6 +20,7 @@
 #include <avr/eeprom.h>
 
 #include "Colour.h"
+#include "CommsTypes.h"
 #include "Config.h"
 #include "Data.h"
 #include "DataTypes.h"
@@ -29,13 +30,14 @@
 #include "Input.h"
 #include "Interrupt.h"
 
-#define EE_DATA_VERSION (0xAFF1)
+#define EE_DATA_VERSION (0xAFF2)
 
 sData gData = {
     .DataVersion          = 0,
     .FirmwareVersion      = VERSION,
     .FactoryReset         = false,
     .OperatingMode        = DEFAULT_MODE,
+    .NetworkAddress       = UNASSIGNED_ADDRESS,
     .RGBBrightness        = (u8)BRIGHTNESS_MAX,
     .DetentBrightness     = BRIGHTNESS_MAX,
     .IndicatorBrightness  = BRIGHTNESS_MAX,
@@ -49,7 +51,8 @@ typedef struct
     u8  Reserved; // Reserved byte ensures that original MFT firmware will reset eeprom on first bootup.
     u16 DataVersion;
 
-    u8 OperatingMode;
+    u8  OperatingMode;
+    u16 NetworkAddress;
 
     u8 RGBBrightness;
     u8 DetentBrightness;
@@ -162,24 +165,34 @@ static inline void WriteEEPROMEncoderSettings(void)
 void Data_Init(void)
 {
     while (!eeprom_is_ready()) {} // wait for eeprom ready
+    Data_CheckAndPerformFactoryReset(true);
+}
 
-    const vu8 flags    = IRQ_DisableInterrupts();
+bool Data_CheckAndPerformFactoryReset(bool CheckUserResetRequest)
+{
+    bool userReset = false;
+    if (CheckUserResetRequest)
+    {
+        userReset = Input_IsResetPressed();
+    }
+
+    const vu8 flags   = IRQ_DisableInterrupts();
     // Read the version stored in eeprom, if this doesnt match then factory reset the unit.
-    gData.DataVersion  = eeprom_read_word(&_EEPROM_DATA_.DataVersion);
-    gData.FactoryReset = ((gData.DataVersion != EE_DATA_VERSION) || Input_IsResetPressed());
+    gData.DataVersion = eeprom_read_word(&_EEPROM_DATA_.DataVersion);
+
+    gData.FactoryReset  = ((gData.DataVersion != EE_DATA_VERSION) || userReset);
+    bool resetPerformed = false;
 
     if (gData.FactoryReset)
     {
         Data_WriteDefaultsToEEPROM();
         gData.FactoryReset = false;
-        Display_Flash(200, 3);
-    }
-    else
-    {
-        Data_RecallEEPROMSettings();
+        resetPerformed     = true;
     }
 
     IRQ_EnableInterrupts(flags);
+
+    return resetPerformed;
 }
 
 // Disable interrupts before calling
@@ -194,6 +207,7 @@ void Data_WriteDefaultsToEEPROM(void)
     eeprom_update_byte(&_EEPROM_DATA_.DetentBrightness, (u8)gData.DetentBrightness);
     eeprom_update_byte(&_EEPROM_DATA_.IndicatorBrightness, (u8)gData.IndicatorBrightness);
     eeprom_update_byte(&_EEPROM_DATA_.OperatingMode, (u8)gData.OperatingMode);
+    eeprom_update_word(&_EEPROM_DATA_.NetworkAddress, (u16)gData.NetworkAddress);
 
     WriteEEPROMEncoderSettings();
 
@@ -206,7 +220,26 @@ void Data_RecallEEPROMSettings(void)
     Display_SetRGBBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.RGBBrightness));
     Display_SetDetentBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.DetentBrightness));
     Display_SetIndicatorBrightness(eeprom_read_byte((const u8*)&_EEPROM_DATA_.IndicatorBrightness));
-    gData.OperatingMode = eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode);
-
+    gData.OperatingMode  = eeprom_read_byte((const u8*)&_EEPROM_DATA_.OperatingMode);
+    gData.NetworkAddress = eeprom_read_word((const u16*)&_EEPROM_DATA_.NetworkAddress);
     ReadEEPROMEncoderSettings();
+}
+
+NetAddress Data_GetNetworkAddress(void)
+{
+    return (NetAddress)gData.NetworkAddress;
+}
+
+void Data_SetNetworkAddress(NetAddress NewAddress)
+{
+    if ((u16)NewAddress == gData.NetworkAddress)
+    {
+        return;
+    }
+
+    gData.NetworkAddress = (u16)NewAddress;
+
+    const vu8 flags = IRQ_DisableInterrupts();
+    eeprom_update_word(&_EEPROM_DATA_.NetworkAddress, (u16)gData.NetworkAddress);
+    IRQ_EnableInterrupts(flags);
 }

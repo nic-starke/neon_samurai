@@ -21,6 +21,7 @@
 
 #include <avr/pgmspace.h>
 
+#include "CommsTypes.h"
 #include "DataTypes.h"
 #include "Encoder.h"
 #include "HardwareDescription.h"
@@ -41,6 +42,8 @@ typedef struct
     u8   FirmwareVersion;
     u16  DataVersion;
     bool FactoryReset;
+
+    u16 NetworkAddress;
 
     u8 RGBBrightness;
     u8 DetentBrightness;
@@ -74,3 +77,7 @@ static inline void Data_PGMReadBlock(void* pDest, const void* pSrc, u8 size)
 void Data_Init(void);
 void Data_WriteDefaultsToEEPROM(void);
 void Data_RecallEEPROMSettings(void);
+bool Data_CheckAndPerformFactoryReset(bool CheckUserResetRequest);
+
+NetAddress Data_GetNetworkAddress(void);
+void       Data_SetNetworkAddress(NetAddress NewAddress);

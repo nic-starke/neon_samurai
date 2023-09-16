@@ -27,15 +27,8 @@
 #include "Encoder.h"
 #include "MIDICommandDefines.h"
 
-#define SIZEOF_SYSEXBLOCK (8)
-
-#define ENCODE_LEN(x)        ((u16)(x + ceil(x / 7.0))) // number of bytes after encoding to sysex - CAUTION, x must be greater than 7!!
-#define ENCODE_LEN_BLOCKS(x) (ENCODE_LEN(x) / SIZEOF_SYSEXBLOCK)
-#define DECODE_LEN(x)        (x - (x / SIZEOF_SYSEXBLOCK)) // number of bytes after decoding from sysex - CAUTION, x must be greater than 8!!
-
 void MIDI_Init(void);
 void MIDI_Update(void);
 void MIDI_MirrorInput(bool Enable);
 void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg);
 void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit);
-void MIDI_SendCommsMessage(sMessage* pMessage);

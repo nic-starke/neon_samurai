@@ -24,20 +24,10 @@
 
 void Comms_Init(void);
 void Comms_Update(void);
-bool Comms_SendMessage(sMessage* pMessage, eCommsProtocol Protocol);
-void Comms_RegisterLocalAddress(u8 Address);
-bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_UpdateHandler UpdateHandler, fpProtocol_SendMessageHandler SendHandler);
+bool Comms_SendMessage(sMessage* pMessage);
+void Comms_RegisterLocalAddress(NetAddress Address);
+bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_SendMessageHandler SendHandler);
 bool Comms_RegisterModule(eModuleID ID, fpMessageHandler MessageHandler);
+u16  Comms_MessageSize(sMessage* pMessage);
 
-/**
- * @brief Returns the total size of a message (excluding protocol size)
- * 
- * @param pMessage a pointer to a message structure.
- * @return u32 the total size of the message, including the header, and data.
- */
-static inline u32 Comms_MessageSize(sMessage* pMessage)
-{
-    return sizeof(sMessageHeader) + pMessage->DataSize;
-}
-
-extern const sMessage MSG_BroadcastTemplate;
+extern const sMessage MSG_Default;

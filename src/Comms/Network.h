@@ -21,6 +21,9 @@
 
 #include "Comms.h"
 
-void Network_Discovery(void);
-bool Network_ConnectToEditor(void);
-bool MessageHandler_Network(sMessage* pMessage);
+void Network_Init(void);
+void Network_Update(void);
+void Network_ConnectToEditor(void);
+void Network_StartDiscovery(void);
+
+u16 Network_GetLocalAddress(void);

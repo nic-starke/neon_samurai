@@ -32,11 +32,13 @@
 #define ENABLE_SERIAL
 #include "VirtualSerial.h"
 
-#define SYSEX_NONRT        0x7E
-#define SYSEX_RT           0x7F
-#define SYSEX_CH           0x00
-#define SYSEX_BROADCAST_CH 0x7F
-#define OUTBUFFER_LEN      32 // must be divisible by 8!
+#define SYSEX_NONRT        (0x7E)
+#define SYSEX_RT           (0x7F)
+#define SYSEX_CH           (0x00) // default sysex channel to start with
+#define SYSEX_BROADCAST_CH (0x7F)
+
+#define SIZEOF_SYSEXBLOCK (8)
+#define OUTBUFFER_LEN     (SIZEOF_SYSEXBLOCK) // a single 8-byte buffer is used and encoded data is effectively "streamed" out
 
 typedef enum
 {
@@ -54,112 +56,57 @@ typedef enum
 
 static eParserState mParserState              = PARSER_INIT;
 static u8           mOutBuffer[OUTBUFFER_LEN] = {0};
+static bool         mMirrorInput              = false;
+static u8           mSysexChannel             = SYSEX_CH;
 
 static const u8 MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01};
 static const u8 FMLY_ID[2] PROGMEM = {0x00, 0x00};
 static const u8 PROD_ID[2] PROGMEM = {0x00, 0x01};
 static const u8 VRSN_ID[4] PROGMEM = {0x00, 0x00, 0x00, VERSION};
 
-static bool Msg_SendHandler(sMessage* pMessage);
-static bool Msg_UpdateHandler(sMessage* pMessage);
+static bool Msg_SendHandler(u8* pBytes, u16 NumBytes);
 
-// static const u8 SYSEX_HEADER[] = {
-//     0xF0,             // start of sysex
-//     0x00, 0x48, 0x01, // manufacturer id
-//     0x00, 0x01        // product id
-// };
+static void EncodeAndTransmit(u8* pData, u16 NumDataBytes);
+static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks);
+static u32  EncodedLength_Bytes(u16 NumDataBytes);
+static u32  EncodedLength_Blocks(u16 NumDataBytes);
+static u16  DecodedLength_Bytes(u32 NumEncodedBytes);
 
-// typedef struct
-// {
-//     u8 MSBs;
-//     u8 Data[7];
-// } sSysExPacket;
+static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value);
+static inline void TransmitMidiNote(u8 Channel, u8 Note, u8 Velocity, bool NoteOn);
+static inline void TransmitSysexByte(u8 Byte);
 
-// typedef struct
-// {
-//     u8 header[sizeof(SYSEX_HEADER)];
-//     u8 dataLen;
-// } sMuffinSysex;
+static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId);
 
-static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
+void MIDI_Init(void)
 {
-    MIDI_EventPacket_t packet = {0};
-    packet.Event              = MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE);
-    packet.Data1              = (Channel & 0x0F) | MIDI_COMMAND_CONTROL_CHANGE;
-    packet.Data2              = CC & 0x7F;
-    packet.Data3              = Value & 0x7F;
-    MIDI_Device_SendEventPacket(&gMIDI_Interface, &packet);
+    Comms_RegisterProtocol(PROTOCOL_USBMIDI, Msg_SendHandler);
 }
 
-static inline void TransmitMidiNote(u8 Channel, u8 Note, u8 Velocity, bool NoteOn)
+// Must be called prior to LUFAs master usb task - USB_USBTask()
+void MIDI_Update(void)
 {
-    MIDI_EventPacket_t packet = {0};
-    u8                 cmd    = NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF;
-    packet.Event              = MIDI_EVENT(0, cmd);
-    packet.Data1              = (Channel & 0x0F) | cmd;
-    packet.Data2              = Note & 0x7F;
-    packet.Data3              = Velocity & 0x7F;
-    MIDI_Device_SendEventPacket(&gMIDI_Interface, &packet);
-}
-
-/*
-    To use sysex messages as an arbitrary data stream it is necessary to encode/decode data.
-    Data bytes cannot have the midi status bit set (bit 8), therefore the maximum value 
-    for any byte 0x7F. 
-
-    The encoding scheme is simple - always transmit 8 byte blocks.
-    A block contains 7 data bytes, and an MSB byte.
-    The MSB byte contains the MSB bits for the 7 data bytes.
-    
-    The encoder does the following:
-    for the 7 bytes {
-        1. Set bit 7 in the MSB byte equal to the MSB of data byte.
-        2. Mask off the MSB of data byte N and add it to the encode buffer
-    }
-    
-    WARNING - pDestBuffer size should be atleast ENCODE_LEN(NumDataBytes) in size.
-    If the last block contains partial data, it is padded upto the 8 bytes with zeros.
-*/
-static u16 EncodeToSysex(u8* pDataBytes, u8* pDestBuffer, u16 NumDataBytes)
-{
-    u16 numBlocks = 0;
-
-    while (NumDataBytes)
+    if (USB_IsInitialized)
     {
-        u8 msb = 0x00;
-        for (u8 i = 0; i < 7; i++)
+        MIDI_EventPacket_t rx;
+
+        if (MIDI_Device_ReceiveEventPacket(&gMIDI_Interface, &rx))
         {
-            if (NumDataBytes-- > 0) // encode if any data left
+            MIDI_ProcessMessage(&rx);
+
+            if (mMirrorInput)
             {
-                msb |= ((*pDataBytes & 0x80) << i);
-                *pDestBuffer++ = (*pDataBytes++ & 0x7F);
-            }
-            else // otherwise pad with zeros
-            {
-                *pDestBuffer++ = 0x00;
+                MIDI_Device_SendEventPacket(&gMIDI_Interface, &rx);
             }
         }
-        *pDestBuffer++ = (msb & 0x7F);
-        numBlocks++;
+        MIDI_Device_USBTask(&gMIDI_Interface); // this calls MIDI_Device_Flush
     }
-
-    return numBlocks;
 }
 
-// Decode from sysex
-static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks)
+// Replies to every midi packet by sending a copy back
+void MIDI_MirrorInput(bool Enable)
 {
-    for (u16 block = 0; block < NumBlocks; block++)
-    {
-        u8* pSysexBlock = &pSysexBytes[(block * 8)];
-        for (u8 i = 0; i < 7; i++)
-        {
-            // Extract the msb for the data byte from the MSB byte
-            u8 msb         = (pSysexBlock[7] & (0x01 << i));
-            // insert MSB into the data byte, then push into dest buffer
-            *pDestBuffer++ = (pSysexBlock[i] | msb);
-        }
-    }
+    mMirrorInput = Enable;
 }
 
 void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit)
@@ -197,49 +144,11 @@ void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLaye
     }
 }
 
-static bool mMirrorInput = false;
-
-// Replies to every midi packet by sending a copy back
-void MIDI_MirrorInput(bool Enable)
-{
-    mMirrorInput = Enable;
-}
-
-void MIDI_Init(void)
-{
-    Comms_RegisterProtocol(PROTOCOL_USBMIDI, Msg_UpdateHandler, Msg_SendHandler);
-}
-
-// Must be called prior to LUFAs master usb task - USB_USBTask()
-void MIDI_Update(void)
-{
-    if (USB_IsInitialized)
-    {
-        MIDI_EventPacket_t rx;
-
-        if (MIDI_Device_ReceiveEventPacket(&gMIDI_Interface, &rx))
-        {
-            MIDI_ProcessMessage(&rx);
-
-            if (mMirrorInput)
-            {
-                MIDI_Device_SendEventPacket(&gMIDI_Interface, &rx);
-            }
-        }
-        MIDI_Device_USBTask(&gMIDI_Interface); // this calls MIDI_Device_Flush
-    }
-}
-
 // Transmit sysex data via the lufa midi event packet
 // This does not add sysex headers - ensure pData is a valid midi sysex message!
 // This does not encode data to ensure status bit is valid - ensure data has been encoded.
 static void TransmitSysexData(u8* pData, u16 DataLength)
 {
-    // char str[32]         = "";
-    // str[sizeof(str) - 1] = '\0';
-    // sprintf(str, "[MIDI TX] tx %u bytes\r\n", DataLength);
-    // Serial_Print(str);
-
     int                i = 0;
     MIDI_EventPacket_t msg;
 
@@ -278,138 +187,6 @@ static void TransmitSysexData(u8* pData, u16 DataLength)
     }
 }
 
-static inline void TransmitSysexByte(u8 Byte)
-{
-    MIDI_EventPacket_t msg;
-    msg.Event = MIDI_EVENT(0, 0x50);
-    msg.Data1 = Byte;
-    MIDI_Device_SendEventPacket(&gMIDI_Interface, &msg);
-}
-
-// Encode and transmit arbitrary data stream
-static inline void EncodeAndTransmitSysexBlock(u8* pData, u16 DataLen)
-{
-    u16 totalBlocks       = ENCODE_LEN_BLOCKS(DataLen);
-    u16 blocksPerTransfer = sizeof(mOutBuffer) / SIZEOF_SYSEXBLOCK;
-
-    u16 blocksDone = 0;
-
-    // for(int block = 0; (block < blocksPerTransfer) && (blocksDone < totalBlocks); i++)
-    // {
-    //     // EncodeToSysex();
-    // }
-
-    for (int i = 0; i < totalBlocks; i++)
-    {
-        if (blocksDone < blocksPerTransfer)
-        {
-            // encode
-        }
-    }
-
-    // below code is wrong
-
-    for (int i = 0; i < blocksPerTransfer; i++)
-    {
-        EncodeToSysex(pData, &mOutBuffer, sizeof(mOutBuffer));
-        TransmitSysexData(mOutBuffer, sizeof(mOutBuffer));
-        pData += SIZEOF_SYSEXBLOCK;
-    }
-}
-
-void MIDI_SendMMCMD(u8* pData, eMuffinMidiCommand Command, u16 DataLength)
-{
-    // TransmitSysexData(SYSEX_HEADER, sizeof(SYSEX_HEADER));
-    // TransmitSysexByte(Command);
-    // TransmitSysexData(pData, DataLength);
-    // TransmitSysexByte(MIDI_CMD_SYSEX_END);
-}
-
-void MIDI_SendCommsMessage(sMessage* pMessage)
-{
-
-    if (!pMessage)
-    {
-        return;
-    }
-
-    sEncodedMessage toSend = {0};
-    toSend.pMessage        = pMessage;
-
-    uint32_t numBytes                           = Comms_MessageSize(pMessage);
-    toSend.ProtocolHeader.MIDI.NumEncodedBlocks = ENCODE_LEN_BLOCKS(numBytes);
-
-    TransmitSysexByte(MIDI_CMD_SYSEX_START);
-
-    for (int i = 0; i < sizeof(MANF_ID); i++)
-        TransmitSysexByte(pgm_read_byte(&MANF_ID[i]));
-
-    TransmitSysexData((u8*)&pMessage->Header, sizeof(sMessageHeader));
-
-    if (pMessage->pData)
-        TransmitSysexData(pMessage->pData, pMessage->DataSize);
-
-    TransmitSysexByte(MIDI_CMD_SYSEX_END);
-}
-
-static inline void PrintMsg(MIDI_EventPacket_t* pMsg, int DataCount)
-{
-    if (DataCount > 3)
-    {
-        DataCount = 3;
-    }
-    else if (DataCount == 0)
-    {
-        return;
-    }
-
-    for (int i = 0; i < DataCount; i++)
-    {
-        char val[2] = "";
-        sprintf(val, "0x%02x", pMsg->Data[i]);
-        Serial_Print(val);
-        Serial_Print(" ");
-    }
-    Serial_Print("\r\n");
-}
-
-static inline void SysExProcess_NonRT(eMidiSysExNonRealtime SubId)
-{
-    switch (SubId)
-    {
-        case GENERAL_SYS_ID_REQ:
-        {
-            u8* b = &mOutBuffer[0];
-
-            *b++ = MIDI_CMD_SYSEX_START;
-
-            *b++ = SYSEX_NONRT;
-            *b++ = SYSEX_BROADCAST_CH;
-            *b++ = MIDI_SYSEX_NONRT_GENERAL_SYS;
-            *b++ = GENERAL_SYS_ID_REP;
-
-            for (int i = 0; i < sizeof(MANF_ID); i++)
-                *b++ = pgm_read_byte(&MANF_ID[i]);
-
-            for (int i = 0; i < sizeof(FMLY_ID); i++)
-                *b++ = pgm_read_byte(&FMLY_ID[i]);
-
-            for (int i = 0; i < sizeof(PROD_ID); i++)
-                *b++ = pgm_read_byte(&PROD_ID[i]);
-
-            for (int i = 0; i < sizeof(VRSN_ID); i++)
-                *b++ = pgm_read_byte(&VRSN_ID[i]);
-
-            *b++ = MIDI_CMD_SYSEX_END;
-            Serial_Print("[MIDI TX] ID reply\r\n");
-            TransmitSysexData(mOutBuffer, b - &mOutBuffer[0]);
-            break;
-        }
-
-        default: break;
-    }
-}
-
 void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
 {
     int count = 0;
@@ -419,22 +196,16 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
         case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_1BYTE):
         {
             count = 1;
-            PrintMsg(pMsg, count);
-            Serial_Print("SysEx 1 byte\r\n");
             break;
         }
         case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_2BYTE):
         {
             count = 2;
-            PrintMsg(pMsg, count);
-            Serial_Print("SysEx 2 byte\r\n");
             break;
         }
         case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_3BYTE):
         {
             count = 3;
-            PrintMsg(pMsg, count);
-            Serial_Print("SysEx 3 byte\r\n");
             break;
         }
         break;
@@ -443,7 +214,6 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
         {
             Serial_Print("SysEx stream\r\n");
             count = 3;
-            PrintMsg(pMsg, count);
             switch (mParserState)
             {
                 case PARSER_INIT:
@@ -453,7 +223,7 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
                     // {
 
                     // }
-                    if (pMsg->Data[2] == SYSEX_CH || pMsg->Data[2] == SYSEX_BROADCAST_CH)
+                    if (pMsg->Data[2] == mSysexChannel || pMsg->Data[2] == SYSEX_BROADCAST_CH)
                     {
                         if (pMsg->Data[1] == SYSEX_NONRT)
                         {
@@ -494,14 +264,12 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
         case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_2BYTE):
         {
             count = 2;
-            PrintMsg(pMsg, count);
             Serial_Print("SysEx end stream 2 byte\r\n");
             break;
         }
         case MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE):
         {
             count = 3;
-            PrintMsg(pMsg, count);
             Serial_Print("SysEx end stream 3 byte\r\n");
             switch (mParserState)
             {
@@ -529,14 +297,242 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
     }
 }
 
-static bool Msg_SendHandler(sMessage* pMessage)
+// pDest must be atleast 8 bytes!
+static u16 EncodeSysexBlock(u8* pData, u16 NumDataBytes, u8* pDest, u8 DestBufferLen)
 {
-    Serial_Print("MidiSend\r\n");
+    if (DestBufferLen < SIZEOF_SYSEXBLOCK || NumDataBytes == 0)
+    {
+        return 0;
+    }
+
+    u8 msb        = 0;
+    u8 numEncoded = 0;
+
+    for (u8 i = 0; i < 7; i++) // encode 7 bytes
+    {
+        if (NumDataBytes) // encode the next byte if available
+        {
+            if (!!(*pData & 0x80)) // check if msb is set in the byte, !! converts to boolean
+            {
+                msb |= (1U << i); // set the msb bit for this data byte
+            }
+            *pDest = (*pData & 0x7F); // remove the msb from the data byte then store it into output buffer
+            pDest++;                  // increment the output buffer pointer
+            pData++;                  // increment the pointer to the next data byte
+            NumDataBytes--;           // decrement the remaining number of bytes to encode
+            numEncoded++;
+        }
+        else // otherwise pad with zeros
+        {
+            *pDest = 0x00;
+            pDest++;
+        }
+    }
+    *pDest = (msb & 0x7F); // store the MSB byte in the final position
+    return numEncoded;
+}
+
+/*
+    To use sysex messages as an arbitrary data stream it is necessary to encode/decode data.
+    Data bytes cannot have the midi status bit set (bit 8), therefore the maximum value 
+    for any byte 0x7F. 
+
+    The encoding scheme is simple - always transmit 8 byte blocks.
+    A block contains 7 data bytes, and an MSB byte.
+    The MSB byte contains the MSB bits for the 7 data bytes.
+    
+    The encoder does the following:
+    for the 7 bytes {
+        1. Set bit N in the MSB byte equal to the MSB of data byte.
+        2. Mask off the MSB of data byte N and add it to the encode buffer
+    }
+    
+    If a block contains partial data, it is padded upto the 8 bytes with zeros.
+*/
+static void EncodeAndTransmit(u8* pData, u16 NumDataBytes)
+{
+    if (!pData || NumDataBytes == 0)
+    {
+        return;
+    }
+
+    u16 totalBlocks = EncodedLength_Blocks(NumDataBytes);
+// #ifdef ENABLE_SERIAL
+//     char buf[64] = {0};
+//     sprintf(buf, "InCnt: %d - NumEncBlocks: %d\r\n", NumDataBytes, totalBlocks);
+//     Serial_Print(buf);
+// #endif
+    for (u16 currentBlock = 0; currentBlock < totalBlocks; currentBlock++)
+    {
+        memset(mOutBuffer, 0x00, OUTBUFFER_LEN);
+        u8 numEncoded = EncodeSysexBlock(pData, NumDataBytes, mOutBuffer, OUTBUFFER_LEN);
+        if (numEncoded)
+        {
+            NumDataBytes -= numEncoded;
+            pData += numEncoded;
+            TransmitSysexData(mOutBuffer, OUTBUFFER_LEN);
+        }
+    }
+}
+
+// Decode from sysex
+static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks)
+{
+    for (u16 block = 0; block < NumBlocks; block++)
+    {
+        u8* pSysexBlock = &pSysexBytes[(block * 8)];
+        for (u8 i = 0; i < 7; i++)
+        {
+            // Extract the msb for the data byte from the MSB byte
+            u8 msb         = (pSysexBlock[7] & (0x01 << i));
+            // insert MSB into the data byte, then push into dest buffer
+            *pDestBuffer++ = (pSysexBlock[i] | msb);
+        }
+    }
+}
+
+/**
+ * @brief Calculates the number of bytes required to encode NumDataBytes bytes;
+ * 
+ * @param NumDataBytes Number of bytes in input data stream.
+ * @return u32 Number of output bytes required to encode to SysEx;
+ */
+static u32 EncodedLength_Bytes(u16 NumDataBytes)
+{
+    if (NumDataBytes == 0)
+    {
+        return 0;
+    }
+    else if (NumDataBytes < SIZEOF_SYSEXBLOCK)
+    {
+        return SIZEOF_SYSEXBLOCK; // atleast 8 bytes required
+    }
+
+    return (NumDataBytes + ceil(NumDataBytes / 7.0));
+}
+
+/**
+ * @brief Calculates the number of blocks required to encode NumDataBytes bytes
+ * 
+ * @param NumDataBytes Number of bytes in input data stream.
+ * @return u32 Number of 8-byte blocks required to encode to SysEx
+ */
+static u32 EncodedLength_Blocks(u16 NumDataBytes)
+{
+    if (NumDataBytes == 0)
+    {
+        return 0;
+    }
+    else if (NumDataBytes < SIZEOF_SYSEXBLOCK)
+    {
+        return 1; // atleast 1 block required
+    }
+
+    return ceil((double)EncodedLength_Bytes(NumDataBytes) / SIZEOF_SYSEXBLOCK);
+}
+
+/**
+ * @brief Calculates the number of bytes required to decode from a SysEx encoded stream;
+ * 
+ * @param NumEncodedBytes Number of bytes in SysEx encoded data stream
+ * @return u16 Number of bytes required to decode from SysEx
+ */
+static u16 DecodedLength_Bytes(u32 NumEncodedBytes)
+{
+    if (NumEncodedBytes < 8)
+    {
+        return 0;
+    }
+
+    return (NumEncodedBytes - (NumEncodedBytes / SIZEOF_SYSEXBLOCK));
+}
+
+static bool Msg_SendHandler(u8* pBytes, u16 NumBytes)
+{
+    if (!pBytes || NumBytes == 0)
+    {
+        return false;
+    }
+
+    TransmitSysexByte(MIDI_CMD_SYSEX_START);
+    // TransmitSysexByte(SYSEX_NONRT);
+    // TransmitSysexByte(mSysexChannel);
+
+    for (u8 i = 0; i < sizeof(MANF_ID); i++)
+    {
+        TransmitSysexByte(pgm_read_byte(&MANF_ID[i]));
+    }
+
+    u16 numBlocks = (u16)EncodedLength_Blocks(NumBytes);
+    EncodeAndTransmit(&numBlocks, sizeof(numBlocks));
+    EncodeAndTransmit(pBytes, NumBytes);
+    TransmitSysexByte(MIDI_CMD_SYSEX_END);
+
     return true;
 }
 
-static bool Msg_UpdateHandler(sMessage* pMessage)
+static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
 {
-    Serial_Print("MidiUpdate\r\n");
-    return true;
+    MIDI_EventPacket_t packet = {0};
+    packet.Event              = MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE);
+    packet.Data1              = (Channel & 0x0F) | MIDI_COMMAND_CONTROL_CHANGE;
+    packet.Data2              = CC & 0x7F;
+    packet.Data3              = Value & 0x7F;
+    MIDI_Device_SendEventPacket(&gMIDI_Interface, &packet);
+}
+
+static inline void TransmitMidiNote(u8 _Channel, u8 _Note, u8 _Velocity, bool _NoteOn)
+{
+    MIDI_EventPacket_t _packet = {0};
+    u8                 _cmd    = _NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF;
+    _packet.Event              = MIDI_EVENT(0, _cmd);
+    _packet.Data1              = (_Channel & 0x0F) | _cmd;
+    _packet.Data2              = _Note & 0x7F;
+    _packet.Data3              = _Velocity & 0x7F;
+    MIDI_Device_SendEventPacket(&gMIDI_Interface, &_packet);
+}
+
+static inline void TransmitSysexByte(u8 _Byte)
+{
+    MIDI_EventPacket_t _msg;
+    _msg.Event = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE);
+    _msg.Data1 = _Byte;
+    MIDI_Device_SendEventPacket(&gMIDI_Interface, &_msg);
+}
+
+static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId)
+{
+    // switch (SubId)
+    // {
+    //     case GENERAL_SYS_ID_REQ:
+    //     {
+    //         // u8* b = &mOutBuffer[0];
+
+    //         // *b++ = MIDI_CMD_SYSEX_START;
+
+    //         // *b++ = SYSEX_NONRT;
+    //         // *b++ = SYSEX_BROADCAST_CH;
+    //         // *b++ = MIDI_SYSEX_NONRT_GENERAL_SYS;
+    //         // *b++ = GENERAL_SYS_ID_REP;
+
+    //         // for (int i = 0; i < sizeof(MANF_ID); i++)
+    //         //     *b++ = pgm_read_byte(&MANF_ID[i]);
+
+    //         // for (int i = 0; i < sizeof(FMLY_ID); i++)
+    //         //     *b++ = pgm_read_byte(&FMLY_ID[i]);
+
+    //         // for (int i = 0; i < sizeof(PROD_ID); i++)
+    //         //     *b++ = pgm_read_byte(&PROD_ID[i]);
+
+    //         // for (int i = 0; i < sizeof(VRSN_ID); i++)
+    //         //     *b++ = pgm_read_byte(&VRSN_ID[i]);
+
+    //         // *b++ = MIDI_CMD_SYSEX_END;
+    //         // Serial_Print("[MIDI TX] ID reply\r\n");
+    //         // TransmitSysexData(mOutBuffer, b - &mOutBuffer[0]);
+    //         break;
+    //     }
+
+    //     default: break;
+    // }
 }

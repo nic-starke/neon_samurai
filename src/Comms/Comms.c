@@ -18,6 +18,7 @@
  */
 
 #include "Comms.h"
+#include "CBOR.h"
 #include "Network.h"
 #include "SoftTimer.h"
 #include "Display.h"
@@ -28,8 +29,12 @@
 #define MAX_INCOMING_MSGS       (5)
 #define MAX_MSG_DATA_SIZE       (128) // bytes
 
-const sMessage MSG_BroadcastTemplate = {
+// clang-format off
+
+// Ensure all fields are set locally, otherwise this message will be broadcasted
+const sMessage MSG_Default = {
     .Header = {
+        .Protocol = PROTOCOL_BROADCAST,
         .Source = {
             .ClientAddress = BROADCAST_ADDRESS,
             .ClientType = CLIENT_MUFFIN,
@@ -37,25 +42,26 @@ const sMessage MSG_BroadcastTemplate = {
         },
         .Destination = {
             .ClientAddress = BROADCAST_ADDRESS,
-            .ClientType = CLIENT_BROADCAST,
+            .ClientType = CLIENT_ALL,
             .ModuleID = MODULE_NETWORK,
         },
-        .Type = MSG_DEFAULT,
+        .Priority = PRIORITY_NORMAL,
         .ModuleParameter = 0,
-        .Protocol = PROTOCOL_BROADCAST,
     },
-    .DataSize = 0,
-    .pData = NULL,
+    .Data = {
+        .len = 0,
+        .ptr = NULL,
+    },
 };
 
-static u8 mLocalAddress = UNASSIGNED_ADDRESS;
+// clang-format on
 
 static bool ProcessMessage(sMessage* pMessage);
 
 struct _protocols {
     bool Registered;
     fpProtocol_SendMessageHandler fpSendHandler;
-    fpProtocol_UpdateHandler fpUpdateHandler;
+    // fpProtocol_UpdateHandler fpUpdateHandler;
 } static mProtocols[NUM_COMMS_PROTOCOLS] = {0};
 
 struct _modules {
@@ -64,116 +70,83 @@ struct _modules {
 
 void Comms_Init(void)
 {
-    Comms_RegisterModule(MODULE_NETWORK, MessageHandler_Network);
 
-
-    // switch(mComms.State)
-    // {
-    //     case STATE_UNITIALISED:{
-
-    //      break;   
-    //     }
-
-    //     case STATE_DISCONNECTED:{
-
-    //      break;   
-    //     }
-
-    //     case STATE_DISCOVERY:{
-
-    //      break;   
-    //     }
-
-    //     case STATE_READY:{
-
-    //      break;   
-    //     }
-
-    //     default:
-    //     break;
-
-    // }
 }
 
 void Comms_Update(void)
 {
-    if (mLocalAddress == UNASSIGNED_ADDRESS)
-    {
-        Network_Discovery();
-    }
-    
-    for(eCommsProtocol protocol = 0; protocol < NUM_COMMS_PROTOCOLS; protocol++)
-    {
 
-    }
 }
 
-static bool SendMessage(sMessage* pMessage, eCommsProtocol Protocol)
+static bool SendMessage(u8* pBytes, uint16_t NumBytes, eCommsProtocol Protocol)
 {
-    // if(!mProtocols[Protocol].Registered || mProtocols[Protocol].fpSendHandler == NULL || pMessage == NULL)
-    // {
-    //     Serial_Print("SendMessage error\r\n");
-    //     return false;
-    // }
-
     if(!mProtocols[Protocol].Registered)
     {
         Serial_Print("Protocol not registered\r\n");
         return false;
-    } else if (mProtocols[Protocol].fpSendHandler == NULL) {
-        Serial_Print("NoSendHandler\r\n");
+    } 
+    else if (mProtocols[Protocol].fpSendHandler == NULL)
+    {
+        Serial_Print("No SendHandler\r\n");
         return false;
-    } else if (pMessage == NULL) {
-        Serial_Print("pMessage null\r\n");
+    } 
+    else if (!pBytes || NumBytes == 0)
+    {
+        Serial_Print("SendMessage: Invalid parameters\r\n");
     }
 
-    char buf[128] = "";
-    sprintf(buf, "SendMSG SourceMod[%d] DestClient[%d] DestMod[%d] Param[%d] Val[%ld]\r\n", 
-        pMessage->Header.Source.ModuleID,
-        pMessage->Header.Destination.ClientAddress,
-        pMessage->Header.Destination.ModuleID,
-        pMessage->Header.ModuleParameter,
-        pMessage->Value);
-
-    Serial_Print(buf);
-
-    pMessage->Header.Source.ClientAddress = mLocalAddress;
-    pMessage->Header.Source.ClientType = CLIENT_MUFFIN;
-
-    return mProtocols[Protocol].fpSendHandler(pMessage);
+    return mProtocols[Protocol].fpSendHandler(pBytes, NumBytes);
 }
 
-void Comms_RegisterLocalAddress(u8 Address)
-{
-    mLocalAddress = Address;
-}
-
-bool Comms_SendMessage(sMessage* pMessage, eCommsProtocol Protocol)
+bool Comms_SendMessage(sMessage* pMessage)
 {
     if (pMessage == NULL)
     {
         return false;
     }
 
-    if (Protocol == PROTOCOL_BROADCAST)
+    pMessage->Header.Source.ClientAddress = Network_GetLocalAddress();
+    pMessage->Header.Source.ClientType = CLIENT_MUFFIN;
+
+// #ifdef ENABLE_SERIAL
+//     char buf[192] = "";
+//     sprintf(buf, "SendMessage\r\nProtocol[%d] Priority[%d] Param[%d]\r\nSource | Type[%d] Address[%d] Module[%d]\r\nDestin | Type[%d] Address[%d] Module[%d]\r\nVal[%lu]\r\n",
+//         pMessage->Header.Protocol, pMessage->Header.Priority, pMessage->Header.ModuleParameter,
+//         pMessage->Header.Source.ClientType, pMessage->Header.Source.ClientAddress, pMessage->Header.Source.ModuleID,
+//         pMessage->Header.Destination.ClientType, pMessage->Header.Destination.ClientAddress,pMessage->Header.Destination.ModuleID,
+//         pMessage->Value);
+
+//     Serial_Print(buf);
+// #endif
+
+    UsefulBuf_MAKE_STACK_UB(cborBuffer, (sizeof(sMessage) + SIZEOF_CBORLABEL * NUM_LABELS_MESSAGE));
+    UsefulBufC encodedMessage = CBOR_Encode_Message(pMessage, cborBuffer);
+
+    if(UsefulBuf_IsNULLC(encodedMessage))
+    {
+        Serial_Print("Failed to encode\r\n");
+        return false;
+    }
+
+    if (pMessage->Header.Protocol == PROTOCOL_BROADCAST)
     {
         Serial_Print("Broadcast\r\n");
         bool success = true;
         for(eCommsProtocol protocol = 0; protocol < NUM_COMMS_PROTOCOLS; protocol++)
         {
-            success &= SendMessage(pMessage, protocol);
+            success &= SendMessage((u8*) encodedMessage.ptr, encodedMessage.len, protocol);
         }
         return success;
     }
     else
     {
-        return SendMessage(pMessage, Protocol);
+        return SendMessage(encodedMessage.ptr, encodedMessage.len, pMessage->Header.Protocol);
     }
 
     return false;
 }
 
-bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_UpdateHandler UpdateHandler, fpProtocol_SendMessageHandler SendHandler)
+bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_SendMessageHandler SendHandler)
 {
     if(Protocol >= NUM_COMMS_PROTOCOLS || mProtocols[Protocol].Registered) {
         return false;
@@ -181,8 +154,8 @@ bool Comms_RegisterProtocol(eCommsProtocol Protocol, fpProtocol_UpdateHandler Up
 
     mProtocols[Protocol].Registered = true;
     
-    if(UpdateHandler)
-        mProtocols[Protocol].fpUpdateHandler = UpdateHandler;
+    // if(UpdateHandler)
+    //     mProtocols[Protocol].fpUpdateHandler = UpdateHandler;
 
     if(SendHandler)
         mProtocols[Protocol].fpSendHandler = SendHandler;
@@ -201,14 +174,26 @@ bool Comms_RegisterModule(eModuleID ID, fpMessageHandler MessageHandler)
     return true;
 }
 
+/**
+ * @brief Returns the total size of a message (excluding protocol size)
+ * 
+ * @param pMessage a pointer to a message structure.
+ * @return u16 the total size of the message, including the header, and data.
+ */
+ u16 Comms_MessageSize(sMessage* pMessage)
+{
+    return sizeof(sMessageHeader) + pMessage->Data.len;
+}
+
+
 static bool ProcessMessage(sMessage* pMessage)
 {
-    if(pMessage->Header.Destination.ClientAddress != mLocalAddress)
+    if(pMessage->Header.Destination.ClientAddress != BROADCAST_ADDRESS || pMessage->Header.Destination.ClientAddress != Network_GetLocalAddress())
     {
         return true; // no need to handle this message - ignore.
     }
 
-    if(pMessage->Header.Type == MSG_REALTIME)
+    if(pMessage->Header.Priority == PRIORITY_REALTIME)
     {
         // realtime handling
     }

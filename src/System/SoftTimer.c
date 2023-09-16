@@ -29,6 +29,7 @@
 
 static vu32 mCurrentTick;
 
+// Do not use this to init a soft timer - this is to initialise the entire SoftTimer subsystem
 void SoftTimer_Init(void)
 {
     sTimer_Type0Config timerConfig = {

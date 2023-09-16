@@ -19,11 +19,10 @@
 
 #pragma once
 
-
 #include <subprojects/QCBOR/inc/qcbor/qcbor_common.h>
-#include <subprojects/QCBOR/inc/qcbor/qcbor_encode.h>
 #include <subprojects/QCBOR/inc/qcbor/qcbor_decode.h>
-#include "Encoder.h"
+#include <subprojects/QCBOR/inc/qcbor/qcbor_encode.h>
 
-UsefulBufC CBOREncode_Encoder(const sEncoderState* pEncoder, UsefulBuf Buffer);
-QCBORError CBORDecode_Encoder(UsefulBufC EncodedStruct, sEncoderState* pDest);
+#include "CommsTypes.h"
+
+UsefulBufC CBOR_Encode_Message(const sMessage* pMessage, UsefulBuf Buffer);

@@ -19,126 +19,408 @@
 
 #include <avr/pgmspace.h>
 
-#include "Network.h"
 #include "CommsTypes.h"
+#include "Data.h"
 #include "DataTypes.h"
+#include "Network.h"
 #include "NetworkMessages.h"
 #include "SoftTimer.h"
 
-#define DISCOVERY_TIMEOUT_MS (3000)
+#define ENABLE_SERIAL
+#include "VirtualSerial.h"
 
 struct _connections
-{    
+{
     // Peer connections
-    u8 LocalAddress;
-    eConnectionState MuffinEditorConnection;
+    NetAddress       LocalAddress;
+    
+    struct {
+        eCommsProtocol Protocol;
+        NetAddress Address;
+        eConnectionState State;
+    } MuffinEditor;
+
     union
     {
-        uint8_t Peer0 : 1;
-        uint8_t Peer1 : 1;
-        uint8_t Peer2 : 1;
-        uint8_t Peer3 : 1;
-        uint8_t Peer4 : 1;
-        uint8_t Peer5 : 1;
-        uint8_t Peer6 : 1;
-        uint8_t Peer7 : 1;
-        uint8_t Peers;
+        u16 Peer0  : 1;
+        u16 Peer1  : 1;
+        u16 Peer2  : 1;
+        u16 Peer3  : 1;
+        u16 Peer4  : 1;
+        u16 Peer5  : 1;
+        u16 Peer6  : 1;
+        u16 Peer7  : 1;
+        u16 Peer8  : 1;
+        u16 Peer9  : 1;
+        u16 Peer10 : 1;
+        u16 Peer11 : 1;
+        u16 Peer12 : 1;
+        u16 Peer13 : 1;
+        u16 Peer14 : 1;
+        u16 Peer15 : 1;
+        u16 Peers;
     } MuffinConnections;
 } static mConnections = {
+    .MuffinEditor.State = STATE_UNINITIALISED,
     .LocalAddress = UNASSIGNED_ADDRESS,
+
 };
 
-void Network_Discovery(void)
+static eAddressState   mAddressState   = ADDRESS_UNINITIALISED;
+static eDiscoveryState mDiscoveryState = DISCOVERY_STOPPED;
+
+static void ConnectToEditor(void);
+static void NetworkDiscovery(void);
+static void AddressResolution(void);
+static void SendDiscoveryRequest(void);
+static void SendConnectionRequest(sNetworkAddress* pRemoteDevice, eCommsProtocol Protocol);
+static void SendDeviceRegistrationMessage(void);
+static void SetLocalAddress(NetAddress NewAddress);
+static bool MessageHandler(sMessage* pMessage);
+
+void Network_Init(void)
+{
+    mConnections.LocalAddress = Data_GetNetworkAddress();
+    mAddressState             = ADDRESS_ASSIGNED;
+
+    Serial_Print("Network address init: ");
+    Serial_PrintValue(mConnections.LocalAddress);
+    Serial_Print("\r\n");
+
+    Comms_RegisterModule(MODULE_NETWORK, MessageHandler);
+}
+
+void Network_Update(void)
+{
+    NetworkDiscovery();
+    ConnectToEditor();
+}
+
+void Network_ConnectToEditor(void)
+{
+    if(mConnections.MuffinEditor.State != STATE_CONNECTED)
+    {
+        mConnections.MuffinEditor.State = STATE_DISCOVERY;
+    }
+}
+
+void Network_StartDiscovery(void)
+{
+    mDiscoveryState = DISCOVERY_START;
+}
+
+NetAddress Network_GetLocalAddress(void)
+{
+    return mConnections.LocalAddress;
+}
+
+static void ConnectToEditor(void)
 {
     static sSoftTimer timer = {0};
 
-    if(timer.State == TIMER_STOPPED)
+    switch (mConnections.MuffinEditor.State)
     {
-        SoftTimer_Start(&timer);
-        sMessage msg = MSG_BroadcastTemplate;
-        msg.Header.ModuleParameter = DISCOVERY_REQUEST;
-        Comms_SendMessage(&msg, PROTOCOL_BROADCAST);
-    }
-    else if (timer.State == TIMER_RUNNING)
-    {
-        if(SoftTimer_Elapsed(&timer) > DISCOVERY_TIMEOUT_MS)
+        case STATE_DISCOVERY:
         {
-            SoftTimer_Stop(&timer);
-        }
-    }
-}
-
-bool Network_ConnectToEditor(void)
-{
-    switch(mConnections.MuffinEditorConnection)
-    {
-        case STATE_CLOSED:
-        case STATE_UNINITIALISED: {
+            Serial_Print("Discovering MuffinEditor\r\n");
+            SendDiscoveryRequest();
+            mConnections.MuffinEditor.State = STATE_LISTEN;
             break;
         }
 
-        case STATE_DISCOVERY: {
+        case STATE_HANDSHAKE:
+        {
+            Serial_Print("Handshake to MuffinEditor\r\n");
+            sNetworkAddress editor = {
+                .ClientAddress = mConnections.MuffinEditor.Address,
+                .ClientType = CLIENT_EDITOR,
+                .ModuleID = MODULE_NETWORK,
+            };
+            SendConnectionRequest(&editor, mConnections.MuffinEditor.Protocol);
+            mConnections.MuffinEditor.State = STATE_LISTEN;
             break;
         }
 
-        case STATE_CONNECTED: {
-            return true;
+        case STATE_CONNECTED:
+        {
             break;
         }
 
-        // Invalid states
-        case STATE_ERROR:
         case STATE_LISTEN:
-        default:
-            return false;
+        {
+            if (timer.State == TIMER_STOPPED)
+            {
+                SoftTimer_Start(&timer);
+            } 
+            else if (timer.State == TIMER_RUNNING)
+            {
+                if(SoftTimer_Elapsed(&timer) > 5000)
+                {
+                    SoftTimer_Stop(&timer);
+                    Serial_Print("Editor connection timeout\r\n");
+                    mConnections.MuffinEditor.State = STATE_ERROR;
+                }
+            }
+            break;
+        }
+
+        case STATE_CLOSING:
+        {
+            Serial_Print("Editor connection closed\r\n");
+            mConnections.MuffinEditor.State = STATE_CLOSED;
+            SoftTimer_Stop(&timer);
+            break;
+        }
+
+        case STATE_CLOSED:
+        case STATE_UNINITIALISED:
+        case STATE_ERROR:
+        default: 
             break;
     }
-    return false;
 }
 
-bool MessageHandler_Network(sMessage* pMessage)
+static void NetworkDiscovery(void)
 {
-    switch((eNetworkMessages)pMessage->Header.ModuleParameter)
+    static sSoftTimer discoveryTimer = {0};
+    static u8 attempts = MAX_DISCOVERY_ATTEMPTS;
+
+    switch (mDiscoveryState)
+    {
+        case DISCOVERY_START:
+        {
+            Serial_Print("Starting discovery\r\n");
+            SoftTimer_Start(&discoveryTimer);
+            SendDiscoveryRequest();
+            mDiscoveryState = DISCOVERY_AWAITING_REPLIES;
+            break;
+        }
+
+        case DISCOVERY_AWAITING_REPLIES:
+        {
+            
+            if (SoftTimer_Elapsed(&discoveryTimer) > DISCOVERY_WAIT_TIME)
+            {
+                Serial_Print("Discovery timer finished\r\n");
+                SoftTimer_Stop(&discoveryTimer);
+                mDiscoveryState = DISCOVERY_COMPLETE;
+            }
+            break;
+        }
+
+        case DISCOVERY_COMPLETE:
+        {
+            Serial_Print("Discovery complete\r\n");
+            attempts--;
+
+            if (mConnections.MuffinConnections.Peers > 0)
+            {
+                AddressResolution();
+                mDiscoveryState = DISCOVERY_STOPPED;
+            }
+            else
+            {
+                
+                if (attempts > 0)
+                {
+                    mDiscoveryState = DISCOVERY_START;
+                }
+                else
+                {
+                    mDiscoveryState = DISCOVERY_STOPPED;
+                    AddressResolution();
+                }
+            }
+
+            break;
+        }
+
+        case DISCOVERY_STOPPED:
+        default:
+            attempts = MAX_DISCOVERY_ATTEMPTS;
+             break;
+    }
+}
+
+static void AddressResolution(void)
+{
+    bool resolved = false;
+    u16  bit      = 0;
+
+    do
+    {
+        if ((mConnections.MuffinConnections.Peers & (1U << bit)) == 0)
+        {
+            resolved = true;
+            SetLocalAddress(mConnections.LocalAddress = (1U << bit));
+            SendDeviceRegistrationMessage();
+        }
+        else if (bit++ >= 16)
+        {
+            resolved = true;
+        }
+    } while (!resolved);
+}
+
+static void SendDiscoveryRequest(void)
+{
+    sMessage msg               = MSG_Default;
+    msg.Header.ModuleParameter = DISCOVERY_REQUEST;
+    Comms_SendMessage(&msg);
+}
+
+static void SendConnectionRequest(sNetworkAddress* pRemoteDevice, eCommsProtocol Protocol)
+{
+    sMessage msg = MSG_Default;
+    msg.Header.Protocol = Protocol;
+    msg.Header.Destination = *pRemoteDevice;
+    msg.Header.Source.ModuleID = MODULE_NETWORK;
+    msg.Header.ModuleParameter = CONNECTION_REQUEST;
+
+    Comms_SendMessage(&msg);
+}
+
+static void SendDeviceRegistrationMessage(void)
+{
+    sMessage msg                    = MSG_Default;
+    msg.Header.Source.ClientAddress = Network_GetLocalAddress();
+    msg.Header.Source.ModuleID      = MODULE_NETWORK;
+    msg.Header.ModuleParameter      = DEVICE_REGISTRATION;
+
+    Serial_Print("Sending DEVICE_REGISTRATION\r\n");
+    Comms_SendMessage(&msg);
+
+}
+
+static void SetLocalAddress(NetAddress NewAddress)
+{
+    mConnections.LocalAddress = NewAddress;
+    Data_SetNetworkAddress(mConnections.LocalAddress);
+    Serial_Print("Setting local address: ");
+    Serial_PrintValue(mConnections.LocalAddress);
+    Serial_Print("\r\n");
+}
+
+static bool MessageHandler(sMessage* pMessage)
+{
+    switch ((eModuleParameter_Network)pMessage->Header.ModuleParameter)
     {
         case DISCOVERY_REQUEST:
         {
             sMessage reply = {
-                .Header.Destination = pMessage->Header.Source,
+                .Header.Protocol        = pMessage->Header.Protocol,
+                .Header.Destination     = pMessage->Header.Source,
                 .Header.Source.ModuleID = MODULE_NETWORK,
-                .Value = mConnections.LocalAddress,
+                .Value                  = mConnections.LocalAddress,
             };
-            
-            return Comms_SendMessage(&reply, pMessage->Header.Protocol);
-        }
-        
-        case DISCOVERY_REPLY: {
-            switch(pMessage->Header.Source.ClientType)
-            {
-                case CLIENT_BROADCAST:
-                {
-                    break;
-                }
 
+            return Comms_SendMessage(&reply);
+        }
+
+        case DISCOVERY_REPLY:
+        {
+            switch (pMessage->Header.Source.ClientType)
+            {
                 case CLIENT_EDITOR:
                 {
-                    Network_ConnectToEditor(); // Connect to the editor if not already done so
+                    mConnections.MuffinEditor.Address = pMessage->Header.Source.ClientAddress;
+                    mConnections.MuffinEditor.Protocol = pMessage->Header.Protocol;
+    
+                    switch (mConnections.MuffinEditor.State)
+                    {
+                        case STATE_UNINITIALISED:
+                        case STATE_DISCOVERY:
+                        {
+                            mConnections.MuffinEditor.State = STATE_HANDSHAKE;
+                            break;
+                        }
+
+                        default:
+                        break;
+                    }
+
                     break;
                 }
 
                 case CLIENT_MUFFIN:
                 {
-                    mConnections.MuffinConnections.Peers |= (1u << pMessage->Header.Source.ClientAddress);
+                    mConnections.MuffinConnections.Peers |= pMessage->Header.Source.ClientAddress;
                     break;
                 }
 
-                default:
-                break;
+                default: break;
             }
             break;
         }
 
-        default:
+        case DEVICE_REGISTRATION:
+        {
+            switch (pMessage->Header.Source.ClientType)
+            {
+                case CLIENT_MUFFIN:
+                {
+                    mConnections.MuffinConnections.Peers |= pMessage->Header.Source.ClientAddress;
+                    if (pMessage->Header.Source.ClientAddress == mConnections.LocalAddress)
+                    {
+                        mConnections.LocalAddress = UNASSIGNED_ADDRESS;
+                        mDiscoveryState           = DISCOVERY_START;
+                    }
+                    break;
+                }
+
+                case CLIENT_EDITOR:
+                {
+                    if(mConnections.MuffinEditor.State == STATE_UNINITIALISED)
+                    {
+                        Network_ConnectToEditor();
+                    }
+                }
+
+                default: break;
+            }
+        }
+        
+        
+        case CONNECTION_REQUEST:
+        {
             break;
+        }
+
+        case CONNECTION_REPLY:
+        {
+            switch(pMessage->Header.Source.ClientType)
+            {
+                case CLIENT_MUFFIN:
+                {
+                    // muffin to muffin connections are not yet implemented
+                    break;
+                }
+
+                case CLIENT_EDITOR:
+                {
+
+                    if (pMessage->Value == 1) // connection accepted
+                    {
+                        if(mConnections.MuffinEditor.State == STATE_HANDSHAKE)
+                        {
+                            mConnections.MuffinEditor.State = STATE_CONNECTED;
+                            Serial_Print("Connected to editor\r\n");
+                        }
+                    }
+                    else // connection declined
+                    {
+                        mConnections.MuffinEditor.State = STATE_CLOSING;
+                    }
+  
+                    break;
+                }
+
+                default: break;
+            }
+            break;
+        }
+
+        default: break;
     }
 
     return true;
