@@ -1,6 +1,6 @@
 # Muffin
 
-*An open source alternative firmware for the excellent Midi Fighter Twister from DJ Tech Tools*
+*An open source firmware for the DJTT Midi Fighter Twister*
 
 ## About
 
@@ -8,7 +8,7 @@ This project was started to add new functionality to the Midi Fighter Twister.
 It is based on [AVR-GCC](https://gcc.gnu.org/wiki/avr-gcc) and the excellent [LUFA USB libraries](http://www.fourwalledcubicle.com/LUFA.php)
 
 ### **NOTICE**
-If you use this software you must accept the License, most importantly you should be aware of the Disclaimer of Warranty and Limitation of Liability. Additionally, using this firmware will likely void any warranty you have with the original equipment manufacturer. The license can be viewed [here](https://github.com/bxzn/Muffin/blob/main/LICENSE), and [here](https://www.gnu.org/licenses/gpl-3.0.en.html).
+If you use this software you must accept the License, most importantly you should be aware of the Disclaimer of Warranty and Limitation of Liability. Additionally, using this firmware will likely void any warranty you have with the original equipment manufacturer. The license can be viewed [here](LICENSE), and [here](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
 ## Where Can I Download It?
 
@@ -23,7 +23,7 @@ See [Features](Features.MD) for more information.
 
 ## Feature Requests and Bug Reports
 
-Please use the [issues](https://github.com/bxzn/MuffinTwister/issues) page of the repository to request new features, or to submit a bug.
+Please use the [issues](https://todo.sr.ht/~bxzn/Muffin) page of the repository to request new features, or to submit a bug.
 
 ## Why Muffin?
 
@@ -35,7 +35,7 @@ Please use the [issues](https://github.com/bxzn/MuffinTwister/issues) page of th
 
 I have created a virtual machine development environment that can be used to quickly get going with the project.
 
-It is available [here](https://github.com/bxzn/AVRGCC_DevelopmentEnvironment), its a generic Ubuntu VM configured with the latest AVR-GCC.
+It is available [here](https://git.sr.ht/~bxzn/AVRGCC_DevelopmentEnvironment), its a generic Ubuntu VM configured with the latest AVR-GCC.
 
 It uses a [Vagrant](www.vagrantup.com) configuration script so you don't have to configure anything.
 
@@ -64,4 +64,4 @@ If you want a clean build run `build.sh clean`.
 
 ## Disclaimer
 
-[Please review the license prior to use](https://github.com/bxzn/Muffin/blob/main/LICENSE)
+[Please review the license prior to use](LICENSE)
