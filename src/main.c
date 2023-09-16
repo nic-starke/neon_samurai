@@ -86,12 +86,22 @@ int main(void)
     Data_Init();
     Encoder_FactoryReset();
 
-    if (gData.OperatingMode == TEST_MODE)
+    // Update inputs, check special input combinations
+    for (int i = 0; i < 100; i++)
     {
-        SetupTest();
+        Input_Update();
+        Input_CheckSpecialSwitchCombos();
     }
 
-    BootAnimation();
+    switch (gData.OperatingMode)
+    {
+        case TEST_MODE: SetupTest(); break;
+
+        case BOOTLOADER_MODE: System_StartBootloader(); break;
+
+        case DEFAULT_MODE:
+        default: BootAnimation(); break;
+    }
 
     while (1)
     {
@@ -104,7 +114,6 @@ int main(void)
                 Display_Update();
                 Encoder_Update();
                 // SideSwitch_Update();
-                // Encoder_Update();
                 USBMidi_Update();
                 break;
             }

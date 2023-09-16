@@ -42,9 +42,9 @@ sData gData = {
     .CurrentBank          = 0,
 };
 
-// TODO - to store a bitfield the data struct will need to be a union with the bitfield and a appropriate number of bytes, then you can read/write the byte array directly.
 typedef struct
 {
+    u8  Reserved; // Reserved byte ensures that original MFT firmware will reset eeprom on first bootup.
     u16 DataVersion;
 
     u8 OperatingMode;
@@ -61,12 +61,13 @@ typedef struct
 // cpu via AVRdude, standard users cannot do this, therefore the default values can also be written
 // by calling the Data_FactoryReset function in this file.
 sEEData mEEData EEMEM = {
+    .Reserved            = 0xFF, // do not change this value!
     .DataVersion         = EE_DATA_VERSION,
     .OperatingMode       = DEFAULT_MODE,
     .RGBBrightness       = BRIGHTNESS_MAX,
     .DetentBrightness    = BRIGHTNESS_MAX,
     .IndicatorBrightness = BRIGHTNESS_MAX,
-    .Encoders = {0},
+    .Encoders            = {0},
 };
 
 // static inline void EE_ReadVirtualEncoder(sVirtualEncoder* pDest, sEEVirtualEncoder* pSrc)

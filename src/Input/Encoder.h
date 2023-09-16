@@ -56,7 +56,6 @@ typedef enum
     NUM_DISPLAY_STYLES,
 } eEncoderDisplayStyle;
 
-
 typedef enum
 {
     LAYERMODE_AB_
@@ -87,9 +86,9 @@ typedef enum
     SWITCH_RESET_VALUE_ON_RELEASE,
     SWITCH_FINE_ADJUST_HOLD,
     SWITCH_FINE_ADJUST_TOGGLE,
-    SWITCH_LAYER_TOGGLE,     // Enable/disable a specified layer
-    SWITCH_LAYER_HOLD,       // Enable a specified layer while switch is active
-    SWITCH_LAYER_CYCLE,      // Cycle between two layers (enables one, and disables the other)
+    SWITCH_LAYER_TOGGLE, // Enable/disable a specified layer
+    SWITCH_LAYER_HOLD,   // Enable a specified layer while switch is active
+    SWITCH_LAYER_CYCLE,  // Cycle between two layers (enables one, and disables the other)
 
     NUM_SWITCH_MODES,
 } eSwitchMode;
@@ -120,9 +119,11 @@ typedef struct
 
 typedef struct
 {
-    union {
-        struct {
-            u8 Mode: 4;
+    union
+    {
+        struct
+        {
+            u8 Mode    : 4;
             u8 Channel : 4;
         } BitField;
         u8 Byte;
@@ -148,16 +149,16 @@ typedef struct
     sRotaryMidiConfig MidiConfig;
     u16               RGBHue;
     bool              Enabled; // Runtime enabled state - can be modified by encoder/side switch.
-} sVirtualEncoderLayer; // Runtime state of an encoder layer
+} sVirtualEncoderLayer;        // Runtime state of an encoder layer
 
-typedef struct 
+typedef struct
 {
-    u16               StartPosition;
-    u16               StopPosition;
-    u16               MinValue;
-    u16               MaxValue;
+    u16                  StartPosition;
+    u16                  StopPosition;
+    u16                  MinValue;
+    u16                  MaxValue;
     sEE_RotaryMidiConfig MidiConfig;
-    u16               RGBHue;
+    u16                  RGBHue;
 } sEE_VirtualEncoderLayer;
 
 typedef struct
@@ -184,7 +185,7 @@ typedef struct
     u8 HasDetent      : 1;
     u8 LayerA_Enabled : 1;
     u8 LayerB_Enabled : 1;
-    u8 Reserved         : 1;
+    u8 Reserved       : 1;
 
     sVirtualEncoderLayer Layers[NUM_VIRTUAL_ENCODER_LAYERS];
     sVirtualSwitch       Switch;
@@ -192,8 +193,10 @@ typedef struct
 
 typedef struct
 {
-    union {
-        struct {
+    union
+    {
+        struct
+        {
             u8 DisplayStyle   : 2;
             u8 FineAdjust     : 1;
             u8 HasDetent      : 1;

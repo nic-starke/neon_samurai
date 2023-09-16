@@ -29,6 +29,7 @@ typedef enum
 {
     DEFAULT_MODE,
     TEST_MODE,
+    BOOTLOADER_MODE,
 
     NUM_OPERATING_MODES,
 } eOperatingMode;

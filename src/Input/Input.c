@@ -29,6 +29,7 @@
 #include "Timer.h"
 #include "Settings.h"
 #include "Display.h"
+#include "Data.h"
 
 #define SIDE_SWITCH_PORT    (PORTA)
 #define ENCODER_PORT        (PORTC)
@@ -40,13 +41,19 @@
 
 #define INPUT_TIMER (TCC1)
 
+#define BOOTLOADER_SWITCH_MASK     (SWITCH_MASK(0) | SWITCH_MASK(3) | SWITCH_MASK(12) | SWITCH_MASK(15))
+#define BOOTLOADER_SWITCH_VAL      (0x9009)
+#define ALT_BOOTLOADER_SWITCH_MASK (SWITCH_MASK(15) | SWITCH_MASK(14) | SWITCH_MASK(11) | SWITCH_MASK(10))
+#define ALT_BOOTLOADER_SWITCH_VAL  (0xCC00)
+#define RESET_SWITCH_MASK          (SWITCH_MASK(0) | SWITCH_MASK(15))
+#define RESET_SWITCH_VAL           (0x8001)
+
 typedef struct
 {
     u16 Buffer[DEBOUNCE_BUF_LEN]; // Raw switch states from shift register
     u8  Index;
     u16 bfChangedStates;   // Which switches changed states in current tick
-    u16 bfDebouncedStates; // Debounced switch state - use this as the current
-                           // switch state
+    u16 bfDebouncedStates; // Debounced switch state - use this as the current switch state
 } sEncoderSwitches;
 
 typedef struct
@@ -148,7 +155,16 @@ void Input_Update(void)
 
 bool Input_IsResetPressed(void)
 {
-    return (bool)EncoderSwitchWasPressed(SWITCH_MASK(0));
+    return (bool)(EncoderSwitchWasPressed(RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
+}
+
+void Input_CheckSpecialSwitchCombos(void)
+{
+    u16 state = mEncoderSwitchStates.bfDebouncedStates;
+    if (((state & BOOTLOADER_SWITCH_MASK) == BOOTLOADER_SWITCH_VAL) || ((state & ALT_BOOTLOADER_SWITCH_MASK) == ALT_BOOTLOADER_SWITCH_VAL))
+    {
+        gData.OperatingMode = BOOTLOADER_MODE;
+    }
 }
 
 u8 Encoder_GetDirection(u8 EncoderIndex)

@@ -19,4 +19,9 @@
 
 #pragma once
 
+#define BOOTKEY 0xDEADBEEF
+
 void System_Init(void);
+
+void System_BootloaderCheck(void) ATTR_INIT_SECTION(3);
+void System_StartBootloader(void);

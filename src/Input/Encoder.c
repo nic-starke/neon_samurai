@@ -102,7 +102,6 @@ static inline bool IsAnyLayerActive(sEncoderState* pEncoderState)
 
 void Encoder_Init(void)
 {
-    
 }
 
 void Encoder_SetDefaultConfig(sEncoderState* pEncoder)
@@ -262,18 +261,18 @@ static inline void UpdateEncoderSwitch(int EncoderIndex, sEncoderState* pEncoder
                 }
                 break;
             }
-            // case SWITCH_LAYER_CYCLE_NEXT:
-            // {
-            //     if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
-            //     {
-            //         u8 nextLayer = (pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
-            //         pEncoderState->Layers[pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer].Enabled = false;
-            //         pEncoderState->Layers[nextLayer].Enabled                                                        = true;
-            //         pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer                                = nextLayer;
-            //         pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer = (nextLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
-            //     }
-            //     break;
-            // }
+                // case SWITCH_LAYER_CYCLE_NEXT:
+                // {
+                //     if (EncoderSwitchWasPressed(SWITCH_MASK(EncoderIndex)))
+                //     {
+                //         u8 nextLayer = (pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
+                //         pEncoderState->Layers[pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer].Enabled = false;
+                //         pEncoderState->Layers[nextLayer].Enabled                                                        = true;
+                //         pEncoderState->Switch.ModeParameter.LayerTransition.CurrentLayer                                = nextLayer;
+                //         pEncoderState->Switch.ModeParameter.LayerTransition.NextLayer = (nextLayer + 1) % NUM_VIRTUAL_ENCODER_LAYERS;
+                //     }
+                //     break;
+                // }
 
             default:
             case SWITCH_DISABLED: break;
@@ -307,7 +306,8 @@ static inline void ProcessEncoderLayers(sEncoderState* pEncoderState)
                     virtualValue = (u16)((1.0f - percent) * pLayer->MinValue);
                 }
 
-                USBMidi_ProcessLayer(pEncoderState, pLayer, virtualValue >> 9); // TODO - 7-bit lazy conversion is bad, what about NRPN/14-bit?
+                USBMidi_ProcessLayer(pEncoderState, pLayer,
+                                     virtualValue >> 9); // TODO - 7-bit lazy conversion is bad, what about NRPN/14-bit?
             }
         }
     }

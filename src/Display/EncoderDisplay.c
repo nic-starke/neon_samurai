@@ -285,24 +285,26 @@ void EncoderDisplay_InvalidateAll(void)
 
 void EncoderDisplay_SetRGBColour(sEncoderState* pEncoder, sHSV* pNewColour)
 {
-    fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->RGBColour.Red, &pEncoder->RGBColour.Green, &pEncoder->RGBColour.Blue);
+    fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->RGBColour.Red, &pEncoder->RGBColour.Green,
+                      &pEncoder->RGBColour.Blue);
 }
 
 void EncoderDisplay_SetDetentColour(sEncoderState* pEncoder, sHSV* pNewColour)
 {
-    fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->DetentColour.Red, &pEncoder->DetentColour.Green, &pEncoder->DetentColour.Blue);
+    fast_hsv2rgb_8bit(pNewColour->Hue, pNewColour->Saturation, pNewColour->Value, &pEncoder->DetentColour.Red,
+                      &pEncoder->DetentColour.Green, &pEncoder->DetentColour.Blue);
 }
 
 void EncoderDisplay_UpdateAllColours(void)
 {
-    for(int encoder = 0; encoder < NUM_ENCODERS; encoder++)
+    for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
     {
         sEncoderState* pEncoder = &gData.EncoderStates[gData.CurrentBank][encoder];
 
         sHSV newColour = {
-            .Hue = pEncoder->Layers->RGBHue,
+            .Hue        = pEncoder->Layers->RGBHue,
             .Saturation = SATURATION_MAX,
-            .Value = VALUE_MAX,
+            .Value      = VALUE_MAX,
         };
 
         EncoderDisplay_SetRGBColour(pEncoder, &newColour);

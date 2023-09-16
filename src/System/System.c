@@ -19,11 +19,17 @@
 
 #include <avr/wdt.h>
 #include <Platform/XMEGA/ClockManagement.h>
+#include <Common/Common.h>
+#include <Drivers/USB/USB.h>
 
 #include "System.h"
 #include "CPU.h"
 #include "Interrupt.h"
 #include "Data.h"
+#include "Display.h"
+
+void (*bootloader)(void) = (void (*)(void))(BOOT_SECTION_START / 2 + 0x1FC / 2);
+uint32_t mBootKey __attribute__((section(".noinit")));
 
 void System_Init(void)
 {
@@ -37,4 +43,25 @@ void System_Init(void)
 
     // Configure interrupt controller
     PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
+}
+
+void System_BootloaderCheck(void)
+{
+    if (((RST.STATUS & RST_WDRF_bm)) && (mBootKey == BOOTKEY))
+    {
+        mBootKey = 0;
+        EIND     = BOOT_SECTION_START >> 17;
+        bootloader();
+    }
+}
+
+void System_StartBootloader(void)
+{
+    Display_Flash(100, 2);
+    USB_Disable();
+    IRQ_DisableInterrupts();
+
+    mBootKey = BOOTKEY;
+    wdt_enable(WDTO_30MS);
+    while (1) {}
 }

@@ -15,3 +15,5 @@ Before using this software you must read and accept the [LICENSE](https://git.sr
 ## [Installation Guide](wiki/InstallationGuide.md)
 
 ## [User Manual](wiki/UserManual.md)
+
+## [Technical](wiki/Technical.md)
