@@ -26,7 +26,7 @@
 #include "Encoder.h"
 #include "Colour.h"
 
-#define EE_DATA_VERSION (3)
+#define EE_DATA_VERSION (0xDEAF)
 
 sData gData = {
 	.DataVersion		  = 0,
@@ -42,7 +42,7 @@ sData gData = {
 
 typedef struct
 {
-	u8 Version;
+	u16 DataVersion;
 
 	u8 OperatingMode; // This should be a bitfield, but you cannot take the address of a bitfield when attempting to ready from
 					  // eeprom/pgmspace.
@@ -61,7 +61,7 @@ typedef struct
 // cpu via AVRdude, standard users cannot do this, therefore the default values can also be written
 // by calling the Data_FactoryReset function in this file.
 sEEData mEEData EEMEM = {
-	.Version			 = EE_DATA_VERSION,
+	.DataVersion		 = EE_DATA_VERSION,
 	.OperatingMode		 = DEFAULT_MODE,
 	.RGBBrightness		 = BRIGHTNESS_MAX,
 	.DetentBrightness	 = BRIGHTNESS_MAX,
@@ -138,7 +138,7 @@ void Data_Init(void)
 	while (!eeprom_is_ready()) {} // wait for eeprom ready
 
 	// Read the version stored in eeprom, if this doesnt match then factory reset the unit.
-	gData.DataVersion  = eeprom_read_byte(&mEEData.Version);
+	gData.DataVersion  = eeprom_read_word(&mEEData.DataVersion);
 	gData.FactoryReset = (gData.DataVersion != EE_DATA_VERSION);
 
 	if (gData.FactoryReset)
@@ -156,7 +156,7 @@ void Data_Init(void)
 
 void Data_FactoryReset(void)
 {
-	eeprom_write_byte(&mEEData.Version, (u8)EE_DATA_VERSION);
+	eeprom_write_word(&mEEData.DataVersion, (u16)EE_DATA_VERSION);
 
 	// At this point in execution gData should not have been modified and should be initialised with the default values (see top of this
 	// file)

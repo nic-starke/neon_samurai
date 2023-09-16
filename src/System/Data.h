@@ -38,7 +38,7 @@ typedef struct
 	eOperatingMode OperatingMode;
 
 	u8	 FirmwareVersion;
-	u8	 DataVersion;
+	u16	 DataVersion;
 	bool FactoryReset;
 
 	u8 RGBBrightness;
