@@ -1,0 +1,24 @@
+{
+"Source template": {
+	"description": "C source/header file template",
+    "prefix": "template",
+    "body": [
+		"/* Copyright (2021 - $CURRENT_YEAR) Nicolaus Starke",
+		" * SPDX-License-Identifier: GPL-3.0-or-later ",
+		" * https://github.com/nic-starke/muffintwister */",
+        "",
+		"#pragma once",
+		"",
+        "/* Defines ============================================ */",
+		"$0"
+        "/* Extern ============================================= */",
+        "/* Types ============================================== */",
+        "/* Prototypes ========================================= */",
+		"/* Local Variables ==================================== */",
+        "/* Global Functions =================================== */",
+        "/* Local Functions ==================================== */",
+        "",
+    ],
+}
+
+}
