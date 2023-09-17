@@ -24,9 +24,9 @@ MCU             = 'atxmega128a4u'
 MCU_ARCH        = 'ARCH_XMEGA'
 MCU_DEFINE      = 'ATXMEGA128A4U'
 USR_BOARD       = 'USER_BOARD'
-AVR_GCC_PATH	  = '/usr/local/avr/bin/'
-AVR_LIBC_PATH	  = '/usr/local/avr/avr/include/'
-LIB_XMEGA7_PATH	= '/usr/local/avr/avr/lib/avrxmega7'
+AVR_GCC_PATH	  = '/usr/bin/'
+AVR_LIBC_PATH	  = '/usr/avr/include/'
+LIB_XMEGA7_PATH	= '/usr/avr/lib/avrxmega7'
 
 [host_machine]
 system          = 'baremetal'
