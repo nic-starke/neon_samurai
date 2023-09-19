@@ -1,5 +1,3 @@
-#!/bin/bash
-
 if [ ! -d "$BUILD_DIR" ]; then
   mkdir $BUILD_DIR
 fi

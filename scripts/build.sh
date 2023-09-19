@@ -1,7 +1,9 @@
-#!/bin/bash
-if [ -d "$BUILD_DIR" ]; then
+currentdir=$PWD
+
   # ninja clang-format
-  cd $BUILD_DIR
+  mkdir -p /workspaces/muffin/build
+  
+  cd /workspaces/muffin/build
 
   if [[ $1 == clean ]]; then
     ninja clean
@@ -17,6 +19,5 @@ if [ -d "$BUILD_DIR" ]; then
   echo "BUILD FAILED - Stopping here."
   exit 1
   fi
-fi
 
-exit 0
+cd $currentdir

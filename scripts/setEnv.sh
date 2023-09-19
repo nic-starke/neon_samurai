@@ -1,5 +1,3 @@
-#!/bin/bash
-
-export BUILD_DIR=/vagrant/Muffin/builddir
+export BUILD_DIR=/workspaces/muffin/build
 echo "Build directory set to $BUILD_DIR"
 
