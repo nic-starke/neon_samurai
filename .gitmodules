@@ -1,3 +1,6 @@
 [submodule "subprojects/QCBOR"]
 	path = subprojects/QCBOR
 	url = https://github.com/laurencelundblade/QCBOR.git
+[submodule "atomthreads"]
+	path = subprojects/atomthreads
+	url = git@github.com:nic-starke/atomthreads.git
