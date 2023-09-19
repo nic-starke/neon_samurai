@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/nic-starke/atomthreads.git
+revision = atomic_muffin=head
+
+[provide]
+dependency_names = atomthreads_dep
