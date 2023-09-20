@@ -35,12 +35,17 @@ assert(meson.is_cross_build(), 'Not a valid cross-compilation environment')
 
 # Dependencies
 cmake = import('cmake')
+add_global_arguments('-DQCBOR_DISABLE_FLOAT_HW_USE', language : 'c')
 qcbor_options = cmake.subproject_options()
 qcbor_subproject = cmake.subproject('QCBOR', options: qcbor_options)
 qcbor = qcbor_subproject.dependency('qcbor')
 
-atomthreads_proj = subproject('atomthreads')
-atomthreads = atomthreads_proj.dependency('atomthreads_dep')
+atomthreads_dep = dependency(
+    'atomthreads',
+    fallback : ['atomthreads', 'atomthreads_dep'],
+    default_options: ['default_library=static'],
+    required : true,
+)
 
 # Configuration Files
 conf_data = configuration_data()
@@ -63,13 +68,14 @@ extra_args = [
     '-DVSER_ENABLE',
 ]
 
+
 # Targets
 muffin = executable(
     meson.project_name() + '.elf',
     [project_src],
     c_args : extra_args,
     include_directories : [project_inc, configuration_inc],
-    dependencies : [lufa, qcbor, atomthreads],
+    dependencies : [lufa, qcbor, atomthreads_dep],
 )
 
 hex = custom_target(
