@@ -53,4 +53,9 @@
     "docwriter.progress.trackFunctions": false,
     "cmake.configureOnOpen": false,
     "mesonbuild.configureOnOpen": false,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
+    "C_Cpp.intelliSenseEngineFallback": "enabled",
 }

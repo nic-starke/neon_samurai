@@ -45,6 +45,7 @@ atomthreads_dep = dependency(
     fallback : ['atomthreads', 'atomthreads_dep'],
     default_options: ['default_library=static'],
     required : true,
+    native: false,
 )
 
 # Configuration Files

@@ -1,42 +1,24 @@
 {
     "configurations": [
         {
-            "name": "AVR-GCC-WIN64",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "C:\\Code\\avrgcc\\avr\\include\\**"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ],
-            "windowsSdkVersion": "10.0.18362.0",
-            "compilerPath": "C:\\Code\\avrgcc\\bin\\avr-gcc",
-            "cStandard": "c99",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "${default}",
-            "browse": {
-                "path": [],
-                "limitSymbolsToIncludedHeaders": false
-            },
-            "compilerArgs": [
-                "-D__AVR_ATxmega128A4U__"
-            ]
-        },
-        {
             "name": "AVR",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/avr/avr/include/**"
+                "/usr/avr/include/**"
             ],
-            "defines": [],
-            "compilerPath": "/usr/local/avr/bin/avr-gcc",
+            "defines": [
+                "ARCH=ARCH_XMEGA",
+                "ATXMEGA128A4U",
+                "USE_LUFA_CONFIG_HEADER",
+                "BOARD=USER_BOARD",
+                "__AVR_XMEGA__"
+            ],
+            "compilerPath": "/usr/bin/avr-gcc",
             "cStandard": "c99",
             "cppStandard": "c++11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
-            "compileCommands": "${workspaceFolder}/builddir/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4

@@ -1,21 +1,6 @@
-#
-# File: xmega-cross ( 1st November 2021 )
-# Project: Muffin
-# Copyright 2021 - 2021 Nicolaus Starke  
-# -----
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see http://www.gnu.org/licenses/.
-#
+# Copyright (2021 - 2023) Nicolaus Starke
+# SPDX-License-Identifier: GPL-3.0-or-later 
+# https://github.com/nic-starke/muffintwister
 
 [constants]
 F_CPU           = '32000000'
@@ -57,7 +42,7 @@ objdump 		    = AVR_GCC_PATH / 'avr-objdump'
 #ranlib 		    = AVR_GCC_PATH / 'avr-ranlib'
 readelf 		    = AVR_GCC_PATH / 'avr-readelf'
 run 			      = AVR_GCC_PATH / 'avr-run'
-size 		    = AVR_GCC_PATH / 'avr-size'
+size 		        = AVR_GCC_PATH / 'avr-size'
 strings 		    = AVR_GCC_PATH / 'avr-strings'
 strip 			    = AVR_GCC_PATH / 'avr-strip'
 avrdude 		    = AVR_GCC_PATH / 'avrdude'
@@ -100,10 +85,9 @@ buildtype='release'
 c_args = [
   '-I' + AVR_LIBC_PATH,
   '-O3',
-  '-Wno-pedantic',
-  # '-Wall',
-  # '-Wextra',
-  # '-Wpedantic',
+  '-Wall',
+  '-Wextra',
+  '-Wpedantic',
   '-mmcu=' + MCU,
   '-DARCH=' + MCU_ARCH,
   '-D' + MCU_DEFINE,
@@ -112,7 +96,7 @@ c_args = [
   '-DBOARD=' + USR_BOARD,
   '-DUSE_LUFA_CONFIG_HEADER',
   '-DRELEASE',
-  # '-DNDEBUG',
+  '-DNDEBUG',
   '-fdata-sections',
   '-ffunction-sections',
   '-fpack-struct',
