@@ -52,4 +52,5 @@
     },
     "docwriter.progress.trackFunctions": false,
     "cmake.configureOnOpen": false,
+    "mesonbuild.configureOnOpen": false,
 }
