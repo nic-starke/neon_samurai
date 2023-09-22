@@ -1,4 +1,5 @@
 Language: Cpp
+BasedOnStyle: llvm
 AlignArrayOfStructures: Right
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: AcrossComments
@@ -16,13 +17,11 @@ AllowShortIfStatementsOnASingleLine: Never
 BitFieldColonSpacing: Both
 BreakBeforeBraces: Attach
 ColumnLimit: 80
-IndentCaseLabels: true
 MaxEmptyLinesToKeep: 1
 PointerAlignment: Left
-ReflowComments: false
+ReflowComments: true
 SortIncludes: false
 InsertNewlineAtEOF: true
-SortUsingDeclarations: true
 TabWidth: 2
 IndentWidth: 2
 UseTab: Never

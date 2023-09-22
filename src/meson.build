@@ -1,13 +1,14 @@
 folders = [
-    'Comms',
-    'Comms/Modules',
-	'Display',
-    'Input',
-    'MIDI',
-	'Peripheral',
-	'System',
-    'USB',
-    'Utility',
+    'include/',
+    # 'Comms',
+    # 'Comms/Modules',
+	# 'Display',
+    # 'Input',
+    # 'MIDI',
+	# 'Peripheral',
+	# 'System',
+    # 'USB',
+    # 'Utility',
     'LUFA',
 ]
 
@@ -17,32 +18,34 @@ endforeach
 
 project_src += files(
     'main.c',
-
-    'Comms/Comms.c',
-    'Comms/CBOR.c',
-    'Comms/Network.c',
-
-    'Display/Colour.c',
-    'Display/Display.c',
-    'Display/EncoderDisplay.c',
-    'Display/fast_hsv2rgb_8bit.c',
-
-    'Input/Encoder.c',
-    'Input/Input.c',
-    'Input/SideSwitch.c',
-
-    'MIDI/MIDI.c',
     
-    'Peripheral/DMA.c',
-    'Peripheral/GPIO.c',
-    'Peripheral/Timer.c',
-    'Peripheral/USART.c',
+    'system/os.c'
 
-    'System/Data.c',
-    'System/SoftTimer.c',
-    'System/System.c',
+    # 'Comms/Comms.c',
+    # 'Comms/CBOR.c',
+    # 'Comms/Network.c',
 
-    'USB/Descriptors.c',
-    'USB/VirtualSerial.c',
-    'USB/USB.c',
+    # 'Display/Colour.c',
+    # 'Display/Display.c',
+    # 'Display/EncoderDisplay.c',
+    # 'Display/fast_hsv2rgb_8bit.c',
+
+    # 'Input/Encoder.c',
+    # 'Input/Input.c',
+    # 'Input/SideSwitch.c',
+
+    # 'MIDI/MIDI.c',
+    
+    # 'Peripheral/DMA.c',
+    # 'Peripheral/GPIO.c',
+    # 'Peripheral/Timer.c',
+    # 'Peripheral/USART.c',
+
+    # 'System/Data.c',
+    # 'System/SoftTimer.c',
+    # 'System/System.c',
+
+    # 'USB/Descriptors.c',
+    # 'USB/VirtualSerial.c',
+    # 'USB/USB.c',
 )
