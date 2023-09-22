@@ -14,24 +14,15 @@ AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 BitFieldColonSpacing: Both
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterCaseLabel: true
-  AfterControlStatement: Always
-  AfterEnum: true
-  AfterFunction: true
-  AfterStruct: true
-  AfterUnion: true
-  BeforeElse: true
-  BeforeWhile: false
-ColumnLimit: 140
-ExperimentalAutoDetectBinPacking: false
+BreakBeforeBraces: Attach
+ColumnLimit: 80
 IndentCaseLabels: true
 MaxEmptyLinesToKeep: 1
 PointerAlignment: Left
 ReflowComments: false
-SortIncludes: CaseSensitive
+SortIncludes: false
+InsertNewlineAtEOF: true
 SortUsingDeclarations: true
-TabWidth: 4
-IndentWidth: 4
+TabWidth: 2
+IndentWidth: 2
 UseTab: Never
