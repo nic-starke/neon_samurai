@@ -1,6 +1,7 @@
 [wrap-git]
 url = https://github.com/nic-starke/atomthreads.git
-revision = atomic_muffin
+revision = avr_xmega
+patch_directory = atomthreads
 
 [provide]
 dependency_names = atomthreads_dep
