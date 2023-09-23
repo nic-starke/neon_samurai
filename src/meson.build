@@ -9,7 +9,7 @@ folders = [
 	# 'System',
     # 'USB',
     # 'Utility',
-    'LUFA',
+    # 'LUFA',
 ]
 
 foreach f : folders

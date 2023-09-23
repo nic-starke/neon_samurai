@@ -84,11 +84,6 @@ buildtype='release'
 
 c_args = [
   '-I' + AVR_LIBC_PATH,
-  '-O3',
-  '-Wall',
-  '-Wextra',
-  '-Wpedantic',
-  '-Wno-lto-type-mismatch',
   '-mmcu=' + MCU,
   '-DARCH=' + MCU_ARCH,
   '-D' + MCU_DEFINE,
@@ -96,8 +91,6 @@ c_args = [
   '-DF_CPU=' + F_CPU,
   '-DBOARD=' + USR_BOARD,
   '-DUSE_LUFA_CONFIG_HEADER',
-  '-DRELEASE',
-  '-DNDEBUG',
   '-fdata-sections',
   '-ffunction-sections',
   '-fpack-struct',

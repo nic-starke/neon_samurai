@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/nic-starke/tinyusb.git
+revision = avr_xmega
+patch_directory = tinyusb
+
+[provide]
+dependency_names = tinyusb_dep

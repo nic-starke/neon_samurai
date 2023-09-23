@@ -9,7 +9,6 @@
             "defines": [
                 "ARCH=ARCH_XMEGA",
                 "ATXMEGA128A4U",
-                "USE_LUFA_CONFIG_HEADER",
                 "BOARD=USER_BOARD",
                 "__AVR_XMEGA__"
             ],

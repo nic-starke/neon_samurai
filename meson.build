@@ -33,16 +33,35 @@ project(
 # Cross Compilation
 assert(meson.is_cross_build(), 'Not a valid cross-compilation environment')
 
+# Sources and Includes
+project_inc = []
+project_src = []
+
+subdir('src')
+subdir('src/LUFA/')
+
 # Dependencies
 cmake = import('cmake')
+
+# QCBOR serialisation
 add_global_arguments('-DQCBOR_DISABLE_FLOAT_HW_USE', language : 'c')
 qcbor_options = cmake.subproject_options()
 qcbor_subproject = cmake.subproject('QCBOR', options: qcbor_options)
 qcbor = qcbor_subproject.dependency('qcbor')
 
+# atomthreads RTOS
 atomthreads_dep = dependency(
     'atomthreads',
     fallback : ['atomthreads', 'atomthreads_dep'],
+    default_options: ['default_library=static'],
+    required : true,
+    native: false,
+)
+
+# tinyusb
+tinyusb_dep = dependency(
+    'tinyusb',
+    fallback : ['tinyusb', 'tinyusb_dep'],
     default_options: ['default_library=static'],
     required : true,
     native: false,
@@ -55,28 +74,44 @@ conf_data.set('EEKEY', 0x33)
 configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configuration: conf_data)
 
 configuration_inc = include_directories('.')
+ 
+c_compiler_args = [
+    '-flto=auto',
+    '-std=gnu11',
 
-# Sources and Includes
-project_inc = []
-project_src = []
+    '-O3',
+    '-DRELEASE',
+    '-DNDEBUG',
+    
+    '-fpack-struct',
+    '-fshort-enums',
+    '-mrelax',
 
-subdir('src')
-subdir('src/LUFA/')
-
-extra_args = [
     '-DMIDI_ENABLE',
     # '-DHID_ENABLE',
     '-DVSER_ENABLE',
+        
+    '-Wall',
+    '-Wextra',
+    '-Wpedantic',
+    '-Werror',
+    '-Wstrict-overflow',
+    '-Werror-implicit-function-declaration',
+    '-Wnull-dereference',
+    '-Wunused-function',
+    '-Wunused',
+    '-Wreturn-type',
+    '-Wredundant-decls',
+    '-Wno-lto-type-mismatch',
 ]
-
 
 # Targets
 muffin = executable(
     meson.project_name() + '.elf',
     [project_src],
-    c_args : extra_args,
+    c_args : c_compiler_args,
     include_directories : [project_inc, configuration_inc],
-    dependencies : [lufa, qcbor, atomthreads_dep],
+    dependencies : [qcbor, tinyusb_dep, atomthreads_dep],
 )
 
 hex = custom_target(
