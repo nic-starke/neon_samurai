@@ -45,7 +45,7 @@ cmake = import('cmake')
 # QCBOR serialisation
 add_global_arguments('-DQCBOR_DISABLE_FLOAT_HW_USE', language : 'c')
 qcbor_options = cmake.subproject_options()
-qcbor_subproject = cmake.subproject('QCBOR', options: qcbor_options)
+qcbor_subproject = cmake.subproject('qcbor', options: qcbor_options)
 qcbor = qcbor_subproject.dependency('qcbor')
 
 # atomthreads RTOS
