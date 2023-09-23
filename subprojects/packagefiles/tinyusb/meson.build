@@ -74,6 +74,7 @@ tinyusb_sources = files(
 )
 
 compiler_args=[
+    '-DCFG_TUSB_MCU=OPT_MCU_XMEGA128A4'
 ]
 
 tinyusb_inc = include_directories('src')

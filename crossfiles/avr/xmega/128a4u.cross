@@ -90,7 +90,6 @@ c_args = [
   '-DF_USB=' + F_USB,
   '-DF_CPU=' + F_CPU,
   '-DBOARD=' + USR_BOARD,
-  '-DUSE_LUFA_CONFIG_HEADER',
   '-fdata-sections',
   '-ffunction-sections',
   '-fpack-struct',

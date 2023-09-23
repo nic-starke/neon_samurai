@@ -54,5 +54,7 @@ error:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static void main_thread(uint32_t data) {
+  (void)data;
+
   return;
 }

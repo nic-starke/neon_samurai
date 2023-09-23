@@ -38,7 +38,6 @@ project_inc = []
 project_src = []
 
 subdir('src')
-subdir('src/LUFA/')
 
 # Dependencies
 cmake = import('cmake')
@@ -58,10 +57,9 @@ atomthreads_dep = dependency(
     native: false,
 )
 
-# tinyusb
-tinyusb_dep = dependency(
-    'tinyusb',
-    fallback : ['tinyusb', 'tinyusb_dep'],
+lufa_dep = dependency(
+    'lufa',
+    fallback : ['lufa', 'lufa_dep'],
     default_options: ['default_library=static'],
     required : true,
     native: false,
@@ -76,13 +74,14 @@ configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configurat
 configuration_inc = include_directories('.')
  
 c_compiler_args = [
-    '-flto=auto',
     '-std=gnu11',
 
     '-O3',
     '-DRELEASE',
     '-DNDEBUG',
     
+    '-ffreestanding',
+    '-flto=auto',
     '-fpack-struct',
     '-fshort-enums',
     '-mrelax',
@@ -111,7 +110,7 @@ muffin = executable(
     [project_src],
     c_args : c_compiler_args,
     include_directories : [project_inc, configuration_inc],
-    dependencies : [qcbor, tinyusb_dep, atomthreads_dep],
+    dependencies : [qcbor, atomthreads_dep, lufa_dep],
 )
 
 hex = custom_target(
