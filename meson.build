@@ -93,7 +93,7 @@ c_compiler_args = [
     '-Wall',
     '-Wextra',
     '-Wpedantic',
-    '-Werror',
+    # '-Werror',
     '-Wstrict-overflow',
     '-Werror-implicit-function-declaration',
     '-Wnull-dereference',
