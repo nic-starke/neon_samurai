@@ -18,7 +18,7 @@
  */
 
 #include "DMA.h"
-#include "DataTypes.h"
+#include "data_types.h"
 
 /**
  * @brief Enable power to the DMA peripheral

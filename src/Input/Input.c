@@ -19,7 +19,7 @@
 
 #include "Input.h"
 #include "Data.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Display.h"
 #include "GPIO.h"
 #include "MIDI.h"

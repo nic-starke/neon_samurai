@@ -18,7 +18,7 @@
  */
 
 #include "USB.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Display.h"
 #include "Encoder.h"
 #include "Input.h"

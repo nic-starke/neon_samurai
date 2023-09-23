@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "DataTypes.h"
+#include "data_types.h"
 #include "HardwareDescription.h"
 
 #define DIR_STATIONARY (0x00)

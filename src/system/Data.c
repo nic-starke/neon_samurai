@@ -23,7 +23,7 @@
 #include "CommsTypes.h"
 #include "Config.h"
 #include "Data.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Display.h"
 #include "Encoder.h"
 #include "EncoderDisplay.h"

@@ -21,7 +21,7 @@
 #include <avr/pgmspace.h>
 
 #include "CPU.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "GPIO.h"
 #include "Interrupt.h"
 #include "USART.h"

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "DataTypes.h"
+#include "data_types.h"
 
 #define SET_REG(reg, val) ((reg) |= (val))
 #define CLR_REG(reg, val) ((reg) &= ~(val))

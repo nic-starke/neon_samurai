@@ -23,7 +23,7 @@
 
 #include "DMA.h"
 #include "Data.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Display.h"
 #include "EncoderDisplay.h"
 #include "GPIO.h"

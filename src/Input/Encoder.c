@@ -22,7 +22,7 @@
 
 #include "Colour.h"
 #include "Data.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Encoder.h"
 #include "EncoderDisplay.h"
 #include "HardwareDescription.h"

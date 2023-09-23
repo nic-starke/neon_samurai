@@ -20,7 +20,7 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Interrupt.h"
 #include "SoftTimer.h"
 #include "Timer.h"

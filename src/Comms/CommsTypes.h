@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "DataTypes.h"
+#include "data_types.h"
 #include "ModuleIDs.h"
 #include "UsefulBuf.h"
 

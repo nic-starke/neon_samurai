@@ -1,5 +1,5 @@
 /*
- * File: Interrupt.h ( 20th November 2021 )
+ * File: CPU.h ( 13th November 2021 )
  * Project: Muffin
  * Copyright 2021 Nicolaus Starke  
  * -----
@@ -21,26 +21,11 @@
 
 #include <avr/cpufunc.h>
 #include <avr/interrupt.h>
+#include <avr/io.h>
 
-#include "DataTypes.h"
+#include "data_types.h"
 
-typedef enum
+static inline u32 CPU_GetMainClockSpeed(void)
 {
-    PRIORITY_OFF,
-    PRIORITY_LOW,
-    PRIORITY_MED,
-    PRIORITY_HI,
-} eInterruptPriority;
-
-static inline u8 IRQ_DisableInterrupts(void)
-{
-    vu8 flags = SREG;
-    cli();
-    return flags;
-}
-
-static inline void IRQ_EnableInterrupts(vu8 Flags)
-{
-    _MemoryBarrier();
-    SREG = Flags;
+    return F_CPU; // 32 MHz
 }

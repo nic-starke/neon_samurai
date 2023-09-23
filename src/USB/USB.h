@@ -1,7 +1,7 @@
 /*
  * File: USB.h ( 8th November 2021 )
  * Project: Muffin
- * Copyright 2021 - 2021 Nicolaus Starke  
+ * Copyright 2021 - 2021 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "Common.h"
-#include "DataTypes.h"
-#include "Descriptors.h"
+#include "Lufa/Common/Common.h"
+#include "data_types.h"
+#include "usb/Descriptors.h"
 #include "Encoder.h"
 
 // refer to descriptors .c for the serial string

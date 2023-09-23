@@ -22,7 +22,7 @@
 #include <avr/pgmspace.h>
 
 #include "CommsTypes.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Drivers/USB/USB.h"
 #include "Encoder.h"
 #include "MIDICommandDefines.h"

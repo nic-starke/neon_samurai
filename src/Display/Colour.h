@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "DataTypes.h"
+#include "data_types.h"
 #include "fast_hsv2rgb.h"
 
 #define HUE_MAX        (HSV_HUE_MAX)

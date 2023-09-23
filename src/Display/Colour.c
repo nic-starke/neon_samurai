@@ -19,7 +19,7 @@
 
 #include "Colour.h"
 #include "Data.h"
-#include "DataTypes.h"
+#include "data_types.h"
 
 /**
  * @brief Clamp the hue to the maximum hue value.

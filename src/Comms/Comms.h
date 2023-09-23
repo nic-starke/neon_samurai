@@ -20,7 +20,7 @@
 #pragma once
 
 #include "CommsTypes.h"
-#include "DataTypes.h"
+#include "data_types.h"
 
 void Comms_Init(void);
 void Comms_Update(void);

@@ -19,7 +19,7 @@
 
 #include <avr/pgmspace.h>
 
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Interrupt.h"
 #include "Timer.h"
 #include "Utility.h"

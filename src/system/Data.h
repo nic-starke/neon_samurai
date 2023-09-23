@@ -22,7 +22,7 @@
 #include <avr/pgmspace.h>
 
 #include "CommsTypes.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Encoder.h"
 #include "HardwareDescription.h"
 

@@ -21,7 +21,7 @@
 
 #include <avr/io.h>
 
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Interrupt.h"
 #include "Utility.h"
 

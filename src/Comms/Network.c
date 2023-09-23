@@ -21,7 +21,7 @@
 
 #include "CommsTypes.h"
 #include "Data.h"
-#include "DataTypes.h"
+#include "data_types.h"
 #include "Network.h"
 #include "NetworkMessages.h"
 #include "SoftTimer.h"
