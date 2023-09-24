@@ -22,12 +22,27 @@
     }                                                                          \
   } while (0)
 
+#define EXIT_IF_NULL(p, l)                                                     \
+  do {                                                                         \
+    if (p == NULL) {                                                           \
+      goto l;                                                                  \
+    }                                                                          \
+  } while (0)
+
+#define RETURN_IF_NULL(p)                                                      \
+  do {                                                                         \
+    if (p == NULL) {                                                           \
+      return ERR_NULL_PTR;                                                     \
+    }                                                                          \
+  } while (0)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum {
   SUCCESS       = 0,
   ERR_BAD_PARAM = -1,
+  ERR_NULL_PTR  = -2,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

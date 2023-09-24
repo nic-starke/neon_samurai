@@ -43,6 +43,7 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static uint8_t stack_system[32];
+static uint8_t stack_display[32];
 
 static os_thread_t threads[THREAD_NB] = {
     [THREAD_SYS] =
@@ -64,12 +65,13 @@ static os_thread_t threads[THREAD_NB] = {
     //         .stack      = THREAD_FILES_STACK,
     //         .stack_size = THREAD_FILES_STACKSIZE,
     //     },
-    // [THREAD_DISPLAY] =
-    //     {
-    //         .tcb        = {0},
-    //         .stack      = THREAD_DISPLAY_STACK,
-    //         .stack_size = THREAD_DISPLAY_STACKSIZE,
-    //     },
+    [THREAD_DISPLAY] =
+        {
+            .tcb        = {0},
+            .stack      = &stack_display[0],
+            .stack_size = sizeof(stack_display),
+            .priority   = 0,
+        },
     // [THREAD_MIDI] =
     //     {
     //         .tcb        = {0},
