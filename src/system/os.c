@@ -106,6 +106,7 @@ int os_init(void) {
 }
 
 void os_start(void) {
+  os_thread_start(THREAD_SYS, system_thread, 0);
   atomOSStart();
 }
 
