@@ -1,3 +1,11 @@
-[submodule "subprojects/QCBOR"]
-	path = subprojects/QCBOR
+[submodule "subprojects/qcbor"]
+	path = subprojects/qcbor
 	url = https://github.com/laurencelundblade/QCBOR.git
+
+[submodule "subprojects/lufa"]
+	path = subprojects/lufa
+	url = https://github.com/nic-starke/lufa.git
+
+[submodule "subprojects/atomthreads"]
+	path = subprojects/atomthreads
+	url = https://github.com/nic-starke/atomthreads.git

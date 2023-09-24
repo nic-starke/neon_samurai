@@ -36,6 +36,8 @@
 #include "Comms/Network.h"
 #include "system/SoftTimer.h"
 #include "system/System.h"
+#include "system/system.h"
+#include "system/error.h"
 #include "Peripheral/USART.h"
 
 #define ENABLE_SERIAL
@@ -51,19 +53,9 @@ static void BootAnimation(void);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void main_thread(uint32_t data);
 static void old_init(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Main thread stack
-static uint8_t main_stack[MAIN_STACK_SIZE];
-
-// Main thread data
-static os_thread_t main_thread_data = {
-    .stack      = &main_stack[0],
-    .stack_size = MAIN_STACK_SIZE,
-};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -76,7 +68,7 @@ void main(void) {
   EXIT_ON_ERR(s, error);
 
   // Create the first thread
-  s = (int)os_thread_new(&main_thread_data, MAIN_PRIORITY, 0, main_thread);
+  s = os_thread_start(THREAD_SYS, system_thread, 0);
   EXIT_ON_ERR(s, error);
 
   // Start execution
@@ -85,36 +77,10 @@ void main(void) {
 error:
   while (1) {
     RunTest();
-    // blink LED
   }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-static void main_thread(uint32_t data) {
-  while (1) {
-    Input_Update();
-
-    switch (gData.OperatingMode) {
-    case DEFAULT_MODE: {
-      Display_Update();
-      Encoder_Update();
-      // SideSwitch_Update(); // FIXME Not yet implemented
-      MIDI_Update();
-      Network_Update();
-      Comms_Update();
-      break;
-    }
-
-    case TEST_MODE: RunTest(); break;
-
-    default: break;
-    }
-
-    Serial_Update();
-    USB_USBTask();
-  }
-}
 
 static void old_init(void) {
   /** ** WARNING ** Do not adjust the order of these init functions! **/

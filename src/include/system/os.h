@@ -10,21 +10,20 @@
 #include "atom.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define OS_MAX_PRIORITY   (16)
-#define OS_STACK_CHECKING (FALSE)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-/**
- * @brief Data structure required for each thread.
- */
-typedef struct {
-  ATOM_TCB       tcb;        // Thread control block for atomthreads rtos.
-  uint8_t* const stack;      // Pointer to thread stack (user-allocated)
-  const uint16_t stack_size; // Stack size in bytes
-} os_thread_t;
+typedef enum {
+  THREAD_SYS,
+  THREAD_INPUT,
+  THREAD_FILES,
+  THREAD_DISPLAY,
+  THREAD_MIDI,
+  THREAD_NETWORK,
+  THREAD_USB,
+
+  THREAD_NB,
+} thread_id;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -42,16 +41,16 @@ int os_init(void);
 void os_start(void);
 
 /**
- * @brief Initialise and start execution of a new thread.
+ * @brief Creates and starts the thread.
  *
- * @param data Thread data structure.
- * @param priority Thread priority.
- * @param arg Argument to pass to thread entry function.
- * @param entry Thread entry function.
- * @return int 0 on success, otherwise sys err code.
+ * @param thread The thread ID.
+ * @param entry The entry function.
+ * @param arg Data to pass to the entry function.
+ * @return int
+ * @retval 0 - success.
+ * @retval Anything else - error.
  */
-int os_thread_new(os_thread_t* const data, uint8_t priority, uint32_t arg,
-                  void (*entry)(uint32_t));
+int os_thread_start(thread_id thread, void (*entry)(uint32_t), uint32_t arg);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

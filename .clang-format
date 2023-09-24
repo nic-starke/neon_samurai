@@ -1,6 +1,5 @@
 Language: Cpp
 BasedOnStyle: llvm
-AlignArrayOfStructures: Right
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: AcrossComments
 AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
