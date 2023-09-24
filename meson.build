@@ -91,7 +91,7 @@ c_compiler_args = [
 
     '-DMIDI_ENABLE',
     # '-DHID_ENABLE',
-    # '-DVSER_ENABLE',
+    '-DVSER_ENABLE',
         
     '-Wall',
     '-Wextra',

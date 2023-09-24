@@ -11,7 +11,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define OS_MAX_PRIORITY (16)
+#define OS_MAX_PRIORITY   (16)
 #define OS_STACK_CHECKING (FALSE)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -21,9 +21,9 @@
  * @brief Data structure required for each thread.
  */
 typedef struct {
-  ATOM_TCB tcb;               // Thread control block for atomthreads rtos.
-  uint8_t* const stack;       // Pointer to thread stack (user-allocated)
-  const uint16_t stack_size;  // Stack size in bytes
+  ATOM_TCB       tcb;        // Thread control block for atomthreads rtos.
+  uint8_t* const stack;      // Pointer to thread stack (user-allocated)
+  const uint16_t stack_size; // Stack size in bytes
 } os_thread_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

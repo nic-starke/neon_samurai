@@ -46,12 +46,7 @@ int os_init(void) {
 }
 
 void os_start(void) {
-  if (!atomOSStarted) {
-    atomOSStart();
-    while (1) {}; // Infinite loop
-  }
-
-  return;
+  atomOSStart();
 }
 
 int os_thread_new(os_thread_t* const data, uint8_t priority, uint32_t arg,

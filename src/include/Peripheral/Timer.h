@@ -1,7 +1,7 @@
 /*
  * File: Timer.h ( 21st November 2021 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke  
+ * Copyright 2021 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,33 +25,30 @@
 #include "system/Interrupt.h"
 #include "Utility/Utility.h"
 
-typedef enum
-{
-    TIMER_CHANNEL_A,
-    TIMER_CHANNEL_B,
-    TIMER_CHANNEL_C,
-    TIMER_CHANNEL_D,
+typedef enum {
+  TIMER_CHANNEL_A,
+  TIMER_CHANNEL_B,
+  TIMER_CHANNEL_C,
+  TIMER_CHANNEL_D,
 } eTimer_Channel;
 
-typedef enum
-{
-    TIMER_TCC0,
-    TIMER_TCC1,
-    TIMER_TCC2,
-    TIMER_TCD0,
-    TIMER_TCD1,
-    TIMER_TCD2,
-    TIMER_TCE0,
+typedef enum {
+  TIMER_TCC0,
+  TIMER_TCC1,
+  TIMER_TCC2,
+  TIMER_TCD0,
+  TIMER_TCD1,
+  TIMER_TCD2,
+  TIMER_TCE0,
 
-    NUM_TIMER_PERIPHERALS,
+  NUM_TIMER_PERIPHERALS,
 } eTimer_Peripheral;
 
-typedef struct
-{
-    eTimer_Peripheral Timer;
-    TC0_t*            pTimer;
-    TC_WGMODE_t       WaveformMode;
-    TC_CLKSEL_t       ClockSource;
+typedef struct {
+  eTimer_Peripheral Timer;
+  TC0_t*            pTimer;
+  TC_WGMODE_t       WaveformMode;
+  TC_CLKSEL_t       ClockSource;
 } sTimer_Type0Config;
 
 // typedef struct
@@ -74,28 +71,28 @@ typedef struct
 //     TC2_CMDEN_t CommandEnable;
 // } sTimer_Type2Config;
 
-static inline void Timer_EnableChannelInterrupt(TC0_t* pTC, eTimer_Channel Channel, eInterruptPriority Priority)
-{
-    const uint8_t shift = Channel << 1;
-    const uint8_t mask  = (TC0_CCAINTLVL_gm) << shift;
-    pTC->INTCTRLB  = (pTC->INTCTRLB & ~mask) | (Priority << shift);
+static inline void Timer_EnableChannelInterrupt(TC0_t*             pTC,
+                                                eTimer_Channel     Channel,
+                                                eInterruptPriority Priority) {
+  const uint8_t shift = Channel << 1;
+  const uint8_t mask  = (TC0_CCAINTLVL_gm) << shift;
+  pTC->INTCTRLB       = (pTC->INTCTRLB & ~mask) | (Priority << shift);
 }
 
-static inline void Timer_DisableChannelInterrupt(TC0_t* pTC, eTimer_Channel Channel)
-{
-    const uint8_t shift = Channel << 2;
-    const uint8_t mask  = (TC0_CCAINTLVL_gm) << shift;
-    CLR_REG(pTC->INTCTRLB, mask);
+static inline void Timer_DisableChannelInterrupt(TC0_t*         pTC,
+                                                 eTimer_Channel Channel) {
+  const uint8_t shift = Channel << 2;
+  const uint8_t mask  = (TC0_CCAINTLVL_gm) << shift;
+  CLR_REG(pTC->INTCTRLB, mask);
 }
 
-static inline void Timer_EnableOverflowInterrupt(TC0_t* pTC, eInterruptPriority Priority)
-{
-    pTC->INTCTRLA = (pTC->INTCTRLA & ~TC0_OVFINTLVL_gm) | Priority;
+static inline void Timer_EnableOverflowInterrupt(TC0_t*             pTC,
+                                                 eInterruptPriority Priority) {
+  pTC->INTCTRLA = (pTC->INTCTRLA & ~TC0_OVFINTLVL_gm) | Priority;
 }
 
-static inline void Timer_DisableOverflowInterrupt(TC0_t* pTC)
-{
-    CLR_REG(pTC->INTCTRLA, TC0_OVFINTLVL_gm);
+static inline void Timer_DisableOverflowInterrupt(TC0_t* pTC) {
+  CLR_REG(pTC->INTCTRLA, TC0_OVFINTLVL_gm);
 }
 
 void Timer_Type0Init(const sTimer_Type0Config* pConfig);
