@@ -1,22 +1,30 @@
 /*
- * File: SideSwitch.c ( 27th November 2021 )
+ * File: Network.h ( 10th April 2022 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke
+ * Copyright 2022 Nicolaus Starke  
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input/SideSwitch.h"
+#pragma once
 
-// TODO - implement side switch API.
+#include "Comms/Comms.h"
+#include "system/types.h"
+
+void Network_Init(void);
+void Network_Update(void);
+void Network_ConnectToEditor(void);
+void Network_StartDiscovery(bool AssignNewAddress);
+
+uint16_t Network_GetLocalAddress(void);

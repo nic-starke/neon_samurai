@@ -17,17 +17,17 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Colour.h"
-#include "Data.h"
-#include "data_types.h"
+#include "Display/Colour.h"
+#include "system/Data.h"
+#include "system/types.h"
 
 /**
  * @brief Clamp the hue to the maximum hue value.
  * 
  * @param Hue The value to be clamped.
- * @return u16 The clamped value.
+ * @return uint16_t The clamped value.
  */
-static inline u16 ClampHue(u16 Hue) // TODO - maybe this should just be a define?
+static inline uint16_t ClampHue(uint16_t Hue) // TODO - maybe this should just be a define?
 {
     if (Hue >= HUE_MAX)
     {
@@ -45,7 +45,7 @@ static inline u16 ClampHue(u16 Hue) // TODO - maybe this should just be a define
  * @param Hue The hue value to convert.
  * @param pRGB A pointer to an RGB struct that will contain the converted values.
  */
-void Hue2RGB(u16 Hue, sRGB* pRGB)
+void Hue2RGB(uint16_t Hue, sRGB* pRGB)
 {
     Hue = ClampHue(Hue); //TODO - does not currently handle saturation or value.
     fast_hsv2rgb_8bit(Hue, SATURATION_MAX, VALUE_MAX, &pRGB->Red, &pRGB->Green, &pRGB->Blue);

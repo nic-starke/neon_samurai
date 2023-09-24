@@ -1,17 +1,7 @@
 project('lufa', 'c')
 
 lufa_inc = [
-    'LUFA/Common',
-    'LUFA/Drivers/USB',
-    'LUFA/Drivers/USB/Class',
-    'LUFA/Drivers/USB/Class/Common',
-    'LUFA/Drivers/USB/Class/Device',
-    'LUFA/Drivers/USB/Class/Host',
-    'LUFA/Drivers/USB/Core',
-    'LUFA/Drivers/USB/Core/XMEGA',
-    'LUFA/Platform',
-    'LUFA/Platform/UC3',
-    'LUFA/Platform/XMEGA',
+    '.',
 ]
 
 lufa_src = files(
@@ -77,8 +67,10 @@ lufa_src = files(
 )
 
 compiler_args=[
-'-DUSE_LUFA_CONFIG_HEADER',
+'-DUSE_LUFA_CONFIG_HEADER=1',
 ]
+
+add_project_arguments(compiler_args , language : 'c')
 
 lufa_lib = library('lufa', lufa_src, include_directories: lufa_inc)
 lufa_dep = declare_dependency(include_directories : lufa_inc, sources : lufa_src)

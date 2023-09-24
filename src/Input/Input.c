@@ -1,7 +1,7 @@
 /*
  * File: Input.c ( 27th November 2021 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke  
+ * Copyright 2021 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +17,15 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input.h"
-#include "Data.h"
-#include "data_types.h"
-#include "Display.h"
-#include "GPIO.h"
-#include "MIDI.h"
-#include "Settings.h"
-#include "Timer.h"
-#include "USB.h"
+#include "Input/Input.h"
+#include "system/Data.h"
+#include "system/types.h"
+#include "Display/Display.h"
+#include "Peripheral/GPIO.h"
+#include "MIDI/MIDI.h"
+#include "system/Settings.h"
+#include "Peripheral/Timer.h"
+#include "USB/USB.h"
 
 #define SIDE_SWITCH_PORT    (PORTA)
 #define ENCODER_PORT        (PORTC)
@@ -39,9 +39,11 @@
 
 /*
     Switch masks are used for special input combinations.
-    For example - the bootloader can be entered during powerup by holding in encoder switches 0, 3, 12 and 15. (all 4 corners)
+    For example - the bootloader can be entered during powerup by holding in
+   encoder switches 0, 3, 12 and 15. (all 4 corners)
 */
-#define BOOTLOADER_SWITCH_MASK     (SWITCH_MASK(0) | SWITCH_MASK(3) | SWITCH_MASK(12) | SWITCH_MASK(15))
+#define BOOTLOADER_SWITCH_MASK                                                 \
+  (SWITCH_MASK(0) | SWITCH_MASK(3) | SWITCH_MASK(12) | SWITCH_MASK(15))
 #define BOOTLOADER_SWITCH_VAL      (0x9009)
 #define ALT_BOOTLOADER_SWITCH_MASK (SWITCH_MASK(15) | SWITCH_MASK(11))
 #define ALT_BOOTLOADER_SWITCH_VAL  (0x8800)
@@ -50,32 +52,30 @@
 #define MIDI_MIRROR_SWITCH_MASK    (SWITCH_MASK(14) | SWITCH_MASK(13))
 #define MIDI_MIRROR_SWITCH_VAL     (0x6000)
 
-typedef struct
-{
-    u16 Buffer[DEBOUNCE_BUF_LEN]; // Raw switch states from shift register
-    u8  Index;
-    u16 bfChangedStates;   // Which switches changed states in current tick
-    u16 bfDebouncedStates; // Debounced switch state - use this as the current switch state
+typedef struct {
+  uint16_t Buffer[DEBOUNCE_BUF_LEN]; // Raw switch states from shift register
+  uint8_t  Index;
+  uint16_t bfChangedStates;   // Which switches changed states in current tick
+  uint16_t bfDebouncedStates; // Debounced switch state - use this as the
+                              // current switch state
 } sEncoderSwitches;
 
-typedef struct
-{
-    u8 Buffer[DEBOUNCE_BUF_LEN];
-    u8 Index;
-    u8 bfChangedStates;
-    u8 bfDebouncedStates;
+typedef struct {
+  uint8_t Buffer[DEBOUNCE_BUF_LEN];
+  uint8_t Index;
+  uint8_t bfChangedStates;
+  uint8_t bfDebouncedStates;
 } sSideSwitches;
 
-typedef enum
-{
-    QUAD_00,
-    QUAD_01,
-    QUAD_10,
-    QUAD_11,
-    QUAD_100,
-    QUAD_101,
+typedef enum {
+  QUAD_00,
+  QUAD_01,
+  QUAD_10,
+  QUAD_11,
+  QUAD_100,
+  QUAD_101,
 
-    NUM_ENCODER_ROTARY_STATES,
+  NUM_ENCODER_ROTARY_STATES,
 } eQuadratureState;
 
 // clang-format off
@@ -97,9 +97,9 @@ static const eQuadratureState EncoderRotLUT[NUM_ENCODER_ROTARY_STATES][4] = {   
 // clang-format on
 
 // bit-fields for current shift register states
-static vu16 mEncoderSR_CH_A;
-static vu16 mEncoderSR_CH_B;
-static u8   mEncoderRotationStates[NUM_ENCODERS];
+static volatile uint16_t mEncoderSR_CH_A;
+static volatile uint16_t mEncoderSR_CH_B;
+static uint8_t           mEncoderRotationStates[NUM_ENCODERS];
 
 // the current states of switches
 static volatile sEncoderSwitches mEncoderSwitchStates;
@@ -108,189 +108,190 @@ static volatile sSideSwitches    mSideSwitchStates;
 /**
  * @brief The init function for the input module.
  * Initialises the GPIO for the encoder shift registers
- * Initialises the timer peripheral used to generate an interrupt for input scanning.
+ * Initialises the timer peripheral used to generate an interrupt for input
+ * scanning.
  */
-void Input_Init(void)
-{
-    for (int sidesw = 0; sidesw < NUM_SIDE_SWITCHES; sidesw++)
-    {
-        GPIO_SetPinDirection(&SIDE_SWITCH_PORT, sidesw, GPIO_INPUT);
-        GPIO_SetPinMode(&SIDE_SWITCH_PORT, sidesw, PORT_OPC_PULLUP_gc);
-    }
+void Input_Init(void) {
+  for (int sidesw = 0; sidesw < NUM_SIDE_SWITCHES; sidesw++) {
+    GPIO_SetPinDirection(&SIDE_SWITCH_PORT, sidesw, GPIO_INPUT);
+    GPIO_SetPinMode(&SIDE_SWITCH_PORT, sidesw, PORT_OPC_PULLUP_gc);
+  }
 
-    GPIO_SetPinDirection(&ENCODER_PORT, PIN_ENCODER_LATCH, GPIO_OUTPUT);
-    GPIO_SetPinDirection(&ENCODER_PORT, PIN_ENCODER_CLK, GPIO_OUTPUT);
-    GPIO_SetPinDirection(&ENCODER_PORT, PIN_ENCODER_DATA_IN, GPIO_INPUT);
+  GPIO_SetPinDirection(&ENCODER_PORT, PIN_ENCODER_LATCH, GPIO_OUTPUT);
+  GPIO_SetPinDirection(&ENCODER_PORT, PIN_ENCODER_CLK, GPIO_OUTPUT);
+  GPIO_SetPinDirection(&ENCODER_PORT, PIN_ENCODER_DATA_IN, GPIO_INPUT);
 
-    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, HIGH);
-    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, LOW);
+  GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, HIGH);
+  GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, LOW);
 
-    sTimer_Type0Config timerConfig = {
-        .pTimer       = &INPUT_TIMER,
-        .ClockSource  = TC_CLKSEL_DIV1024_gc,
-        .Timer        = TIMER_TCC1,
-        .WaveformMode = TC_WGMODE_NORMAL_gc,
-    };
+  sTimer_Type0Config timerConfig = {
+      .pTimer       = &INPUT_TIMER,
+      .ClockSource  = TC_CLKSEL_DIV1024_gc,
+      .Timer        = TIMER_TCC1,
+      .WaveformMode = TC_WGMODE_NORMAL_gc,
+  };
 
-    Timer_Type0Init(&timerConfig);
-    Timer_EnableChannelInterrupt(timerConfig.pTimer, TIMER_CHANNEL_A, PRIORITY_MED);
-    timerConfig.pTimer->CCA = (u16)INPUT_SCAN_RATE;
+  Timer_Type0Init(&timerConfig);
+  Timer_EnableChannelInterrupt(timerConfig.pTimer, TIMER_CHANNEL_A,
+                               PRIORITY_MED);
+  timerConfig.pTimer->CCA = (uint16_t)INPUT_SCAN_RATE;
 }
 
 /**
  * @brief The input update function - to be called in the main loop.
- * 
+ *
  */
-void Input_Update(void)
-{
-    // Update encoder rotations
-    for (u8 encoder = 0; encoder < NUM_ENCODERS; encoder++)
-    {
-        bool chA = (bool)(mEncoderSR_CH_A & (1u << encoder));
-        bool chB = (bool)(mEncoderSR_CH_B & (1u << encoder));
-        u8   val = (chB << 1) | chA;
+void Input_Update(void) {
+  // Update encoder rotations
+  for (uint8_t encoder = 0; encoder < NUM_ENCODERS; encoder++) {
+    bool    chA = (bool)(mEncoderSR_CH_A & (1u << encoder));
+    bool    chB = (bool)(mEncoderSR_CH_B & (1u << encoder));
+    uint8_t val = (chB << 1) | chA;
 
-        mEncoderRotationStates[encoder] = EncoderRotLUT[mEncoderRotationStates[encoder] & 0x0F][val];
-    }
+    mEncoderRotationStates[encoder] =
+        EncoderRotLUT[mEncoderRotationStates[encoder] & 0x0F][val];
+  }
 
-    // Debounce switches and set current states;
-    u16 prevEncSwitchStates  = mEncoderSwitchStates.bfDebouncedStates;
-    u16 prevSideSwitchStates = mSideSwitchStates.bfDebouncedStates;
+  // Debounce switches and set current states;
+  uint16_t prevEncSwitchStates  = mEncoderSwitchStates.bfDebouncedStates;
+  uint16_t prevSideSwitchStates = mSideSwitchStates.bfDebouncedStates;
 
-    mEncoderSwitchStates.bfDebouncedStates = 0xFFFF;
-    mSideSwitchStates.bfDebouncedStates    = 0xFF;
+  mEncoderSwitchStates.bfDebouncedStates = 0xFFFF;
+  mSideSwitchStates.bfDebouncedStates    = 0xFF;
 
-    for (u8 i = 0; i < DEBOUNCE_BUF_LEN; i++)
-    {
-        mEncoderSwitchStates.bfDebouncedStates &= mEncoderSwitchStates.Buffer[i];
-        mSideSwitchStates.bfDebouncedStates &= mSideSwitchStates.Buffer[i];
-    }
+  for (uint8_t i = 0; i < DEBOUNCE_BUF_LEN; i++) {
+    mEncoderSwitchStates.bfDebouncedStates &= mEncoderSwitchStates.Buffer[i];
+    mSideSwitchStates.bfDebouncedStates &= mSideSwitchStates.Buffer[i];
+  }
 
-    mEncoderSwitchStates.bfChangedStates = mEncoderSwitchStates.bfDebouncedStates ^ prevEncSwitchStates;
-    mSideSwitchStates.bfChangedStates    = mSideSwitchStates.bfDebouncedStates ^ prevSideSwitchStates;
+  mEncoderSwitchStates.bfChangedStates =
+      mEncoderSwitchStates.bfDebouncedStates ^ prevEncSwitchStates;
+  mSideSwitchStates.bfChangedStates =
+      mSideSwitchStates.bfDebouncedStates ^ prevSideSwitchStates;
 }
 
 /**
  * @brief Check if the "RESET" input combination was pressed by the user
- * 
+ *
  * @return true or false
  */
-bool Input_IsResetPressed(void)
-{
-    u16 state = mEncoderSwitchStates.bfDebouncedStates;
-    return ((state & RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
+bool Input_IsResetPressed(void) {
+  uint16_t state = mEncoderSwitchStates.bfDebouncedStates;
+  return ((state & RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
 }
 
 /**
  * @brief Checks special switch combinations (except "RESET").
  * Should be called during powerup.
- * 
+ *
  */
-void Input_CheckSpecialSwitchCombos(void)
-{
-    u16 state = mEncoderSwitchStates.bfDebouncedStates;
-    if (((state & BOOTLOADER_SWITCH_MASK) == BOOTLOADER_SWITCH_VAL) || ((state & ALT_BOOTLOADER_SWITCH_MASK) == ALT_BOOTLOADER_SWITCH_VAL))
-    {
-        gData.OperatingMode = BOOTLOADER_MODE;
-    }
+void Input_CheckSpecialSwitchCombos(void) {
+  uint16_t state = mEncoderSwitchStates.bfDebouncedStates;
+  if (((state & BOOTLOADER_SWITCH_MASK) == BOOTLOADER_SWITCH_VAL) ||
+      ((state & ALT_BOOTLOADER_SWITCH_MASK) == ALT_BOOTLOADER_SWITCH_VAL)) {
+    gData.OperatingMode = BOOTLOADER_MODE;
+  }
 
-    if ((state & MIDI_MIRROR_SWITCH_MASK) == MIDI_MIRROR_SWITCH_VAL)
-    {
-        MIDI_MirrorInput(true);
-    }
+  if ((state & MIDI_MIRROR_SWITCH_MASK) == MIDI_MIRROR_SWITCH_VAL) {
+    MIDI_MirrorInput(true);
+  }
 }
 
 /**
  * @brief Get the current direction of rotation for a specific encoder.
- * 
+ *
  * @param EncoderIndex The hardware index of the encoder.
- * @return u8 The direction - DIR_STATIONARY / DIR_CW (clockwise) / DIR_CCW (counter clockwise)
+ * @return uint8_t The direction - DIR_STATIONARY / DIR_CW (clockwise) / DIR_CCW
+ * (counter clockwise)
  */
-u8 Encoder_GetDirection(u8 EncoderIndex)
-{
-    return mEncoderRotationStates[EncoderIndex] & 0x30;
+uint8_t Encoder_GetDirection(uint8_t EncoderIndex) {
+  return mEncoderRotationStates[EncoderIndex] & 0x30;
 }
 
 /**
  * @brief Check if an encoder switch was pressed.
  * This can check all encoders, or a specific set by using a mask.
  * @param Mask - Can be used to mask which encoder to check
- * @return u16 A bitfield of the current encoder switch states.
+ * @return uint16_t A bitfield of the current encoder switch states.
  */
-u16 EncoderSwitchWasPressed(u16 Mask)
-{
-    return (mEncoderSwitchStates.bfChangedStates & mEncoderSwitchStates.bfDebouncedStates) & Mask;
+uint16_t EncoderSwitchWasPressed(uint16_t Mask) {
+  return (mEncoderSwitchStates.bfChangedStates &
+          mEncoderSwitchStates.bfDebouncedStates) &
+         Mask;
 }
 
 /**
  * @brief Check if an encoder switch was released.
  * This can check all encoders, or a specific set by using a mask.
  * @param Mask - Can be used to mask which encoder to check
- * @return u16 A bitfield of the current encoder switch states.
+ * @return uint16_t A bitfield of the current encoder switch states.
  */
-u16 EncoderSwitchWasReleased(u16 Mask)
-{
-    return (mEncoderSwitchStates.bfChangedStates & (~mEncoderSwitchStates.bfDebouncedStates)) & Mask;
+uint16_t EncoderSwitchWasReleased(uint16_t Mask) {
+  return (mEncoderSwitchStates.bfChangedStates &
+          (~mEncoderSwitchStates.bfDebouncedStates)) &
+         Mask;
 }
 
 /**
  * @brief CGet the current encoder switch state.
  * This can check all encoders, or a specific set by using a mask.
  * @param Mask - Can be used to mask which encoder to check
- * @return u16 A bitfield of the current encoder switch states.
+ * @return uint16_t A bitfield of the current encoder switch states.
  */
-u16 EncoderSwitchCurrentState(u16 Mask)
-{
-    return mEncoderSwitchStates.bfDebouncedStates & Mask;
+uint16_t EncoderSwitchCurrentState(uint16_t Mask) {
+  return mEncoderSwitchStates.bfDebouncedStates & Mask;
 }
 
 /**
  * @brief Check if a side switch was pressed.
  * This can check all side switches, or a specific set by using a mask.
  * @param Mask - Can be used to mask which side switch to check
- * @return u8 A bitfield of the current side switch states. Note - there are only 6 side switches.
+ * @return uint8_t A bitfield of the current side switch states. Note - there
+ * are only 6 side switches.
  */
-u8 SideSwitchWasPressed(u8 Mask)
-{
-    return (mSideSwitchStates.bfChangedStates & mSideSwitchStates.bfDebouncedStates) & Mask;
+uint8_t SideSwitchWasPressed(uint8_t Mask) {
+  return (mSideSwitchStates.bfChangedStates &
+          mSideSwitchStates.bfDebouncedStates) &
+         Mask;
 }
 
 /**
  * @brief Check if a side switch was released.
  * This can check all side switches, or a specific set by using a mask.
  * @param Mask - Can be used to mask which side switch to check
- * @return u8 A bitfield of the current side switch states. Note - there are only 6 side switches.
+ * @return uint8_t A bitfield of the current side switch states. Note - there
+ * are only 6 side switches.
  */
-u8 SideSwitchWasReleased(u8 Mask)
-{
-    return (mSideSwitchStates.bfChangedStates & (~mSideSwitchStates.bfDebouncedStates)) & Mask;
+uint8_t SideSwitchWasReleased(uint8_t Mask) {
+  return (mSideSwitchStates.bfChangedStates &
+          (~mSideSwitchStates.bfDebouncedStates)) &
+         Mask;
 }
 
 /**
  * @brief Get the current state of a side switch.
  * This can check all side switches, or a specific set by using a mask.
  * @param Mask - Can be used to mask which side switch to check
- * @return u8 A bitfield of the current side switch states. Note - there are only 6 side switches.
+ * @return uint8_t A bitfield of the current side switch states. Note - there
+ * are only 6 side switches.
  */
-u8 SideSwitchCurrentState(u8 Mask)
-{
-    return mSideSwitchStates.bfDebouncedStates & Mask;
+uint8_t SideSwitchCurrentState(uint8_t Mask) {
+  return mSideSwitchStates.bfDebouncedStates & Mask;
 }
 
 /**
  * @brief The update function for side switches.
  * This performs debouncing by averaging samples over time.
  */
-static inline void UpdateSideSwitchStates(void)
-{
-    mSideSwitchStates.Buffer[mSideSwitchStates.Index] = 0;
-    for (int sidesw = 0; sidesw < NUM_SIDE_SWITCHES; sidesw++)
-    {
-        u8 state = (bool)GPIO_GetPinLevel(&SIDE_SWITCH_PORT, sidesw);
-        SET_REG(mSideSwitchStates.Buffer[mSideSwitchStates.Index], (state << sidesw));
-    }
+static inline void UpdateSideSwitchStates(void) {
+  mSideSwitchStates.Buffer[mSideSwitchStates.Index] = 0;
+  for (int sidesw = 0; sidesw < NUM_SIDE_SWITCHES; sidesw++) {
+    uint8_t state = (bool)GPIO_GetPinLevel(&SIDE_SWITCH_PORT, sidesw);
+    SET_REG(mSideSwitchStates.Buffer[mSideSwitchStates.Index],
+            (state << sidesw));
+  }
 
-    mSideSwitchStates.Index = (mSideSwitchStates.Index + 1) % DEBOUNCE_BUF_LEN;
+  mSideSwitchStates.Index = (mSideSwitchStates.Index + 1) % DEBOUNCE_BUF_LEN;
 }
 
 /**
@@ -298,51 +299,56 @@ static inline void UpdateSideSwitchStates(void)
  * This performs debouncing by averaging samples over time.
  * This clocks the encoder shift registers to obtain the current state.
  */
-static inline void UpdateEncoderSwitchStates(void)
-{
-    mEncoderSwitchStates.Buffer[mEncoderSwitchStates.Index] = 0;
-    for (int encodersw = 0; encodersw < NUM_ENCODER_SWITCHES; encodersw++)
-    {
-        GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
-        u16 state = (bool)GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN);
-        SET_REG(mEncoderSwitchStates.Buffer[mEncoderSwitchStates.Index], (!state << encodersw));
-        GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
-    }
+static inline void UpdateEncoderSwitchStates(void) {
+  mEncoderSwitchStates.Buffer[mEncoderSwitchStates.Index] = 0;
+  for (int encodersw = 0; encodersw < NUM_ENCODER_SWITCHES; encodersw++) {
+    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
+    uint16_t state = (bool)GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN);
+    SET_REG(mEncoderSwitchStates.Buffer[mEncoderSwitchStates.Index],
+            (!state << encodersw));
+    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
+  }
 
-    mEncoderSwitchStates.Index = (mEncoderSwitchStates.Index + 1) % DEBOUNCE_BUF_LEN;
+  mEncoderSwitchStates.Index =
+      (mEncoderSwitchStates.Index + 1) % DEBOUNCE_BUF_LEN;
 }
 
 /**
  * @brief The update function for encoder rotation.
  * This performs debouncing by averaging samples over time.
- * This clocks the encoder shift registers to obtain the current quadrature states.
+ * This clocks the encoder shift registers to obtain the current quadrature
+ * states.
  */
-static inline void UpdateEncoderQuadratureStates(void)
-{
-    mEncoderSR_CH_A = mEncoderSR_CH_B = 0;
-    for (int encoder = 0; encoder < NUM_ENCODERS; encoder++)
-    {
-        GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
-        SET_REG(mEncoderSR_CH_A, GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN) ? (1u << encoder) : 0);
-        GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
+static inline void UpdateEncoderQuadratureStates(void) {
+  mEncoderSR_CH_A = mEncoderSR_CH_B = 0;
+  for (int encoder = 0; encoder < NUM_ENCODERS; encoder++) {
+    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
+    SET_REG(mEncoderSR_CH_A,
+            GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN)
+                ? (1u << encoder)
+                : 0);
+    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
 
-        GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
-        SET_REG(mEncoderSR_CH_B, GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN) ? (1u << encoder) : 0);
-        GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
-    }
+    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, LOW);
+    SET_REG(mEncoderSR_CH_B,
+            GPIO_GetPinLevel(&ENCODER_PORT, PIN_ENCODER_DATA_IN)
+                ? (1u << encoder)
+                : 0);
+    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_CLK, HIGH);
+  }
 }
 
 /**
  * @brief The timer interrupt for input scanning.
  * Latches the encoder shift registers to read data.
- * Calls input scanning/update functions for side switches, encoder switches, encoder quadrature outputs.
+ * Calls input scanning/update functions for side switches, encoder switches,
+ * encoder quadrature outputs.
  */
-ISR(TCC1_CCA_vect)
-{
-    INPUT_TIMER.CCA = INPUT_SCAN_RATE + INPUT_TIMER.CNT;
-    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, HIGH);
-    UpdateSideSwitchStates();
-    UpdateEncoderSwitchStates();
-    UpdateEncoderQuadratureStates();
-    GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, LOW);
+ISR(TCC1_CCA_vect) {
+  INPUT_TIMER.CCA = INPUT_SCAN_RATE + INPUT_TIMER.CNT;
+  GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, HIGH);
+  UpdateSideSwitchStates();
+  UpdateEncoderSwitchStates();
+  UpdateEncoderQuadratureStates();
+  GPIO_SetPinLevel(&ENCODER_PORT, PIN_ENCODER_LATCH, LOW);
 }

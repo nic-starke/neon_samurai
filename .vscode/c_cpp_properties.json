@@ -4,16 +4,20 @@
             "name": "AVR",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/subprojects/lufa**",
+                "${workspaceFolder}/subprojects/atomthreads**",
+                "${workspaceFolder}/subprojects/qcbor**",
                 "/usr/avr/include/**"
             ],
             "defines": [
                 "ARCH=ARCH_XMEGA",
                 "ATXMEGA128A4U",
                 "BOARD=USER_BOARD",
-                "__AVR_XMEGA__"
+                "__AVR_XMEGA__",
+                "USE_LUFA_CONFIG_HEADER"
             ],
             "compilerPath": "/usr/bin/avr-gcc",
-            "cStandard": "c99",
+            "cStandard": "c11",
             "cppStandard": "c++11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],

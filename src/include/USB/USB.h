@@ -1,7 +1,7 @@
 /*
- * File: SideSwitch.c ( 27th November 2021 )
+ * File: USB.h ( 8th November 2021 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke
+ * Copyright 2021 - 2021 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,21 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input/SideSwitch.h"
+#pragma once
 
-// TODO - implement side switch API.
+#include "LUFA/Common/Common.h"
+#include "system/types.h"
+#include "USB/Descriptors.h"
+#include "Input/Encoder.h"
+
+// refer to descriptors .c for the serial string
+#define DEFAULT_USB_VENDOR_ID  (0x2580) // DJTT Vendor ID
+#define DEFAULT_USB_PRODUCT_ID (0x0007)
+
+extern USB_ClassInfo_MIDI_Device_t gMIDI_Interface;
+extern USB_ClassInfo_CDC_Device_t  gCDC_Interface;
+
+void EVENT_USB_Device_Connect(void);
+void EVENT_USB_Device_Disconnect(void);
+void EVENT_USB_Device_ConfigurationChanged(void);
+void EVENT_USB_Device_ControlRequest(void);

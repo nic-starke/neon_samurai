@@ -19,12 +19,12 @@
 
 #include <avr/pgmspace.h>
 
-#include "data_types.h"
-#include "Interrupt.h"
-#include "Timer.h"
-#include "Utility.h"
+#include "system/types.h"
+#include "system/Interrupt.h"
+#include "Peripheral/Timer.h"
+#include "Utility/Utility.h"
 
-static inline u8 GetTimerBitmask(eTimer_Peripheral Timer)
+static inline uint8_t GetTimerBitmask(eTimer_Peripheral Timer)
 {
     switch (Timer)
     {
@@ -48,7 +48,7 @@ static inline u8 GetTimerBitmask(eTimer_Peripheral Timer)
     return 0;
 }
 
-static inline u8 GetTimerPowerPort(eTimer_Peripheral Timer)
+static inline uint8_t GetTimerPowerPort(eTimer_Peripheral Timer)
 {
     switch (Timer)
     {
@@ -82,16 +82,16 @@ static inline u8 GetTimerPowerPort(eTimer_Peripheral Timer)
 
 static inline void EnablePower(eTimer_Peripheral Timer)
 {
-    vu8      pp      = GetTimerPowerPort(Timer);
-    const u8 bitmask = GetTimerBitmask(Timer);
+    volatile uint8_t      pp      = GetTimerPowerPort(Timer);
+    const uint8_t bitmask = GetTimerBitmask(Timer);
 
     SET_REG(pp, bitmask);
 }
 
 static inline void DisablePower(eTimer_Peripheral Timer)
 {
-    vu8      pp      = GetTimerPowerPort(Timer);
-    const u8 bitmask = GetTimerBitmask(Timer);
+    volatile uint8_t      pp      = GetTimerPowerPort(Timer);
+    const uint8_t bitmask = GetTimerBitmask(Timer);
 
     SET_REG(pp, bitmask);
 }
@@ -108,7 +108,7 @@ static inline void SetPrescaler(TC0_t* pTC, TC_CLKSEL_t ClockSel)
 
 void Timer_Type0Init(const sTimer_Type0Config* pConfig)
 {
-    const u8 flags = IRQ_DisableInterrupts();
+    const uint8_t flags = IRQ_DisableInterrupts();
     EnablePower(pConfig->Timer);
 
     SetWGM(pConfig->pTimer, pConfig->WaveformMode);

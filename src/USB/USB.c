@@ -17,15 +17,15 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "USB.h"
-#include "data_types.h"
-#include "Display.h"
-#include "Encoder.h"
-#include "Input.h"
-#include "MIDI.h"
+#include "USB/USB.h"
+#include "system/types.h"
+#include "Display/Display.h"
+#include "Input/Encoder.h"
+#include "Input/Input.h"
+#include "MIDI/MIDI.h"
 
 // #define ENABLE_SERIAL
-#include "VirtualSerial.h"
+#include "USB/VirtualSerial.h"
 
 // clang-format off
 #ifdef MIDI_ENABLE

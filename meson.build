@@ -42,8 +42,10 @@ subdir('src')
 # Dependencies
 cmake = import('cmake')
 
-# QCBOR serialisation
 add_global_arguments('-DQCBOR_DISABLE_FLOAT_HW_USE', language : 'c')
+add_global_arguments('-DUSE_LUFA_CONFIG_HEADER', language : 'c')
+
+# QCBOR serialisation
 qcbor_options = cmake.subproject_options()
 qcbor_subproject = cmake.subproject('qcbor', options: qcbor_options)
 qcbor = qcbor_subproject.dependency('qcbor')
@@ -56,6 +58,7 @@ atomthreads_dep = dependency(
     required : true,
     native: false,
 )
+
 
 lufa_dep = dependency(
     'lufa',
@@ -88,7 +91,7 @@ c_compiler_args = [
 
     '-DMIDI_ENABLE',
     # '-DHID_ENABLE',
-    '-DVSER_ENABLE',
+    # '-DVSER_ENABLE',
         
     '-Wall',
     '-Wextra',

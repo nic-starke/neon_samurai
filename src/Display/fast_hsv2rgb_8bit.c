@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 // clang-format off
-#include "fast_hsv2rgb.h"
+#include "Display/fast_hsv2rgb.h"
 
 #if defined(HSV_USE_ASSEMBLY) && !defined(__AVR_ARCH__)
 #warning "Only AVR assembly is implemented. Other architectures use C fallback."

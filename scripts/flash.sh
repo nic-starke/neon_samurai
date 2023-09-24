@@ -1,5 +1,5 @@
 #!/bin/bash
-avrdude -v -u -c avrisp2 -p x128a4u -P usb -U flash:w:"$BUILD_DIR/muffin.hex":a
+avrdude -v -u -c jtag3pdi -p x128a4u -P usb -U flash:w:"build/muffin.hex":a
 
 # if using dfu-programmer
 #sudo dfu-programmer atxmega128a4u:1,8 flash ./builddir/muffin.hex

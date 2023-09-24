@@ -17,8 +17,8 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Descriptors.h"
-#include "USB.h"
+#include "USB/Descriptors.h"
+#include "USB/USB.h"
 
 // clang-format off
 

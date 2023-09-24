@@ -17,8 +17,8 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "DMA.h"
-#include "data_types.h"
+#include "Peripheral/DMA.h"
+#include "system/types.h"
 
 /**
  * @brief Enable power to the DMA peripheral
@@ -87,7 +87,7 @@ static inline void DMA_SetDoubleBufferMode(DMA_DBUFMODE_t Mode)
  */
 void DMA_Init(void)
 {
-    const u8 flags = IRQ_DisableInterrupts();
+    const uint8_t flags = IRQ_DisableInterrupts();
 
     DMA_EnablePower();
     DMA_ResetController();
@@ -104,7 +104,7 @@ void DMA_Init(void)
  */
 void DMA_InitChannel(const sDMA_ChannelConfig* pConfig)
 {
-    const u8 flags = IRQ_DisableInterrupts();
+    const uint8_t flags = IRQ_DisableInterrupts();
 
     DMA_DisableChannel(pConfig->pChannel);
 

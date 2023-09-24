@@ -1,7 +1,7 @@
 /*
- * File: SideSwitch.c ( 27th November 2021 )
+ * File: ModuleIDs.h ( 26th March 2022 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke
+ * Copyright 2022 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,22 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input/SideSwitch.h"
+#pragma once
 
-// TODO - implement side switch API.
+// To be used for special messages that do not originate from comms-enabled
+// modules.
+// FIXME - this could just another enum that after the NUM_MODULE_IDs
+#define INVALID_MODULE_ID (0xFF)
+
+typedef enum {
+  MODULE_NETWORK,
+
+  NUM_MODULE_IDS,
+} eModuleID;
+
+/**
+ * @brief Checks if a module ID is valid.
+ */
+static inline bool IsValidModuleID(uint8_t ModuleID) {
+  return (ModuleID < NUM_MODULE_IDS);
+}

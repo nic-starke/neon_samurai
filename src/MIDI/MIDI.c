@@ -22,15 +22,15 @@
 
 #include <avr/pgmspace.h>
 
-#include "Comms.h"
+#include "Comms/Comms.h"
 #include "Config.h"
-#include "data_types.h"
-#include "Display.h"
-#include "MIDI.h"
-#include "USB.h"
+#include "system/types.h"
+#include "Display/Display.h"
+#include "MIDI/MIDI.h"
+#include "USB/USB.h"
 
 #define ENABLE_SERIAL
-#include "VirtualSerial.h"
+#include "USB/VirtualSerial.h"
 
 #define SYSEX_NONRT        (0x7E)
 #define SYSEX_RT           (0x7F)
@@ -55,26 +55,26 @@ typedef enum
 } eParserState;
 
 static eParserState mParserState              = PARSER_INIT;
-static u8           mOutBuffer[OUTBUFFER_LEN] = {0};
+static uint8_t           mOutBuffer[OUTBUFFER_LEN] = {0};
 static bool         mMirrorInput              = false;
-static u8           mSysexChannel             = SYSEX_CH;
+static uint8_t           mSysexChannel             = SYSEX_CH;
 
-static const u8 MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01}; //TODO is it worth moving this to progmem?
-static const u8 FMLY_ID[2] PROGMEM = {0x00, 0x00};
-static const u8 PROD_ID[2] PROGMEM = {0x00, 0x01};
-static const u8 VRSN_ID[4] PROGMEM = {0x00, 0x00, 0x00, VERSION};
+static const uint8_t MANF_ID[3] PROGMEM = {0x00, 0x48, 0x01}; //TODO is it worth moving this to progmem?
+static const uint8_t FMLY_ID[2] PROGMEM = {0x00, 0x00};
+static const uint8_t PROD_ID[2] PROGMEM = {0x00, 0x01};
+static const uint8_t VRSN_ID[4] PROGMEM = {0x00, 0x00, 0x00, VERSION};
 
-static bool Msg_SendHandler(u8* pBytes, u16 NumBytes);
+static bool Msg_SendHandler(uint8_t* pBytes, uint16_t NumBytes);
 
-static void EncodeAndTransmit(u8* pData, u16 NumDataBytes);
-static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks);
-static u32  EncodedLength_Bytes(u16 NumDataBytes);
-static u32  EncodedLength_Blocks(u16 NumDataBytes);
-static u16  DecodedLength_Bytes(u32 NumEncodedBytes);
+static void EncodeAndTransmit(uint8_t* pData, uint16_t NumDataBytes);
+static void DecodeFromSysex(uint8_t* pSysexBytes, uint8_t* pDestBuffer, uint16_t NumBlocks);
+static uint32_t  EncodedLength_Bytes(uint16_t NumDataBytes);
+static uint32_t  EncodedLength_Blocks(uint16_t NumDataBytes);
+static uint16_t  DecodedLength_Bytes(uint32_t NumEncodedBytes);
 
-static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value);
-static inline void TransmitMidiNote(u8 Channel, u8 Note, u8 Velocity, bool NoteOn);
-static inline void TransmitSysexByte(u8 Byte);
+static inline void TransmitMidiCC(uint8_t Channel, uint8_t CC, uint8_t Value);
+static inline void TransmitMidiNote(uint8_t Channel, uint8_t Note, uint8_t Velocity, bool NoteOn);
+static inline void TransmitSysexByte(uint8_t Byte);
 
 static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId);
 
@@ -132,7 +132,7 @@ void MIDI_MirrorInput(bool Enable)
  * @param pLayer A pointer to the layer to be processed.
  * @param ValueToTransmit The actual output value to be sent (if appropriate)
  */
-void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, u8 ValueToTransmit)
+void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLayer, uint8_t ValueToTransmit)
 {
     //TODO the ValueToTransmit argument seems very odd here - instead perform a lookup on the hardware encoder and calculate the necessary value?
     switch ((eMidiMode)pLayer->MidiConfig.Mode)
@@ -178,7 +178,7 @@ void MIDI_ProcessLayer(sEncoderState* pEncoderState, sVirtualEncoderLayer* pLaye
  * @param pData A pointer to the start of the byte stream.
  * @param DataLength The number of bytes to be transmitted.
  */
-static void TransmitDataAsSysex(u8* pData, u16 DataLength)
+static void TransmitDataAsSysex(uint8_t* pData, uint16_t DataLength)
 {
     int                i = 0;
     MIDI_EventPacket_t msg;
@@ -359,19 +359,19 @@ void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg)
  * @param NumDataBytes The number of bytes in the byte stream.
  * @param pDest A destination buffer - must be at least 8 bytes regardless of the NumDataBytes
  * @param DestBufferLen The output buffer length
- * @return u16 The number of bytes that were encoded.
+ * @return uint16_t The number of bytes that were encoded.
  */
-static u16 EncodeSysexBlock(u8* pData, u16 NumDataBytes, u8* pDest, u8 DestBufferLen)
+static uint16_t EncodeSysexBlock(uint8_t* pData, uint16_t NumDataBytes, uint8_t* pDest, uint8_t DestBufferLen)
 {
     if (DestBufferLen < SIZEOF_SYSEXBLOCK || NumDataBytes == 0)
     {
         return 0;
     }
 
-    u8 msb        = 0;
-    u8 numEncoded = 0;
+    uint8_t msb        = 0;
+    uint8_t numEncoded = 0;
 
-    for (u8 i = 0; i < 7; i++) // encode 7 bytes
+    for (uint8_t i = 0; i < 7; i++) // encode 7 bytes
     {
         if (NumDataBytes) // encode the next byte if available
         {
@@ -403,23 +403,23 @@ static u16 EncodeSysexBlock(u8* pData, u16 NumDataBytes, u8* pDest, u8 DestBuffe
  * @param pData A pointer to a byte array/stream.
  * @param NumDataBytes The number of bytes in the array/stream.
  */
-static void EncodeAndTransmit(u8* pData, u16 NumDataBytes)
+static void EncodeAndTransmit(uint8_t* pData, uint16_t NumDataBytes)
 {
     if (!pData || NumDataBytes == 0)
     {
         return;
     }
 
-    u16 totalBlocks = EncodedLength_Blocks(NumDataBytes);
+    uint16_t totalBlocks = EncodedLength_Blocks(NumDataBytes);
     // #ifdef ENABLE_SERIAL
     //     char buf[64] = {0};
     //     sprintf(buf, "InCnt: %d - NumEncBlocks: %d\r\n", NumDataBytes, totalBlocks);
     //     Serial_Print(buf);
     // #endif
-    for (u16 currentBlock = 0; currentBlock < totalBlocks; currentBlock++)
+    for (uint16_t currentBlock = 0; currentBlock < totalBlocks; currentBlock++)
     {
         memset(mOutBuffer, 0x00, OUTBUFFER_LEN);
-        u8 numEncoded = EncodeSysexBlock(pData, NumDataBytes, mOutBuffer, OUTBUFFER_LEN);
+        uint8_t numEncoded = EncodeSysexBlock(pData, NumDataBytes, mOutBuffer, OUTBUFFER_LEN);
         if (numEncoded)
         {
             NumDataBytes -= numEncoded;
@@ -436,15 +436,15 @@ static void EncodeAndTransmit(u8* pData, u16 NumDataBytes)
  * @param pDestBuffer A pointer to a destination buffer.
  * @param NumBlocks The number of 8-byte sysex blocks to be decoded.
  */
-static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks)
+static void DecodeFromSysex(uint8_t* pSysexBytes, uint8_t* pDestBuffer, uint16_t NumBlocks)
 {
-    for (u16 block = 0; block < NumBlocks; block++)
+    for (uint16_t block = 0; block < NumBlocks; block++)
     {
-        u8* pSysexBlock = &pSysexBytes[(block * 8)];
-        for (u8 i = 0; i < 7; i++)
+        uint8_t* pSysexBlock = &pSysexBytes[(block * 8)];
+        for (uint8_t i = 0; i < 7; i++)
         {
             // Extract the msb for the data byte from the MSB byte
-            u8 msb         = (pSysexBlock[7] & (0x01 << i));
+            uint8_t msb         = (pSysexBlock[7] & (0x01 << i));
             // insert MSB into the data byte, then push into dest buffer
             *pDestBuffer++ = (pSysexBlock[i] | msb);
         }
@@ -455,9 +455,9 @@ static void DecodeFromSysex(u8* pSysexBytes, u8* pDestBuffer, u16 NumBlocks)
  * @brief Calculates the number of bytes required to encode NumDataBytes bytes;
  * 
  * @param NumDataBytes Number of bytes in input data stream.
- * @return u32 Number of output bytes required to encode to SysEx;
+ * @return uint32_t Number of output bytes required to encode to SysEx;
  */
-static u32 EncodedLength_Bytes(u16 NumDataBytes)
+static uint32_t EncodedLength_Bytes(uint16_t NumDataBytes)
 {
     if (NumDataBytes == 0)
     {
@@ -475,9 +475,9 @@ static u32 EncodedLength_Bytes(u16 NumDataBytes)
  * @brief Calculates the number of blocks required to encode NumDataBytes bytes
  * 
  * @param NumDataBytes Number of bytes in input data stream.
- * @return u32 Number of 8-byte blocks required to encode to SysEx
+ * @return uint32_t Number of 8-byte blocks required to encode to SysEx
  */
-static u32 EncodedLength_Blocks(u16 NumDataBytes)
+static uint32_t EncodedLength_Blocks(uint16_t NumDataBytes)
 {
     if (NumDataBytes == 0)
     {
@@ -495,9 +495,9 @@ static u32 EncodedLength_Blocks(u16 NumDataBytes)
  * @brief Calculates the number of bytes required to decode from a SysEx encoded stream;
  * 
  * @param NumEncodedBytes Number of bytes in SysEx encoded data stream
- * @return u16 Number of bytes required to decode from SysEx
+ * @return uint16_t Number of bytes required to decode from SysEx
  */
-static u16 DecodedLength_Bytes(u32 NumEncodedBytes)
+static uint16_t DecodedLength_Bytes(uint32_t NumEncodedBytes)
 {
     if (NumEncodedBytes < 8)
     {
@@ -514,7 +514,7 @@ static u16 DecodedLength_Bytes(u32 NumEncodedBytes)
  * @param NumBytes The number of bytes in the array to be transmitted.
  * @return True on success, false on failure.
  */
-static bool Msg_SendHandler(u8* pBytes, u16 NumBytes)
+static bool Msg_SendHandler(uint8_t* pBytes, uint16_t NumBytes)
 {
     if (!pBytes || NumBytes == 0)
     {
@@ -525,12 +525,12 @@ static bool Msg_SendHandler(u8* pBytes, u16 NumBytes)
     // TransmitSysexByte(SYSEX_NONRT);
     // TransmitSysexByte(mSysexChannel);
 
-    for (u8 i = 0; i < sizeof(MANF_ID); i++)
+    for (uint8_t i = 0; i < sizeof(MANF_ID); i++)
     {
         TransmitSysexByte(pgm_read_byte(&MANF_ID[i]));
     }
 
-    u16 numBlocks = (u16)EncodedLength_Blocks(NumBytes);
+    uint16_t numBlocks = (uint16_t)EncodedLength_Blocks(NumBytes);
     EncodeAndTransmit(&numBlocks, sizeof(numBlocks));
     EncodeAndTransmit(pBytes, NumBytes);
     TransmitSysexByte(MIDI_CMD_SYSEX_END);
@@ -545,7 +545,7 @@ static bool Msg_SendHandler(u8* pBytes, u16 NumBytes)
  * @param CC The CC type
  * @param Value The CC value
  */
-static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
+static inline void TransmitMidiCC(uint8_t Channel, uint8_t CC, uint8_t Value)
 {
     MIDI_EventPacket_t packet = {0};
     packet.Event              = MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE);
@@ -563,10 +563,10 @@ static inline void TransmitMidiCC(u8 Channel, u8 CC, u8 Value)
  * @param _Velocity The velocity value
  * @param _NoteOn True if note on, false if note off.
  */
-static inline void TransmitMidiNote(u8 _Channel, u8 _Note, u8 _Velocity, bool _NoteOn)
+static inline void TransmitMidiNote(uint8_t _Channel, uint8_t _Note, uint8_t _Velocity, bool _NoteOn)
 {
     MIDI_EventPacket_t _packet = {0};
-    u8                 _cmd    = _NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF;
+    uint8_t                 _cmd    = _NoteOn ? MIDI_COMMAND_NOTE_ON : MIDI_COMMAND_NOTE_OFF;
     _packet.Event              = MIDI_EVENT(0, _cmd);
     _packet.Data1              = (_Channel & 0x0F) | _cmd;
     _packet.Data2              = _Note & 0x7F;
@@ -579,7 +579,7 @@ static inline void TransmitMidiNote(u8 _Channel, u8 _Note, u8 _Velocity, bool _N
  * 
  * @param _Byte The byte to transmit.
  */
-static inline void TransmitSysexByte(u8 _Byte)
+static inline void TransmitSysexByte(uint8_t _Byte)
 {
     MIDI_EventPacket_t _msg;
     _msg.Event = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE);
@@ -598,7 +598,7 @@ static void SysExProcess_NonRT(eMidiSysExNonRealtime SubId)
     // {
     //     case GENERAL_SYS_ID_REQ:
     //     {
-    //         // u8* b = &mOutBuffer[0];
+    //         // uint8_t* b = &mOutBuffer[0];
 
     //         // *b++ = MIDI_CMD_SYSEX_START;
 

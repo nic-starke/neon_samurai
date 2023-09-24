@@ -1,7 +1,7 @@
 /*
- * File: SideSwitch.c ( 27th November 2021 )
+ * File: CBOR.h ( 8th April 2022 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke
+ * Copyright 2022 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,12 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input/SideSwitch.h"
+#pragma once
 
-// TODO - implement side switch API.
+#include "qcbor/qcbor_common.h"
+#include "qcbor/qcbor_decode.h"
+#include "qcbor/qcbor_encode.h"
+
+#include "Comms/CommsTypes.h"
+
+UsefulBufC CBOR_Encode_Message(const sMessage* pMessage, UsefulBuf Buffer);

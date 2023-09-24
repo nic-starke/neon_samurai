@@ -1,7 +1,7 @@
 /*
- * File: SideSwitch.c ( 27th November 2021 )
+ * File: CPU.h ( 13th November 2021 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke
+ * Copyright 2021 Nicolaus Starke  
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,15 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input/SideSwitch.h"
+#pragma once
 
-// TODO - implement side switch API.
+#include <avr/cpufunc.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+
+#include "system/types.h"
+
+static inline uint32_t CPU_GetMainClockSpeed(void)
+{
+    return F_CPU; // 32 MHz
+}

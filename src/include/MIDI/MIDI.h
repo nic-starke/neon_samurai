@@ -1,7 +1,7 @@
 /*
- * File: SideSwitch.c ( 27th November 2021 )
+ * File: MIDI.h ( 16th March 2022 )
  * Project: Muffin
- * Copyright 2021 Nicolaus Starke
+ * Copyright 2022 Nicolaus Starke
  * -----
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,19 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Input/SideSwitch.h"
+#pragma once
 
-// TODO - implement side switch API.
+#include <avr/pgmspace.h>
+
+#include "Comms/CommsTypes.h"
+#include "system/types.h"
+#include "subprojects/lufa/LUFA/Drivers/USB/USB.h"
+#include "Input/Encoder.h"
+#include "MIDICommandDefines.h"
+
+void MIDI_Init(void);
+void MIDI_Update(void);
+void MIDI_MirrorInput(bool Enable);
+void MIDI_ProcessMessage(MIDI_EventPacket_t* pMsg);
+void MIDI_ProcessLayer(sEncoderState*        pEncoderState,
+                       sVirtualEncoderLayer* pLayer, uint8_t ValueToTransmit);
