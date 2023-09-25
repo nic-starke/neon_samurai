@@ -29,10 +29,17 @@
     }                                                                          \
   } while (0)
 
-#define RETURN_IF_NULL(p)                                                      \
+#define RETURN_ERR_IF_NULL(p)                                                  \
   do {                                                                         \
     if (p == NULL) {                                                           \
       return ERR_NULL_PTR;                                                     \
+    }                                                                          \
+  } while (0)
+
+#define RETURN_IF_NULL(p)                                                      \
+  do {                                                                         \
+    if (p == NULL) {                                                           \
+      return;                                                                  \
     }                                                                          \
   } while (0)
 

@@ -15,14 +15,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-  DO_MSB_FIRST,
-  DO_LSB_FIRST,
-} eDataOrder;
+  PRIORITY_OFF,
+  PRIORITY_LOW,
+  PRIORITY_MED,
+  PRIORITY_HI,
 
-typedef enum {
-  LOW,
-  HIGH,
-} eLogicLevel;
+  PRIORITY_NB,
+} isr_priority;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

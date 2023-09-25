@@ -15,12 +15,12 @@
 
 typedef struct {
   uint8_t             repeat_count; // 1 for single shot mode
-  uint16_t            burst_bytes;
+  uint16_t            tx_count;
   DMA_CH_BURSTLEN_t   burst_len;
   DMA_CH_TRIGSRC_t    trig_source;
   DMA_DBUFMODE_t      dbuf_mode;
-  eInterruptPriority  int_prio;
-  eInterruptPriority  err_prio;
+  isr_priority        int_prio;
+  isr_priority        err_prio;
   uintptr_t           src_ptr;
   DMA_CH_SRCDIR_t     src_addr_mode;
   DMA_CH_SRCRELOAD_t  src_reload_mode;
@@ -33,7 +33,20 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int dma_peripheral_init(void);
+/**
+ * @brief Initialise the DMA peripheral - call once during system startup.
+ */
+void dma_peripheral_init(void);
+
+/**
+ * @brief Initialise a specific DMA channel.
+ *
+ * @param ch Pointer to DMA_ch_t avr-libc struct.
+ * @param cfg Channel configuration.
+ * @return int 0 on success.
+ *
+ * @warning Disables interrupts during configuration.
+ */
 int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

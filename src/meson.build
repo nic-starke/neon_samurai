@@ -18,6 +18,9 @@ endforeach
 
 project_src += files(
     'main.c',
+
+    'hal/avr/xmega/128a4u/dma.c',
+    'hal/avr/xmega/128a4u/gpio.c',
     
     # 'Comms/Comms.c',
     # 'Comms/CBOR.c',

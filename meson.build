@@ -25,7 +25,7 @@ project(
         'c_std=c99',
         'warning_level=1',
         'b_staticpic=false',
-        'b_lto=true',
+        # 'b_lto=true',
     ],
     license: 'GNU v3',
 )
@@ -107,11 +107,16 @@ c_compiler_args = [
     '-Wno-lto-type-mismatch',
 ]
 
+c_link_args = [
+  '-flto',
+]
+
 # Targets
 muffin = executable(
     meson.project_name() + '.elf',
     [project_src],
     c_args : c_compiler_args,
+    link_args: c_link_args,
     include_directories : [project_inc, configuration_inc],
     dependencies : [qcbor, atomthreads_dep, lufa_dep],
 )

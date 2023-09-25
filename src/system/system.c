@@ -15,6 +15,11 @@
 
 #include "system/system.h"
 
+#include "hal/avr/xmega/128a4u/dma.h"
+// #include "hal/avr/xmega/128a4u"
+// #include "hal/avr/xmega/128a4u"
+// #include "hal/avr/xmega/128a4u"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define BOOTKEY 0x99C0FFEE
@@ -49,7 +54,7 @@ int system_init(void) {
   // Configure interrupt controller
   PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
 
-  // dma_init();
+  dma_peripheral_init();
   // usart_init();
   // input_init();
   // usb_init();
