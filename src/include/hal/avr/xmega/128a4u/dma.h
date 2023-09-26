@@ -19,8 +19,8 @@ typedef struct {
   DMA_CH_BURSTLEN_t   burst_len;
   DMA_CH_TRIGSRC_t    trig_source;
   DMA_DBUFMODE_t      dbuf_mode;
-  isr_priority        int_prio;
-  isr_priority        err_prio;
+  isr_priority_e      int_prio;
+  isr_priority_e      err_prio;
   uintptr_t           src_ptr;
   DMA_CH_SRCDIR_t     src_addr_mode;
   DMA_CH_SRCRELOAD_t  src_reload_mode;

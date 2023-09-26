@@ -21,7 +21,12 @@ typedef enum {
   PRIORITY_HI,
 
   PRIORITY_NB,
-} isr_priority;
+} isr_priority_e;
+
+typedef enum {
+  ENDIAN_LSB,
+  ENDIAN_MSB,
+} endian_e;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
