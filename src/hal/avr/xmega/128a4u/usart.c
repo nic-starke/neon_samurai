@@ -28,10 +28,6 @@ static void    configure_io(USART_t* usart, spi_mode_e mode);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// not required
-void usart_peripheral_init(void) {
-}
-
 // SPI Master only
 void usart_module_init(USART_t* usart, const usart_config_t* config) {
   RETURN_IF_NULL(usart);

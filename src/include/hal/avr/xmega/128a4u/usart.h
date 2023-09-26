@@ -40,8 +40,6 @@ typedef struct {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void usart_peripheral_init(void);
-
 /**
  * @brief Initialise a USART peripheral (such as USARTC0) in Master SPI Mode
  * IMPORTANT!! Only call this after the CPU clock is configured to run at F_CPU.

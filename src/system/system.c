@@ -14,11 +14,7 @@
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
 #include "system/system.h"
-
 #include "hal/avr/xmega/128a4u/dma.h"
-// #include "hal/avr/xmega/128a4u"
-// #include "hal/avr/xmega/128a4u"
-// #include "hal/avr/xmega/128a4u"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -55,13 +51,14 @@ int system_init(void) {
   PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
 
   dma_peripheral_init();
-  // usart_init();
   // input_init();
   // usb_init();
   // display_init();
   // serial_init();
   // softtimer_init();
   // encoder_init();
+
+  return 0;
 }
 
 void system_thread(uint32_t data) {

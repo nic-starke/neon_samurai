@@ -22,6 +22,7 @@ project_src += files(
     'hal/avr/xmega/128a4u/dma.c',
     'hal/avr/xmega/128a4u/gpio.c',
     'hal/avr/xmega/128a4u/usart.c',
+    'hal/avr/xmega/128a4u/timer.c',
     
     # 'Comms/Comms.c',
     # 'Comms/CBOR.c',
