@@ -3,27 +3,26 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                   SPDX-License-Identifier: GPL-3.0-or-later                */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
+#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#include "system/system.h"
-#include "board/djtt/midifighter.h"
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define MF_NUM_ENCODERS              (16)
+#define MF_NUM_ENCODER_SWITCHES      (NUM_ENCODERS)
+#define MF_NUM_SIDE_SWITCHES         (6)
+#define MF_NUM_LEDS                  (256)
+#define MF_NUM_LEDS_PER_ENCODER      (16)
+#define MF_NUM_INDICATOR_LEDS        (11)
+#define MF_NUM_LED_SHIFT_REGISTERS   (32)
+#define MF_NUM_INPUT_SHIFT_REGISTERS (6)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int input_init(void) {
-
-  // Initialise side switches
-
-  // Initialise encoders
-}
-
-void input_thread(uint32_t data) {
-}
+// Initialises the midifighter hardware
+int mf_hardware_init(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

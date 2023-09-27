@@ -55,16 +55,16 @@
 typedef struct {
   uint16_t Buffer[DEBOUNCE_BUF_LEN]; // Raw switch states from shift register
   uint8_t  Index;
-  uint16_t bfChangedStates;   // Which switches changed states in current tick
-  uint16_t bfDebouncedStates; // Debounced switch state - use this as the
-                              // current switch state
+  uint16_t raw_state;        // Which switches changed states in current tick
+  uint16_t debounces_states; // Debounced switch state - use this as the
+                             // current switch state
 } sEncoderSwitches;
 
 typedef struct {
   uint8_t Buffer[DEBOUNCE_BUF_LEN];
   uint8_t Index;
-  uint8_t bfChangedStates;
-  uint8_t bfDebouncedStates;
+  uint8_t raw_state;
+  uint8_t debounces_states;
 } sSideSwitches;
 
 typedef enum {
@@ -75,7 +75,7 @@ typedef enum {
   QUAD_100,
   QUAD_101,
 
-  NUM_ENCODER_ROTARY_STATES,
+  QUAD_NB,
 } eQuadratureState;
 
 // clang-format off
@@ -85,7 +85,7 @@ typedef enum {
  * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
  * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
  */
-static const eQuadratureState EncoderRotLUT[NUM_ENCODER_ROTARY_STATES][4] = {       // Current Quadrature GrayCode
+static const eQuadratureState EncoderRotLUT[QUAD_NB][4] = {       // Current Quadrature GrayCode
 		{QUAD_11,            QUAD_10,       QUAD_01,        QUAD_00},				// 00
 		{QUAD_11 | DIR_CCW,  QUAD_00,       QUAD_01,        QUAD_00},				// 01
 		{QUAD_11 | DIR_CW,   QUAD_10,       QUAD_00,        QUAD_00},				// 10
@@ -153,21 +153,21 @@ void Input_Update(void) {
   }
 
   // Debounce switches and set current states;
-  uint16_t prevEncSwitchStates  = mEncoderSwitchStates.bfDebouncedStates;
-  uint16_t prevSideSwitchStates = mSideSwitchStates.bfDebouncedStates;
+  uint16_t prevEncSwitchStates  = mEncoderSwitchStates.debounces_states;
+  uint16_t prevSideSwitchStates = mSideSwitchStates.debounces_states;
 
-  mEncoderSwitchStates.bfDebouncedStates = 0xFFFF;
-  mSideSwitchStates.bfDebouncedStates    = 0xFF;
+  mEncoderSwitchStates.debounces_states = 0xFFFF;
+  mSideSwitchStates.debounces_states    = 0xFF;
 
   for (uint8_t i = 0; i < DEBOUNCE_BUF_LEN; i++) {
-    mEncoderSwitchStates.bfDebouncedStates &= mEncoderSwitchStates.Buffer[i];
-    mSideSwitchStates.bfDebouncedStates &= mSideSwitchStates.Buffer[i];
+    mEncoderSwitchStates.debounces_states &= mEncoderSwitchStates.Buffer[i];
+    mSideSwitchStates.debounces_states &= mSideSwitchStates.Buffer[i];
   }
 
-  mEncoderSwitchStates.bfChangedStates =
-      mEncoderSwitchStates.bfDebouncedStates ^ prevEncSwitchStates;
-  mSideSwitchStates.bfChangedStates =
-      mSideSwitchStates.bfDebouncedStates ^ prevSideSwitchStates;
+  mEncoderSwitchStates.raw_state =
+      mEncoderSwitchStates.debounces_states ^ prevEncSwitchStates;
+  mSideSwitchStates.raw_state =
+      mSideSwitchStates.debounces_states ^ prevSideSwitchStates;
 }
 
 /**
@@ -176,7 +176,7 @@ void Input_Update(void) {
  * @return true or false
  */
 bool Input_IsResetPressed(void) {
-  uint16_t state = mEncoderSwitchStates.bfDebouncedStates;
+  uint16_t state = mEncoderSwitchStates.debounces_states;
   return ((state & RESET_SWITCH_MASK) == RESET_SWITCH_VAL);
 }
 
@@ -186,7 +186,7 @@ bool Input_IsResetPressed(void) {
  *
  */
 void Input_CheckSpecialSwitchCombos(void) {
-  uint16_t state = mEncoderSwitchStates.bfDebouncedStates;
+  uint16_t state = mEncoderSwitchStates.debounces_states;
   if (((state & BOOTLOADER_SWITCH_MASK) == BOOTLOADER_SWITCH_VAL) ||
       ((state & ALT_BOOTLOADER_SWITCH_MASK) == ALT_BOOTLOADER_SWITCH_VAL)) {
     gData.OperatingMode = BOOTLOADER_MODE;
@@ -215,8 +215,8 @@ uint8_t Encoder_GetDirection(uint8_t EncoderIndex) {
  * @return uint16_t A bitfield of the current encoder switch states.
  */
 uint16_t EncoderSwitchWasPressed(uint16_t Mask) {
-  return (mEncoderSwitchStates.bfChangedStates &
-          mEncoderSwitchStates.bfDebouncedStates) &
+  return (mEncoderSwitchStates.raw_state &
+          mEncoderSwitchStates.debounces_states) &
          Mask;
 }
 
@@ -227,8 +227,8 @@ uint16_t EncoderSwitchWasPressed(uint16_t Mask) {
  * @return uint16_t A bitfield of the current encoder switch states.
  */
 uint16_t EncoderSwitchWasReleased(uint16_t Mask) {
-  return (mEncoderSwitchStates.bfChangedStates &
-          (~mEncoderSwitchStates.bfDebouncedStates)) &
+  return (mEncoderSwitchStates.raw_state &
+          (~mEncoderSwitchStates.debounces_states)) &
          Mask;
 }
 
@@ -239,7 +239,7 @@ uint16_t EncoderSwitchWasReleased(uint16_t Mask) {
  * @return uint16_t A bitfield of the current encoder switch states.
  */
 uint16_t EncoderSwitchCurrentState(uint16_t Mask) {
-  return mEncoderSwitchStates.bfDebouncedStates & Mask;
+  return mEncoderSwitchStates.debounces_states & Mask;
 }
 
 /**
@@ -250,8 +250,7 @@ uint16_t EncoderSwitchCurrentState(uint16_t Mask) {
  * are only 6 side switches.
  */
 uint8_t SideSwitchWasPressed(uint8_t Mask) {
-  return (mSideSwitchStates.bfChangedStates &
-          mSideSwitchStates.bfDebouncedStates) &
+  return (mSideSwitchStates.raw_state & mSideSwitchStates.debounces_states) &
          Mask;
 }
 
@@ -263,8 +262,7 @@ uint8_t SideSwitchWasPressed(uint8_t Mask) {
  * are only 6 side switches.
  */
 uint8_t SideSwitchWasReleased(uint8_t Mask) {
-  return (mSideSwitchStates.bfChangedStates &
-          (~mSideSwitchStates.bfDebouncedStates)) &
+  return (mSideSwitchStates.raw_state & (~mSideSwitchStates.debounces_states)) &
          Mask;
 }
 
@@ -276,7 +274,7 @@ uint8_t SideSwitchWasReleased(uint8_t Mask) {
  * are only 6 side switches.
  */
 uint8_t SideSwitchCurrentState(uint8_t Mask) {
-  return mSideSwitchStates.bfDebouncedStates & Mask;
+  return mSideSwitchStates.debounces_states & Mask;
 }
 
 /**
