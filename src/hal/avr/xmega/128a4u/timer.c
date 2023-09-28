@@ -17,15 +17,15 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static inline uint8_t     get_bitmask(timer_peripheral_e periph);
-static inline register8_t get_power_reg(timer_peripheral_e periph);
+static uint8_t     get_bitmask(timer_peripheral_e periph);
+static register8_t get_power_reg(timer_peripheral_e periph);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void timer_init(TC0_t* timer, const timer_config_t* config) {
-  RETURN_IF_NULL(timer);
-  RETURN_IF_NULL(config);
+  assert(timer);
+  assert(config);
 
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     // Enable power
@@ -41,35 +41,35 @@ void timer_init(TC0_t* timer, const timer_config_t* config) {
   }
 }
 
-inline void timer_ch_isr_enable(TC0_t* timer, timer_channel_e channel,
-                                isr_priority_e priority) {
-  RETURN_IF_NULL(timer);
+void timer_ch_isr_enable(TC0_t* timer, timer_channel_e channel,
+                         isr_priority_e priority) {
+  assert(timer);
 
   const uint8_t shift = channel << 1;
   const uint8_t mask  = (TC0_CCAINTLVL_gm) << shift;
   timer->INTCTRLB     = (timer->INTCTRLB & ~mask) | (priority << shift);
 }
 
-inline void timer_ch_isr_disable(TC0_t* timer, timer_channel_e channel) {
-  RETURN_IF_NULL(timer);
+void timer_ch_isr_disable(TC0_t* timer, timer_channel_e channel) {
+  assert(timer);
   const uint8_t shift = channel << 2;
   const uint8_t mask  = (TC0_CCAINTLVL_gm) << shift;
   timer->INTCTRLB &= ~mask;
 }
 
-inline void timer_ovr_isr_enable(TC0_t* timer, isr_priority_e priority) {
-  RETURN_IF_NULL(timer);
+void timer_ovr_isr_enable(TC0_t* timer, isr_priority_e priority) {
+  assert(timer);
   timer->INTCTRLA = (timer->INTCTRLA & ~TC0_OVFINTLVL_gm) | priority;
 }
 
-inline void timer_ovr_isr_disable(TC0_t* timer) {
-  RETURN_IF_NULL(timer);
+void timer_ovr_isr_disable(TC0_t* timer) {
+  assert(timer);
   timer->INTCTRLA &= ~TC0_OVFINTLVL_gm;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static inline uint8_t get_bitmask(timer_peripheral_e periph) {
+static uint8_t get_bitmask(timer_peripheral_e periph) {
   switch (periph) {
   // case TIMER_TCE0:
   case TIMER_TCC0:
@@ -89,7 +89,7 @@ static inline uint8_t get_bitmask(timer_peripheral_e periph) {
   return 0;
 }
 
-static inline register8_t get_power_reg(timer_peripheral_e periph) {
+static register8_t get_power_reg(timer_peripheral_e periph) {
   switch (periph) {
   case TIMER_TCC0:
   case TIMER_TCC1:

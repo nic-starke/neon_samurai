@@ -30,8 +30,8 @@ static void    configure_io(USART_t* usart, spi_mode_e mode);
 
 // SPI Master only
 void usart_module_init(USART_t* usart, const usart_config_t* config) {
-  RETURN_IF_NULL(usart);
-  RETURN_IF_NULL(config);
+  assert(usart);
+  assert(config);
 
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 
@@ -81,8 +81,8 @@ void usart_module_init(USART_t* usart, const usart_config_t* config) {
   } // ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 }
 
-inline void usart_set_tx(USART_t* usart, bool enable) {
-  RETURN_IF_NULL(usart);
+void usart_set_tx(USART_t* usart, bool enable) {
+  assert(usart);
 
   if (enable) {
     usart->CTRLB |= USART_TXEN_bm;
@@ -91,8 +91,8 @@ inline void usart_set_tx(USART_t* usart, bool enable) {
   }
 }
 
-inline void usart_set_rx(USART_t* usart, bool enable) {
-  RETURN_IF_NULL(usart);
+void usart_set_rx(USART_t* usart, bool enable) {
+  assert(usart);
 
   if (enable) {
     usart->CTRLB |= USART_RXEN_bm;
@@ -103,7 +103,7 @@ inline void usart_set_rx(USART_t* usart, bool enable) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static inline uint8_t get_mask(USART_t* usart) {
+static uint8_t get_mask(USART_t* usart) {
   if (usart == &USARTC0 || usart == &USARTD0 || usart == &USARTE0) {
     return PR_USART0_bm;
   } else if (usart == &USARTC1 || usart == &USARTD1) {
@@ -113,7 +113,7 @@ static inline uint8_t get_mask(USART_t* usart) {
   return 0;
 }
 
-static inline void configure_io(USART_t* usart, spi_mode_e mode) {
+static void configure_io(USART_t* usart, spi_mode_e mode) {
   // Default pins are  SCK = 1, RX = 2, TX = 3
   // Remapped pins are SCK = 5, RX = 6, TX = 7
 

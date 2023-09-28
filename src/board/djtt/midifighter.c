@@ -9,17 +9,30 @@
 #include <avr/io.h>
 
 #include "hal/avr/xmega/128a4u/gpio.h"
-#include "board/djtt/midifighter.h"
+#include "hal/avr/xmega/128a4u/dma.h"
+#include "hal/avr/xmega/128a4u/usart.h"
+
 #include "drivers/encoder.h"
+
+#include "board/djtt/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PORT_SWITCHES (PORTA)
-#define PORT_SREG     (PORTC)
+#define PORT_SW     (PORTA) // IO port for side-switches
+#define PORT_SR_ENC (PORTC) // IO port for encoder IO shift registers
+#define PORT_SR_LED (PORTD) // IO port for led shift registers
 
-#define PIN_SREG_LATCH   (0)
-#define PIN_SREG_CLOCK   (1)
-#define PIN_SREG_DATA_IN (2)
+#define PIN_SR_ENC_LATCH   (0)
+#define PIN_SR_ENC_CLOCK   (1)
+#define PIN_SR_ENC_DATA_IN (2)
+
+#define PIN_SR_LED_ENABLE   (0)
+#define PIN_SR_LED_CLOCK    (1)
+#define PIN_SR_LED_DATA_OUT (3)
+#define PIN_SR_LED_LATCH    (4)
+#define PIN_SR_LED_RESET_N  (5)
+
+#define USART_BAUD (4000000)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -33,18 +46,38 @@ static encoder_hwctx_t encoder_ctx[MF_NUM_ENCODERS];
 int mf_hardware_init(void) {
   // Configure gpios for side switches
   for (int i = 0; i < MF_NUM_SIDE_SWITCHES; ++i) {
-    gpio_dir(&PORT_SWITCHES, i, GPIO_INPUT);
-    gpio_mode(&PORT_SWITCHES, i, PORT_OPC_PULLUP_gc);
+    gpio_dir(&PORT_SW, i, GPIO_INPUT);
+    gpio_mode(&PORT_SW, i, PORT_OPC_PULLUP_gc);
   }
 
-  // Configure shift registers for encoders
-  gpio_dir(&PORT_SREG, PIN_SREG_LATCH, GPIO_OUTPUT);
-  gpio_dir(&PORT_SREG, PIN_SREG_CLOCK, GPIO_OUTPUT);
-  gpio_dir(&PORT_SREG, PIN_SREG_DATA_IN, GPIO_INPUT);
+  // Configure GPIO for encoder IO shift regsiters
+  gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_LATCH, GPIO_OUTPUT);
+  gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, GPIO_OUTPUT);
+  gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN, GPIO_INPUT);
 
-  // Latch sreg
-  gpio_set(&PORT_SREG, PIN_SREG_LATCH, 1);
-  gpio_set(&PORT_SREG, PIN_SREG_LATCH, 0);
+  // Latch initial encoder data
+  gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
+  gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
+
+  // Configure GPIO for LED shift registers
+  gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE, GPIO_OUTPUT);
+  gpio_dir(&PORT_SR_LED, PIN_SR_LED_CLOCK, GPIO_OUTPUT);
+  gpio_dir(&PORT_SR_LED, PIN_SR_LED_DATA_OUT, GPIO_OUTPUT);
+  gpio_dir(&PORT_SR_LED, PIN_SR_LED_LATCH, GPIO_OUTPUT);
+  gpio_dir(&PORT_SR_LED, PIN_SR_LED_RESET_N, GPIO_OUTPUT);
+
+  // Configure USART (SPI) for LED shift registers
+  const usart_config_t usart_cfg = {
+      .baudrate = USART_BAUD,
+      .endian   = ENDIAN_LSB,
+      .mode     = SPI_MODE_CLK_LO_PHA_LO,
+  };
+
+  usart_module_init(&USARTD0, &usart_cfg);
+
+  // Reset the LEDs (active low)
+  gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
+  gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
 
   return 0;
 }

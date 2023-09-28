@@ -69,10 +69,10 @@ lufa_dep = dependency(
 )
 
 # Configuration Files
-conf_data = configuration_data()
-conf_data.set('version', meson.project_version())
-conf_data.set('EEKEY', 0x33)
-configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configuration: conf_data)
+# conf_data = configuration_data()
+# conf_data.set('version', meson.project_version())
+# conf_data.set('EEKEY', 0x33)
+# configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configuration: conf_data)
 
 configuration_inc = include_directories('.')
  
@@ -88,10 +88,6 @@ c_compiler_args = [
     '-fpack-struct',
     '-fshort-enums',
     '-mrelax',
-
-    '-DMIDI_ENABLE',
-    # '-DHID_ENABLE',
-    '-DVSER_ENABLE',
         
     '-Wall',
     '-Wextra',

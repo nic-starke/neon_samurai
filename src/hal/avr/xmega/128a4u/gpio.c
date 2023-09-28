@@ -20,8 +20,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-inline void gpio_mode(PORT_t* port, uint8_t pin, PORT_OPC_t mode) {
-  RETURN_IF_NULL(port);
+void gpio_mode(PORT_t* port, uint8_t pin, PORT_OPC_t mode) {
+  assert(port);
 
   // Get pointer to pin register
   volatile uint8_t* ctrl = (&port->PIN0CTRL + PIN_MASK(pin));
@@ -30,8 +30,8 @@ inline void gpio_mode(PORT_t* port, uint8_t pin, PORT_OPC_t mode) {
   *ctrl |= mode;         // Set the mode
 }
 
-inline void gpio_dir(PORT_t* port, uint8_t pin, gpio_dir_e dir) {
-  RETURN_IF_NULL(port);
+void gpio_dir(PORT_t* port, uint8_t pin, gpio_dir_e dir) {
+  assert(port);
 
   if (dir == GPIO_INPUT) {
     port->DIRCLR = PIN_MASK(pin);
@@ -40,8 +40,8 @@ inline void gpio_dir(PORT_t* port, uint8_t pin, gpio_dir_e dir) {
   }
 }
 
-inline void gpio_set(PORT_t* port, uint8_t pin, uint8_t state) {
-  RETURN_IF_NULL(port);
+void gpio_set(PORT_t* port, uint8_t pin, uint8_t state) {
+  assert(port);
 
   if (state) {
     port->OUTSET = PIN_MASK(pin);
@@ -50,9 +50,9 @@ inline void gpio_set(PORT_t* port, uint8_t pin, uint8_t state) {
   }
 }
 
-inline void gpio_get(PORT_t* port, uint8_t pin, uint8_t* state) {
-  RETURN_IF_NULL(port);
-  RETURN_IF_NULL(state);
+void gpio_get(PORT_t* port, uint8_t pin, uint8_t* state) {
+  assert(port);
+  assert(state);
 
   *state = port->IN & PIN_MASK(pin);
 }
