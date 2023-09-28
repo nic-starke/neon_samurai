@@ -23,6 +23,10 @@ project_src += files(
     'hal/avr/xmega/128a4u/gpio.c',
     'hal/avr/xmega/128a4u/usart.c',
     'hal/avr/xmega/128a4u/timer.c',
+
+    'drivers/encoder.c',
+    'drivers/sreg.c',
+    'drivers/switch.c',
     
     # 'Comms/Comms.c',
     # 'Comms/CBOR.c',
