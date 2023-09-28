@@ -33,12 +33,6 @@ project(
 # Cross Compilation
 assert(meson.is_cross_build(), 'Not a valid cross-compilation environment')
 
-# Sources and Includes
-project_inc = []
-project_src = []
-
-subdir('src')
-
 # Dependencies
 cmake = import('cmake')
 
@@ -74,8 +68,18 @@ lufa_dep = dependency(
 # conf_data.set('EEKEY', 0x33)
 # configure_file(input: 'src/Utility/Config.h.in', output : 'Config.h', configuration: conf_data)
 
-configuration_inc = include_directories('.')
- 
+# configuration_inc = include_directories('.')
+
+# Sources and Includes
+project_inc = []
+project_src = []
+
+subdir('src')
+subdir('src/board/djtt/midifighter')
+
+project_src += board_src
+
+
 c_compiler_args = [
     '-std=gnu11',
 
@@ -113,7 +117,8 @@ muffin = executable(
     [project_src],
     c_args : c_compiler_args,
     link_args: c_link_args,
-    include_directories : [project_inc, configuration_inc],
+    # include_directories : [project_inc, configuration_inc],
+    include_directories : [project_inc],
     dependencies : [qcbor, atomthreads_dep, lufa_dep],
 )
 

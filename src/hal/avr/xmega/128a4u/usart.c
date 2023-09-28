@@ -36,7 +36,7 @@ void usart_module_init(USART_t* usart, const usart_config_t* config) {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 
     // Enable power
-    PR.PRPC &= ~get_mask(usart);
+    PR.PRPC &= ~(get_mask(usart));
 
     // Disable rx and tx
     usart->CTRLB &= ~USART_RXEN_bm;

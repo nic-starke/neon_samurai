@@ -14,8 +14,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef struct {
-  uint8_t             repeat_count; // 1 for single shot mode
-  uint16_t            tx_count;
+  uint8_t             repeat_count; // 1 for single shot mode, 0 = infinite
+  uint16_t            block_size;   // bytes per block
   DMA_CH_BURSTLEN_t   burst_len;
   DMA_CH_TRIGSRC_t    trig_source;
   DMA_DBUFMODE_t      dbuf_mode;

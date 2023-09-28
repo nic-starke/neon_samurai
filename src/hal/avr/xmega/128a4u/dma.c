@@ -56,7 +56,7 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg) {
     // Configure the transaction
     ch->TRIGSRC = cfg->trig_source;
     ch->CTRLA |= cfg->burst_len;
-    ch->TRFCNT = cfg->tx_count;
+    ch->TRFCNT = cfg->block_size;
 
     if (cfg->repeat_count > 1) {
       ch->REPCNT = cfg->repeat_count;
@@ -75,6 +75,9 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg) {
      * dma transaction, which then re-enables the primary channel...
      */
     DMA.CTRL = (DMA.CTRL & ~DMA_DBUFMODE_gm) | cfg->dbuf_mode;
+
+    // Enable Channel
+    ch->CTRLA |= DMA_CH_ENABLE_bm;
   } //   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 
   return 0;

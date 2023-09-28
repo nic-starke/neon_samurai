@@ -9,6 +9,8 @@
 #include "system/system.h"
 #include "system/os.h"
 
+#include "board/djtt/midifighter.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -20,6 +22,9 @@ void main(void) {
   // Initialise basic system hardware
   int status = system_init();
   EXIT_ON_ERR(status, error);
+
+  // Initialise the board hardware
+  mf_board_init();
 
   // Initialise the operating system
   status = os_init();
