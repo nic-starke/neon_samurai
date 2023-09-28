@@ -3,28 +3,18 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                   SPDX-License-Identifier: GPL-3.0-or-later                */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
 
-#include "hal/avr/xmega/128a4u/gpio.h"
 #include "hal/avr/xmega/128a4u/dma.h"
 #include "hal/avr/xmega/128a4u/usart.h"
-
-#include "drivers/encoder.h"
 
 #include "board/djtt/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PORT_SW     (PORTA) // IO port for side-switches
-#define PORT_SR_ENC (PORTC) // IO port for encoder IO shift registers
 #define PORT_SR_LED (PORTD) // IO port for led shift registers
-
-#define PIN_SR_ENC_LATCH   (0)
-#define PIN_SR_ENC_CLOCK   (1)
-#define PIN_SR_ENC_DATA_IN (2)
 
 #define PIN_SR_LED_ENABLE   (0)
 #define PIN_SR_LED_CLOCK    (1)
@@ -38,27 +28,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-static encoder_hwctx_t encoder_ctx[MF_NUM_ENCODERS];
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int mf_hardware_init(void) {
-  // Configure gpios for side switches
-  for (int i = 0; i < MF_NUM_SIDE_SWITCHES; ++i) {
-    gpio_dir(&PORT_SW, i, GPIO_INPUT);
-    gpio_mode(&PORT_SW, i, PORT_OPC_PULLUP_gc);
-  }
-
-  // Configure GPIO for encoder IO shift regsiters
-  gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_LATCH, GPIO_OUTPUT);
-  gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, GPIO_OUTPUT);
-  gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN, GPIO_INPUT);
-
-  // Latch initial encoder data
-  gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
-  gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
-
+void mf_led_init(void) {
   // Configure GPIO for LED shift registers
   gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE, GPIO_OUTPUT);
   gpio_dir(&PORT_SR_LED, PIN_SR_LED_CLOCK, GPIO_OUTPUT);
@@ -79,13 +51,23 @@ int mf_hardware_init(void) {
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
 
-  return 0;
-}
+  /*
+    Setup the dma for the following:
+    1 byte burst
+    block size is 32 (32 shift registers, 2 per encoder)
+    repeat count is number of display buffer frames (per encoder)
+    trigger - usart empty
+    reload address = end of transaction
+    interrupt - end of block
 
-void mf_update_encoders(void) {
-  for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    encoder_update(&encoder_ctx[i]);
-  }
+    This "should" result in:
+      1 byte of frame data being transferred to the 1 byte usart input buffer.
+      x32 times, until a single frame is transffered for all encoders.
+      Then reloading the starting address when the transaction is complete.
+
+      But also firing an interrupt when each "frame" is transferred
+      The interrupt can then latch the SRs.
+  */
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

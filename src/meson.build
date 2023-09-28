@@ -28,33 +28,7 @@ project_src += files(
     'drivers/sreg.c',
     'drivers/switch.c',
     
-    # 'Comms/Comms.c',
-    # 'Comms/CBOR.c',
-    # 'Comms/Network.c',
-
-    # 'Display/Colour.c',
-    # 'Display/Display.c',
-    # 'Display/EncoderDisplay.c',
-    # 'Display/fast_hsv2rgb_8bit.c',
-
-    # 'Input/Encoder.c',
-    # 'Input/Input.c',
-    # 'Input/SideSwitch.c',
-
-    # 'MIDI/MIDI.c',
-    
-    # 'Peripheral/DMA.c',
-    # 'Peripheral/GPIO.c',
-    # 'Peripheral/Timer.c',
-    # 'Peripheral/USART.c',
-
-    # 'system/Data.c',
-    # 'system/SoftTimer.c',
-    # 'system/System.c',
     'system/system.c',
     'system/os.c',
 
-    # 'USB/Descriptors.c',
-    # 'USB/VirtualSerial.c',
-    # 'USB/USB.c',
 )
