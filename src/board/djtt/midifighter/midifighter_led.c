@@ -102,11 +102,9 @@ void mf_led_init(void) {
 
   memset(frame_buf, 0xfa, sizeof(frame_buf)); // Set all LEDS on for testing
 
-  if (0 == SUCCESS) {                               // Go!
-    gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0); // Enable shift registers
-    usart_module_init(&USART_LED, &usart_cfg);
-    dma_channel_init(&DMA.CH0, &dma_cfg);
-  }
+  usart_module_init(&USART_LED, &usart_cfg);
+  dma_channel_init(&DMA.CH0, &dma_cfg);
+  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0); // Enable shift registers
 }
 
 // ISR for DMA transaction completed (after blocks x repeats has been
@@ -121,8 +119,6 @@ ISR(DMA_CH0_vect) {
 
   // Enable next transaction
   // DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
-  enable the dma manually when the frame data gets updated !(
-      i.e an led vlaue changes)
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
