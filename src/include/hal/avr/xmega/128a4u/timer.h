@@ -21,34 +21,57 @@ typedef enum {
   TIMER_TCD0,
   TIMER_TCD1,
   TIMER_TCD2,
-  // TIMER_TCE0, // Reserved for RTOS
+  TIMER_TCE0,
 
   TIMER_NB,
 } timer_peripheral_e;
 
 typedef enum {
-  TIMER_CHANNEL_A,
-  TIMER_CHANNEL_B,
-  TIMER_CHANNEL_C,
-  TIMER_CHANNEL_D,
+  TIMER_CHANNEL_A, // PWM on pin 0
+  TIMER_CHANNEL_B, // PWM on pin 1
+  TIMER_CHANNEL_C, // PWM on pin 2
+  TIMER_CHANNEL_D, // PWM on pin 3
 
   TIMER_CHANNEL_NB,
 } timer_channel_e;
 
+typedef enum {
+  TIMER_MODE_OVF,
+  TIMER_MODE_PWM,
+
+  TIMER_MODE_NB,
+} timer_mode_e;
+
 typedef struct {
+  uint16_t freq; // Desired PWM frequency
+  uint8_t  duty; // Desired duty cycle percentage (0 to 100)
+} pwm_config_t;
+
+typedef struct {
+  volatile TC0_t*    timer;
   timer_peripheral_e periph;
-  TC_WGMODE_t        wgm_mode;
-  TC_CLKSEL_t        clk_sel;
+  timer_channel_e             channel;
+  uint32_t                    freq; // Timer frequency (Hz)
+
+  timer_mode_e mode;
+  union {
+    pwm_config_t pwm;
+  };
+
 } timer_config_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void timer_init(TC0_t* timer, const timer_config_t* config);
-void timer_ch_isr_enable(TC0_t* timer, timer_channel_e channel,
-                         isr_priority_e priority);
-void timer_ch_isr_disable(TC0_t* timer, timer_channel_e channel);
-void timer_ovr_isr_enable(TC0_t* timer, isr_priority_e priority);
-void timer_ovr_isr_disable(TC0_t* timer);
+int timer_init(timer_config_t* cfg);
+
+void timer_ch_isr_enable(timer_config_t* cfg, isr_priority_e priority);
+void timer_ch_isr_disable(timer_config_t* cfg);
+void timer_ovr_isr_enable(timer_config_t* cfg, isr_priority_e priority);
+void timer_ovr_isr_disable(timer_config_t* cfg);
+
+void timer_pwm_start(timer_config_t* cfg);
+void timer_pwm_stop(timer_config_t* cfg);
+void timer_pwm_set_duty(timer_config_t* cfg, uint8_t duty);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

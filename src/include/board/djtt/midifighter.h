@@ -25,4 +25,6 @@
 // Initialises the midifighter board
 void mf_board_init(void);
 
+void mf_set_brightness(uint8_t val);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

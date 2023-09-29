@@ -23,4 +23,5 @@ SortIncludes: false
 InsertNewlineAtEOF: true
 TabWidth: 2
 IndentWidth: 2
+IndentCaseLabels: true
 UseTab: Never
