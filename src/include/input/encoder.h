@@ -3,10 +3,11 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                   SPDX-License-Identifier: GPL-3.0-or-later                */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
+#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/system.h"
+#include "system/os.h"
 #include "drivers/encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -14,40 +15,49 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-  QUAD_00,
-  QUAD_01,
-  QUAD_10,
-  QUAD_11,
-  QUAD_100,
-  QUAD_101,
+  ENCODER_MODE_DISABLED,
+  ENCODER_MODE_MIDI_CC,
+  ENCODER_MODE_MIDI_REL_CC,
+  ENCODER_MODE_MIDI_NOTE,
 
-  QUAD_NB,
-} quad_state_e;
+  ENCODER_MODE_NB,
+} encoder_mode_e;
+
+typedef struct {
+  uint8_t channel; // midi channel
+  uint8_t value;   // cc, or note value
+} encoder_midi_cfg_t;
+
+typedef struct {
+  uint16_t val_min;
+  uint16_t val_max;
+  uint16_t val_start;
+  uint16_t val_stop;
+  uint8_t  acceleration;
+  uint8_t  mode;
+  union {
+    encoder_midi_cfg_t midi;
+  };
+} encoder_cfg_t;
+
+typedef struct {
+  uint16_t      curr_val;
+  uint16_t      prev_val;
+  encoder_cfg_t cfg;
+  bool          enabled;
+} encoder_ctx_t;
+
+typedef struct {
+  uint8_t           count;
+  encoder_ctx_t*    sw_ctx; // pointer to array of contexts
+  hw_encoder_ctx_t* hw_ctx; // pointer to array of contexts
+} encoder_desc_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+int  encoder_init(encoder_desc_t* desc);
+void encoder_update(void);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-/*
- * Rotory decoder based on
- * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
- * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
- */
-static const quad_state_e quad_states[QUAD_NB][4] = {
-    // Current Quadrature GrayCode
-    {QUAD_11, QUAD_10, QUAD_01, QUAD_00},            // 00
-    {QUAD_11 | DIR_CCW, QUAD_00, QUAD_01, QUAD_00},  // 01
-    {QUAD_11 | DIR_CW, QUAD_10, QUAD_00, QUAD_00},   // 10
-    {QUAD_11, QUAD_101, QUAD_100, QUAD_00},          // 11
-    {QUAD_11, QUAD_11, QUAD_100, QUAD_00 | DIR_CW},  // 100
-    {QUAD_11, QUAD_101, QUAD_11, QUAD_00 | DIR_CCW}, // 101
-};
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-void hw_encoder_update(hw_encoder_ctx_t* enc, uint8_t ch_a, uint8_t ch_b) {
-  unsigned int val = (ch_a << 1) | ch_b;
-  enc->rot         = quad_states[enc->rot & 0x0F][val];
-  enc->dir         = enc->rot & 0x30;
-}
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

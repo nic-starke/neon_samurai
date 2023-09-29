@@ -8,6 +8,8 @@
 #include <avr/io.h>
 
 #include "drivers/encoder.h"
+#include "input/encoder.h"
+
 #include "hal/avr/xmega/128a4u/gpio.h"
 
 #include "board/djtt/midifighter.h"
@@ -25,8 +27,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static encoder_hwctx_t encoder_ctx[MF_NUM_ENCODERS];
-
+static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
+static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
+static encoder_desc_t   desc = {
+      .sw_ctx = sw_ctx,
+      .hw_ctx = hw_ctx,
+      .count  = MF_NUM_ENCODERS,
+};
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void mf_encoder_init(void) {
@@ -38,11 +45,29 @@ void mf_encoder_init(void) {
   // Latch initial encoder data
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
+
+  // Initialise encoder
+  int status = encoder_init(&desc);
+  RETURN_ON_ERR(status);
 }
 
-void mf_update_encoders(void) {
-  for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    encoder_update(&encoder_ctx[i]);
+void mf_hw_update(void) {
+  // Poll the shift registers, then  update hw ctx
+  for (int i = 0; i < MF_NUM_ENCODERS; i++) {
+    gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
+    uint8_t ch_a = gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+    gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
+    gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
+    uint8_t ch_b = gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+    gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
+
+    hw_encoder_update(&hw_ctx[i], ch_a, ch_b);
+  }
+}
+
+void mf_encoder_update(void) {
+  for (int i = 0; i < MF_NUM_ENCODERS; i++) {
+    encoder_update();
   }
 }
 

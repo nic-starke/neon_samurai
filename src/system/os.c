@@ -112,8 +112,6 @@ void os_start(void) {
   atomOSStart();
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 int os_thread_start(thread_id id, void (*entry)(uint32_t), uint32_t arg) {
   if (entry == NULL || id >= THREAD_NB) {
     return ERR_BAD_PARAM;
@@ -126,3 +124,11 @@ int os_thread_start(thread_id id, void (*entry)(uint32_t), uint32_t arg) {
 
   return status;
 }
+
+int os_mutex_init(os_mutex_t* mutex) {
+  assert(mutex);
+
+  return atomMutexCreate(mutex);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

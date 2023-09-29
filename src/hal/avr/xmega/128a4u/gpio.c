@@ -50,11 +50,11 @@ void gpio_set(PORT_t* port, uint8_t pin, uint8_t state) {
   }
 }
 
-void gpio_get(PORT_t* port, uint8_t pin, uint8_t* state) {
+uint8_t gpio_get(PORT_t* port, uint8_t pin) {
   assert(port);
   assert(state);
 
-  *state = port->IN & PIN_MASK(pin);
+  return port->IN & PIN_MASK(pin);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
