@@ -14,6 +14,8 @@
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
 #include "system/system.h"
+#include "board/board.h"
+
 #include "hal/avr/xmega/128a4u/dma.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -58,11 +60,15 @@ int system_init(void) {
   // softtimer_init();
   // encoder_init();
 
+  // Call the board_init function defined by the user
+  board_init();
+
   return 0;
 }
 
 void system_thread(uint32_t data) {
   while (1) {
+    board_update();
     // Input_Update();
 
     // switch (gData.OperatingMode) {

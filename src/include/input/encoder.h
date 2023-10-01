@@ -8,9 +8,13 @@
 
 #include "system/system.h"
 #include "system/os.h"
-#include "drivers/encoder.h"
+#include "drivers/hw_encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define ENC_MAX (INT16_MAX)
+#define ENC_MIN (0)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -33,30 +37,25 @@ typedef struct {
   uint16_t val_max;
   uint16_t val_start;
   uint16_t val_stop;
-  uint8_t  acceleration;
-  uint8_t  mode;
+  uint8_t  acceleration; // Acceleration mode
+  uint8_t  mode;         // Operating mode (encoder_mode_e)
   union {
     encoder_midi_cfg_t midi;
   };
 } encoder_cfg_t;
 
 typedef struct {
-  uint16_t      curr_val;
-  uint16_t      prev_val;
   encoder_cfg_t cfg;
-  bool          enabled;
+  uint16_t      velocity; // Current rotational velocity
+  uint16_t      curr_val; // Current value
+  uint16_t      prev_val; // Previous value
+  bool          changed;  // Flag to indicate if value changed (user must clear)
+  bool          enabled;  // Flag to indicate if enabled
 } encoder_ctx_t;
-
-typedef struct {
-  uint8_t           count;
-  encoder_ctx_t*    sw_ctx; // pointer to array of contexts
-  hw_encoder_ctx_t* hw_ctx; // pointer to array of contexts
-} encoder_desc_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int  encoder_init(encoder_desc_t* desc);
-void encoder_update(void);
+void encoder_update(encoder_ctx_t* enc, int16_t direction);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

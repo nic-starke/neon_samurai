@@ -7,19 +7,19 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/system.h"
-#include "drivers/encoder.h"
+#include "drivers/hw_encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-  QUAD_00,
-  QUAD_01,
-  QUAD_10,
-  QUAD_11,
-  QUAD_100,
-  QUAD_101,
+  QUAD_START,
+  QUAD_CCW,
+  QUAD_CW,
+  QUAD_MIDDLE,
+  QUAD_MID_CW,
+  QUAD_MID_CCW,
 
   QUAD_NB,
 } quad_state_e;
@@ -34,20 +34,21 @@ typedef enum {
  */
 static const quad_state_e quad_states[QUAD_NB][4] = {
     // Current Quadrature GrayCode
-    {QUAD_11, QUAD_10, QUAD_01, QUAD_00},            // 00
-    {QUAD_11 | DIR_CCW, QUAD_00, QUAD_01, QUAD_00},  // 01
-    {QUAD_11 | DIR_CW, QUAD_10, QUAD_00, QUAD_00},   // 10
-    {QUAD_11, QUAD_101, QUAD_100, QUAD_00},          // 11
-    {QUAD_11, QUAD_11, QUAD_100, QUAD_00 | DIR_CW},  // 100
-    {QUAD_11, QUAD_101, QUAD_11, QUAD_00 | DIR_CCW}, // 101
+    {QUAD_MIDDLE, QUAD_CW, QUAD_CCW, QUAD_START},
+    {QUAD_MIDDLE | DIR_CCW, QUAD_START, QUAD_CCW, QUAD_START},
+    {QUAD_MIDDLE | DIR_CW, QUAD_CW, QUAD_START, QUAD_START},
+    {QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MID_CW, QUAD_START},
+    {QUAD_MIDDLE, QUAD_MIDDLE, QUAD_MID_CW, QUAD_START | DIR_CW},
+    {QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MIDDLE, QUAD_START | DIR_CCW},
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void hw_encoder_update(hw_encoder_ctx_t* enc, uint8_t ch_a, uint8_t ch_b) {
-  unsigned int val = (ch_a << 1) | ch_b;
-  enc->rot         = quad_states[enc->rot & 0x0F][val];
-  enc->dir         = enc->rot & 0x30;
+void hw_encoder_update(hw_encoder_ctx_t* ctx, unsigned int ch_a,
+                       unsigned int ch_b) {
+  unsigned int val = (ch_b << 1) | ch_a;
+  ctx->rot_state   = quad_states[ctx->rot_state & 0x0F][val];
+  ctx->dir         = ctx->rot_state & 0x30;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

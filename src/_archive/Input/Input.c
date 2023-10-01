@@ -68,12 +68,12 @@ typedef struct {
 } sSideSwitches;
 
 typedef enum {
-  QUAD_00,
-  QUAD_01,
-  QUAD_10,
-  QUAD_11,
-  QUAD_100,
-  QUAD_101,
+  QUAD_START,
+  QUAD_CCW,
+  QUAD_CW,
+  QUAD_MIDDLE,
+  QUAD_MID_CW,
+  QUAD_MID_CCW,
 
   QUAD_NB,
 } eQuadratureState;
@@ -86,12 +86,12 @@ typedef enum {
  * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
  */
 static const eQuadratureState EncoderRotLUT[QUAD_NB][4] = {       // Current Quadrature GrayCode
-		{QUAD_11,            QUAD_10,       QUAD_01,        QUAD_00},				// 00
-		{QUAD_11 | DIR_CCW,  QUAD_00,       QUAD_01,        QUAD_00},				// 01
-		{QUAD_11 | DIR_CW,   QUAD_10,       QUAD_00,        QUAD_00},				// 10
-		{QUAD_11,            QUAD_101,      QUAD_100,       QUAD_00},				// 11
-		{QUAD_11,            QUAD_11,       QUAD_100,       QUAD_00 | DIR_CW},		// 100
-		{QUAD_11,            QUAD_101,      QUAD_11,        QUAD_00 | DIR_CCW},		// 101
+		{QUAD_MIDDLE,            QUAD_CW,       QUAD_CCW,        QUAD_START},				// 00
+		{QUAD_MIDDLE | DIR_CCW,  QUAD_START,       QUAD_CCW,        QUAD_START},				// 01
+		{QUAD_MIDDLE | DIR_CW,   QUAD_CW,       QUAD_START,        QUAD_START},				// 10
+		{QUAD_MIDDLE,            QUAD_MID_CCW,      QUAD_MID_CW,       QUAD_START},				// 11
+		{QUAD_MIDDLE,            QUAD_MIDDLE,       QUAD_MID_CW,       QUAD_START | DIR_CW},		// 100
+		{QUAD_MIDDLE,            QUAD_MID_CCW,      QUAD_MIDDLE,        QUAD_START | DIR_CCW},		// 101
 };
 
 // clang-format on

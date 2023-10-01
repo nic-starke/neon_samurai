@@ -29,4 +29,8 @@ void mf_switch_init(void) {
   }
 }
 
+void mf_switch_update(void) {
+  // switch_x8_update
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

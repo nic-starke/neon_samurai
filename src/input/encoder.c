@@ -9,32 +9,41 @@
 #include "input/encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define VEL_INC (10000)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-static encoder_desc_t* s_desc = NULL;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int encoder_init(encoder_desc_t* desc) {
-  assert(desc);
-  s_desc = desc;
-  return 0;
-}
+void encoder_update(encoder_ctx_t* enc, int16_t direction) {
+  // If not enabled skip
+  if (!enc->enabled)
+    return;
 
-void encoder_update(void) {
-  for (int i = 0; i < s_desc->count; ++i) {
-    encoder_ctx_t* c = &s_desc->sw_ctx[i];
+  // If not rotating skip (nothing to do)
+  if (direction == 0)
+    return;
 
-    // If not enabled skip
-    if (!c->enabled)
-      continue;
+  // Process the rotation of the encoder
+  int32_t velocity = VEL_INC * direction;
+  velocity += enc->curr_val;
 
-    // If not rotating skip (nothing to do)
-    if (s_desc->hw_ctx[i].dir == DIR_ST)
-      continue;
+  if (velocity >= ENC_MAX) {
+    velocity = ENC_MAX;
+  } else if (velocity < ENC_MIN) {
+    velocity = ENC_MIN;
+  }
+
+  enc->prev_val = enc->curr_val;
+  enc->curr_val = velocity;
+
+  // Set the changed flag true if there was a change
+  // NEVER set it false - the user must clear this value if they wish
+  if (enc->curr_val != enc->prev_val) {
+    enc->changed = true;
   }
 }
 

@@ -13,14 +13,16 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-  DIR_ST  = 0x00, // stationary
-  DIR_CW  = 0x10, // clockwise
-  DIR_CCW = 0x20, // counter-clockwise
+  DIR_ST  = 0x00, // Stationary
+  DIR_CW  = 0x10, // Clockwise
+  DIR_CCW = 0x20, // Counter-clockwise
 } dir_e;
 
 typedef struct {
-  dir_e        dir;  // Current direction (public)
-  uint_fast8_t rot;  // State of rotation (private)
+  dir_e   dir;       // (public) Current direction
+  int16_t vel;       // (public) Angular velocity
+  uint8_t rot_state; // (private) State of rotation
+  // uint8_t quad_state; // (private) State of quadrature
 } hw_encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -28,13 +30,10 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /**
- * @brief Update the rotation state of an encoder. First read the
- * states of A and B, then call this function and pass in the values.
- *
- * @param *enc Hardware context.
- * @param ch_a Current value of quadrature channel A.
- * @param ch_b Current value of quadrature channel B.
+ * @brief To be called when new quadrature signals are available for the given
+ * hardware encoder.
  */
-void hw_encoder_update(hw_encoder_ctx_t* enc, uint8_t ch_a, uint8_t ch_b);
+void hw_encoder_update(hw_encoder_ctx_t* ctx, unsigned int ch_a,
+                       unsigned int ch_b);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

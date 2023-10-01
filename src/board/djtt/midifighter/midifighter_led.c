@@ -33,23 +33,20 @@
 
 #define USART_BAUD (4000000)
 
-#define NUM_SR      (MF_NUM_LED_SHIFT_REGISTERS)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // LED frame buffer - intialise to logic high (LEDs are active low)
-static uint8_t frame_buf[NUM_SR];
+volatile uint16_t mf_frame_buf[MF_NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void mf_led_init(void) {
 
   // Set all LEDS off
-  memset(frame_buf, 0xFF, sizeof(frame_buf));
+  memset(mf_frame_buf, 0xFF, sizeof(mf_frame_buf));
 
   // Configure GPIO for LED shift registers
   gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);
@@ -62,8 +59,6 @@ void mf_led_init(void) {
   gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1); // Disable shift registers
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
-
-  // Enable
 
   // Configure USART (SPI) for LED shift registers
   const usart_config_t usart_cfg = {
@@ -79,16 +74,16 @@ void mf_led_init(void) {
   // Once all data is transmitted the transaction complete ISR fires.
   const dma_channel_cfg_t dma_cfg = {
       .repeat_count    = 1,
-      .block_size      = sizeof(frame_buf),
+      .block_size      = sizeof(mf_frame_buf),
       .burst_len       = DMA_CH_BURSTLEN_1BYTE_gc,
       .trig_source     = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // empty usart buffer
       .dbuf_mode       = DMA_DBUFMODE_DISABLED_gc,
       .int_prio        = PRIORITY_LOW,
       .err_prio        = PRIORITY_OFF,
-      .src_ptr         = &frame_buf[0],
+      .src_ptr         = (uintptr_t)&mf_frame_buf[0],
       .src_addr_mode   = DMA_CH_SRCDIR_INC_gc,
       .src_reload_mode = DMA_CH_SRCRELOAD_TRANSACTION_gc,
-      .dst_ptr         = &USART_LED.DATA,
+      .dst_ptr         = (uintptr_t)&USART_LED.DATA,
       .dst_addr_mode   = DMA_CH_DESTDIR_FIXED_gc,
       .dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
   };
@@ -96,15 +91,18 @@ void mf_led_init(void) {
   // Configure the timer to generate pwm on portD pin 0 (channel A)
   TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
   TCD0.CTRLB |= (TC0_CCAEN_bm << (TIMER_CHANNEL_A)); // Enable pwm on pin 0
-  TCD0.CCA = 0; // Brightness set to maximum
-  TCD0.PER = 255;
-  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start
+  TCD0.CCA = 0;                      // Set initial PWM duty to 100% (0/255)
+  TCD0.PER = 255;                    // Maximum value (255)
+  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer
 
-  memset(frame_buf, 0xfa, sizeof(frame_buf)); // Set all LEDS on for testing
-
+  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0); // Enable shift registers
   usart_module_init(&USART_LED, &usart_cfg);
   dma_channel_init(&DMA.CH0, &dma_cfg);
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0); // Enable shift registers
+}
+
+// Enable the DMA to transfer the frame buffer
+void mf_led_transmit(void) {
+  DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
 }
 
 // ISR for DMA transaction completed (after blocks x repeats has been

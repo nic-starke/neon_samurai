@@ -19,18 +19,12 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void main(void) {
-  // Initialise basic system hardware
   int status = system_init();
   EXIT_ON_ERR(status, error);
 
-  // Initialise the board hardware
-  mf_board_init();
-
-  // Initialise the operating system
   status = os_init();
   EXIT_ON_ERR(status, error);
 
-  // Star the os
   os_start(); // Never returns
 
 error:
