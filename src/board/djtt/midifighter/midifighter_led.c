@@ -100,8 +100,19 @@ void mf_led_init(void) {
   dma_channel_init(&DMA.CH0, &dma_cfg);
 }
 
+static int count = 0;
+
 // Enable the DMA to transfer the frame buffer
 void mf_led_transmit(void) {
+  count++;
+  if (count >= 240) {
+    TCD0.CCA += 1;
+    count = 0;
+  }
+
+  if (TCD0.CCA >= 255) {
+    TCD0.CCA = 0;
+  }
   DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
 }
 

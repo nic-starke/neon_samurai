@@ -119,16 +119,17 @@ void mf_encoder_led_update(void) {
     // // Set indicator leds (11 small white leds)
     // unsigned int num_indicators = ctx->curr_val / indicator_interval;
     // leds.state                  = num_indicators;
+    leds.state = ctx->curr_val;
 
     // // Update the frame buffer with the new state of the LEDs
 
-    if (hw_ctx[i].dir == DIR_CW) {
-      leds.indicator_10 = 1;
-    } else if (hw_ctx[i].dir == DIR_CCW) {
-      leds.indicator_0 = 1;
-    } else {
-      leds.detent_blue = 1;
-    }
+    // if (hw_ctx[i].dir == DIR_CW) {
+    //   leds.indicator_10 = 1;
+    // } else if (hw_ctx[i].dir == DIR_CCW) {
+    //   leds.indicator_0 = 1;
+    // } else {
+    //   leds.detent_blue = 1;
+    // }
 
     mf_frame_buf[i] = ~leds.state;
     ctx->changed    = false; // Clear the flag
