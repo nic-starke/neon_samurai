@@ -106,6 +106,7 @@ void mf_encoder_update(void) {
 
 void mf_encoder_led_update(void) {
   bool leds_changed = true;
+
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
     encoder_ctx_t* ctx = &sw_ctx[i];
 
@@ -113,24 +114,38 @@ void mf_encoder_led_update(void) {
       continue; // Skip to next encoder
     }
 
-    // // Calculate the new state of the LEDs based on current value and mode
-    encoder_led_t leds = {0};
+    // Calculate the new state of the LEDs based on current value and mode
+    volatile encoder_led_t leds = {0};
 
-    // // Set indicator leds (11 small white leds)
-    // unsigned int num_indicators = ctx->curr_val / indicator_interval;
-    // leds.state                  = num_indicators;
-    leds.state = ctx->curr_val;
+    // Set indicator leds (11 small white leds)
+    unsigned int num_indicators = (ctx->curr_val / indicator_interval);
 
-    // // Update the frame buffer with the new state of the LEDs
-
-    // if (hw_ctx[i].dir == DIR_CW) {
-    //   leds.indicator_10 = 1;
-    // } else if (hw_ctx[i].dir == DIR_CCW) {
-    //   leds.indicator_0 = 1;
-    // } else {
-    //   leds.detent_blue = 1;
+    // switch (num_indicators) {
+    //   case 11: leds.indicator_10 = 1;
+    //   case 10: leds.indicator_9 = 1;
+    //   case 9: leds.indicator_8 = 1;
+    //   case 8: leds.indicator_7 = 1;
+    //   case 7: leds.indicator_6 = 1;
+    //   case 6: leds.indicator_5 = 1;
+    //   case 5: leds.indicator_4 = 1;
+    //   case 4: leds.indicator_3 = 1;
+    //   case 3: leds.indicator_2 = 1;
+    //   case 2: leds.indicator_1 = 1;
+    //   case 1: leds.indicator_0 = 1;
+    //   default: break;
     // }
 
+    leds.state = 0xFFE0 & ~(0xFFFF >> num_indicators);
+
+    // Update the frame buffer with the new state of the LEDs
+    unsigned int index;
+    if (i == 0) {
+      index = MF_NUM_ENCODERS - 1 - i;
+    } else {
+      index = i - 1;
+    }
+
+    // Disable usart
     mf_frame_buf[i] = ~leds.state;
     ctx->changed    = false; // Clear the flag
     leds_changed    = true;

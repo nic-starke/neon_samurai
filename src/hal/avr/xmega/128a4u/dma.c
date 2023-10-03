@@ -40,7 +40,7 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg) {
     // Source configuration
     ch->SRCADDR0 = (cfg->src_ptr >> 0) & 0xFF;
     ch->SRCADDR1 = (cfg->src_ptr >> 8) & 0xFF;
-    ch->SRCADDR2 = 0; //(cfg->src_ptr >> 16) & 0xFF;
+    // ch->SRCADDR2 = (cfg->src_ptr >> 16) & 0xFF;
 
     ch->ADDRCTRL |= cfg->src_addr_mode;
     ch->ADDRCTRL |= cfg->src_reload_mode;
@@ -48,7 +48,7 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg) {
     // Destination configuration
     ch->DESTADDR0 = (cfg->dst_ptr >> 0) & 0xFF;
     ch->DESTADDR1 = (cfg->dst_ptr >> 8) & 0xFF;
-    ch->DESTADDR2 = 0; //(cfg->dst_ptr >> 16) & 0xFF;
+    // ch->DESTADDR2 = (cfg->dst_ptr >> 16) & 0xFF;
 
     ch->ADDRCTRL |= cfg->dst_addr_mode;
     ch->ADDRCTRL |= cfg->dst_reload_mode;

@@ -186,7 +186,7 @@ void Display_Init(void) {
       .BytesPerTransfer = NUM_LED_SHIFT_REGISTERS, // 1 byte per SR
       .DoubleBufferMode =
           DMA_DBUFMODE_CH01_gc, // Channels 0 and 1 in double buffer mode
-      .DstAddress           = (uint16_t)(uintptr_t)&DISPLAY_USART.DATA,
+      .DstAddress           = ()(uintptr_t)&DISPLAY_USART.DATA,
       .DstAddressingMode    = DMA_CH_DESTDIR_FIXED_gc,
       .DstReloadMode        = DMA_CH_DESTRELOAD_NONE_gc,
       .ErrInterruptPriority = PRIORITY_OFF,

@@ -46,7 +46,7 @@ void usart_module_init(USART_t* usart, const usart_config_t* config) {
     configure_io(usart, config->mode);
 
     // Set to SPI Master
-    usart->CTRLC = (usart->CTRLC & (~USART_CMODE_gm)) | USART_CMODE_MSPI_gc;
+    usart->CTRLC |= USART_CMODE_MSPI_gc;
 
     // Set clock phase
     if ((config->mode == SPI_MODE_CLK_LO_PHA_HI) ||
@@ -63,20 +63,17 @@ void usart_module_init(USART_t* usart, const usart_config_t* config) {
       usart->CTRLC &= ~USART_DORD_bm;
     }
 
-    //  Set selection to 0 (0 == maximum operating speed)
     uint16_t baud = 0;
 
     if (config->baudrate < (F_CPU / 2)) {
       baud = (F_CPU / (config->baudrate * 2)) - 1;
     }
 
-    // USART in Master SPI mode does NOT support double speed (other USART modes
-    // do)
-    usart->BAUDCTRLB = (uint8_t)((~USART_BSCALE_gm) & (baud >> 0x08));
+    usart->BAUDCTRLB = (uint8_t)((~USART_BSCALE_gm) & (baud & 0xF00) >> 8);
     usart->BAUDCTRLA = (uint8_t)(baud);
 
-    // Enable TX
-    usart->CTRLB |= USART_TXEN_bm;
+    // Enable
+    usart->CTRLB |= USART_TXEN_bm | USART_RXEN_bm;
 
   } // ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 }
