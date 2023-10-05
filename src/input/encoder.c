@@ -19,10 +19,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void encoder_update(encoder_ctx_t* enc, int16_t direction) {
-  // If not enabled skip
-  if (!enc->enabled)
-    return;
-
   // If not rotating skip (nothing to do)
   if (direction == 0)
     return;

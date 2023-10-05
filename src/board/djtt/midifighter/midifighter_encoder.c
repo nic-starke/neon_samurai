@@ -30,7 +30,12 @@
 
 typedef union {
   struct {
+    uint16_t detent_blue  : 1;
+    uint16_t detent_red   : 1;
+    uint16_t rgb_blue     : 1;
+    uint16_t rgb_red      : 1;
     uint16_t rgb_green    : 1;
+    uint16_t indicator_11 : 1;
     uint16_t indicator_10 : 1;
     uint16_t indicator_9  : 1;
     uint16_t indicator_8  : 1;
@@ -41,22 +46,46 @@ typedef union {
     uint16_t indicator_3  : 1;
     uint16_t indicator_2  : 1;
     uint16_t indicator_1  : 1;
-    uint16_t indicator_0  : 1;
-    uint16_t detent_blue  : 1;
-    uint16_t detent_red   : 1;
-    uint16_t rgb_blue     : 1;
-    uint16_t rgb_red      : 1;
   };
   uint16_t state;
 } encoder_led_t;
+
+typedef enum {
+  ENCODER_MODE_MIDI_CC,
+  ENCODER_MODE_MIDI_REL_CC,
+  ENCODER_MODE_MIDI_NOTE,
+
+  ENCODER_MODE_DISABLED,
+
+  ENCODER_MODE_NB,
+} mf_encoder_mode_e;
+
+typedef struct {
+  uint8_t channel;
+  uint8_t value; // cc, or note value
+} mf_midi_cfg_t;
+
+typedef struct {
+  uint8_t           detent;
+  mf_encoder_mode_e mode;
+
+  union { // Union of the various mode "configurations"
+    mf_midi_cfg_t midi;
+  } cfg;
+
+} mf_encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static const uint16_t indicator_interval =
     ((ENC_MAX - ENC_MIN) / MF_NUM_INDICATOR_LEDS);
+
 static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
 static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
+static mf_encoder_ctx_t mf_ctx[MF_NUM_ENCODERS];
+
+static bool update_leds = true;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -72,7 +101,8 @@ void mf_encoder_init(void) {
 
   // Set the encoder configurations
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    sw_ctx[i].enabled = true;
+    mf_ctx[i].mode    = ENCODER_MODE_MIDI_CC;
+    mf_ctx[i].detent  = true;
     sw_ctx[i].changed = true;
   }
 }
@@ -80,7 +110,6 @@ void mf_encoder_init(void) {
 void mf_encoder_update(void) {
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
-  // remember - clock ALL shift registers,
   for (size_t i = 0; i < MF_NUM_ENCODER_SWITCHES; i++) {
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
@@ -101,19 +130,21 @@ void mf_encoder_update(void) {
       direction = hw_ctx[i].dir == DIR_CW ? 1 : -1;
     }
 
-    encoder_update(&sw_ctx[i], direction);
+    if (mf_ctx[i].mode != ENCODER_MODE_DISABLED) {
+      encoder_update(&sw_ctx[i], direction);
+    }
   }
 
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 }
 
 void mf_encoder_led_update(void) {
-  bool leds_changed = true;
-
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    encoder_ctx_t* ctx = &sw_ctx[i];
+    if (mf_ctx[i].mode == ENCODER_MODE_DISABLED) {
+      continue;
+    }
 
-    if (!ctx->enabled || !ctx->changed) {
+    if (sw_ctx[i].changed == false) {
       continue; // Skip to next encoder
     }
 
@@ -121,10 +152,15 @@ void mf_encoder_led_update(void) {
     encoder_led_t leds = {0};
 
     // Set indicator leds (11 small white leds)
-    unsigned int num_indicators = (ctx->curr_val / indicator_interval);
+    unsigned int num_indicators = (sw_ctx[i].curr_val / indicator_interval);
     leds.state                  = MASK_INDICATORS & ~(0xFFFF >> num_indicators);
 
-    // // Update the frame buffer with the new state of the LEDs
+    if (mf_ctx[i].detent) {
+      leds.detent_blue = 1;
+      leds.indicator_6 = 0;
+    }
+
+    // Update the frame buffer with the new state of the LEDs
     unsigned int index;
     if (i == 0) {
       index = MF_NUM_ENCODERS - 1 - i;
@@ -132,14 +168,14 @@ void mf_encoder_led_update(void) {
       index = i - 1;
     }
 
-    // Disable usart
     mf_frame_buf[index] = ~leds.state;
-    ctx->changed    = false; // Clear the flag
-    leds_changed    = true;
+    sw_ctx[i].changed   = false; // reset the changed flag
+    update_leds         = true;
   }
 
   // Set the DMA to transmit only if something changed
-  if (leds_changed) {
+  if (update_leds) {
+    update_leds = false;
     mf_led_transmit();
   }
 }
