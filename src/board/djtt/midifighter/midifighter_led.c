@@ -1,7 +1,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
 /*                  https://github.com/nic-starke/muffintwister               */
-/*                   SPDX-License-Identifier: GPL-3.0-or-later                */
+/*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -31,7 +31,7 @@
 #define PIN_SR_LED_LATCH    (4)
 #define PIN_SR_LED_RESET_N  (5)
 
-#define USART_BAUD (6000000)
+#define USART_BAUD (8000000)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -56,9 +56,6 @@ void mf_led_init(void) {
   gpio_dir(&PORT_SR_LED, PIN_SR_LED_LATCH, GPIO_OUTPUT);
   gpio_dir(&PORT_SR_LED, PIN_SR_LED_RESET_N, GPIO_OUTPUT);
 
-  // Reset shift registers
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1); // Disable shift registers
-
   // Configure USART (SPI) for LED shift registers
   const usart_config_t usart_cfg = {
       .baudrate = USART_BAUD,
@@ -66,7 +63,7 @@ void mf_led_init(void) {
       .mode     = SPI_MODE_CLK_LO_PHA_LO,
   };
 
-  // USART_LED.DATA = 0xFF;
+  USART_LED.DATA = 0xFF;
 
   // Configure DMA to transfer display frames to the USARTs 1-byte tx buffer
   // The configuration will transmit 1 byte at a time, for a total of:
@@ -99,18 +96,11 @@ void mf_led_init(void) {
   dma_channel_init(&DMA.CH0, &dma_cfg);
   usart_module_init(&USART_LED, &usart_cfg);
 
+  // Reset shift registers
+  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0); // Enable LEDs
-
-  // for (size_t i = 0; i < MF_NUM_LED_SHIFT_REGISTERS * 8; i++) {
-  //   gpio_set(&PORT_SR_LED, PIN_SR_LED_CLOCK, 0);
-  //   gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
-  //   gpio_set(&PORT_SR_LED, PIN_SR_LED_CLOCK, 1);
-  //   gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
-  // }
-
-  DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
+  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
 }
 
 // Enable the DMA to transfer the frame buffer

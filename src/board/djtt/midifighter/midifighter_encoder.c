@@ -1,7 +1,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
 /*                  https://github.com/nic-starke/muffintwister               */
-/*                   SPDX-License-Identifier: GPL-3.0-or-later                */
+/*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -18,9 +18,11 @@
 
 #define PORT_SR_ENC (PORTC) // IO port for encoder IO shift registers
 
-#define PIN_SR_ENC_LATCH   (0)
+#define PIN_SR_ENC_LATCH   (0) // 74HC595N
 #define PIN_SR_ENC_CLOCK   (1)
 #define PIN_SR_ENC_DATA_IN (2)
+
+#define MASK_INDICATORS (0xFFE0)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -50,6 +52,7 @@ typedef union {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 static const uint16_t indicator_interval =
     ((ENC_MAX - ENC_MIN) / MF_NUM_INDICATOR_LEDS);
 static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
@@ -115,29 +118,13 @@ void mf_encoder_led_update(void) {
     }
 
     // Calculate the new state of the LEDs based on current value and mode
-    volatile encoder_led_t leds = {0};
+    encoder_led_t leds = {0};
 
     // Set indicator leds (11 small white leds)
     unsigned int num_indicators = (ctx->curr_val / indicator_interval);
+    leds.state                  = MASK_INDICATORS & ~(0xFFFF >> num_indicators);
 
-    // switch (num_indicators) {
-    //   case 11: leds.indicator_10 = 1;
-    //   case 10: leds.indicator_9 = 1;
-    //   case 9: leds.indicator_8 = 1;
-    //   case 8: leds.indicator_7 = 1;
-    //   case 7: leds.indicator_6 = 1;
-    //   case 6: leds.indicator_5 = 1;
-    //   case 5: leds.indicator_4 = 1;
-    //   case 4: leds.indicator_3 = 1;
-    //   case 3: leds.indicator_2 = 1;
-    //   case 2: leds.indicator_1 = 1;
-    //   case 1: leds.indicator_0 = 1;
-    //   default: break;
-    // }
-
-    leds.state = 0xFFE0 & ~(0xFFFF >> num_indicators);
-
-    // Update the frame buffer with the new state of the LEDs
+    // // Update the frame buffer with the new state of the LEDs
     unsigned int index;
     if (i == 0) {
       index = MF_NUM_ENCODERS - 1 - i;
@@ -146,7 +133,7 @@ void mf_encoder_led_update(void) {
     }
 
     // Disable usart
-    mf_frame_buf[i] = ~leds.state;
+    mf_frame_buf[index] = ~leds.state;
     ctx->changed    = false; // Clear the flag
     leds_changed    = true;
   }

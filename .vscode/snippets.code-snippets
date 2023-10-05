@@ -6,7 +6,7 @@
         "/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */",
         "/*                  Copyright (c) (2021 - $CURRENT_YEAR) Nicolaus Starke               */",
         "/*                  https://github.com/nic-starke/muffintwister               */",
-        "/*                   SPDX-License-Identifier: GPL-3.0-or-later                */",
+        "/*                         SPDX-License-Identifier: MIT                       */",
         "/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */",
         "${1:#pragma once}",
         "/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */",
