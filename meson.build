@@ -7,7 +7,7 @@ project(
         'c_std=c99',
         'warning_level=1',
         'b_staticpic=false',
-        # 'b_lto=true',
+        'b_lto=true',
     ],
     license: 'GNU v3',
 )
@@ -79,6 +79,7 @@ c_compiler_args = [
     '-Wextra',
     '-Wpedantic',
     # '-Werror',
+    '-Wshadow',
     '-Wstrict-overflow',
     '-Werror-implicit-function-declaration',
     '-Wnull-dereference',

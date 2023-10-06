@@ -63,8 +63,6 @@ void mf_led_init(void) {
       .mode     = SPI_MODE_CLK_LO_PHA_LO,
   };
 
-  USART_LED.DATA = 0xFF;
-
   // Configure DMA to transfer display frames to the USARTs 1-byte tx buffer
   // The configuration will transmit 1 byte at a time, for a total of:
   // 32 bytes (block count) x 32 times (repeat count).
@@ -86,21 +84,24 @@ void mf_led_init(void) {
       .dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
   };
 
-  // Configure the timer to generate pwm on portD pin 0 (channel A)
-  TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
-  TCD0.CTRLB |= (TC0_CCAEN_bm << (TIMER_CHANNEL_A)); // Enable pwm on pin 0
-  TCD0.CCA = 0;                      // Set initial PWM duty to 100% (0/255)
-  TCD0.PER = 255;                    // Maximum value (255)
-  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer
-
-  dma_channel_init(&DMA.CH0, &dma_cfg);
-  usart_module_init(&USART_LED, &usart_cfg);
-
   // Reset shift registers
   gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
+
+  // Configure the timer to generate pwm on portD pin 0 (channel A)
+  TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
+  TCD0.CTRLB |= (TC0_CCAEN_bm << (TIMER_CHANNEL_A)); // Enable pwm on pin 0
+  TCD0.CCA = 0;                      // Set initial PWM duty to 100% (0/255)
+  TCD0.PER = 255;                    // Maximum value (255)
+  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer with F_CPU/256 frequency
+
+  dma_channel_init(&DMA.CH0, &dma_cfg);
+  usart_module_init(&USART_LED, &usart_cfg);
+
+  // Transmit initial LED states
+  mf_led_transmit();
 }
 
 // Enable the DMA to transfer the frame buffer

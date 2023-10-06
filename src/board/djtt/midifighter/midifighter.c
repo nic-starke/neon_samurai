@@ -23,6 +23,7 @@ int board_init(void) {
   mf_switch_init();
   mf_encoder_init();
   mf_led_init();
+  mf_led_transmit();
   return 0;
 }
 

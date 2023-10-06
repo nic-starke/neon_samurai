@@ -6,6 +6,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
+#include <util/atomic.h>
 
 #include "drivers/hw_encoder.h"
 #include "input/encoder.h"
@@ -22,7 +23,9 @@
 #define PIN_SR_ENC_CLOCK   (1)
 #define PIN_SR_ENC_DATA_IN (2)
 
-#define MASK_INDICATORS (0xFFE0)
+#define MASK_INDICATORS        (0xFFE0)
+#define CLEAR_LEFT_INDICATORS  (0x03FF) // Mask to clear mid and left-side leds
+#define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -58,7 +61,33 @@ typedef enum {
   ENCODER_MODE_DISABLED,
 
   ENCODER_MODE_NB,
-} mf_encoder_mode_e;
+} encoder_mode_e;
+
+/**
+ * @brief The LED mode determines how the current value of the encoder should be
+ * displayed via the LEDs.
+ *
+ * LED_MODE_SINGLE  - A single LED will be lit to display the value
+ * LED_MODE_TRI     - Three LEDs will be lit to display the value (the middle
+ * led is brightest) LED_MODE_MULTI   - All leds are light in sequence.
+ * LED_MODE_MULTI_PWM - As above, but the brightness of the final LED will be
+ * adjusted to display intermediate values.
+ *
+ * The modes also apply when the encoder detent mode is enabled.
+ *
+ */
+enum {
+  LED_MODE_SINGLE,
+  LED_MODE_MULTI,
+  LED_MODE_MULTI_PWM,
+
+  LED_MODE_NB,
+};
+
+typedef struct {
+  uint8_t mode   : 7;
+  uint8_t detent : 1;
+} led_mode_t;
 
 typedef struct {
   uint8_t channel;
@@ -66,8 +95,8 @@ typedef struct {
 } mf_midi_cfg_t;
 
 typedef struct {
-  uint8_t           detent;
-  mf_encoder_mode_e mode;
+  led_mode_t     led_mode;
+  encoder_mode_e encoder_mode;
 
   union { // Union of the various mode "configurations"
     mf_midi_cfg_t midi;
@@ -79,7 +108,7 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static const uint16_t indicator_interval =
-    ((ENC_MAX - ENC_MIN) / MF_NUM_INDICATOR_LEDS);
+    ((ENC_MAX - ENC_MIN) / (MF_NUM_INDICATOR_LEDS - 1));
 
 static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
 static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
@@ -101,8 +130,8 @@ void mf_encoder_init(void) {
 
   // Set the encoder configurations
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    mf_ctx[i].mode    = ENCODER_MODE_MIDI_CC;
-    mf_ctx[i].detent  = true;
+    mf_ctx[i].encoder_mode  = ENCODER_MODE_MIDI_CC;
+    mf_ctx[i].led_mode.mode = i % LED_MODE_NB;
     sw_ctx[i].changed = true;
   }
 }
@@ -130,8 +159,9 @@ void mf_encoder_update(void) {
       direction = hw_ctx[i].dir == DIR_CW ? 1 : -1;
     }
 
-    if (mf_ctx[i].mode != ENCODER_MODE_DISABLED) {
+    if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
       encoder_update(&sw_ctx[i], direction);
+      sw_ctx[i].changed = 1;
     }
   }
 
@@ -140,25 +170,54 @@ void mf_encoder_update(void) {
 
 void mf_encoder_led_update(void) {
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    if (mf_ctx[i].mode == ENCODER_MODE_DISABLED) {
+    if (mf_ctx[i].encoder_mode == ENCODER_MODE_DISABLED) {
       continue;
     }
 
     if (sw_ctx[i].changed == false) {
-      continue; // Skip to next encoder
+      continue;
     }
 
     // Calculate the new state of the LEDs based on current value and mode
     encoder_led_t leds = {0};
 
-    // Set indicator leds (11 small white leds)
-    unsigned int num_indicators = (sw_ctx[i].curr_val / indicator_interval);
-    leds.state                  = MASK_INDICATORS & ~(0xFFFF >> num_indicators);
+    switch (mf_ctx[i].led_mode.mode) {
+      case LED_MODE_SINGLE: {
+        unsigned int indicator = (sw_ctx[i].curr_val / indicator_interval);
+        leds.state             = MASK_INDICATORS & (0x8000 >> indicator);
+        break;
+      }
 
-    if (mf_ctx[i].detent) {
-      leds.detent_blue = 1;
-      leds.indicator_6 = 0;
+      case LED_MODE_MULTI: {
+        unsigned int num_indicators =
+            1 + (sw_ctx[i].curr_val / indicator_interval);
+        leds.state = MASK_INDICATORS & ~(0xFFFF >> num_indicators);
+        break;
+      }
+
+      case LED_MODE_MULTI_PWM: {
+        unsigned int num_indicators =
+            1 + (sw_ctx[i].curr_val / indicator_interval);
+        leds.state = MASK_INDICATORS & ~(0xFFFF >> num_indicators);
+        break;
+        break;
+      }
+      default: return;
     }
+
+    // if (mf_ctx[i].detent) {
+    //   if (num_indicators >= 7) {
+    //     leds.detent_blue = 1;
+    //     leds.rgb_blue    = 1;
+    //     leds.state &= CLEAR_LEFT_INDICATORS;
+    //   } else if (num_indicators <= 6) {
+    //     leds.detent_red = 1;
+    //     leds.rgb_red    = 1;
+    //     leds.state &= CLEAR_RIGHT_INDICATORS;
+    //     leds.state ^= 0xF800; // Invert the left side indicator states
+    //   }
+    // } else {
+    // }
 
     // Update the frame buffer with the new state of the LEDs
     unsigned int index;
