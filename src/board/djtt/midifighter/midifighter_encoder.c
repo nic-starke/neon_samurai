@@ -8,7 +8,9 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
+#include "drivers/switch.h"
 #include "drivers/hw_encoder.h"
+
 #include "input/encoder.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
@@ -95,6 +97,7 @@ typedef struct {
 } mf_midi_cfg_t;
 
 typedef struct {
+  uint8_t        update;
   led_mode_t     led_mode;
   encoder_mode_e encoder_mode;
 
@@ -113,8 +116,7 @@ static const uint16_t indicator_interval =
 static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
 static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
 static mf_encoder_ctx_t mf_ctx[MF_NUM_ENCODERS];
-
-static bool update_leds = true;
+static switch_x16_ctx_t switch_ctx;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -130,20 +132,27 @@ void mf_encoder_init(void) {
 
   // Set the encoder configurations
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    mf_ctx[i].encoder_mode  = ENCODER_MODE_MIDI_CC;
-    mf_ctx[i].led_mode.mode = i % LED_MODE_NB;
-    sw_ctx[i].changed = true;
+    mf_ctx[i].encoder_mode = ENCODER_MODE_MIDI_CC;
+    mf_ctx[i].update       = true;
   }
 }
 
+// Scan the hardware state of the midifighter and update local contexts
 void mf_encoder_update(void) {
+
+  // 1. Latch the IO levels into the shift registers
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
+  // 2. Clock the 16 data bits for the encoder switches
+  uint16_t swstates = 0;
   for (size_t i = 0; i < MF_NUM_ENCODER_SWITCHES; i++) {
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
+    uint8_t state = !(bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+    swstates |= (state << i);
   }
 
+  // 3. Clock the 32 bits for the 2x16 quadrature encoder signals
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
     uint8_t ch_a = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
@@ -159,26 +168,43 @@ void mf_encoder_update(void) {
       direction = hw_ctx[i].dir == DIR_CW ? 1 : -1;
     }
 
+    // Capture changes in rotation and process them
     if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
       encoder_update(&sw_ctx[i], direction);
-      sw_ctx[i].changed = 1;
+      sw_ctx[i].curr_val += i;
     }
   }
 
+  // Close the door!
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
+
+  // Execute the debounce and update routine for the switches
+  switch_x16_update(&switch_ctx, swstates);
+  switch_x16_debounce(&switch_ctx);
+
+  // Check if the hardware state of the encoder changed, set the update flag is
+  // true
+  for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
+    if (sw_ctx[i].changed) {
+      mf_ctx[i].update = true;
+    }
+
+    const uint16_t mask = (1u << i);
+
+    if ((switch_ctx.current & mask) != (switch_ctx.previous & mask)) {
+      mf_ctx[i].update = true;
+    }
+  }
 }
 
+// Update the state of the encoder LEDS
 void mf_encoder_led_update(void) {
+  bool update_leds = false;
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    if (mf_ctx[i].encoder_mode == ENCODER_MODE_DISABLED) {
+    if (!mf_ctx[i].update) {
       continue;
     }
 
-    if (sw_ctx[i].changed == false) {
-      continue;
-    }
-
-    // Calculate the new state of the LEDs based on current value and mode
     encoder_led_t leds = {0};
 
     switch (mf_ctx[i].led_mode.mode) {
@@ -205,30 +231,12 @@ void mf_encoder_led_update(void) {
       default: return;
     }
 
-    // if (mf_ctx[i].detent) {
-    //   if (num_indicators >= 7) {
-    //     leds.detent_blue = 1;
-    //     leds.rgb_blue    = 1;
-    //     leds.state &= CLEAR_LEFT_INDICATORS;
-    //   } else if (num_indicators <= 6) {
-    //     leds.detent_red = 1;
-    //     leds.rgb_red    = 1;
-    //     leds.state &= CLEAR_RIGHT_INDICATORS;
-    //     leds.state ^= 0xF800; // Invert the left side indicator states
-    //   }
-    // } else {
-    // }
-
-    // Update the frame buffer with the new state of the LEDs
-    unsigned int index;
-    if (i == 0) {
-      index = MF_NUM_ENCODERS - 1 - i;
-    } else {
-      index = i - 1;
+    if (switch_ctx.current & (1u << i)) {
+      leds.rgb_red = 1;
     }
 
-    mf_frame_buf[index] = ~leds.state;
-    sw_ctx[i].changed   = false; // reset the changed flag
+    mf_frame_buf[0][i]  = ~leds.state;
+    mf_ctx[i].update    = false;
     update_leds         = true;
   }
 

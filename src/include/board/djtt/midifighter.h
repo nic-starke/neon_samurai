@@ -15,10 +15,11 @@
 #define MF_NUM_INDICATOR_LEDS        (11)
 #define MF_NUM_LED_SHIFT_REGISTERS   (32)
 #define MF_NUM_INPUT_SHIFT_REGISTERS (6)
+#define MF_NUM_PWM_FRAMES            (32)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern volatile uint16_t mf_frame_buf[MF_NUM_ENCODERS];
+extern volatile uint16_t mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

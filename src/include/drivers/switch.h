@@ -43,14 +43,16 @@ typedef enum {
 typedef struct {
   uint8_t buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
   uint8_t index;                        // current buffer index
-  uint8_t deb;                          // raw states bitfield (private)
+  uint8_t current;                      // states bitfield (private)
+  uint8_t previous;                     // states bitfield (private)
   uint8_t raw;                          // switch states bitfield (private)
 } switch_x8_ctx_t;
 
 typedef struct {
   uint16_t buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
   uint16_t index;                        // current buffer index
-  uint16_t deb;                          // raw states bitfield (private)
+  uint16_t current;                      // states bitfield (private)
+  uint16_t previous;                     // states bitfield (private)
   uint16_t raw;                          // switch states bitfield (private)
 } switch_x16_ctx_t;
 

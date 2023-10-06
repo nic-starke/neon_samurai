@@ -38,16 +38,18 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// LED frame buffer - intialise to logic high (LEDs are active low)
-volatile uint16_t mf_frame_buf[MF_NUM_ENCODERS];
-;
+// LED frame buffer
+volatile uint16_t mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
+
+// Frame index (the current frame being transmitted)
+volatile uint8_t mf_frame = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void mf_led_init(void) {
 
   // Set all LEDS off
-  memset(mf_frame_buf, 0xFF, sizeof(mf_frame_buf));
+  memset(mf_frame_buf, 0xFFFF, sizeof(mf_frame_buf));
 
   // Configure GPIO for LED shift registers
   gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);
@@ -74,11 +76,11 @@ void mf_led_init(void) {
       .burst_len       = DMA_CH_BURSTLEN_1BYTE_gc,
       .trig_source     = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // empty usart buffer
       .dbuf_mode       = DMA_DBUFMODE_DISABLED_gc,
-      .int_prio        = PRIORITY_LOW,
+      .int_prio        = PRIORITY_OFF,
       .err_prio        = PRIORITY_OFF,
-      .src_ptr         = &mf_frame_buf[0],
+      .src_ptr         = &mf_frame_buf[0][0],
       .src_addr_mode   = DMA_CH_SRCDIR_INC_gc,
-      .src_reload_mode = DMA_CH_SRCRELOAD_TRANSACTION_gc,
+      .src_reload_mode = DMA_CH_SRCRELOAD_NONE_gc,
       .dst_ptr         = &USART_LED.DATA,
       .dst_addr_mode   = DMA_CH_DESTDIR_FIXED_gc,
       .dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
@@ -90,34 +92,39 @@ void mf_led_init(void) {
   gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
 
-  // Configure the timer to generate pwm on portD pin 0 (channel A)
+  // Configure the timer to generate interrupts on channel A
   TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
-  TCD0.CTRLB |= (TC0_CCAEN_bm << (TIMER_CHANNEL_A)); // Enable pwm on pin 0
-  TCD0.CCA = 0;                      // Set initial PWM duty to 100% (0/255)
-  TCD0.PER = 255;                    // Maximum value (255)
-  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer with F_CPU/256 frequency
+  // Timer period (lower numbers == more interrupts == less flicker)
+  TCD0.PER = 64;
+  TCD0.CCA = 0;
+  TCD0.INTCTRLB |= (PRIORITY_LOW << (TIMER_CHANNEL_A << 1));
 
   dma_channel_init(&DMA.CH0, &dma_cfg);
   usart_module_init(&USART_LED, &usart_cfg);
-
-  // Transmit initial LED states
-  mf_led_transmit();
+  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc;
 }
 
 // Enable the DMA to transfer the frame buffer
 void mf_led_transmit(void) {
-  DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
+  // DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
 }
 
-// ISR for DMA transaction completed (after blocks x repeats has been
-// transferred)
-ISR(DMA_CH0_vect) {
-  // Toggle the SR latch
+// Software PWM...
+ISR(TCD0_CCA_vect) {
   gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
 
-  // Clear the interrupt status for channel 0 (set bit:0 to 1)
-  DMA.INTFLAGS |= 0x01;
+  uintptr_t ptr = &mf_frame_buf[mf_frame][0];
+
+  if (++mf_frame >= MF_NUM_PWM_FRAMES) {
+    mf_frame = 0;
+  }
+
+  ATOMIC_BLOCK(ATOMIC_FORCEON) {
+    DMA.CH0.SRCADDR0 = (ptr >> 0) & 0xFF;
+    DMA.CH0.SRCADDR1 = (ptr >> 8) & 0xFF;
+    DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
