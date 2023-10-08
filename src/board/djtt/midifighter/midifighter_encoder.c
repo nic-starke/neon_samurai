@@ -33,6 +33,7 @@
 #define RIGHT_INDICATORS_MASK  (0x03E0)
 #define CLEAR_LEFT_INDICATORS  (0x03FF) // Mask to clear mid and left-side leds
 #define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
+#define MASK_PWM_INDICATORS    (0xFBE0)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -123,6 +124,8 @@ static switch_x16_ctx_t switch_ctx;
 static switch_x8_ctx_t  side_switch_ctx;
 
 static uint8_t global_brightness = MF_MAX_BRIGHTNESS;
+static const uint16_t led_interval      = ENC_MAX / 11;
+static const uint8_t  deadzone          = led_interval;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -143,7 +146,7 @@ void mf_encoder_init(void) {
     mf_ctx[i].led_mode.indicator = (i % INDICATOR_MODE_NB);
     mf_ctx[i].rgb_state.value    = MF_RGB_WHITE;
     mf_ctx[i].detent             = true;
-    sw_ctx[i].curr_val           = ENC_MAX / 2;
+    sw_ctx[i].curr_val           = ENC_MID;
   }
 }
 
@@ -209,70 +212,82 @@ void mf_encoder_update(void) {
 
 // Update the state of the encoder LEDS
 void mf_encoder_led_update(void) {
-  static const uint16_t led_interval = ENC_MAX / 11;
-  bool update_leds = false;
+  float         ind_pwm;    // Partial encoder positions (e.g position = 5.7)
+  unsigned int  ind_norm;   // Integer encoder positions (e.g position = 5)
+  unsigned int  pwm_frames; // Number of PWM frames for partial brightness
+  uint16_t      pwm_mask;   // Mask of the led that requires PWM
+  encoder_led_t leds;       // LED states
+  bool update_leds = false; // Update flag, only true if encoder state changed
+
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
+
+    // It is not necessary to update the encoder LEDs if its state has not
+    // changed since the previous update.
     if (!mf_ctx[i].update) {
       continue;
     }
 
-    encoder_led_t leds; // Create a new display frame (set of LED states)
-    leds.state = 0;     // Start with all LEDS off
+    // Clear all LEDs
+    leds.state = 0;
 
-    float        led_partial; // Partial encoder positions (e.g position = 5.7)
-    unsigned int led_index;   // Integer encoder positions (e.g position = 5)
-
+    // Determine the position of the indicator led and which led requires
+    // partial brightness
     if (sw_ctx[i].curr_val <= led_interval) {
-      led_index = 0;
-      led_partial = 0;
+      ind_pwm  = 0;
+      ind_norm = 0;
+    } else if (sw_ctx[i].curr_val == ENC_MAX) {
+      ind_pwm  = MF_NUM_INDICATOR_LEDS;
+      ind_norm = MF_NUM_INDICATOR_LEDS;
     } else {
-      led_partial = ((float)sw_ctx[i].curr_val / led_interval);
-      led_index   = (int)led_partial;
+      ind_pwm  = ((float)sw_ctx[i].curr_val / led_interval);
+      ind_norm = (unsigned int)roundf(ind_pwm);
     }
 
-    // Variables for calculating PWM frames for PWM led modes
-    unsigned int pwm_frames;
-    unsigned int pwm_indicator;
-    uint16_t     pwm_mask;
-
+    // Generate the LED states based on the display mode
     switch (mf_ctx[i].led_mode.indicator) {
       case INDICATOR_MODE_SINGLE: {
         // Set the corresponding bit for the indicator led
-        leds.state = MASK_INDICATORS & (0x8000 >> led_index - 1);
+        leds.state = MASK_INDICATORS & (0x8000 >> ind_norm - 1);
+
+        mf_ctx[i].rgb_state.value = 0;
+        mf_ctx[i].rgb_state.red   = MF_RGB_MAX_VAL;
         break;
       }
 
       case INDICATOR_MODE_MULTI: {
+        mf_ctx[i].rgb_state.value = 0;
+        mf_ctx[i].rgb_state.blue  = MF_RGB_MAX_VAL;
         if (mf_ctx[i].detent) {
-          if (led_index < 6) {
-            leds.state |= (LEFT_INDICATORS_MASK >> (led_index - 1)) &
-                          LEFT_INDICATORS_MASK;
-          } else if (led_index > 6) {
-            leds.state |= (LEFT_INDICATORS_MASK >> (led_index - 5)) &
+          if (ind_norm < 6) {
+            leds.state |=
+                (LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
+          } else if (ind_norm > 6) {
+            leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
                           RIGHT_INDICATORS_MASK;
           }
         } else {
           // Default mode - set the indicator leds upto "led_index"
-          leds.state = MASK_INDICATORS & ~(0xFFFF >> led_index);
+          leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
         }
         break;
       }
 
       case INDICATOR_MODE_MULTI_PWM: {
-        unsigned int pwm_frames = (led_partial - led_index) * MF_NUM_PWM_FRAMES;
-        unsigned int pwm_indicator = (int)ceilf(led_partial) - 1;
-        uint16_t     pwm_mask      = (0x8000 >> pwm_indicator);
+        mf_ctx[i].rgb_state.value = 0;
+        mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
+        float diff                = ind_pwm - (floorf(ind_pwm));
+        pwm_frames                = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
         if (mf_ctx[i].detent) {
-          if (led_index < 6) {
-            leds.state |= (LEFT_INDICATORS_MASK >> (led_index - 1)) &
-                          LEFT_INDICATORS_MASK;
-          } else if (led_index > 6) {
-            leds.state |= (LEFT_INDICATORS_MASK >> (led_index - 5)) &
+          if (ind_norm < 6) {
+            leds.state |=
+                (LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
+          } else if (ind_norm > 6) {
+            leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
                           RIGHT_INDICATORS_MASK;
           }
         } else {
           // Default mode - set the indicator leds upto "led_index"
-          leds.state = MASK_INDICATORS & ~(0xFFFF >> led_index);
+          leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
         }
         break;
       }
@@ -282,7 +297,7 @@ void mf_encoder_led_update(void) {
 
     // When detent mode is enabled the detent LEDs must be displayed, and
     // indicator LED #6 at the 12 o'clock position must be turned off.
-    if (mf_ctx[i].detent && (led_index == 6)) {
+    if (mf_ctx[i].detent && (ind_norm == 6)) {
       leds.indicator_6 = 0;
       leds.detent_blue = 1;
     }
@@ -290,10 +305,29 @@ void mf_encoder_led_update(void) {
     // Handle PWM for RGB colours and MULTI_PWM mode
     for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
       if (mf_ctx[i].led_mode.indicator == INDICATOR_MODE_MULTI_PWM) {
-        if (p <= pwm_frames) {
-          leds.state |= pwm_mask;
+        if (mf_ctx[i].detent) {
+          if (ind_norm < 6) {
+            if (p < pwm_frames) {
+              leds.state &=
+                  ~((0x8000 >> (int)ind_pwm - 1) & MASK_PWM_INDICATORS);
+            } else {
+              leds.state |=
+                  ((0x8000 >> (int)ind_pwm - 1) & MASK_PWM_INDICATORS);
+            }
+
+          } else if (ind_norm > 6) {
+            if (p < pwm_frames) {
+              leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+            } else {
+              leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+            }
+          }
         } else {
-          leds.state &= ~pwm_mask;
+          if (p < pwm_frames) {
+            leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+          } else {
+            leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+          }
         }
       }
 
