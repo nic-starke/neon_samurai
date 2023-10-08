@@ -113,9 +113,6 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static const uint16_t indicator_interval =
-    ((ENC_MAX - ENC_MIN) / (MF_NUM_INDICATOR_LEDS - 1));
-
 static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
 static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
 static mf_encoder_ctx_t mf_ctx[MF_NUM_ENCODERS];
@@ -142,6 +139,7 @@ void mf_encoder_init(void) {
     mf_ctx[i].led_mode.indicator = (i % INDICATOR_MODE_NB);
     mf_ctx[i].rgb_state.value    = MF_RGB_WHITE;
     mf_ctx[i].detent             = true;
+    sw_ctx[i].curr_val           = ENC_MAX / 2;
   }
 }
 
@@ -207,6 +205,7 @@ void mf_encoder_update(void) {
 
 // Update the state of the encoder LEDS
 void mf_encoder_led_update(void) {
+  static const uint16_t led_interval = ENC_MAX / 11;
   bool update_leds = false;
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
     if (!mf_ctx[i].update) {
@@ -216,34 +215,58 @@ void mf_encoder_led_update(void) {
     encoder_led_t leds;
     leds.state = 0;
 
-    // Calculate which indicators need to be on
-    float num_indicators = (sw_ctx[i].curr_val / indicator_interval);
-    int   int_indicators = (int)num_indicators;
+    // // Calculate which indicators need to be on
+    // if (sw_ctx[i].curr_val < indicator_interval)
+    //   float fposition = ((float)sw_ctx[i].curr_val / indicator_interval);
+    // int position = (int)fposition;
 
-    // Set indicators
+    unsigned int led_index;
+    if (sw_ctx[i].curr_val <= led_interval) {
+      led_index = 0;
+    } else {
+      led_index = (sw_ctx[i].curr_val / led_interval);
+    }
+
     switch (mf_ctx[i].led_mode.indicator) {
       case INDICATOR_MODE_SINGLE: {
-        leds.state = MASK_INDICATORS & (0x8000 >> int_indicators);
+        // Set the corresponding bit for the indicator led
+        leds.state = MASK_INDICATORS & (0x8000 >> led_index - 1);
         break;
       }
 
       case INDICATOR_MODE_MULTI:
       case INDICATOR_MODE_MULTI_PWM: {
-        int_indicators += 1;
-        leds.state = MASK_INDICATORS & ~(0xFFFF >> int_indicators);
         if (mf_ctx[i].detent) {
-          leds.detent_blue = 1;
-          if (int_indicators > 5) {
-            leds.state &= CLEAR_LEFT_INDICATORS;
-          } else if (int_indicators < 7) {
-            leds.state ^= 0xFC00;
+          if (led_index < 6) {
+            // If the encoder position is on the left side then set the leds
+            // upto the middle encoder, but invert the states so it appears as
+            // if the leds in reverse direction. Then clear any that were set on
+            // the right side
+            leds.state = MASK_INDICATORS & ~(0xFFFF >> led_index - 1);
+            leds.state ^= 0xF800;
             leds.state &= CLEAR_RIGHT_INDICATORS;
+          } else if (led_index > 6) {
+            // If the encoder position is on the right side then just set the
+            // leds as necessary but then clear any that were set of the left
+            // side.
+            leds.state = MASK_INDICATORS & ~(0xFFFF >> led_index);
+            leds.state &= CLEAR_LEFT_INDICATORS;
           }
-          break;
+        } else {
+          // Default mode - set the indicator leds upto "led_index"
+          leds.state = MASK_INDICATORS & ~(0xFFFF >> led_index);
         }
-
-        default: return;
+        break;
       }
+
+      default: return;
+    }
+
+    // When detent mode is enabled the detent LEDs must be displayed, and
+    // indicator LED #6 at the 12 o'clock position must be turned off.
+    if (mf_ctx[i].detent && (led_index == 6)) {
+      leds.indicator_6 = 0;
+      leds.detent_blue = 1;
     }
 
     // Handle PWM for RGB colours
