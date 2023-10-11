@@ -19,11 +19,10 @@ typedef enum {
 } dir_e;
 
 typedef struct {
-  dir_e   dir;       // (public) Current direction
-  i16 vel;       // (public) Angular velocity
-  u8 rot_state; // (private) State of rotation
-  // u8 quad_state; // (private) State of quadrature
-} hw_encoder_ctx_t;
+  dir_e dir;       // (public) Current direction
+  i16   vel;       // (public) Angular velocity
+  u8    rot_state; // (private) State of rotation
+} quad_encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -33,7 +32,7 @@ typedef struct {
  * @brief To be called when new quadrature signals are available for the given
  * hardware encoder.
  */
-void hw_encoder_update(hw_encoder_ctx_t* ctx, unsigned int ch_a,
-                       unsigned int ch_b);
+void quad_encoder_update(quad_encoder_ctx_t* ctx, unsigned int ch_a,
+                         unsigned int ch_b);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

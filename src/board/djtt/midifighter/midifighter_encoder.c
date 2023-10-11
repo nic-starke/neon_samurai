@@ -9,15 +9,16 @@
 #include <util/atomic.h>
 #include <math.h>
 
-#include "drivers/switch.h"
-#include "drivers/hw_encoder.h"
+#include "drivers/gpio_switch.h"
+#include "drivers/quad_encoder.h"
 
-#include "input/encoder.h"
-#include "display/rgb.h"
+#include "application/io/encoder.h"
+#include "application/display/rgb.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 
 #include "board/djtt/midifighter.h"
+#include "board/djtt/midifighter_encoder.h"
 #include "board/djtt/midifighter_colours.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -81,11 +82,11 @@ typedef struct {
 } mf_midi_cfg_t;
 
 typedef struct {
-  u8        update;
-  led_mode_t     led_mode;
-  encoder_mode_e encoder_mode;
-  rgb_15_bit_t   rgb_state;
-  u8        detent;
+  u8                update;
+  indicator_style_e led_mode;
+  encoder_mode_e    encoder_mode;
+  rgb_15_t          rgb_state;
+  u8                detent;
 
   union { // Union of the various mode "configurations"
     mf_midi_cfg_t midi;
@@ -96,13 +97,13 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
-static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
-static mf_encoder_ctx_t mf_ctx[MF_NUM_ENCODERS];
-static switch_x16_ctx_t switch_ctx;
+static quad_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
+static encoder_ctx_t      sw_ctx[MF_NUM_ENCODERS];
+static mf_encoder_ctx_t   mf_ctx[MF_NUM_ENCODERS];
+static switch_x16_ctx_t   switch_ctx;
 
-static const u16 led_interval      = ENC_MAX / 11;
-static const u8  deadzone          = led_interval;
+static const u16 led_interval = ENC_MAX / 11;
+static const u8  deadzone     = led_interval;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -120,7 +121,7 @@ void mf_encoder_init(void) {
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
     mf_ctx[i].encoder_mode       = ENCODER_MODE_MIDI_CC;
     mf_ctx[i].update             = true;
-    mf_ctx[i].led_mode.indicator = (i % INDICATOR_MODE_NB);
+    mf_ctx[i].led_mode           = (i % INDICATOR_MODE_NB);
     mf_ctx[i].rgb_state.value    = MF_RGB_WHITE;
     mf_ctx[i].detent             = true;
     sw_ctx[i].curr_val           = ENC_MID;
@@ -151,7 +152,7 @@ void mf_encoder_update(void) {
     u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
-    hw_encoder_update(&hw_ctx[i], ch_a, ch_b);
+    quad_encoder_update(&hw_ctx[i], ch_a, ch_b);
 
     i16 direction = 0;
     if (hw_ctx[i].dir != DIR_ST) {
@@ -189,10 +190,10 @@ void mf_encoder_update(void) {
 
 // Update the state of the encoder LEDS
 void mf_encoder_led_update(void) {
-  f32         ind_pwm;    // Partial encoder positions (e.g position = 5.7)
+  f32           ind_pwm;    // Partial encoder positions (e.g position = 5.7)
   unsigned int  ind_norm;   // Integer encoder positions (e.g position = 5)
   unsigned int  pwm_frames; // Number of PWM frames for partial brightness
-  u16      pwm_mask;   // Mask of the led that requires PWM
+  u16           pwm_mask;   // Mask of the led that requires PWM
   encoder_led_t leds;       // LED states
   bool update_leds = false; // Update flag, only true if encoder state changed
 
@@ -221,7 +222,7 @@ void mf_encoder_led_update(void) {
     }
 
     // Generate the LED states based on the display mode
-    switch (mf_ctx[i].led_mode.indicator) {
+    switch (mf_ctx[i].led_mode) {
       case INDICATOR_MODE_SINGLE: {
         // Set the corresponding bit for the indicator led
         leds.state = MASK_INDICATORS & (0x8000 >> ind_norm - 1);
@@ -252,7 +253,7 @@ void mf_encoder_led_update(void) {
       case INDICATOR_MODE_MULTI_PWM: {
         mf_ctx[i].rgb_state.value = 0;
         mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
-        f32 diff                = ind_pwm - (floorf(ind_pwm));
+        f32 diff                  = ind_pwm - (floorf(ind_pwm));
         pwm_frames                = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
         if (mf_ctx[i].detent) {
           if (ind_norm < 6) {
@@ -281,7 +282,7 @@ void mf_encoder_led_update(void) {
 
     // Handle PWM for RGB colours and MULTI_PWM mode
     for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
-      if (mf_ctx[i].led_mode.indicator == INDICATOR_MODE_MULTI_PWM) {
+      if (mf_ctx[i].led_mode == INDICATOR_MODE_MULTI_PWM) {
         if (mf_ctx[i].detent) {
           if (ind_norm < 6) {
             if (p < pwm_frames) {

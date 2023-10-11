@@ -19,6 +19,8 @@ endforeach
 project_src += files(
     'main.c',
 
+    'application/io/encoder.c',
+    
     'board/board.c',
 
     'hal/avr/xmega/128a4u/dma.c',
@@ -26,12 +28,9 @@ project_src += files(
     'hal/avr/xmega/128a4u/usart.c',
     'hal/avr/xmega/128a4u/timer.c',
 
-    'drivers/hw_encoder.c',
-    'drivers/switch.c',
-
-    'input/encoder.c',
+    'drivers/quad_encoder.c',
+    'drivers/gpio_switch.c',
     
     'system/system.c',
     'system/os.c',
-
 )

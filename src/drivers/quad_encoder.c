@@ -6,8 +6,8 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/system.h"
-#include "drivers/hw_encoder.h"
+#include "system/types.h"
+#include "drivers/quad_encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -44,8 +44,8 @@ static const quad_state_e quad_states[QUAD_NB][4] = {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void hw_encoder_update(hw_encoder_ctx_t* ctx, unsigned int ch_a,
-                       unsigned int ch_b) {
+void quad_encoder_update(quad_encoder_ctx_t* ctx, unsigned int ch_a,
+                         unsigned int ch_b) {
   unsigned int val = (ch_b << 1) | ch_a;
   ctx->rot_state   = quad_states[ctx->rot_state & 0x0F][val];
   ctx->dir         = ctx->rot_state & 0x30;
