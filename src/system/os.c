@@ -33,7 +33,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static uint8_t sys_stack[STACK_SIZE_SYS];
+static u8 sys_stack[STACK_SIZE_SYS];
 
 static os_thread_t sys_thread = {
     .next       = NULL,
@@ -45,8 +45,8 @@ static os_thread_t sys_thread = {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int os_init(void) {
-  static uint8_t idle_stack[STACK_SIZE_IDLE];
-  int8_t         status = atomOSInit(&idle_stack[0], STACK_SIZE_IDLE, true);
+  static u8 idle_stack[STACK_SIZE_IDLE];
+  i8        status = atomOSInit(&idle_stack[0], STACK_SIZE_IDLE, true);
 
   if (status != ATOM_OK) {
     return status;
@@ -62,7 +62,7 @@ void os_start(void) {
   atomOSStart();
 }
 
-int os_thread_start(os_thread_t* t, void (*entry)(uint32_t), uint32_t arg) {
+int os_thread_start(os_thread_t* t, void (*entry)(u32), u32 arg) {
   assert(t);
   assert(entry);
 

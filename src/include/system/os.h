@@ -21,7 +21,7 @@ typedef ATOM_TCB   os_tcb_t;
 struct os_thread_s;
 
 typedef struct {
-  uint8_t* const      stack;      // Pointer to thread stack (user-allocated)
+  u8* const      stack;      // Pointer to thread stack (user-allocated)
   const unsigned int  stack_size; // Stack size in bytes
   unsigned int        priority;   // Current thread priority
   os_tcb_t            tcb;        // (private) Thread control block.
@@ -51,7 +51,7 @@ void os_start(void);
  * @param arg Data to pass to the entry function.
  * @return int 0 = success, anything else = failure.
  */
-int os_thread_start(os_thread_t* t, void (*entry)(uint32_t), uint32_t arg);
+int os_thread_start(os_thread_t* t, void (*entry)(u32), u32 arg);
 
 int os_mutex_init(os_mutex_t* mutex);
 

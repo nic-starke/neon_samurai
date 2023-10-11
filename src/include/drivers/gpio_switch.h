@@ -41,30 +41,30 @@ typedef enum {
 } switch_state_e;
 
 typedef struct {
-  uint8_t buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
-  uint8_t index;                        // current buffer index
-  uint8_t current;                      // states bitfield (private)
-  uint8_t previous;                     // states bitfield (private)
-  uint8_t raw;                          // switch states bitfield (private)
+  u8 buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
+  u8 index;                        // current buffer index
+  u8 current;                      // states bitfield (private)
+  u8 previous;                     // states bitfield (private)
+  u8 raw;                          // switch states bitfield (private)
 } switch_x8_ctx_t;
 
 typedef struct {
-  uint16_t buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
-  uint16_t index;                        // current buffer index
-  uint16_t current;                      // states bitfield (private)
-  uint16_t previous;                     // states bitfield (private)
-  uint16_t raw;                          // switch states bitfield (private)
+  u16 buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
+  u16 index;                        // current buffer index
+  u16 current;                      // states bitfield (private)
+  u16 previous;                     // states bitfield (private)
+  u16 raw;                          // switch states bitfield (private)
 } switch_x16_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Get the state of a single switch
-switch_state_e switch_x16_state(switch_x16_ctx_t* ctx, uint16_t index);
-switch_state_e switch_x8_state(switch_x8_ctx_t* ctx, uint8_t index);
+switch_state_e switch_x16_state(switch_x16_ctx_t* ctx, u16 index);
+switch_state_e switch_x8_state(switch_x8_ctx_t* ctx, u8 index);
 
 // Get the state of all switches as a bitfield
-uint16_t switch_x16_states(switch_x16_ctx_t* ctx);
-uint8_t  switch_x8_states(switch_x8_ctx_t* ctx);
+u16 switch_x16_states(switch_x16_ctx_t* ctx);
+u8  switch_x8_states(switch_x8_ctx_t* ctx);
 
 /**
  * @brief Run the debounce algorithm for all switches.
@@ -79,7 +79,7 @@ void switch_x16_debounce(switch_x16_ctx_t* ctx);
  * the switch GPIO and retrieved their raw states. As an example:
  *
  * 1. Create a bitfield to store the switch states, set to 0
- * uint8_t state_bitfield = 0x00;
+ * u8 state_bitfield = 0x00;
  *
  * 2. Retrieve the state of each switch, set the corresponding bit in the
  * bitfield for (int i = 0; i < 8; ++i) { state_bitfield |=
@@ -92,8 +92,8 @@ void switch_x16_debounce(switch_x16_ctx_t* ctx);
  * @param ctx Switch context.
  * @param states Bitfield of switch states.
  */
-void switch_x16_update(switch_x16_ctx_t* ctx, uint16_t states);
-void switch_x8_update(switch_x8_ctx_t* ctx, uint8_t states);
+void switch_x16_update(switch_x16_ctx_t* ctx, u16 states);
+void switch_x8_update(switch_x8_ctx_t* ctx, u8 states);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

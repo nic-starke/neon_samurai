@@ -17,20 +17,20 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Get the state of a single switch
-switch_state_e switch_x16_state(switch_x16_ctx_t* ctx, uint16_t index) {
+switch_state_e switch_x16_state(switch_x16_ctx_t* ctx, u16 index) {
   return (ctx->current & (1u << index));
 }
 
-switch_state_e switch_x8_state(switch_x8_ctx_t* ctx, uint8_t index) {
+switch_state_e switch_x8_state(switch_x8_ctx_t* ctx, u8 index) {
   return (ctx->current & (1u << index));
 }
 
 // Get the state of all switches as a bitfield
-uint16_t switch_x16_states(switch_x16_ctx_t* ctx) {
+u16 switch_x16_states(switch_x16_ctx_t* ctx) {
   return (ctx->current);
 }
 
-uint8_t switch_x8_states(switch_x8_ctx_t* ctx) {
+u8 switch_x8_states(switch_x8_ctx_t* ctx) {
   return (ctx->current);
 }
 
@@ -38,7 +38,7 @@ uint8_t switch_x8_states(switch_x8_ctx_t* ctx) {
 void switch_x8_debounce(switch_x8_ctx_t* ctx) {
   // Store the current state
   ctx->previous     = ctx->current;
-  uint8_t new_state = 0xFF;
+  u8 new_state = 0xFF;
 
   // AND the new state with EVERY debounce sample, if there was a glitch
   // then the state of the switch will revert to 0.
@@ -57,7 +57,7 @@ void switch_x8_debounce(switch_x8_ctx_t* ctx) {
 void switch_x16_debounce(switch_x16_ctx_t* ctx) {
   // Store the current state
   ctx->previous      = ctx->current;
-  uint16_t new_state = 0xFFFF;
+  u16 new_state = 0xFFFF;
 
   // AND the new state with EVERY debounce sample, if there was a glitch
   // then the state of the switch will revert to 0.
@@ -72,7 +72,7 @@ void switch_x16_debounce(switch_x16_ctx_t* ctx) {
   ctx->raw = new_state ^ ctx->previous;
 }
 
-void switch_x8_update(switch_x8_ctx_t* ctx, uint8_t gpio_state) {
+void switch_x8_update(switch_x8_ctx_t* ctx, u8 gpio_state) {
   // Update the gpio states
   ctx->buf[ctx->index] = gpio_state;
 
@@ -80,7 +80,7 @@ void switch_x8_update(switch_x8_ctx_t* ctx, uint8_t gpio_state) {
   ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
 }
 
-void switch_x16_update(switch_x16_ctx_t* ctx, uint16_t gpio_state) {
+void switch_x16_update(switch_x16_ctx_t* ctx, u16 gpio_state) {
   // Update the gpio states
   ctx->buf[ctx->index] = gpio_state;
 
@@ -96,10 +96,10 @@ void switch_x16_update(switch_x16_ctx_t* ctx, uint16_t gpio_state) {
  * @brief Check if a side switch was pressed.
  * This can check all side switches, or a specific set by using a mask.
  * @param Mask - Can be used to mask which side switch to check
- * @return uint8_t A bitfield of the current side switch states. Note - there
+ * @return u8 A bitfield of the current side switch states. Note - there
  * are only 6 side switches.
  */
-uint8_t SideSwitchWasPressed(uint8_t Mask) {
+u8 SideSwitchWasPressed(u8 Mask) {
   return (mSideSwitchStates.raw_state & mSideSwitchStates.debounces_states) &
          Mask;
 }
@@ -108,10 +108,10 @@ uint8_t SideSwitchWasPressed(uint8_t Mask) {
  * @brief Check if a side switch was released.
  * This can check all side switches, or a specific set by using a mask.
  * @param Mask - Can be used to mask which side switch to check
- * @return uint8_t A bitfield of the current side switch states. Note - there
+ * @return u8 A bitfield of the current side switch states. Note - there
  * are only 6 side switches.
  */
-uint8_t SideSwitchWasReleased(uint8_t Mask) {
+u8 SideSwitchWasReleased(u8 Mask) {
   return (mSideSwitchStates.raw_state & (~mSideSwitchStates.debounces_states)) &
          Mask;
 }

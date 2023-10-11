@@ -41,10 +41,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // LED frame buffer
-volatile uint16_t mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
+volatile u16 mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 
 // Frame index (the current frame being transmitted)
-volatile uint8_t mf_frame = 0;
+volatile u8 mf_frame = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -120,7 +120,7 @@ void mf_led_transmit(void) {
   // DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
 }
 
-void mf_led_set_max_brightness(uint16_t brightness) {
+void mf_led_set_max_brightness(u16 brightness) {
   // TCD0.CCA = brightness;
 }
 
@@ -128,7 +128,7 @@ ISR(TCD0_CCB_vect) {
   gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
   gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
 
-  uintptr_t ptr = &mf_frame_buf[mf_frame][0];
+  uptr ptr = &mf_frame_buf[mf_frame][0];
 
   if (++mf_frame >= MF_NUM_PWM_FRAMES) {
     mf_frame = 0;

@@ -20,17 +20,17 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void gpio_mode(PORT_t* port, uint8_t pin, PORT_OPC_t mode) {
+void gpio_mode(PORT_t* port, u8 pin, PORT_OPC_t mode) {
   assert(port);
 
   // Get pointer to pin register
-  volatile uint8_t* ctrl = (&port->PIN0CTRL + PIN_MASK(pin));
+  volatile u8* ctrl = (&port->PIN0CTRL + PIN_MASK(pin));
 
   *ctrl &= ~PORT_ISC_gm; // Clear the mode
   *ctrl |= mode;         // Set the mode
 }
 
-void gpio_dir(PORT_t* port, uint8_t pin, gpio_dir_e dir) {
+void gpio_dir(PORT_t* port, u8 pin, gpio_dir_e dir) {
   assert(port);
 
   if (dir == GPIO_INPUT) {
@@ -40,7 +40,7 @@ void gpio_dir(PORT_t* port, uint8_t pin, gpio_dir_e dir) {
   }
 }
 
-void gpio_set(PORT_t* port, uint8_t pin, uint8_t state) {
+void gpio_set(PORT_t* port, u8 pin, u8 state) {
   assert(port);
 
   if (state) {
@@ -50,7 +50,7 @@ void gpio_set(PORT_t* port, uint8_t pin, uint8_t state) {
   }
 }
 
-uint8_t gpio_get(PORT_t* port, uint8_t pin) {
+u8 gpio_get(PORT_t* port, u8 pin) {
   assert(port);
   return port->IN & PIN_MASK(pin);
 }

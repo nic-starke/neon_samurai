@@ -43,15 +43,15 @@ typedef enum {
 } timer_mode_e;
 
 typedef struct {
-  uint16_t freq; // Desired PWM frequency
-  uint8_t  duty; // Desired duty cycle percentage (0 to 100)
+  u16 freq; // Desired PWM frequency
+  u8  duty; // Desired duty cycle percentage (0 to 100)
 } pwm_config_t;
 
 typedef struct {
   volatile TC0_t*    timer;
   timer_peripheral_e periph;
   timer_channel_e             channel;
-  uint32_t                    freq; // Timer frequency (Hz)
+  u32                    freq; // Timer frequency (Hz)
 
   timer_mode_e mode;
   union {
@@ -71,7 +71,7 @@ void timer_ovr_isr_disable(timer_config_t* cfg);
 
 void timer_pwm_start(timer_config_t* cfg);
 void timer_pwm_stop(timer_config_t* cfg);
-void timer_pwm_set_duty(timer_config_t* cfg, uint8_t duty);
+void timer_pwm_set_duty(timer_config_t* cfg, u8 duty);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

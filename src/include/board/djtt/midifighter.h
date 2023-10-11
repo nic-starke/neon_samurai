@@ -22,7 +22,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern volatile uint16_t mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
+extern volatile u16 mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -31,7 +31,7 @@ extern volatile uint16_t mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 
 void mf_led_init(void);
 void mf_led_transmit(void);
-void mf_led_set_max_brightness(uint16_t brightness);
+void mf_led_set_max_brightness(u16 brightness);
 
 void mf_encoder_init(void);
 void mf_encoder_update(void);

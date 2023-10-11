@@ -20,9 +20,9 @@ typedef enum {
 
 typedef struct {
   dir_e   dir;       // (public) Current direction
-  int16_t vel;       // (public) Angular velocity
-  uint8_t rot_state; // (private) State of rotation
-  // uint8_t quad_state; // (private) State of quadrature
+  i16 vel;       // (public) Angular velocity
+  u8 rot_state; // (private) State of rotation
+  // u8 quad_state; // (private) State of quadrature
 } hw_encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

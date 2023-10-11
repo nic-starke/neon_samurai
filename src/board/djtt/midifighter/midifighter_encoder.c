@@ -41,35 +41,25 @@
 
 typedef union {
   struct {
-    uint16_t detent_blue  : 1;
-    uint16_t detent_red   : 1;
-    uint16_t rgb_blue     : 1;
-    uint16_t rgb_red      : 1;
-    uint16_t rgb_green    : 1;
-    uint16_t indicator_11 : 1;
-    uint16_t indicator_10 : 1;
-    uint16_t indicator_9  : 1;
-    uint16_t indicator_8  : 1;
-    uint16_t indicator_7  : 1;
-    uint16_t indicator_6  : 1;
-    uint16_t indicator_5  : 1;
-    uint16_t indicator_4  : 1;
-    uint16_t indicator_3  : 1;
-    uint16_t indicator_2  : 1;
-    uint16_t indicator_1  : 1;
+    u16 detent_blue  : 1;
+    u16 detent_red   : 1;
+    u16 rgb_blue     : 1;
+    u16 rgb_red      : 1;
+    u16 rgb_green    : 1;
+    u16 indicator_11 : 1;
+    u16 indicator_10 : 1;
+    u16 indicator_9  : 1;
+    u16 indicator_8  : 1;
+    u16 indicator_7  : 1;
+    u16 indicator_6  : 1;
+    u16 indicator_5  : 1;
+    u16 indicator_4  : 1;
+    u16 indicator_3  : 1;
+    u16 indicator_2  : 1;
+    u16 indicator_1  : 1;
   };
-  uint16_t state;
+  u16 state;
 } encoder_led_t;
-
-typedef enum {
-  ENCODER_MODE_MIDI_CC,
-  ENCODER_MODE_MIDI_REL_CC,
-  ENCODER_MODE_MIDI_NOTE,
-
-  ENCODER_MODE_DISABLED,
-
-  ENCODER_MODE_NB,
-} encoder_mode_e;
 
 /**
  * @brief The LED mode determines how the current value of the encoder should be
@@ -84,29 +74,18 @@ typedef enum {
  * The modes also apply when the encoder detent mode is enabled.
  *
  */
-enum {
-  INDICATOR_MODE_SINGLE,
-  INDICATOR_MODE_MULTI,
-  INDICATOR_MODE_MULTI_PWM,
-
-  INDICATOR_MODE_NB, // max is currently 4 (see led_mode_t bitfield)
-};
 
 typedef struct {
-  uint8_t indicator : 2;
-} led_mode_t;
-
-typedef struct {
-  uint8_t channel;
-  uint8_t value; // cc, or note value
+  u8 channel;
+  u8 value; // cc, or note value
 } mf_midi_cfg_t;
 
 typedef struct {
-  uint8_t        update;
+  u8        update;
   led_mode_t     led_mode;
   encoder_mode_e encoder_mode;
   rgb_15_bit_t   rgb_state;
-  uint8_t        detent;
+  u8        detent;
 
   union { // Union of the various mode "configurations"
     mf_midi_cfg_t midi;
@@ -121,11 +100,9 @@ static hw_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
 static encoder_ctx_t    sw_ctx[MF_NUM_ENCODERS];
 static mf_encoder_ctx_t mf_ctx[MF_NUM_ENCODERS];
 static switch_x16_ctx_t switch_ctx;
-static switch_x8_ctx_t  side_switch_ctx;
 
-static uint8_t global_brightness = MF_MAX_BRIGHTNESS;
-static const uint16_t led_interval      = ENC_MAX / 11;
-static const uint8_t  deadzone          = led_interval;
+static const u16 led_interval      = ENC_MAX / 11;
+static const u8  deadzone          = led_interval;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -157,26 +134,26 @@ void mf_encoder_update(void) {
   gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
   // 2. Clock the 16 data bits for the encoder switches
-  uint16_t swstates = 0;
+  u16 swstates = 0;
   for (size_t i = 0; i < MF_NUM_ENCODER_SWITCHES; i++) {
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
-    uint8_t state = !(bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+    u8 state = !(bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
     swstates |= (state << i);
   }
 
   // 3. Clock the 32 bits for the 2x16 quadrature encoder signals
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
-    uint8_t ch_a = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+    u8 ch_a = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
-    uint8_t ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+    u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
     hw_encoder_update(&hw_ctx[i], ch_a, ch_b);
 
-    int16_t direction = 0;
+    i16 direction = 0;
     if (hw_ctx[i].dir != DIR_ST) {
       direction = hw_ctx[i].dir == DIR_CW ? 1 : -1;
     }
@@ -203,7 +180,7 @@ void mf_encoder_update(void) {
 
     // Check the switch state for the current encoder (the state of each switch
     // is stored in a bitfield)
-    const uint16_t mask = (1u << i);
+    const u16 mask = (1u << i);
     if ((switch_ctx.current & mask) != (switch_ctx.previous & mask)) {
       mf_ctx[i].update = true;
     }
@@ -212,10 +189,10 @@ void mf_encoder_update(void) {
 
 // Update the state of the encoder LEDS
 void mf_encoder_led_update(void) {
-  float         ind_pwm;    // Partial encoder positions (e.g position = 5.7)
+  f32         ind_pwm;    // Partial encoder positions (e.g position = 5.7)
   unsigned int  ind_norm;   // Integer encoder positions (e.g position = 5)
   unsigned int  pwm_frames; // Number of PWM frames for partial brightness
-  uint16_t      pwm_mask;   // Mask of the led that requires PWM
+  u16      pwm_mask;   // Mask of the led that requires PWM
   encoder_led_t leds;       // LED states
   bool update_leds = false; // Update flag, only true if encoder state changed
 
@@ -239,7 +216,7 @@ void mf_encoder_led_update(void) {
       ind_pwm  = MF_NUM_INDICATOR_LEDS;
       ind_norm = MF_NUM_INDICATOR_LEDS;
     } else {
-      ind_pwm  = ((float)sw_ctx[i].curr_val / led_interval);
+      ind_pwm  = ((f32)sw_ctx[i].curr_val / led_interval);
       ind_norm = (unsigned int)roundf(ind_pwm);
     }
 
@@ -275,7 +252,7 @@ void mf_encoder_led_update(void) {
       case INDICATOR_MODE_MULTI_PWM: {
         mf_ctx[i].rgb_state.value = 0;
         mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
-        float diff                = ind_pwm - (floorf(ind_pwm));
+        f32 diff                = ind_pwm - (floorf(ind_pwm));
         pwm_frames                = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
         if (mf_ctx[i].detent) {
           if (ind_norm < 6) {

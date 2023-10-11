@@ -22,7 +22,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static uint8_t get_mask(USART_t* usart);
+static u8 get_mask(USART_t* usart);
 static void    configure_io(USART_t* usart, spi_mode_e mode);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -63,14 +63,14 @@ void usart_module_init(USART_t* usart, const usart_config_t* config) {
       usart->CTRLC &= ~USART_DORD_bm;
     }
 
-    uint16_t baud = 0;
+    u16 baud = 0;
 
     if (config->baudrate < (F_CPU / 2)) {
       baud = (F_CPU / (config->baudrate * 2)) - 1;
     }
 
-    usart->BAUDCTRLB = (uint8_t)((~USART_BSCALE_gm) & (baud & 0xF00) >> 8);
-    usart->BAUDCTRLA = (uint8_t)(baud);
+    usart->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baud & 0xF00) >> 8);
+    usart->BAUDCTRLA = (u8)(baud);
 
     // Enable
     usart->CTRLB |= USART_TXEN_bm | USART_RXEN_bm;
@@ -100,7 +100,7 @@ void usart_set_rx(USART_t* usart, bool enable) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static uint8_t get_mask(USART_t* usart) {
+static u8 get_mask(USART_t* usart) {
   if (usart == &USARTC0 || usart == &USARTD0 || usart == &USARTE0) {
     return PR_USART0_bm;
   } else if (usart == &USARTC1 || usart == &USARTD1) {
@@ -134,9 +134,9 @@ static void configure_io(USART_t* usart, spi_mode_e mode) {
     remap = (PORTE.REMAP & PORT_USART0_bm);
   }
 
-  const uint8_t sck = (remap ? 5 : 1);
-  const uint8_t rx  = (remap ? 6 : 2);
-  const uint8_t tx  = (remap ? 7 : 3);
+  const u8 sck = (remap ? 5 : 1);
+  const u8 rx  = (remap ? 6 : 2);
+  const u8 tx  = (remap ? 7 : 3);
   const bool    invert_sck =
       (mode == SPI_MODE_CLK_HI_PHA_LO || mode == SPI_MODE_CLK_HI_PHA_HI);
 

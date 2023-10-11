@@ -32,7 +32,7 @@
 // crt0, meaning that its value will be retained AFTER a soft-reset. The boot
 // key is checked at system startup and if its value matches BOOTKEY then the
 // bootloader execution will jump to the bootloader.
-__attribute__((section(".noinit"))) static uint32_t boot_key;
+__attribute__((section(".noinit"))) static u32 boot_key;
 
 // This is a pointer to the reset interrupt vector of the bootloader, which is
 // located at this specific location (as per the Atmel application note.)
@@ -66,7 +66,7 @@ int system_init(void) {
   return 0;
 }
 
-void system_thread(uint32_t data) {
+void system_thread(u32 data) {
   while (1) {
     board_update();
     // Input_Update();

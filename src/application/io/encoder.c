@@ -3,20 +3,45 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/system.h"
+#include "application/io/encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define VEL_INC (INT16_MAX / 22)
+// #define VEL_INC (100)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef struct {
-  uint8_t state;
-} switch_ctx_t;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void encoder_update(encoder_ctx_t* enc, i16 direction) {
+  // If not rotating skip (nothing to do)
+  if (direction == 0)
+    return;
+
+  // Process the rotation of the encoder
+  i32 velocity = VEL_INC * direction;
+  velocity += enc->curr_val;
+
+  if (velocity >= ENC_MAX) {
+    velocity = ENC_MAX;
+  } else if (velocity < ENC_MIN) {
+    velocity = ENC_MIN;
+  }
+
+  enc->prev_val = enc->curr_val;
+  enc->curr_val = velocity;
+
+  // Set the changed flag true if there was a change
+  // NEVER set it false - the user must clear this value if they wish
+  if (enc->curr_val != enc->prev_val) {
+    enc->changed = true;
+  }
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

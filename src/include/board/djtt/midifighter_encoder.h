@@ -7,30 +7,47 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/system.h"
-#include "system/os.h"
-#include "drivers/hw_encoder.h"
+#include "display/rgb.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define ENC_MAX (UINT16_MAX)
-#define ENC_MIN (0)
-#define ENC_MID (ENC_MAX / 2)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+typedef enum {
+  ENCODER_MODE_MIDI_CC,
+  ENCODER_MODE_MIDI_REL_CC,
+  ENCODER_MODE_MIDI_NOTE,
+
+  ENCODER_MODE_DISABLED,
+
+  ENCODER_MODE_NB,
+} encoder_mode_e;
+
+typedef enum {
+  INDICATOR_MODE_SINGLE,
+  INDICATOR_MODE_MULTI,
+  INDICATOR_MODE_MULTI_PWM,
+
+  INDICATOR_MODE_NB,
+} indicator_style_e;
+
 typedef struct {
-  uint16_t      velocity; // Current rotational velocity
-  uint16_t      curr_val; // Current value
-  uint16_t      prev_val; // Previous value
-  uint8_t       acceleration; // acceleration mode
-  bool          changed; // Flag to indicate if value changed (user must clear)
-} encoder_ctx_t;
+  // Runtime context
+  u16 prev_value; // Previous value
+  u16 value;      // Current encoder value (16-bit)
+
+  rgb_15_t colour_rgb; // Current RGB colour
+  rb_8_t   colour_rb;  // Current RB (detent leds) colour
+
+  // Operating Config
+  encoder_mode_e    operating_mode;
+  indicator_style_e indicator_style;
+  u8                acceleration; // Boolean
+  u8                detent;       // Boolean
+} midifighter_encoder_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-void encoder_update(encoder_ctx_t* enc, int16_t direction);
-
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

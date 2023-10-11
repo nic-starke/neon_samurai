@@ -17,7 +17,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int  system_init(void);
-void system_thread(uint32_t data);
+void system_thread(u32 data);
 
 /**
  * @brief Function called before main(), can be used as a trampoline to jump

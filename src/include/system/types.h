@@ -11,6 +11,10 @@
 #include <stdint-gcc.h>
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define countof(a)  (sizeof(a) / sizeof(*(a)))
+#define lengthof(s) (countof(s) - 1)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -27,6 +31,19 @@ typedef enum {
   ENDIAN_LSB,
   ENDIAN_MSB,
 } endian_e;
+
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+
+typedef int8_t  i8;
+typedef int16_t i16;
+typedef int32_t i32;
+
+typedef float  f32;
+typedef double f64;
+
+typedef uintptr_t uptr;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
