@@ -226,15 +226,10 @@ void mf_encoder_led_update(void) {
       case INDICATOR_MODE_SINGLE: {
         // Set the corresponding bit for the indicator led
         leds.state = MASK_INDICATORS & (0x8000 >> ind_norm - 1);
-
-        mf_ctx[i].rgb_state.value = 0;
-        mf_ctx[i].rgb_state.red   = MF_RGB_MAX_VAL;
         break;
       }
 
       case INDICATOR_MODE_MULTI: {
-        mf_ctx[i].rgb_state.value = 0;
-        mf_ctx[i].rgb_state.blue  = MF_RGB_MAX_VAL;
         if (mf_ctx[i].detent) {
           if (ind_norm < 6) {
             leds.state |=
@@ -251,8 +246,6 @@ void mf_encoder_led_update(void) {
       }
 
       case INDICATOR_MODE_MULTI_PWM: {
-        mf_ctx[i].rgb_state.value = 0;
-        mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
         f32 diff                  = ind_pwm - (floorf(ind_pwm));
         pwm_frames                = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
         if (mf_ctx[i].detent) {
@@ -271,6 +264,20 @@ void mf_encoder_led_update(void) {
       }
 
       default: return;
+    }
+
+    // Set the RGB colour based on the velocity of the encoder
+    if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
+      mf_ctx[i].rgb_state.value = 0;
+      uint8_t multi =
+          abs(((float)sw_ctx[i].velocity / ENC_MAX_VELOCITY) * MF_RGB_MAX_VAL);
+      if (sw_ctx[i].velocity > 0) {
+        mf_ctx[i].rgb_state.red = multi;
+      } else if (sw_ctx[i].velocity < 0) {
+        mf_ctx[i].rgb_state.blue = multi;
+      } else {
+        mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
+      }
     }
 
     // When detent mode is enabled the detent LEDs must be displayed, and
