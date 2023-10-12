@@ -17,6 +17,7 @@
 
 typedef ATOM_MUTEX os_mutex_t;
 typedef ATOM_TCB   os_tcb_t;
+typedef ATOM_TIMER os_timer_t;
 
 struct os_thread_s;
 
@@ -54,6 +55,8 @@ void os_start(void);
 int os_thread_start(os_thread_t* t, void (*entry)(u32), u32 arg);
 
 int os_mutex_init(os_mutex_t* mutex);
+int os_timer_init(os_timer_t* timer);
+u32 os_time_get(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

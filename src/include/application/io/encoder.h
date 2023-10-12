@@ -14,18 +14,18 @@
 #define ENC_MAX (UINT16_MAX)
 #define ENC_MIN (0)
 #define ENC_MID (ENC_MAX / 2)
-#define ENC_MAX_VELOCITY (500)
+#define ENC_MAX_VELOCITY (2500)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef struct {
-  i16  velocity;     // Current rotational velocity
-  u8   accel_const;  // Acceleration constant
-  u16  curr_val;     // Current value
-  u16  prev_val;     // Previous value
-  i8   direction;    // Current direction
-  u8   changed;      // Flag to indicate if value changed (user must clear)
+  i32 velocity;    // (private) Current rotational velocity
+  u16 curr_val;    // (read only) Current value
+  u16 prev_val;    // (private) Previous value
+  u8  accel_const; // (private) Acceleration constant
+  i8  direction;   // (read only) Current direction
+  u8  changed; // (public) Flag to indicate if value changed (user must clear)
 } encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

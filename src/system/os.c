@@ -75,4 +75,13 @@ int os_mutex_init(os_mutex_t* mutex) {
   return atomMutexCreate(mutex);
 }
 
+int os_timer_init(os_timer_t* timer) {
+  assert(timer);
+  return atomTimerRegister(timer);
+}
+
+u32 os_time_get(void) {
+  return atomTimeGet();
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

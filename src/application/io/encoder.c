@@ -6,73 +6,61 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/system.h"
+#include "system/utility.h"
 #include "application/io/encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+// Velocity increment
+#define VEL_INC 16
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-i16 clamp(i16 val, i16 min, i16 max);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static uint8_t accel_inc[4] = {10, 50, 100, 300};
-// static uint16_t accel_inc[] = {1, 2, 5, 10, 20, 50, 100, 200, 400, 800};
+// Acceleration constants
+static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 15, VEL_INC * 30,
+                          VEL_INC * 60};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void encoder_update(encoder_ctx_t* enc, int direction) {
   assert(enc);
 
-  switch (enc->direction) {
-    case 1:
-    case -1: {
-      if (enc->direction == direction) {
-        enc->accel_const = (enc->accel_const + 1) % countof(accel_inc);
-      }
-      break;
+  // If the encoder stopped moving then decelerate
+  if (direction == 0) {
+    if (enc->velocity > 50) {
+      enc->velocity -= accel_inc[enc->accel_const];
+    } else if (enc->velocity < -50) {
+      enc->velocity += accel_inc[enc->accel_const];
     }
-
-    case 0: {
-      if (enc->accel_const > 1) {
-        enc->accel_const -= 1;
-      } else if (enc->accel_const == 1) {
-        enc->velocity = 0;
-      }
-      break;
-    }
-
-    default: break;
+    return;
   }
 
-  enc->direction = direction;
-  enc->prev_val = enc->curr_val;
-  enc->velocity += accel_inc[enc->accel_const] * enc->direction;
-  enc->velocity = clamp(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
+  // Accelerate if the direction is the same, otherwise reset the acceleration
+  if (enc->direction == direction) {
+    enc->accel_const = (enc->accel_const + 1) % countof(accel_inc);
+  } else {
+    enc->accel_const = 0;
+  }
 
-  // Swap direction if current value reaches min or max
-  // i32 tmp = (i32)enc->curr_val + enc->velocity;
-  // if (tmp > ENC_MAX || tmp < ENC_MIN) {
-  //   enc->velocity  = -enc->velocity;
-  //   enc->direction = -enc->direction;
-  // }
-  enc->curr_val += enc->velocity;
+  // Update the direction
+  enc->direction = direction;
+
+  // Update the velocity
+  enc->velocity += accel_inc[enc->accel_const] * enc->accel_const * direction;
+  enc->prev_val = enc->curr_val;
+
+  // Update the current value
+  i32 newval =
+      enc->curr_val + clamp(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
+  enc->curr_val = clamp(newval, ENC_MIN, ENC_MAX);
 
   // Set the changed flag true if there was a change
   // NEVER set it false - the user must clear this value if they wish
   if (enc->curr_val != enc->prev_val) {
     enc->changed = true;
-  }
-}
-
-i16 clamp(i16 val, i16 min, i16 max) {
-  if (val < min) {
-    return min;
-  } else if (val > max) {
-    return max;
-  } else {
-    return val;
   }
 }
 
