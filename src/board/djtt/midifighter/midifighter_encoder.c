@@ -267,18 +267,26 @@ void mf_encoder_led_update(void) {
     }
 
     // Set the RGB colour based on the velocity of the encoder
-    if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
-      mf_ctx[i].rgb_state.value = 0;
-      uint8_t multi =
-          abs(((float)sw_ctx[i].velocity / ENC_MAX_VELOCITY) * MF_RGB_MAX_VAL);
-      if (sw_ctx[i].velocity > 0) {
-        mf_ctx[i].rgb_state.red = multi;
-      } else if (sw_ctx[i].velocity < 0) {
-        mf_ctx[i].rgb_state.blue = multi;
-      } else {
-        mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
-      }
-    }
+    // if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
+    //   mf_ctx[i].rgb_state.value = 0;
+    //   // uint8_t multi =
+    //   //     abs(((float)sw_ctx[i].velocity / ENC_MAX_VELOCITY) *
+    //   //     MF_RGB_MAX_VAL);
+    //   // if (sw_ctx[i].velocity > 0) {
+    //   //   mf_ctx[i].rgb_state.red = multi;
+    //   // } else if (sw_ctx[i].velocity < 0) {
+    //   //   mf_ctx[i].rgb_state.blue = multi;
+    //   // } else {
+    //   //   mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
+    //   // }
+
+    //   // RGB colour based on current value
+    //   // u8 brightness = (u8)((f32)sw_ctx[i].curr_val / ENC_MAX *
+    //   MF_RGB_MAX_VAL);
+    //   // mf_ctx[i].rgb_state.blue  = brightness;
+    //   // mf_ctx[i].rgb_state.green = brightness;
+    //   // mf_ctx[i].rgb_state.red   = brightness;
+    // }
 
     // When detent mode is enabled the detent LEDs must be displayed, and
     // indicator LED #6 at the 12 o'clock position must be turned off.

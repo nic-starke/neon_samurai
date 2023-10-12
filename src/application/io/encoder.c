@@ -50,6 +50,13 @@ void encoder_update(encoder_ctx_t* enc, int direction) {
   enc->prev_val = enc->curr_val;
   enc->velocity += accel_inc[enc->accel_const] * enc->direction;
   enc->velocity = clamp(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
+
+  // Swap direction if current value reaches min or max
+  // i32 tmp = (i32)enc->curr_val + enc->velocity;
+  // if (tmp > ENC_MAX || tmp < ENC_MIN) {
+  //   enc->velocity  = -enc->velocity;
+  //   enc->direction = -enc->direction;
+  // }
   enc->curr_val += enc->velocity;
 
   // Set the changed flag true if there was a change
