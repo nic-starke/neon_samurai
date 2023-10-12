@@ -20,10 +20,10 @@
 
 typedef struct {
   i16  velocity;     // Current rotational velocity
-  i8   direction;    // Current direction
+  u8   accel_const;  // Acceleration constant
   u16  curr_val;     // Current value
   u16  prev_val;     // Previous value
-  u8   acceleration; // Acceleration mode
+  i8   direction;    // Current direction
   u8   changed;      // Flag to indicate if value changed (user must clear)
 } encoder_ctx_t;
 

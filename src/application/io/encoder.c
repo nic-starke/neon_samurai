@@ -9,52 +9,41 @@
 #include "application/io/encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// #define VEL_INC (INT16_MAX / 22)
-#define VEL_INC (100)
-#define VEL_MAX (2000)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static uint8_t velocities[4] = {10, 50, 100, 300};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void encoder_update(encoder_ctx_t* enc, int direction) {
-  // If not rotating skip (nothing to do)
-  if (direction == 0) {
-    if (enc->velocity > VEL_INC) {
-      enc->velocity -= 5;
-    } else if (enc->velocity < -VEL_INC) {
-      enc->velocity += 5;
+  assert(enc);
+
+  switch (enc->direction) {
+    case 1:
+    case -1: {
+      if (enc->direction == direction) {
+        enc->accel_const = (enc->accel_const + 1) % 4;
+      }
+      break;
     }
-    return;
-  }
-  // Process the rotation of the encoder
-  i32 velocity = VEL_INC * direction;
 
-  if (direction != enc->direction) {
-    enc->velocity  = 0;
-    enc->direction = direction;
-  } else {
-    velocity += enc->velocity;
-  }
+    case 0: {
+      if (enc->accel_const > 1) {
+        enc->accel_const -= 1;
+      }
+      break;
+    }
 
-  enc->velocity += velocity;
-
-  if (abs(enc->velocity) > VEL_MAX) {
-    enc->velocity = VEL_MAX * enc->direction;
+    default: break;
   }
 
+  enc->direction = direction;
   enc->prev_val = enc->curr_val;
-  i32 newval    = (i32)enc->curr_val + enc->velocity;
-  if (newval >= ENC_MAX) {
-    enc->curr_val = ENC_MAX;
-  } else if (newval <= ENC_MIN) {
-    enc->curr_val = ENC_MIN;
-  } else {
-    enc->curr_val += enc->velocity;
-  }
+  enc->velocity += velocities[enc->accel_const] * enc->direction;
+  enc->curr_val += enc->velocity;
 
   // Set the changed flag true if there was a change
   // NEVER set it false - the user must clear this value if they wish
