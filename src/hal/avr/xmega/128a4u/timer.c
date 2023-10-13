@@ -6,6 +6,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <util/atomic.h>
 
 #include "hal/avr/xmega/128a4u/timer.h"
@@ -134,7 +135,7 @@ void timer_pwm_start(timer_config_t* cfg) {
 
 static void get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
                            u16* period) {
-  static const u16 prescalers[]    = {1, 2, 4, 8, 64, 256, 1024};
+  PROGMEM static const u16 prescalers[]    = {1, 2, 4, 8, 64, 256, 1024};
   const u32        clocks_per_tick = F_CPU / freq;
   u32              lowest_error    = UINT32_MAX;
   u32              per             = 0;

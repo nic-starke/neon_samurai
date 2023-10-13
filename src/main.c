@@ -8,6 +8,7 @@
 
 #include "system/system.h"
 #include "system/os.h"
+#include "system/event.h"
 
 #include "board/djtt/midifighter.h"
 
@@ -23,6 +24,10 @@ void main(void) {
   EXIT_ON_ERR(status, error);
 
   status = os_init();
+  EXIT_ON_ERR(status, error);
+
+  // Initialise the event handling thread
+  status = event_init();
   EXIT_ON_ERR(status, error);
 
   os_start(); // Never returns

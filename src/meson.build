@@ -33,4 +33,5 @@ project_src += files(
     
     'system/system.c',
     'system/os.c',
+    'system/event.c',
 )

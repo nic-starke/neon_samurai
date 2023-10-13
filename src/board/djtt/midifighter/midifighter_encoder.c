@@ -103,7 +103,6 @@ static mf_encoder_ctx_t   mf_ctx[MF_NUM_ENCODERS];
 static switch_x16_ctx_t   switch_ctx;
 
 static const u16 led_interval = ENC_MAX / 11;
-static const u8  deadzone     = led_interval;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 

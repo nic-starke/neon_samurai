@@ -84,4 +84,32 @@ u32 os_time_get(void) {
   return atomTimeGet();
 }
 
+int os_queue_create(os_queue_t* qptr, uint8_t* buff_ptr, uint32_t unit_size,
+                    uint32_t max_num_msgs) {
+  assert(qptr);
+  assert(buff_ptr);
+  assert(unit_size);
+  assert(max_num_msgs);
+
+  int ret = atomQueueCreate(qptr, buff_ptr, unit_size, max_num_msgs);
+
+  if (ret == ATOM_OK) {
+    return 0;
+  } else {
+    return ret;
+  }
+}
+
+int os_queue_delete(os_queue_t* qptr) {
+  return atomQueueDelete(qptr);
+}
+
+int os_queue_get(os_queue_t* qptr, int32_t timeout, uint8_t* msgptr) {
+  return atomQueueGet(qptr, timeout, msgptr);
+}
+
+int os_queue_put(os_queue_t* qptr, int32_t timeout, uint8_t* msgptr) {
+  return atomQueuePut(qptr, timeout, msgptr);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

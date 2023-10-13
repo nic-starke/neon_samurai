@@ -20,8 +20,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Acceleration constants
-static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 15, VEL_INC * 30,
-                          VEL_INC * 60};
+static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 30, VEL_INC * 60,
+                          VEL_INC * 120};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -30,9 +30,9 @@ void encoder_update(encoder_ctx_t* enc, int direction) {
 
   // If the encoder stopped moving then decelerate
   if (direction == 0) {
-    if (enc->velocity > 50) {
+    if (enc->velocity > VEL_INC * 2) {
       enc->velocity -= accel_inc[enc->accel_const];
-    } else if (enc->velocity < -50) {
+    } else if (enc->velocity < -(VEL_INC * 2)) {
       enc->velocity += accel_inc[enc->accel_const];
     }
     return;
