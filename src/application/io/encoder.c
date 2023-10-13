@@ -7,6 +7,7 @@
 
 #include "system/system.h"
 #include "system/utility.h"
+#include "system/event.h"
 #include "application/io/encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -25,14 +26,14 @@ static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 30, VEL_INC * 60,
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void encoder_update(encoder_ctx_t* enc, int direction) {
+int encoder_update(encoder_ctx_t* enc, int direction) {
   assert(enc);
 
   i32 newval = 0;
 
   if (enc->accel_mode == 0) {
     if (direction == 0) {
-      return;
+      return 0;
     }
 
     enc->prev_val = enc->curr_val;
@@ -45,7 +46,7 @@ void encoder_update(encoder_ctx_t* enc, int direction) {
       } else if (enc->velocity < -(VEL_INC * 2)) {
         enc->velocity += accel_inc[enc->accel_const];
       }
-      return;
+      return 0;
     }
 
     // Accelerate if the direction is the same, otherwise reset the acceleration
@@ -62,14 +63,25 @@ void encoder_update(encoder_ctx_t* enc, int direction) {
     enc->velocity += accel_inc[enc->accel_const] * enc->accel_const * direction;
     enc->prev_val = enc->curr_val;
   }
+
   newval =
       enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
   enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
 
-  // Set the changed flag true if there was a change
-  // NEVER set it false - the user must clear this value if they wish
+  // Post an event if the encoder changed.
   if (enc->curr_val != enc->prev_val) {
-    enc->changed = true;
+    event_t evt = {
+        .id = EVT_ENCODER_ROTATION,
+        .data.encoder =
+            {
+                .current_value = enc->curr_val,
+                .encoder_index = enc->index,
+            },
+    };
+    event_post(&evt, OS_TIMEOUT_NOBLOCK);
+    return 1;
+  } else {
+    return 0;
   }
 }
 

@@ -14,6 +14,12 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+enum {
+  OS_TIMEOUT_NOBLOCK = -1, // Call will return immediately if blocked
+  OS_TIMEOUT_BLOCK   = 0,  // Call will block indefinitely until data ready
+  // Anything above 0 will be the timeout time in ms.
+};
+
 typedef enum {
   PRIORITY_OFF,
   PRIORITY_LOW,

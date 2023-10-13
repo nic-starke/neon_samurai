@@ -26,6 +26,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+static void entropy_init(void);
+static void entropy_store(void);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // The boot key is placed in the no init section - it will not be initialised by
@@ -52,6 +55,7 @@ int system_init(void) {
   // Configure interrupt controller
   PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
 
+  entropy_init();
   dma_peripheral_init();
   // input_init();
   // usb_init();
@@ -62,6 +66,7 @@ int system_init(void) {
 
   // Call the board_init function defined by the user
   board_init();
+  entropy_store();
 
   return 0;
 }
@@ -121,3 +126,9 @@ void system_startbootloader(void) {
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static void entropy_init(void) {
+}
+
+static void entropy_store(void) {
+}

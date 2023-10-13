@@ -22,24 +22,31 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum {
-  EVENT_ID_RESERVED = 50,
-  EVENT_ID_ENCODER_CHANGE,
+  EVT_ENCODER_ROTATION,
+  EVT_ENCODER_SWITCH_STATE,
 
-  EVENT_ID_MAX,
+  EVT_SYS_RESERVED,
+  EVT_ID_MAX,
 };
 
 typedef struct {
   u16 current_value;
   u8  encoder_index;
 } encoder_event_t;
-
 CHECK_SIZE(encoder_event_t);
+
+typedef struct {
+  u8 state;
+  u8 switch_index;
+} switch_event_t;
+CHECK_SIZE(switch_event_t);
 
 typedef struct {
   u16 id;
 
   union {
     encoder_event_t encoder;
+    switch_event_t  sw;
     u8              raw[EVENT_DATA_SIZE];
   } data;
 } event_t;

@@ -25,12 +25,14 @@ typedef struct {
   u8  accel_mode;  // (public) Acceleration mode
   u8  accel_const; // (private) Acceleration constant
   i8  direction;   // (read only) Current direction
-  u8  changed; // (public) Flag to indicate if value changed (user must clear)
+  u8  index;       // (public) Encoder index
 } encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void encoder_update(encoder_ctx_t* enc, int direction);
+// Update/process an encoder based on directional changes.
+// Returns 1 if the value changed, 0 otherwise.
+int encoder_update(encoder_ctx_t* enc, int direction);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

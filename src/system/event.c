@@ -47,7 +47,7 @@ static os_thread_t evt_thread = {
     .stack_size = sizeof(evt_thread_stack),
 };
 
-static event_handler_t* handlers[EVENT_ID_MAX];
+static event_handler_t* handlers[EVT_ID_MAX];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -91,7 +91,7 @@ int event_post(event_t* evt, int os_timeout) {
 
 int event_subscribe(event_handler_t* const handler, u16 event_id) {
   assert(handler);
-  if (event_id >= EVENT_ID_MAX) {
+  if (event_id >= EVT_ID_MAX) {
     return ERR_BAD_PARAM;
   }
 
