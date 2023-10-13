@@ -35,7 +35,6 @@ void mf_led_set_max_brightness(u16 brightness);
 
 void mf_encoder_init(void);
 void mf_encoder_update(void);
-void mf_encoder_led_update(void);
 
 void mf_switch_init(void);
 void mf_switch_update(void);

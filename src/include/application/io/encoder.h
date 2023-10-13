@@ -22,6 +22,7 @@ typedef struct {
   i32 velocity;    // (private) Current rotational velocity
   u16 curr_val;    // (read only) Current value
   u16 prev_val;    // (private) Previous value
+  u8  accel_mode;  // (public) Acceleration mode
   u8  accel_const; // (private) Acceleration constant
   i8  direction;   // (read only) Current direction
   u8  changed; // (public) Flag to indicate if value changed (user must clear)

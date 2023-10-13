@@ -115,11 +115,6 @@ void mf_led_init(void) {
   TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer!
 }
 
-// Enable the DMA to transfer the frame buffer
-void mf_led_transmit(void) {
-  // DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
-}
-
 void mf_led_set_max_brightness(u16 brightness) {
   // TCD0.CCA = brightness;
 }

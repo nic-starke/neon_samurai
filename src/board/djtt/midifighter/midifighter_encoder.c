@@ -9,6 +9,9 @@
 #include <util/atomic.h>
 #include <math.h>
 
+#include "system/os.h"
+#include "system/event.h"
+
 #include "drivers/gpio_switch.h"
 #include "drivers/quad_encoder.h"
 
@@ -95,6 +98,10 @@ typedef struct {
 } mf_encoder_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+// Event handler for encoder change events
+void event_encoder_change_callback(event_t* event);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static quad_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
@@ -103,6 +110,13 @@ static mf_encoder_ctx_t   mf_ctx[MF_NUM_ENCODERS];
 static switch_x16_ctx_t   switch_ctx;
 
 static const u16 led_interval = ENC_MAX / 11;
+
+// Event handler linked list structure
+static event_handler_t handler_encoder_change = {
+    .priority = 0,
+    .handler  = event_encoder_change_callback,
+    .next     = NULL,
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -118,13 +132,16 @@ void mf_encoder_init(void) {
 
   // Set the encoder configurations
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    mf_ctx[i].encoder_mode       = ENCODER_MODE_MIDI_CC;
-    mf_ctx[i].update             = true;
-    mf_ctx[i].led_mode           = (i % INDICATOR_MODE_NB);
-    mf_ctx[i].rgb_state.value    = MF_RGB_WHITE;
-    mf_ctx[i].detent             = true;
-    sw_ctx[i].curr_val           = ENC_MID;
+    mf_ctx[i].encoder_mode    = ENCODER_MODE_MIDI_CC;
+    mf_ctx[i].update          = true;
+    mf_ctx[i].led_mode        = (i % INDICATOR_MODE_NB);
+    mf_ctx[i].rgb_state.value = MF_RGB_WHITE;
+    mf_ctx[i].detent          = true;
+    sw_ctx[i].curr_val        = ENC_MID;
   }
+
+  // Subscribe to encoder change events
+  event_subscribe(&handler_encoder_change, EVENT_ID_ENCODER_CHANGE);
 }
 
 // Scan the hardware state of the midifighter and update local contexts
@@ -161,6 +178,19 @@ void mf_encoder_update(void) {
     // Capture changes in rotation and process them
     if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
       encoder_update(&sw_ctx[i], direction);
+
+      // Post an event if the encoder value changed
+      if (sw_ctx[i].changed) {
+        event_t evt = {
+            .id = EVENT_ID_ENCODER_CHANGE,
+            .data.encoder =
+                {
+                    .current_value = sw_ctx[i].curr_val,
+                    .encoder_index = i,
+                },
+        };
+        event_post(&evt, OS_TIMEOUT_NOBLOCK);
+      }
     }
   }
 
@@ -189,162 +219,158 @@ void mf_encoder_update(void) {
 
 // Update the state of the encoder LEDS
 void mf_encoder_led_update(void) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void event_encoder_change_callback(event_t* event) {
+  assert(event);
+
   f32           ind_pwm;    // Partial encoder positions (e.g position = 5.7)
   unsigned int  ind_norm;   // Integer encoder positions (e.g position = 5)
   unsigned int  pwm_frames; // Number of PWM frames for partial brightness
-  u16           pwm_mask;   // Mask of the led that requires PWM
   encoder_led_t leds;       // LED states
-  bool update_leds = false; // Update flag, only true if encoder state changed
 
-  for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
+  // Get the encoder index from the event data
+  const u8 i = event->data.encoder.encoder_index;
 
-    // It is not necessary to update the encoder LEDs if its state has not
-    // changed since the previous update.
-    if (!mf_ctx[i].update) {
-      continue;
+  // It is not necessary to update the encoder LEDs if its state has not
+  // changed since the previous update.
+  if (!mf_ctx[i].update) {
+    return;
+  }
+
+  // Clear all LEDs
+  leds.state = 0;
+
+  // Determine the position of the indicator led and which led requires
+  // partial brightness
+  if (sw_ctx[i].curr_val <= led_interval) {
+    ind_pwm  = 0;
+    ind_norm = 0;
+  } else if (sw_ctx[i].curr_val == ENC_MAX) {
+    ind_pwm  = MF_NUM_INDICATOR_LEDS;
+    ind_norm = MF_NUM_INDICATOR_LEDS;
+  } else {
+    ind_pwm  = ((f32)sw_ctx[i].curr_val / led_interval);
+    ind_norm = (unsigned int)roundf(ind_pwm);
+  }
+
+  // Generate the LED states based on the display mode
+  switch (mf_ctx[i].led_mode) {
+    case INDICATOR_MODE_SINGLE: {
+      // Set the corresponding bit for the indicator led
+      leds.state = MASK_INDICATORS & (0x8000 >> (ind_norm - 1));
+      break;
     }
 
-    // Clear all LEDs
-    leds.state = 0;
-
-    // Determine the position of the indicator led and which led requires
-    // partial brightness
-    if (sw_ctx[i].curr_val <= led_interval) {
-      ind_pwm  = 0;
-      ind_norm = 0;
-    } else if (sw_ctx[i].curr_val == ENC_MAX) {
-      ind_pwm  = MF_NUM_INDICATOR_LEDS;
-      ind_norm = MF_NUM_INDICATOR_LEDS;
-    } else {
-      ind_pwm  = ((f32)sw_ctx[i].curr_val / led_interval);
-      ind_norm = (unsigned int)roundf(ind_pwm);
-    }
-
-    // Generate the LED states based on the display mode
-    switch (mf_ctx[i].led_mode) {
-      case INDICATOR_MODE_SINGLE: {
-        // Set the corresponding bit for the indicator led
-        leds.state = MASK_INDICATORS & (0x8000 >> ind_norm - 1);
-        break;
-      }
-
-      case INDICATOR_MODE_MULTI: {
-        if (mf_ctx[i].detent) {
-          if (ind_norm < 6) {
-            leds.state |=
-                (LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
-          } else if (ind_norm > 6) {
-            leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
-                          RIGHT_INDICATORS_MASK;
-          }
-        } else {
-          // Default mode - set the indicator leds upto "led_index"
-          leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
+    case INDICATOR_MODE_MULTI: {
+      if (mf_ctx[i].detent) {
+        if (ind_norm < 6) {
+          leds.state |=
+              (LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
+        } else if (ind_norm > 6) {
+          leds.state |=
+              (LEFT_INDICATORS_MASK >> (ind_norm - 5)) & RIGHT_INDICATORS_MASK;
         }
-        break;
+      } else {
+        // Default mode - set the indicator leds upto "led_index"
+        leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
       }
+      break;
+    }
 
-      case INDICATOR_MODE_MULTI_PWM: {
-        f32 diff                  = ind_pwm - (floorf(ind_pwm));
-        pwm_frames                = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
-        if (mf_ctx[i].detent) {
-          if (ind_norm < 6) {
-            leds.state |=
-                (LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
-          } else if (ind_norm > 6) {
-            leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
-                          RIGHT_INDICATORS_MASK;
-          }
-        } else {
-          // Default mode - set the indicator leds upto "led_index"
-          leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
+    case INDICATOR_MODE_MULTI_PWM: {
+      f32 diff   = ind_pwm - (floorf(ind_pwm));
+      pwm_frames = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
+      if (mf_ctx[i].detent) {
+        if (ind_norm < 6) {
+          leds.state |=
+              (LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
+        } else if (ind_norm > 6) {
+          leds.state |=
+              (LEFT_INDICATORS_MASK >> (ind_norm - 5)) & RIGHT_INDICATORS_MASK;
         }
-        break;
+      } else {
+        // Default mode - set the indicator leds upto "led_index"
+        leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
       }
-
-      default: return;
+      break;
     }
 
-    // Set the RGB colour based on the velocity of the encoder
-    // if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
-    //   mf_ctx[i].rgb_state.value = 0;
-    //   // uint8_t multi =
-    //   //     abs(((float)sw_ctx[i].velocity / ENC_MAX_VELOCITY) *
-    //   //     MF_RGB_MAX_VAL);
-    //   // if (sw_ctx[i].velocity > 0) {
-    //   //   mf_ctx[i].rgb_state.red = multi;
-    //   // } else if (sw_ctx[i].velocity < 0) {
-    //   //   mf_ctx[i].rgb_state.blue = multi;
-    //   // } else {
-    //   //   mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
-    //   // }
+    default: return;
+  }
 
-    //   // RGB colour based on current value
-    //   // u8 brightness = (u8)((f32)sw_ctx[i].curr_val / ENC_MAX *
-    //   MF_RGB_MAX_VAL);
-    //   // mf_ctx[i].rgb_state.blue  = brightness;
-    //   // mf_ctx[i].rgb_state.green = brightness;
-    //   // mf_ctx[i].rgb_state.red   = brightness;
-    // }
+  // Set the RGB colour based on the velocity of the encoder
+  // if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
+  //   mf_ctx[i].rgb_state.value = 0;
+  //   // uint8_t multi =
+  //   //     abs(((float)sw_ctx[i].velocity / ENC_MAX_VELOCITY) *
+  //   //     MF_RGB_MAX_VAL);
+  //   // if (sw_ctx[i].velocity > 0) {
+  //   //   mf_ctx[i].rgb_state.red = multi;
+  //   // } else if (sw_ctx[i].velocity < 0) {
+  //   //   mf_ctx[i].rgb_state.blue = multi;
+  //   // } else {
+  //   //   mf_ctx[i].rgb_state.green = MF_RGB_MAX_VAL;
+  //   // }
 
-    // When detent mode is enabled the detent LEDs must be displayed, and
-    // indicator LED #6 at the 12 o'clock position must be turned off.
-    if (mf_ctx[i].detent && (ind_norm == 6)) {
-      leds.indicator_6 = 0;
-      leds.detent_blue = 1;
-    }
+  //   // RGB colour based on current value
+  //   // u8 brightness = (u8)((f32)sw_ctx[i].curr_val / ENC_MAX *
+  //   MF_RGB_MAX_VAL);
+  //   // mf_ctx[i].rgb_state.blue  = brightness;
+  //   // mf_ctx[i].rgb_state.green = brightness;
+  //   // mf_ctx[i].rgb_state.red   = brightness;
+  // }
 
-    // Handle PWM for RGB colours and MULTI_PWM mode
-    for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
-      if (mf_ctx[i].led_mode == INDICATOR_MODE_MULTI_PWM) {
-        if (mf_ctx[i].detent) {
-          if (ind_norm < 6) {
-            if (p < pwm_frames) {
-              leds.state &=
-                  ~((0x8000 >> (int)ind_pwm - 1) & MASK_PWM_INDICATORS);
-            } else {
-              leds.state |=
-                  ((0x8000 >> (int)ind_pwm - 1) & MASK_PWM_INDICATORS);
-            }
+  // When detent mode is enabled the detent LEDs must be displayed, and
+  // indicator LED #6 at the 12 o'clock position must be turned off.
+  if (mf_ctx[i].detent && (ind_norm == 6)) {
+    leds.indicator_6 = 0;
+    leds.detent_blue = 1;
+  }
 
-          } else if (ind_norm > 6) {
-            if (p < pwm_frames) {
-              leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
-            } else {
-              leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
-            }
+  // Handle PWM for RGB colours and MULTI_PWM mode
+  for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
+    if (mf_ctx[i].led_mode == INDICATOR_MODE_MULTI_PWM) {
+      if (mf_ctx[i].detent) {
+        if (ind_norm < 6) {
+          if (p < pwm_frames) {
+            leds.state &=
+                ~((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
+          } else {
+            leds.state |=
+                ((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
           }
-        } else {
+
+        } else if (ind_norm > 6) {
           if (p < pwm_frames) {
             leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
           } else {
             leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
           }
         }
+      } else {
+        if (p < pwm_frames) {
+          leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+        } else {
+          leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+        }
       }
-
-      leds.rgb_blue = leds.rgb_red = leds.rgb_green = 0;
-      if ((int)(mf_ctx[i].rgb_state.red - p) > 0) {
-        leds.rgb_red = 1;
-      }
-      if ((int)(mf_ctx[i].rgb_state.green - p) > 0) {
-        leds.rgb_green = 1;
-      }
-      if ((int)(mf_ctx[i].rgb_state.blue - p) > 0) {
-        leds.rgb_blue = 1;
-      }
-      mf_frame_buf[p][i] = ~leds.state;
     }
 
-    mf_ctx[i].update = false;
-    update_leds      = true;
+    leds.rgb_blue = leds.rgb_red = leds.rgb_green = 0;
+    if ((int)(mf_ctx[i].rgb_state.red - p) > 0) {
+      leds.rgb_red = 1;
+    }
+    if ((int)(mf_ctx[i].rgb_state.green - p) > 0) {
+      leds.rgb_green = 1;
+    }
+    if ((int)(mf_ctx[i].rgb_state.blue - p) > 0) {
+      leds.rgb_blue = 1;
+    }
+    mf_frame_buf[p][i] = ~leds.state;
   }
 
-  // Set the DMA to transmit only if something changed
-  if (update_leds) {
-    update_leds = false;
-    mf_led_transmit();
-  }
+  mf_ctx[i].update = false;
 }
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
