@@ -133,17 +133,17 @@ void mf_encoder_init(void) {
 
   // Set the encoder configurations
   for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-    mf_ctx[i].encoder_mode    = ENCODER_MODE_MIDI_CC;
-    mf_ctx[i].led_mode        = (i % INDICATOR_MODE_NB);
+    mf_ctx[i].encoder_mode = ENCODER_MODE_MIDI_CC;
+    mf_ctx[i].led_mode     = (i % INDICATOR_MODE_NB);
 
     //  Randomly set the colour of each encoder RGB.
     mf_ctx[i].rgb_state.red   = rand() % MF_RGB_MAX_VAL;
     mf_ctx[i].rgb_state.green = rand() % MF_RGB_MAX_VAL;
     mf_ctx[i].rgb_state.blue  = rand() % MF_RGB_MAX_VAL;
 
-    mf_ctx[i].detent          = true;
-    sw_ctx[i].index           = i;
-    sw_ctx[i].curr_val        = ENC_MID;
+    mf_ctx[i].detent   = true;
+    sw_ctx[i].index    = i;
+    sw_ctx[i].curr_val = ENC_MID;
   }
 
   // Subscribe to encoder change events
@@ -202,17 +202,57 @@ void mf_encoder_update(void) {
     u8  prevstate = (switch_ctx.previous & mask) ? 1 : 0;
     u8  state     = (switch_ctx.current & mask) ? 1 : 0;
     if (state != prevstate) {
-      event_post(
-          &(event_t){
-              .id = EVT_ENCODER_SWITCH_STATE,
-              .data.sw =
-                  {
-                      .switch_index = i,
-                      .state        = state,
-                  },
-          },
-          OS_TIMEOUT_NOBLOCK);
+      event_t evt = {
+          .id = EVT_ENCODER_SWITCH_STATE,
+          .data =
+              {
+                  .sw =
+                      {
+                          .switch_index = i,
+                          .state        = state,
+                      },
+              },
+      };
+      event_post(&evt, OS_TIMEOUT_NOBLOCK);
     }
+  }
+}
+
+void mf_debug_encoder_set_indicator(u8 indicator, u8 state) {
+  const u8 debug_encoder = 0;
+  assert(indicator < MF_NUM_INDICATOR_LEDS);
+  encoder_led_t leds;
+  leds.state = 0; // turn off all leds
+
+  switch (indicator) {
+    case 0: leds.indicator_1 = state; break;
+    case 1: leds.indicator_2 = state; break;
+    case 2: leds.indicator_3 = state; break;
+    case 3: leds.indicator_4 = state; break;
+    case 4: leds.indicator_5 = state; break;
+    case 5: leds.indicator_6 = state; break;
+    case 6: leds.indicator_7 = state; break;
+    case 7: leds.indicator_8 = state; break;
+    case 8: leds.indicator_9 = state; break;
+    case 9: leds.indicator_10 = state; break;
+    case 10: leds.indicator_11 = state; break;
+  }
+
+  for (int i = 0; i < MF_NUM_PWM_FRAMES; ++i) {
+    mf_frame_buf[i][debug_encoder] = ~leds.state;
+  }
+}
+
+void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
+  const u8      debug_encoder = 0;
+  encoder_led_t leds;
+  leds.state     = 0;
+  leds.rgb_blue  = blue;
+  leds.rgb_red   = red;
+  leds.rgb_green = green;
+
+  for (int i = 0; i < MF_NUM_PWM_FRAMES; ++i) {
+    mf_frame_buf[i][debug_encoder] |= ~leds.state;
   }
 }
 
@@ -316,6 +356,7 @@ static void update_display(u8 index) {
 
   // Handle PWM for RGB colours and MULTI_PWM mode
   for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
+
     if (mf_ctx[index].led_mode == INDICATOR_MODE_MULTI_PWM) {
       if (mf_ctx[index].detent) {
         if (ind_norm < 6) {

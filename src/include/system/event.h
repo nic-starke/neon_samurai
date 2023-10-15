@@ -75,5 +75,6 @@ int event_init(void);
 int event_post(event_t* event, int os_timeout);
 int event_subscribe(event_handler_t* const handler, u16 event_id);
 int event_unsubscribe(event_handler_t* const handler, u16 event_id);
+int event_process(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

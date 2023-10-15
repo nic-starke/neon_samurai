@@ -5,36 +5,22 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#include "system/types.h"
-#include "system/os.h"
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define ENC_MAX          (UINT16_MAX)
-#define ENC_MIN          (0)
-#define ENC_MID          (ENC_MAX / 2)
-#define ENC_MAX_VELOCITY (2500)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef struct {
-  i32 velocity;    // (private) Current rotational velocity
-  u16 curr_val;    // (read only) Current value
-  u16 prev_val;    // (private) Previous value
-  u8  accel_mode;  // (public) Acceleration mode
-  u8  accel_const; // (private) Acceleration constant
-  i8  direction;   // (read only) Current direction
-  u8  index;       // (public) Encoder index
-} encoder_ctx_t;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Update/process an encoder based on directional changes.
-// Returns 1 if the value changed, 0 otherwise.
-int encoder_update(encoder_ctx_t* enc, int direction);
-
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/**
+ * @brief Function called before main(), can be used as a trampoline to jump
+ * execution to user defined address (such as the bootloader).
+ */
+void bootloader_check(void) __attribute__((used, naked, section(".init3")));
+
+/**
+ * @brief Restarts the AVR and enters the bootloader.
+ */
+void bootloader_start(void);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

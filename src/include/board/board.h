@@ -16,9 +16,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// User defined - initialise the board hardware, start any user threads...
+// User defined - initialise the board hardware. Called from system_init()
 int board_init(void);
 
+// User defined - update the board hardware, called within the system thread
 void board_update(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -6,35 +6,33 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/types.h"
+#include "system/system.h"
 #include "system/os.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define ENC_MAX          (UINT16_MAX)
-#define ENC_MIN          (0)
-#define ENC_MID          (ENC_MAX / 2)
-#define ENC_MAX_VELOCITY (2500)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef struct {
-  i32 velocity;    // (private) Current rotational velocity
-  u16 curr_val;    // (read only) Current value
-  u16 prev_val;    // (private) Previous value
-  u8  accel_mode;  // (public) Acceleration mode
-  u8  accel_const; // (private) Acceleration constant
-  i8  direction;   // (read only) Current direction
-  u8  index;       // (public) Encoder index
-} encoder_ctx_t;
+typedef void (*usb_update_fp)(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Update/process an encoder based on directional changes.
-// Returns 1 if the value changed, 0 otherwise.
-int encoder_update(encoder_ctx_t* enc, int direction);
-
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/**
+ * @brief Initialise the USB stack.
+ *
+ * The USB update fp is called in its own thread.
+ * The thread has high priority.
+ * The function pointer is provided by the caller and should implement the
+ * required functionality to process USB events.
+ *
+ * @param fp The function pointer to the USB update handler.
+ * @return int 0 on success, -1 on failure.
+ */
+int usb_init(usb_update_fp fp);
+
+void usb_start(void);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

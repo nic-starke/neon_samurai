@@ -17,11 +17,10 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EVENT_THREAD_STACK_SIZE (128)
-#define EVENT_THREAD_PRIORITY   (1)
+#define EVENT_THREAD_STACK_SIZE (256)
 
 // Number of messages that can be stored in the queue
-#define EVQ_MAX_MSG (128)
+#define EVQ_MAX_MSG (32)
 
 // Number of bytes required to store EVQ_MAX_MSG messages
 #define EVQ_SIZE (EVENT_MSG_SIZE * EVQ_MAX_MSG)
@@ -42,7 +41,7 @@ static u8 evt_thread_stack[EVENT_THREAD_STACK_SIZE];
 
 static os_thread_t evt_thread = {
     .next       = NULL,
-    .priority   = EVENT_THREAD_PRIORITY,
+    .priority   = T_PRIO_EVT,
     .stack      = evt_thread_stack,
     .stack_size = sizeof(evt_thread_stack),
 };
@@ -52,11 +51,11 @@ static event_handler_t* handlers[EVT_ID_MAX];
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int event_init(void) {
-  int ret = os_thread_start(&evt_thread, event_thread, 0);
+  int ret = os_queue_create(&evt_queue, &evt_queue_buf[0], EVENT_MSG_SIZE,
+                            EVQ_MAX_MSG);
   RETURN_ON_ERR(ret);
 
-  ret = os_queue_create(&evt_queue, &evt_queue_buf[0], EVENT_MSG_SIZE,
-                        EVQ_MAX_MSG);
+  ret = os_thread_start(&evt_thread, event_thread, 0);
   RETURN_ON_ERR(ret);
 
   return ret;
@@ -65,17 +64,27 @@ int event_init(void) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Thread Function ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void event_thread(u32 data) {
-  event_t evt;
   int     ret;
+  event_t evt;
 
   while (1) {
-    memset(&evt, 0, sizeof(evt));
-    ret = os_queue_get(&evt_queue, OS_TIMEOUT_BLOCK, (u8*)&evt);
-    if (ret != 0) {
-      continue;
-    }
-
+    ret = os_queue_get(&evt_queue, OS_TIMEOUT_NOBLOCK, (u8*)&evt);
     // Call all handlers for this event
+    if (ret == 0) {
+      event_handler_t* h = handlers[evt.id];
+      while (h) {
+        h->handler(&evt);
+        h = h->next;
+      }
+    }
+  }
+}
+
+int event_process(void) {
+  event_t evt;
+  int     ret = os_queue_get(&evt_queue, OS_TIMEOUT_NOBLOCK, (u8*)&evt);
+  // Call all handlers for this event
+  if (ret == 0) {
     event_handler_t* h = handlers[evt.id];
     while (h) {
       h->handler(&evt);

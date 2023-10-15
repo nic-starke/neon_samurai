@@ -29,7 +29,7 @@
 #include "MIDI/MIDI.h"
 #include "USB/USB.h"
 
-#define ENABLE_SERIAL
+// #define ENABLE_SERIAL
 #include "USB/VirtualSerial.h"
 
 #define SYSEX_NONRT        (0x7E)

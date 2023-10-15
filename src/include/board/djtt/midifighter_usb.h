@@ -7,34 +7,29 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/types.h"
-#include "system/os.h"
+#include "LUFA/Common/Common.h"
+#include "board/djtt/midifighter_usb_descriptors.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define ENC_MAX          (UINT16_MAX)
-#define ENC_MIN          (0)
-#define ENC_MID          (ENC_MAX / 2)
-#define ENC_MAX_VELOCITY (2500)
+// refer to descriptors .c for the serial string
+#define DEFAULT_USB_VENDOR_ID  (0x2580) // DJTT Vendor ID
+#define DEFAULT_USB_PRODUCT_ID (0x0007)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern USB_ClassInfo_MIDI_Device_t gMIDI_Interface;
+extern USB_ClassInfo_CDC_Device_t  gCDC_Interface;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef struct {
-  i32 velocity;    // (private) Current rotational velocity
-  u16 curr_val;    // (read only) Current value
-  u16 prev_val;    // (private) Previous value
-  u8  accel_mode;  // (public) Acceleration mode
-  u8  accel_const; // (private) Acceleration constant
-  i8  direction;   // (read only) Current direction
-  u8  index;       // (public) Encoder index
-} encoder_ctx_t;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Update/process an encoder based on directional changes.
-// Returns 1 if the value changed, 0 otherwise.
-int encoder_update(encoder_ctx_t* enc, int direction);
-
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void EVENT_USB_Device_Connect(void);
+void EVENT_USB_Device_Disconnect(void);
+void EVENT_USB_Device_ConfigurationChanged(void);
+void EVENT_USB_Device_ControlRequest(void);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -22,10 +22,10 @@
 
 // clang-format off
 
-static const USB_Descriptor_String_t PROGMEM LanguageString     = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
-static const USB_Descriptor_String_t PROGMEM ManufacturerString = USB_STRING_DESCRIPTOR(L"www.Nicolaus Starke.one");
-static const USB_Descriptor_String_t PROGMEM ProductString      = USB_STRING_DESCRIPTOR(L"Muffin Twister");
-static const USB_Descriptor_String_t PROGMEM SerialString       = USB_STRING_DESCRIPTOR(L"666");
+static const USB_Descriptor_String_t PROGMEM lstr     = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
+static const USB_Descriptor_String_t PROGMEM mfstr = USB_STRING_DESCRIPTOR(L"www.Nicolaus Starke.one");
+static const USB_Descriptor_String_t PROGMEM pdstr      = USB_STRING_DESCRIPTOR(L"Muffin Twister");
+static const USB_Descriptor_String_t PROGMEM srstr       = USB_STRING_DESCRIPTOR(L"666");
 
 /** Device descriptor structure. This descriptor, located in FLASH memory,
  * describes the overall device characteristics, including the supported USB
@@ -361,23 +361,23 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex
             switch (DescriptorIndex)
             {
                 case STRING_ID_Language:
-                    Address = &LanguageString;
-                    Size    = pgm_read_byte(&LanguageString.Header.Size);
+                    Address = &lstr;
+                    Size    = pgm_read_byte(&lstr.Header.Size);
                     break;
 
                 case STRING_ID_Manufacturer:
-                    Address = &ManufacturerString;
-                    Size    = pgm_read_byte(&ManufacturerString.Header.Size);
+                    Address = &mfstr;
+                    Size    = pgm_read_byte(&mfstr.Header.Size);
                     break;
 
                 case STRING_ID_Product:
-                    Address = &ProductString;
-                    Size    = pgm_read_byte(&ProductString.Header.Size);
+                    Address = &pdstr;
+                    Size    = pgm_read_byte(&pdstr.Header.Size);
                     break;
 
                 case STRING_ID_Serial:
-                    Address = &SerialString;
-                    Size    = pgm_read_byte(&SerialString.Header.Size);
+                    Address = &srstr;
+                    Size    = pgm_read_byte(&srstr.Header.Size);
                     break;
             }
 

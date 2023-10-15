@@ -26,7 +26,7 @@
 #define STACK_SIZE_SYS  (128)
 
 #define OS_MAX_PRIORITY   (255)
-#define OS_STACK_CHECKING (FALSE)
+#define OS_STACK_CHECKING (0)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -37,7 +37,7 @@ static u8 sys_stack[STACK_SIZE_SYS];
 
 static os_thread_t sys_thread = {
     .next       = NULL,
-    .priority   = 16,
+    .priority   = T_PRIO_SYS,
     .stack      = sys_stack,
     .stack_size = sizeof(sys_stack),
 };
@@ -59,6 +59,7 @@ int os_init(void) {
 
 void os_start(void) {
   os_thread_start(&sys_thread, system_thread, 0);
+  system_init_os_threads();
   atomOSStart();
 }
 
@@ -70,9 +71,23 @@ int os_thread_start(os_thread_t* t, void (*entry)(u32), u32 arg) {
                           t->stack_size, OS_STACK_CHECKING);
 }
 
+int os_thread_yield(u32 ms) {
+  return atomTimerDelay(MS_TO_TICK(ms) + 1);
+}
+
 int os_mutex_init(os_mutex_t* mutex) {
   assert(mutex);
   return atomMutexCreate(mutex);
+}
+
+int os_mutex_get(os_mutex_t* mutex, int32_t timeout) {
+  assert(mutex);
+  return atomMutexGet(mutex, timeout);
+}
+
+int os_mutex_release(os_mutex_t* mutex) {
+  assert(mutex);
+  return atomMutexPut(mutex);
 }
 
 int os_timer_init(os_timer_t* timer) {
@@ -110,6 +125,23 @@ int os_queue_get(os_queue_t* qptr, int32_t timeout, uint8_t* msgptr) {
 
 int os_queue_put(os_queue_t* qptr, int32_t timeout, uint8_t* msgptr) {
   return atomQueuePut(qptr, timeout, msgptr);
+}
+
+void os_critical_enter(void) {
+  cli();
+}
+
+void os_critical_exit(void) {
+  sei();
+  return 0;
+}
+
+void os_isr_enter(void) {
+  atomIntEnter();
+}
+
+void os_isr_exit(void) {
+  atomIntExit(TRUE);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

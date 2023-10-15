@@ -1,25 +1,14 @@
-/*
- * File: Descriptors.h ( 19th March 2022 )
- * Project: Muffin
- * Copyright 2022 Nicolaus Starke
- * -----
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see http://www.gnu.org/licenses/.
- */
-
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
+/*                  https://github.com/nic-starke/muffintwister               */
+/*                         SPDX-License-Identifier: MIT                       */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #pragma once
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "subprojects/lufa/LUFA/Drivers/USB/USB.h"
+#include "LUFA/Drivers/USB/USB.h"
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define HID_EPSIZE              32
 // #define KEYBOARD_EPSIZE 8
@@ -29,6 +18,11 @@
 #define CDC_EPSIZE              16
 
 #define MIDI_POLLING_INTERVAL 0x05
+
+#define MIDI_ENABLE 1
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef struct {
   USB_Descriptor_Configuration_Header_t Config;
@@ -124,3 +118,9 @@ typedef enum {
 #if (NUM_USB_ENDPOINTS - 1) > ENDPOINT_TOTAL_ENDPOINTS
 #error There are not enough available USB endpoints.
 #endif
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

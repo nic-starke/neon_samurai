@@ -11,6 +11,7 @@
 #include <util/atomic.h>
 
 #include "system/system.h"
+#include "system/os.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 #include "hal/avr/xmega/128a4u/dma.h"
@@ -18,6 +19,7 @@
 #include "hal/avr/xmega/128a4u/timer.h"
 
 #include "board/djtt/midifighter.h"
+#include "board/board.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -70,9 +72,8 @@ void mf_led_init(void) {
 
   // Configure DMA to transfer display frames to the USARTs 1-byte tx buffer
   // The configuration will transmit 1 byte at a time, for a total of:
-  // 32 bytes (block count) x 32 times (repeat count).
+  // 32 bytes (block count) x 1 times (repeat count).
   // The trigger is set to USART data buffer being empty.
-  // Once all data is transmitted the DMA_CH0_vect ISR fires.
   const dma_channel_cfg_t dma_cfg = {
       .repeat_count    = 1,
       .block_size      = MF_NUM_LED_SHIFT_REGISTERS,
@@ -108,7 +109,7 @@ void mf_led_init(void) {
   // TCD0.CTRLB |= TC0_CCAEN_bm;
 
   // Enable interrupts on compare match for channel B
-  TCD0.INTCTRLB |= (PRIORITY_HI << (2)) & TC0_CCBINTLVL_gm;
+  TCD0.INTCTRLB |= (PRIORITY_MED << (2)) & TC0_CCBINTLVL_gm;
 
   dma_channel_init(&DMA.CH0, &dma_cfg);
   usart_module_init(&USART_LED, &usart_cfg);
@@ -120,16 +121,15 @@ void mf_led_set_max_brightness(u16 brightness) {
 }
 
 ISR(TCD0_CCB_vect) {
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
-
-  uptr ptr = &mf_frame_buf[mf_frame][0];
-
-  if (++mf_frame >= MF_NUM_PWM_FRAMES) {
-    mf_frame = 0;
-  }
-
   ATOMIC_BLOCK(ATOMIC_FORCEON) {
+    gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
+    gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
+
+    uptr ptr = &mf_frame_buf[mf_frame][0];
+
+    if (++mf_frame >= MF_NUM_PWM_FRAMES) {
+      mf_frame = 0;
+    }
     // This ISR needs to trigger every 32 ticks, therefore the
     // compare value must be incremented by 32 ticks each time the interrupt
     // fires. The CCB value must wrap around at the TOP/PER value of the timer.

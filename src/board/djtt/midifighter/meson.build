@@ -3,4 +3,5 @@ board_src = files(
   'midifighter_encoder.c',
   'midifighter_led.c',
   'midifighter_switch.c',
+  'midifighter_usb.c',
 )

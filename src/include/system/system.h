@@ -17,14 +17,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int  system_init(void);
+void system_init_os_threads(void);
 void system_thread(u32 data);
-
-/**
- * @brief Function called before main(), can be used as a trampoline to jump
- * execution to user defined address (such as the bootloader).
- */
-void system_beforemain(void) __attribute__((used, naked, section(".init3")));
-void system_startbootloader(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

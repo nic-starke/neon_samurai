@@ -3,38 +3,54 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/types.h"
-#include "system/os.h"
+#include "application/usb/usb.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define ENC_MAX          (UINT16_MAX)
-#define ENC_MIN          (0)
-#define ENC_MID          (ENC_MAX / 2)
-#define ENC_MAX_VELOCITY (2500)
+#define USB_THREAD_STACK_SIZE (128)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef struct {
-  i32 velocity;    // (private) Current rotational velocity
-  u16 curr_val;    // (read only) Current value
-  u16 prev_val;    // (private) Previous value
-  u8  accel_mode;  // (public) Acceleration mode
-  u8  accel_const; // (private) Acceleration constant
-  i8  direction;   // (read only) Current direction
-  u8  index;       // (public) Encoder index
-} encoder_ctx_t;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// Update/process an encoder based on directional changes.
-// Returns 1 if the value changed, 0 otherwise.
-int encoder_update(encoder_ctx_t* enc, int direction);
+static void usb_thread_func(u32 data);
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static u8 usb_thread_stack[USB_THREAD_STACK_SIZE];
+
+static os_thread_t usb_thread = {
+    .next       = NULL,
+    .priority   = T_PRIO_USB,
+    .stack      = usb_thread_stack,
+    .stack_size = sizeof(usb_thread_stack),
+};
+
+// Pointer to the user defined USB update handler function
+static usb_update_fp usb_update = NULL;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+int usb_init(usb_update_fp fp) {
+  assert(fp);
+  usb_update = fp;
+
+  return 0;
+}
+
+void usb_start(void) {
+  os_thread_start(&usb_thread, usb_thread_func, 0);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#include "board/djtt/midifighter.h"
+static void usb_thread_func(u32 data) {
+  while (1) {
+    usb_update();
+    os_thread_yield(25);
+  }
+}

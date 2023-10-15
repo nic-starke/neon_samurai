@@ -5,36 +5,14 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#include "system/types.h"
-#include "system/os.h"
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define ENC_MAX          (UINT16_MAX)
-#define ENC_MIN          (0)
-#define ENC_MID          (ENC_MAX / 2)
-#define ENC_MAX_VELOCITY (2500)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef struct {
-  i32 velocity;    // (private) Current rotational velocity
-  u16 curr_val;    // (read only) Current value
-  u16 prev_val;    // (private) Previous value
-  u8  accel_mode;  // (public) Acceleration mode
-  u8  accel_const; // (private) Acceleration constant
-  i8  direction;   // (read only) Current direction
-  u8  index;       // (public) Encoder index
-} encoder_ctx_t;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// Update/process an encoder based on directional changes.
-// Returns 1 if the value changed, 0 otherwise.
-int encoder_update(encoder_ctx_t* enc, int direction);
+void avr_xmega128a4u_init(void);
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

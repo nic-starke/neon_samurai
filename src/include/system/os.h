@@ -13,6 +13,14 @@
 #include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+enum {
+  T_PRIO_SYS  = 1,
+  T_PRIO_USB  = 2,
+  T_PRIO_EVT  = 3,
+  T_PRIO_IDLE = 255,
+};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -26,7 +34,7 @@ struct os_thread_s;
 typedef struct {
   u8* const      stack;      // Pointer to thread stack (user-allocated)
   const unsigned int  stack_size; // Stack size in bytes
-  unsigned int        priority;   // Current thread priority
+  u8                  priority;   // Current thread priority
   os_tcb_t            tcb;        // (private) Thread control block.
   struct os_thread_s* next;       // (private) Pointer to next thread
 } os_thread_t;
@@ -56,7 +64,17 @@ void os_start(void);
  */
 int os_thread_start(os_thread_t* t, void (*entry)(u32), u32 arg);
 
+/**
+ * @brief Yields the current thread for the "ms" milliseconds
+ *
+ * @param ms Number of milliseconds to yield for.
+ */
+int os_thread_yield(u32 ms);
+
 int os_mutex_init(os_mutex_t* mutex);
+int os_mutex_get(os_mutex_t* mutex, int32_t timeout);
+int os_mutex_release(os_mutex_t* mutex);
+
 int os_timer_init(os_timer_t* timer);
 u32 os_time_get(void);
 
@@ -66,6 +84,11 @@ int os_queue_create(os_queue_t* qptr, uint8_t* buff_ptr, uint32_t unit_size,
 int os_queue_delete(os_queue_t* qptr);
 int os_queue_get(os_queue_t* qptr, int32_t timeout, uint8_t* msgptr);
 int os_queue_put(os_queue_t* qptr, int32_t timeout, uint8_t* msgptr);
+
+void os_critical_enter(void);
+void os_critical_exit(void);
+void os_isr_enter(void);
+void os_isr_exit(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
