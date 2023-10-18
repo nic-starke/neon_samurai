@@ -4,7 +4,7 @@ Tinkering
 Firstly some historical information about the origins of the project. Muffin was originally started as a private project of mine, it was based on modifications to the original source code for the midi fighter twister (MFT), which is available here <https://github.com/DJ-TechTools/Midi_Fighter_Twister_Open_Source>.
 
 
-After a few days of tinkering and exploring the original code base I had mostly understood the system/implementation, some areas were confusing due to the monolithic implementation, large chunks of commented out code between updates, and different coding styles.
+After a few days of tinkering and exploring the original code base I had mostly understood the core/implementation, some areas were confusing due to the monolithic implementation, large chunks of commented out code between updates, and different coding styles.
 
 First Iteration of Muffin
 

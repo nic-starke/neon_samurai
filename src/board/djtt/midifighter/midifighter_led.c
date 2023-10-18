@@ -10,8 +10,7 @@
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-#include "system/system.h"
-#include "system/os.h"
+#include "core/core_types.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 #include "hal/avr/xmega/128a4u/dma.h"
@@ -19,7 +18,6 @@
 #include "hal/avr/xmega/128a4u/timer.h"
 
 #include "board/djtt/midifighter.h"
-#include "board/board.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

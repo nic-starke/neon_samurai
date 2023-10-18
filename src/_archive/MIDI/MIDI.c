@@ -24,7 +24,7 @@
 
 #include "Comms/Comms.h"
 #include "Config.h"
-#include "system/types.h"
+#include "core/types.h"
 #include "Display/Display.h"
 #include "MIDI/MIDI.h"
 #include "USB/USB.h"

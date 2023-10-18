@@ -9,14 +9,11 @@
 #include <util/atomic.h>
 #include <math.h>
 
-#include "system/os.h"
-#include "system/event.h"
-
-#include "drivers/gpio_switch.h"
-#include "drivers/quad_encoder.h"
-
-#include "application/io/encoder.h"
-#include "application/display/rgb.h"
+#include "core/core_types.h"
+#include "core/core_event.h"
+#include "core/core_encoder.h"
+#include "core/core_switch.h"
+#include "core/core_rgb.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 
@@ -99,21 +96,21 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Event handler for encoder change events
-static void encoder_evt_handler(event_t* event);
+static void encoder_evt_handler(event_s* event);
 
 static void update_display(u8 index);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static quad_encoder_ctx_t hw_ctx[MF_NUM_ENCODERS];
-static encoder_ctx_t      sw_ctx[MF_NUM_ENCODERS];
+static quadrature_ctx_t   hw_ctx[MF_NUM_ENCODERS];
+static encoder_ctx_s      sw_ctx[MF_NUM_ENCODERS];
 static mf_encoder_ctx_t   mf_ctx[MF_NUM_ENCODERS];
-static switch_x16_ctx_t   switch_ctx;
+static switch_x16_ctx_s   switch_ctx;
 
 static const u16 led_interval = ENC_MAX / 11;
 
 // Event handlers
-static event_handler_t enc_evt_handler = {
+static event_handler_s enc_evt_handler = {
     .priority = 0,
     .handler  = encoder_evt_handler,
     .next     = NULL,
@@ -144,6 +141,7 @@ void mf_encoder_init(void) {
     mf_ctx[i].detent   = true;
     sw_ctx[i].index    = i;
     sw_ctx[i].curr_val = ENC_MID;
+    // sw_ctx[i].accel_mode = true;
   }
 
   // Subscribe to encoder change events
@@ -176,7 +174,7 @@ void mf_encoder_update(void) {
     u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
     gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
-    quad_encoder_update(&hw_ctx[i], ch_a, ch_b);
+    core_quadrature_decode(&hw_ctx[i], ch_a, ch_b);
 
     i16 direction = 0;
     if (hw_ctx[i].dir != DIR_ST) {
@@ -185,7 +183,7 @@ void mf_encoder_update(void) {
 
     // Process encoder changes
     if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
-      encoder_update(&sw_ctx[i], direction);
+      core_encoder_update(&sw_ctx[i], direction);
     }
   }
 
@@ -202,7 +200,7 @@ void mf_encoder_update(void) {
     u8  prevstate = (switch_ctx.previous & mask) ? 1 : 0;
     u8  state     = (switch_ctx.current & mask) ? 1 : 0;
     if (state != prevstate) {
-      event_t evt = {
+      event_s evt = {
           .id = EVT_ENCODER_SWITCH_STATE,
           .data =
               {
@@ -398,7 +396,7 @@ static void update_display(u8 index) {
   }
 }
 
-static void encoder_evt_handler(event_t* event) {
+static void encoder_evt_handler(event_s* event) {
   assert(event);
   switch (event->id) {
     case EVT_ENCODER_ROTATION: {

@@ -20,11 +20,11 @@
 #include <avr/pgmspace.h>
 
 #include "Comms/CommsTypes.h"
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 #include "Comms/Network.h"
 #include "Comms/Modules/NetworkMessages.h"
-#include "system/SoftTimer.h"
+#include "core/SoftTimer.h"
 
 #define ENABLE_SERIAL
 #include "USB/VirtualSerial.h"

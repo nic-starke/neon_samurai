@@ -26,7 +26,7 @@
 */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/system.h"
+#include "core/core_types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -46,7 +46,7 @@ typedef struct {
   u8 current;                      // states bitfield (private)
   u8 previous;                     // states bitfield (private)
   u8 raw;                          // switch states bitfield (private)
-} switch_x8_ctx_t;
+} switch_x8_ctx_s;
 
 typedef struct {
   u16 buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
@@ -54,25 +54,25 @@ typedef struct {
   u16 current;                      // states bitfield (private)
   u16 previous;                     // states bitfield (private)
   u16 raw;                          // switch states bitfield (private)
-} switch_x16_ctx_t;
+} switch_x16_ctx_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Get the state of a single switch
-switch_state_e switch_x16_state(switch_x16_ctx_t* ctx, u16 index);
-switch_state_e switch_x8_state(switch_x8_ctx_t* ctx, u8 index);
+switch_state_e switch_x16_state(switch_x16_ctx_s* ctx, u16 index);
+switch_state_e switch_x8_state(switch_x8_ctx_s* ctx, u8 index);
 
 // Get the state of all switches as a bitfield
-u16 switch_x16_states(switch_x16_ctx_t* ctx);
-u8  switch_x8_states(switch_x8_ctx_t* ctx);
+u16 switch_x16_states(switch_x16_ctx_s* ctx);
+u8  switch_x8_states(switch_x8_ctx_s* ctx);
 
 /**
  * @brief Run the debounce algorithm for all switches.
  *
  * @param ctx Switch context.
  */
-void switch_x8_debounce(switch_x8_ctx_t* ctx);
-void switch_x16_debounce(switch_x16_ctx_t* ctx);
+void switch_x8_debounce(switch_x8_ctx_s* ctx);
+void switch_x16_debounce(switch_x16_ctx_s* ctx);
 
 /**
  * @brief Switch update functions are to be called after you have polled
@@ -92,8 +92,8 @@ void switch_x16_debounce(switch_x16_ctx_t* ctx);
  * @param ctx Switch context.
  * @param states Bitfield of switch states.
  */
-void switch_x16_update(switch_x16_ctx_t* ctx, u16 states);
-void switch_x8_update(switch_x8_ctx_t* ctx, u8 states);
+void switch_x16_update(switch_x16_ctx_s* ctx, u16 states);
+void switch_x8_update(switch_x8_ctx_s* ctx, u8 states);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

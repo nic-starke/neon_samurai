@@ -22,15 +22,15 @@
 #include <string.h>
 
 #include "Peripheral/DMA.h"
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 #include "Display/Display.h"
 #include "Display/EncoderDisplay.h"
 #include "Peripheral/GPIO.h"
 #include "Display/Gamma.h"
-#include "system/HardwareDescription.h"
-#include "system/Settings.h"
-#include "system/SoftTimer.h"
+#include "core/HardwareDescription.h"
+#include "core/Settings.h"
+#include "core/SoftTimer.h"
 #include "Peripheral/Timer.h"
 #include "Peripheral/USART.h"
 

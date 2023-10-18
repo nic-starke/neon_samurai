@@ -10,7 +10,9 @@
 #include <util/atomic.h>
 
 #include "hal/avr/xmega/128a4u/timer.h"
-#include "system/system.h"
+
+#include "core/core_types.h"
+#include "core/core_error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

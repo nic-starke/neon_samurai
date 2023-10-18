@@ -21,15 +21,15 @@
 #include <math.h>
 
 #include "Display/Colour.h"
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 #include "Input/Encoder.h"
 #include "Display/EncoderDisplay.h"
-#include "system/HardwareDescription.h"
+#include "core/HardwareDescription.h"
 #include "Input/Input.h"
 #include "MIDI/MIDI.h"
 #include "USB/USB.h"
-#include "Utility/Utility.h"
+#include "Utility/core/utility.h"
 
 // A default configuration for LAYER A of an encoder.
 static const sVirtualEncoderLayer DEFAULT_LAYER_A = {

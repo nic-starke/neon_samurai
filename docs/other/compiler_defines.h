@@ -1,5 +1,5 @@
 /* This file is the output of the following command:
- * avr-cpp -dM -mmcu=atxmega128a4u ./src/Utility/Utility.h >> ./compiler_defines.h
+ * avr-cpp -dM -mmcu=atxmega128a4u ./src/Utility/core/utility.h >> ./compiler_defines.h
  *
  * These defines are automatically set when compiling for the atxmega128a4u
  * */

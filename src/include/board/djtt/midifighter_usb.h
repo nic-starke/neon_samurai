@@ -6,7 +6,7 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/types.h"
+#include "core/core_types.h"
 #include "LUFA/Common/Common.h"
 #include "board/djtt/midifighter_usb_descriptors.h"
 

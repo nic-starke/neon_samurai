@@ -5,6 +5,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#include "core/core_types.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define MF_NUM_ENCODERS              (16)
@@ -40,7 +43,7 @@ void mf_switch_init(void);
 void mf_switch_update(void);
 
 void mf_usb_init(void);
-void mf_usb_start(void);
+void mf_usb_update(void);
 
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state);
 void mf_debug_encoder_set_rgb(bool red, bool green, bool blue);

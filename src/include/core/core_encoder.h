@@ -6,8 +6,7 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/types.h"
-#include "system/os.h"
+#include "core/core_types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -27,13 +26,32 @@ typedef struct {
   u8  accel_const; // (private) Acceleration constant
   i8  direction;   // (read only) Current direction
   u8  index;       // (public) Encoder index
-} encoder_ctx_t;
+} encoder_ctx_s;
+
+typedef enum {
+  DIR_ST  = 0x00, // Stationary
+  DIR_CW  = 0x10, // Clockwise
+  DIR_CCW = 0x20, // Counter-clockwise
+} encoder_dir_e;
+
+typedef struct {
+  encoder_dir_e dir;       // (public) Current direction
+  i16           vel;       // (public) Angular velocity
+  u8            rot_state; // (private) State of rotation
+} quadrature_ctx_t;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Update/process an encoder based on directional changes.
 // Returns 1 if the value changed, 0 otherwise.
-int encoder_update(encoder_ctx_t* enc, int direction);
+int core_encoder_update(encoder_ctx_s* enc, int direction);
+
+/**
+ * @brief To be called when new quadrature signals are available for the given
+ * hardware encoder.
+ */
+void core_quadrature_decode(quadrature_ctx_t* ctx, unsigned int ch_a,
+                            unsigned int ch_b);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

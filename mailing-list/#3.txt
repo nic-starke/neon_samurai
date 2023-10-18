@@ -39,7 +39,7 @@ Regarding the USB DFU, I am unsure on how to handle this currently...
 * Programming Language
 I started writing MuffinEditor in C, this was initially slow as I had to setup a cross-platform build environment and all the associated scripts/tooling that come with this.
 I have experience with this on multiple previous projects, but it is always a pain and never "fun".
-I had been experimenting with the Go programming language recently and found it to be very easy to setup new projects (no complex build system/scripts),
+I had been experimenting with the Go programming language recently and found it to be very easy to setup new projects (no complex build core/scripts),
 and it just miles ahead in terms of core features, the standard library, compiler speed, tooling and package handling.
 So I've decided to migrate MuffinEditor to Go. It will take some time to get up to speed with Go, but this will pay off (hopefully) in the end.
 

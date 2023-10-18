@@ -18,8 +18,8 @@
  */
 
 #include "Display/Colour.h"
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 
 /**
  * @brief Clamp the hue to the maximum hue value.

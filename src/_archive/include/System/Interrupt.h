@@ -22,7 +22,7 @@
 #include <avr/cpufunc.h>
 #include <avr/interrupt.h>
 
-#include "system/types.h"
+#include "core/types.h"
 
 typedef enum
 {

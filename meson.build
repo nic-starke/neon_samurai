@@ -26,16 +26,6 @@ qcbor_options = cmake.subproject_options()
 qcbor_subproject = cmake.subproject('qcbor', options: qcbor_options)
 qcbor = qcbor_subproject.dependency('qcbor')
 
-# atomthreads RTOS
-atomthreads_dep = dependency(
-    'atomthreads',
-    fallback : ['atomthreads', 'atomthreads_dep'],
-    default_options: ['default_library=static'],
-    required : true,
-    native: false,
-)
-
-
 lufa_dep = dependency(
     'lufa',
     fallback : ['lufa', 'lufa_dep'],
@@ -102,7 +92,7 @@ muffin = executable(
     link_args: c_link_args,
     # include_directories : [project_inc, configuration_inc],
     include_directories : [project_inc],
-    dependencies : [qcbor, atomthreads_dep, lufa_dep],
+    dependencies : [qcbor, lufa_dep],
 )
 
 hex = custom_target(

@@ -20,9 +20,9 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
-#include "system/types.h"
-#include "system/Interrupt.h"
-#include "system/SoftTimer.h"
+#include "core/types.h"
+#include "core/Interrupt.h"
+#include "core/SoftTimer.h"
 #include "Peripheral/Timer.h"
 
 #define SOFT_TIMER (TCD0)

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "system/types.h"
+#include "core/types.h"
 
 #define LED_ON               (0x00)
 #define LED_OFF              (0xFF)

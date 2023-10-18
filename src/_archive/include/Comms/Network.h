@@ -20,7 +20,7 @@
 #pragma once
 
 #include "Comms/Comms.h"
-#include "system/types.h"
+#include "core/types.h"
 
 void Network_Init(void);
 void Network_Update(void);

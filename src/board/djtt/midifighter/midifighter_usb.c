@@ -6,8 +6,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/system.h"
-#include "application/usb/usb.h"
+#include "core/core_types.h"
 
 #include "board/djtt/midifighter.h"
 #include "board/djtt/midifighter_usb.h"
@@ -312,13 +311,12 @@ USB_ClassInfo_CDC_Device_t gCDC_Interface = {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void mf_usb_init(void) {
+inline void mf_usb_init(void) {
   USB_Init(); // Init LUFA usb stack
-  usb_init((usb_update_fp)USB_USBTask);
 }
 
-void mf_usb_start(void) {
-  usb_start();
+inline void mf_usb_update(void) {
+  USB_USBTask(); // LUFA usb stack update
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

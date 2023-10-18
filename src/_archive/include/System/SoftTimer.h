@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "system/types.h"
+#include "core/types.h"
 
 typedef enum {
   TIMER_STOPPED,

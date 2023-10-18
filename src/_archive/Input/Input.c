@@ -18,12 +18,12 @@
  */
 
 #include "Input/Input.h"
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 #include "Display/Display.h"
 #include "Peripheral/GPIO.h"
 #include "MIDI/MIDI.h"
-#include "system/Settings.h"
+#include "core/Settings.h"
 #include "Peripheral/Timer.h"
 #include "USB/USB.h"
 

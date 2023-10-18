@@ -23,11 +23,11 @@
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
-#include "system/CPU.h"
-#include "system/Data.h"
+#include "core/CPU.h"
+#include "core/Data.h"
 #include "Display/Display.h"
-#include "system/Interrupt.h"
-#include "system/System.h"
+#include "core/Interrupt.h"
+#include "core/core_types.h"
 
 // For more info on the bootloader jump code see
 // http://www.fourwalledcubicle.com/files/LUFA/Doc/120730/html/_page__software_bootloader_start.html

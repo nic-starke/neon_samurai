@@ -6,20 +6,24 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/system.h"
-#include "system/types.h"
-#include "system/utility.h"
+#include "core/core_types.h"
+#include "core/core_utility.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EVENT_DATA_SIZE (8) // Bytes
-#define EVENT_MSG_SIZE  (sizeof(event_t))
+#define event_DATA_SIZE (8) // Bytes
+#define event_MSG_SIZE  (sizeof(event_t))
 
 #define CHECK_SIZE(x)                                                          \
-  STATIC_ASSERT(sizeof(x) <= EVENT_DATA_SIZE, "Event data too large")
+  STATIC_ASSERT(sizeof(x) <= event_DATA_SIZE, "Event data too large")
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+enum {
+  OS_TIMEOUT_BLOCK,
+  OS_TIMEOUT_NOBLOCK,
+};
 
 enum {
   EVT_ENCODER_ROTATION,
@@ -32,39 +36,39 @@ enum {
 typedef struct {
   u16 current_value;
   u8  encoder_index;
-} encoder_event_t;
-CHECK_SIZE(encoder_event_t);
+} encoder_event_s;
+CHECK_SIZE(encoder_event_s);
 
 typedef struct {
   u8 state;
   u8 switch_index;
-} switch_event_t;
-CHECK_SIZE(switch_event_t);
+} switch_event_s;
+CHECK_SIZE(switch_event_s);
 
 typedef struct {
   u16 id;
 
   union {
-    encoder_event_t encoder;
-    switch_event_t  sw;
-    u8              raw[EVENT_DATA_SIZE];
+    encoder_event_s encoder;
+    switch_event_s  sw;
+    u8              raw[event_DATA_SIZE];
   } data;
-} event_t;
+} event_s;
 
 // Typedef for a callback function that handles an event
-typedef void (*event_handler_fp)(event_t* event);
+typedef void (*event_handler_fp)(event_s* event);
 
 // Event handler structure
-typedef struct event_handler {
+typedef struct event_handler_sp {
   // Priority determines the order in which handlers are called
   // 0 means the handlers are called in the order they subscribed to an event.
   // 1 means max priority, and will be called first.
   // 255 means min priority, and will be called last.
 
-  u8                    priority; // (public) Priority of the handler.
-  event_handler_fp      handler;  // (public) Pointer to the handler function.
-  struct event_handler* next;     // (private)
-} event_handler_t;
+  u8                       priority; // (public) Priority of the handler.
+  event_handler_fp         handler; // (public) Pointer to the handler function.
+  struct event_handler_sp* next;    // (private)
+} event_handler_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -72,9 +76,9 @@ typedef struct event_handler {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int event_init(void);
-int event_post(event_t* event, int os_timeout);
-int event_subscribe(event_handler_t* const handler, u16 event_id);
-int event_unsubscribe(event_handler_t* const handler, u16 event_id);
+int event_post(event_s* event, int os_timeout);
+int event_subscribe(event_handler_s* const handler, u16 event_id);
+int event_unsubscribe(event_handler_s* const handler, u16 event_id);
 int event_process(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -20,12 +20,12 @@
 #include <math.h>
 #include <string.h>
 
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 #include "Display/Display.h"
 #include "Input/Encoder.h"
 #include "Display/EncoderDisplay.h"
-#include "system/HardwareDescription.h"
+#include "core/HardwareDescription.h"
 #include "Input/Input.h"
 #include "Display/fast_hsv2rgb.h"
 

@@ -22,13 +22,13 @@
 #include "Display/Colour.h"
 #include "Comms/CommsTypes.h"
 #include "Config.h"
-#include "system/Data.h"
-#include "system/types.h"
+#include "core/Data.h"
+#include "core/types.h"
 #include "Display/Display.h"
 #include "Input/Encoder.h"
 #include "Display/EncoderDisplay.h"
 #include "Input/Input.h"
-#include "system/Interrupt.h"
+#include "core/Interrupt.h"
 
 #define EE_DATA_VERSION (0xAFF2)
 

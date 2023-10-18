@@ -7,17 +7,11 @@
 
 #include <string.h>
 
-#include "system/system.h"
-#include "system/os.h"
-#include "system/event.h"
-#include "system/types.h"
-#include "system/utility.h"
-
-#include "board/djtt/midifighter.h"
+#include "core/core_event.h"
+#include "core/core_types.h"
+#include "core/core_error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define EVENT_THREAD_STACK_SIZE (256)
 
 // Number of messages that can be stored in the queue
 #define EVQ_MAX_MSG (32)
@@ -28,77 +22,48 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-static void event_thread(u32 data);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static os_queue_t evt_queue;
-static u8         evt_queue_buf[EVQ_SIZE];
+static event_handler_s* handlers[EVT_ID_MAX];
 
-static u8 evt_thread_stack[EVENT_THREAD_STACK_SIZE];
-
-static os_thread_t evt_thread = {
-    .next       = NULL,
-    .priority   = T_PRIO_EVT,
-    .stack      = evt_thread_stack,
-    .stack_size = sizeof(evt_thread_stack),
-};
-
-static event_handler_t* handlers[EVT_ID_MAX];
+static event_s evt_queue[EVQ_MAX_MSG];
+static u8      curr_evt = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int event_init(void) {
-  int ret = os_queue_create(&evt_queue, &evt_queue_buf[0], EVENT_MSG_SIZE,
-                            EVQ_MAX_MSG);
-  RETURN_ON_ERR(ret);
-
-  ret = os_thread_start(&evt_thread, event_thread, 0);
-  RETURN_ON_ERR(ret);
-
-  return ret;
+  return 0;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Thread Function ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void event_thread(u32 data) {
-  int     ret;
-  event_t evt;
-
-  while (1) {
-    ret = os_queue_get(&evt_queue, OS_TIMEOUT_NOBLOCK, (u8*)&evt);
-    // Call all handlers for this event
-    if (ret == 0) {
-      event_handler_t* h = handlers[evt.id];
-      while (h) {
-        h->handler(&evt);
-        h = h->next;
-      }
-    }
-  }
-}
-
 int event_process(void) {
-  event_t evt;
-  int     ret = os_queue_get(&evt_queue, OS_TIMEOUT_NOBLOCK, (u8*)&evt);
-  // Call all handlers for this event
-  if (ret == 0) {
-    event_handler_t* h = handlers[evt.id];
+
+  // Iterate through the event queue and call each handler
+  for (u8 i = 0; i < curr_evt; i++) {
+    // Call all handlers for this event
+    event_handler_s* h = handlers[evt_queue[i].id];
     while (h) {
-      h->handler(&evt);
+      h->handler(&evt_queue[i]);
       h = h->next;
     }
   }
+
+  curr_evt = 0;
 }
 
-int event_post(event_t* evt, int os_timeout) {
+int event_post(event_s* evt, int os_timeout) {
   assert(evt);
-  return os_queue_put(&evt_queue, os_timeout, (u8*)evt);
+  if (curr_evt >= EVQ_MAX_MSG) {
+    return ERR_NO_MEM;
+  }
+
+  memcpy(&evt_queue[curr_evt++], evt, sizeof(event_s));
+  return 0;
 }
 
-int event_subscribe(event_handler_t* const handler, u16 event_id) {
+int event_subscribe(event_handler_s* const handler, u16 event_id) {
   assert(handler);
   if (event_id >= EVT_ID_MAX) {
     return ERR_BAD_PARAM;
@@ -109,10 +74,7 @@ int event_subscribe(event_handler_t* const handler, u16 event_id) {
 
   // Iterate the linked list of the handler for the given event_id, add new
   // handler to the end
-  event_handler_t* h = handlers[event_id];
-
-  // Disable interrupts while we modify the list
-  cli();
+  event_handler_s* h = handlers[event_id];
 
   // If the list is empty, add the handler to the start
   if (h == NULL) {
@@ -120,8 +82,8 @@ int event_subscribe(event_handler_t* const handler, u16 event_id) {
     goto done;
   }
 
-  // If the list is not empty then insert the new handler based on its priority
-  // Priority of 0 means the handler is added to the end of the list
+  // If the list is not empty then insert the new handler based on its
+  // priority Priority of 0 means the handler is added to the end of the list
   if (handler->priority == 0) {
     while (h->next) {
       h = h->next;
@@ -149,13 +111,12 @@ int event_subscribe(event_handler_t* const handler, u16 event_id) {
   }
 
 done:
-  // Re-enable interrupts
-  sei();
   return 0;
 }
 
-int event_unsubscribe(event_handler_t* const handler, u16 event_id) {
-  return 0;
+int event_unsubscribe(event_handler_s* const handler, u16 event_id) {
+  // return 0;
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
+ */

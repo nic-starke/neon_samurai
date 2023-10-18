@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "system/types.h"
-#include "system/HardwareDescription.h"
+#include "core/types.h"
+#include "core/HardwareDescription.h"
 
 #define DIR_STATIONARY (0x00)
 #define DIR_CW         (0x10)

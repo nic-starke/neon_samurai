@@ -21,7 +21,7 @@
 #include "Comms/CBOR.h"
 #include "Display/Display.h"
 #include "Comms/Network.h"
-#include "system/SoftTimer.h"
+#include "core/SoftTimer.h"
 
 #define ENABLE_SERIAL
 #include "USB/VirtualSerial.h"

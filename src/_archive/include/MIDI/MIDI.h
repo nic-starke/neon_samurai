@@ -22,7 +22,7 @@
 #include <avr/pgmspace.h>
 
 #include "Comms/CommsTypes.h"
-#include "system/types.h"
+#include "core/types.h"
 #include "subprojects/lufa/LUFA/Drivers/USB/USB.h"
 #include "Input/Encoder.h"
 #include "MIDICommandDefines.h"

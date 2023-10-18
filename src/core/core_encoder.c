@@ -5,10 +5,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/system.h"
-#include "system/utility.h"
-#include "system/event.h"
-#include "application/io/encoder.h"
+#include "core/core_types.h"
+#include "core/core_utility.h"
+#include "core/core_event.h"
+#include "core/core_encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -17,8 +17,35 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+typedef enum {
+  QUAD_START,
+  QUAD_CCW,
+  QUAD_CW,
+  QUAD_MIDDLE,
+  QUAD_MID_CW,
+  QUAD_MID_CCW,
+
+  QUAD_NB,
+} quad_state_e;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/*
+ * Rotory decoder based on
+ * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
+ * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
+ */
+static const quad_state_e quad_states[QUAD_NB][4] = {
+    // Current Quadrature GrayCode
+    {QUAD_MIDDLE, QUAD_CW, QUAD_CCW, QUAD_START},
+    {QUAD_MIDDLE | DIR_CCW, QUAD_START, QUAD_CCW, QUAD_START},
+    {QUAD_MIDDLE | DIR_CW, QUAD_CW, QUAD_START, QUAD_START},
+    {QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MID_CW, QUAD_START},
+    {QUAD_MIDDLE, QUAD_MIDDLE, QUAD_MID_CW, QUAD_START | DIR_CW},
+    {QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MIDDLE, QUAD_START | DIR_CCW},
+};
 
 // Acceleration constants
 static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 30, VEL_INC * 60,
@@ -26,7 +53,14 @@ static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 30, VEL_INC * 60,
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int encoder_update(encoder_ctx_t* enc, int direction) {
+void core_quadrature_decode(quadrature_ctx_t* ctx, unsigned int ch_a,
+                            unsigned int ch_b) {
+  unsigned int val = (ch_b << 1) | ch_a;
+  ctx->rot_state   = quad_states[ctx->rot_state & 0x0F][val];
+  ctx->dir         = ctx->rot_state & 0x30;
+}
+
+int core_encoder_update(encoder_ctx_s* enc, int direction) {
   assert(enc);
 
   i32 newval = 0;
@@ -70,7 +104,7 @@ int encoder_update(encoder_ctx_t* enc, int direction) {
 
   // Post an event if the encoder changed.
   if (enc->curr_val != enc->prev_val) {
-    event_t evt = {
+    event_s evt = {
         .id = EVT_ENCODER_ROTATION,
         .data.encoder =
             {

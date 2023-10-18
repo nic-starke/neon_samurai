@@ -18,7 +18,7 @@
  */
 
 #include "USB/VirtualSerial.h"
-#include "system/types.h"
+#include "core/types.h"
 #include "USB/Descriptors.h"
 #include "USB/USB.h"
 

@@ -22,9 +22,9 @@
 #include <avr/pgmspace.h>
 
 #include "Comms/CommsTypes.h"
-#include "system/types.h"
+#include "core/types.h"
 #include "Input/Encoder.h"
-#include "system/HardwareDescription.h"
+#include "core/HardwareDescription.h"
 
 typedef enum {
   DEFAULT_MODE,
