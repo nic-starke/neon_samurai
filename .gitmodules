@@ -6,6 +6,3 @@
 	path = subprojects/lufa
 	url = https://github.com/nic-starke/lufa.git
 
-[submodule "subprojects/atomthreads"]
-	path = subprojects/atomthreads
-	url = https://github.com/nic-starke/atomthreads.git
