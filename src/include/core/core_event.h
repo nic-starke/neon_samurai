@@ -21,13 +21,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum {
-  OS_TIMEOUT_BLOCK,
-  OS_TIMEOUT_NOBLOCK,
-};
-
-enum {
   EVT_ENCODER_ROTATION,
   EVT_ENCODER_SWITCH_STATE,
+
+  EVT_MAX_BRIGHTNESS,
 
   EVT_SYS_RESERVED,
   EVT_ID_MAX,
@@ -51,6 +48,7 @@ typedef struct {
   union {
     encoder_event_s encoder;
     switch_event_s  sw;
+    u8              max_brightness;
     u8              raw[event_DATA_SIZE];
   } data;
 } event_s;
@@ -76,7 +74,7 @@ typedef struct event_handler_sp {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int event_init(void);
-int event_post(event_s* event, int os_timeout);
+int event_post(event_s* event);
 int event_subscribe(event_handler_s* const handler, u16 event_id);
 int event_unsubscribe(event_handler_s* const handler, u16 event_id);
 int event_process(void);

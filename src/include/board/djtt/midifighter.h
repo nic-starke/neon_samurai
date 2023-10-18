@@ -34,7 +34,7 @@ extern volatile u16 mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 
 void mf_led_init(void);
 void mf_led_transmit(void);
-void mf_led_set_max_brightness(u16 brightness);
+void mf_max_brightness(u8 brightness);
 
 void mf_encoder_init(void);
 void mf_encoder_update(void);

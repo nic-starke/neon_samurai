@@ -53,7 +53,7 @@ int event_process(void) {
   curr_evt = 0;
 }
 
-int event_post(event_s* evt, int os_timeout) {
+int event_post(event_s* evt) {
   assert(evt);
   if (curr_evt >= EVQ_MAX_MSG) {
     return ERR_NO_MEM;

@@ -11,6 +11,7 @@
 #include <util/atomic.h>
 
 #include "core/core_types.h"
+#include "core/core_event.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 #include "hal/avr/xmega/128a4u/dma.h"
@@ -114,8 +115,17 @@ void mf_led_init(void) {
   TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer!
 }
 
-void mf_led_set_max_brightness(u16 brightness) {
-  // TCD0.CCA = brightness;
+void mf_led_set_max_brightness(u8 brightness) {
+  if (brightness > MF_MAX_BRIGHTNESS) {
+    brightness = MF_MAX_BRIGHTNESS;
+  }
+
+  // Post an event to the event queue
+  event_s evt = {
+      .id                  = EVT_MAX_BRIGHTNESS,
+      .data.max_brightness = brightness,
+  };
+  event_post(&evt);
 }
 
 ISR(TCD0_CCB_vect) {

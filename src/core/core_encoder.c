@@ -13,7 +13,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Velocity increment
-#define VEL_INC 16
+#define VEL_INC 1
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -48,8 +48,8 @@ static const quad_state_e quad_states[QUAD_NB][4] = {
 };
 
 // Acceleration constants
-static i16 accel_inc[] = {VEL_INC * 1, VEL_INC * 5, VEL_INC * 30, VEL_INC * 60,
-                          VEL_INC * 120};
+static i16 accel_inc[] = {VEL_INC * 2, VEL_INC * 10, VEL_INC * 20, VEL_INC * 40,
+                          VEL_INC * 80};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -75,11 +75,8 @@ int core_encoder_update(encoder_ctx_s* enc, int direction) {
   } else {
     // If the encoder stopped moving then decelerate
     if (direction == 0) {
-      if (enc->velocity > VEL_INC * 2) {
-        enc->velocity -= accel_inc[enc->accel_const];
-      } else if (enc->velocity < -(VEL_INC * 2)) {
-        enc->velocity += accel_inc[enc->accel_const];
-      }
+      enc->velocity =
+          (enc->velocity > 0) ? enc->velocity - 1 : enc->velocity + 1;
       return 0;
     }
 
@@ -88,6 +85,7 @@ int core_encoder_update(encoder_ctx_s* enc, int direction) {
       enc->accel_const = (enc->accel_const + 1) % COUNTOF(accel_inc);
     } else {
       enc->accel_const = 0;
+      enc->velocity    = 0;
     }
 
     // Update the direction
@@ -112,7 +110,7 @@ int core_encoder_update(encoder_ctx_s* enc, int direction) {
                 .encoder_index = enc->index,
             },
     };
-    event_post(&evt, OS_TIMEOUT_NOBLOCK);
+    event_post(&evt);
     return 1;
   } else {
     return 0;

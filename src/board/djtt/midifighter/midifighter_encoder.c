@@ -100,6 +100,8 @@ static void encoder_evt_handler(event_s* event);
 
 static void update_display(u8 index);
 
+static u8 max_brightness = MF_MAX_BRIGHTNESS;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static quadrature_ctx_t   hw_ctx[MF_NUM_ENCODERS];
@@ -141,12 +143,26 @@ void mf_encoder_init(void) {
     mf_ctx[i].detent   = true;
     sw_ctx[i].index    = i;
     sw_ctx[i].curr_val = ENC_MID;
-    // sw_ctx[i].accel_mode = true;
+    sw_ctx[i].accel_mode = (i % 2 == 0);
   }
 
   // Subscribe to encoder change events
   event_subscribe(&enc_evt_handler, EVT_ENCODER_ROTATION);
   event_subscribe(&enc_evt_handler, EVT_ENCODER_SWITCH_STATE);
+  event_subscribe(&enc_evt_handler, EVT_MAX_BRIGHTNESS);
+
+  // Post the initial event to update display
+  for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
+    event_s evt = {
+        .id = EVT_ENCODER_ROTATION,
+        .data.encoder =
+            {
+                .current_value = sw_ctx[i].curr_val,
+                .encoder_index = i,
+            },
+    };
+    event_post(&evt);
+  }
 }
 
 // Scan the hardware state of the midifighter and update local contexts
@@ -211,7 +227,7 @@ void mf_encoder_update(void) {
                       },
               },
       };
-      event_post(&evt, OS_TIMEOUT_NOBLOCK);
+      event_post(&evt);
     }
   }
 }
@@ -324,26 +340,25 @@ static void update_display(u8 index) {
   }
 
   // Set the RGB colour based on the velocity of the encoder
-  // if (mf_ctx[index].encoder_mode != ENCODER_MODE_DISABLED) {
-  //   mf_ctx[index].rgb_state.value = 0;
-  //   // uint8_t multi =
-  //   //     abs(((float)sw_ctx[index].velocity / ENC_MAX_VELOCITY) *
-  //   //     MF_RGB_MAX_VAL);
-  //   // if (sw_ctx[index].velocity > 0) {
-  //   //   mf_ctx[index].rgb_state.red = multi;
-  //   // } else if (sw_ctx[index].velocity < 0) {
-  //   //   mf_ctx[index].rgb_state.blue = multi;
-  //   // } else {
-  //   //   mf_ctx[index].rgb_state.green = MF_RGB_MAX_VAL;
-  //   // }
+  if (mf_ctx[index].encoder_mode != ENCODER_MODE_DISABLED) {
+    mf_ctx[index].rgb_state.value = 0;
+    // uint8_t multi = abs(((float)sw_ctx[index].velocity / ENC_MAX_VELOCITY) *
+    //                     MF_RGB_MAX_VAL);
+    // if (sw_ctx[index].velocity > 0) {
+    //   mf_ctx[index].rgb_state.red = multi;
+    // } else if (sw_ctx[index].velocity < 0) {
+    //   mf_ctx[index].rgb_state.blue = multi;
+    // } else {
+    //   mf_ctx[index].rgb_state.green = MF_RGB_MAX_VAL;
+    // }
 
-  //   // RGB colour based on current value
-  //   // u8 brightness = (u8)((f32)sw_ctx[index].curr_val / ENC_MAX *
-  //   MF_RGB_MAX_VAL);
-  //   // mf_ctx[index].rgb_state.blue  = brightness;
-  //   // mf_ctx[index].rgb_state.green = brightness;
-  //   // mf_ctx[index].rgb_state.red   = brightness;
-  // }
+    // RGB colour based on current value
+    u8 brightness =
+        (u8)((f32)sw_ctx[index].curr_val / ENC_MAX * MF_RGB_MAX_VAL);
+    // mf_ctx[index].rgb_state.blue  = brightness;
+    // mf_ctx[index].rgb_state.green = brightness;
+    mf_ctx[index].rgb_state.red = brightness;
+  }
 
   // When detent mode is enabled the detent LEDs must be displayed, and
   // indicator LED #6 at the 12 o'clock position must be turned off.
@@ -352,8 +367,14 @@ static void update_display(u8 index) {
     leds.detent_blue = 1;
   }
 
-  // Handle PWM for RGB colours and MULTI_PWM mode
+  // Handle PWM for RGB colours, MULTI_PWM mode, and global max brightness
   for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
+    // When the brightness is below 100% then begin to dim the LEDs.
+    if (max_brightness < p) {
+      leds.state             = 0;
+      mf_frame_buf[p][index] = ~leds.state;
+      continue;
+    }
 
     if (mf_ctx[index].led_mode == INDICATOR_MODE_MULTI_PWM) {
       if (mf_ctx[index].detent) {
@@ -408,6 +429,11 @@ static void encoder_evt_handler(event_s* event) {
       u8 index               = event->data.sw.switch_index;
       mf_ctx[index].led_mode = (mf_ctx[index].led_mode + 1) % INDICATOR_MODE_NB;
       update_display(index);
+      break;
+    }
+
+    case EVT_MAX_BRIGHTNESS: {
+      max_brightness = event->data.max_brightness;
       break;
     }
   }
