@@ -15,13 +15,13 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 BitFieldColonSpacing: Both
 BreakBeforeBraces: Attach
-ColumnLimit: 80
+ColumnLimit: 81
 MaxEmptyLinesToKeep: 1
 PointerAlignment: Left
-ReflowComments: true
+ReflowComments: false
 SortIncludes: false
 InsertNewlineAtEOF: true
 TabWidth: 2
 IndentWidth: 2
 IndentCaseLabels: true
-UseTab: Never
+UseTab: Always

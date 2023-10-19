@@ -5,7 +5,6 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/subprojects/lufa**",
-                "${workspaceFolder}/subprojects/atomthreads**",
                 "${workspaceFolder}/subprojects/qcbor**",
                 "/usr/avr/include/**"
             ],
