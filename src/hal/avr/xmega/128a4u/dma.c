@@ -30,7 +30,7 @@ void dma_peripheral_init(void) {
   }
 }
 
-int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg) {
+int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg) {
   if (ch == NULL || cfg == NULL) {
     return ERR_NULL_PTR;
   }

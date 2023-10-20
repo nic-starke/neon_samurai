@@ -53,68 +53,51 @@ static i16 accel_inc[] = {VEL_INC * 2, VEL_INC * 10, VEL_INC * 20, VEL_INC * 40,
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void core_quadrature_decode(quadrature_ctx_t* ctx, unsigned int ch_a,
-                            unsigned int ch_b) {
-  unsigned int val = (ch_b << 1) | ch_a;
-  ctx->rot_state   = quad_states[ctx->rot_state & 0x0F][val];
-  ctx->dir         = ctx->rot_state & 0x30;
+void core_quadrature_decode(quadrature_ctx_s* ctx, unsigned int ch_a,
+														unsigned int ch_b) {
+	unsigned int val = (ch_b << 1) | ch_a;
+	ctx->rot_state	 = quad_states[ctx->rot_state & 0x0F][val];
+	ctx->dir				 = ctx->rot_state & 0x30;
 }
 
-int core_encoder_update(encoder_ctx_s* enc, int direction) {
-  assert(enc);
+void core_encoder_update(encoder_ctx_s* enc, int direction) {
+	assert(enc);
 
-  i32 newval = 0;
+	i32 newval = 0;
 
-  if (enc->accel_mode == 0) {
-    if (direction == 0) {
-      return 0;
-    }
+	enc->prev_val = enc->curr_val;
+	if (enc->accel_mode == 0) {
+		if (direction == 0) {
+			return;
+		}
 
-    enc->prev_val = enc->curr_val;
-    enc->velocity = 1500 * direction;
-  } else {
-    // If the encoder stopped moving then decelerate
-    if (direction == 0) {
-      enc->velocity =
-          (enc->velocity > 0) ? enc->velocity - 1 : enc->velocity + 1;
-      return 0;
-    }
+		enc->velocity = 1500 * direction;
+	} else {
+		// If the encoder stopped moving then decelerate
+		if (direction == 0) {
+			enc->velocity =
+					(enc->velocity > 0) ? enc->velocity - 1 : enc->velocity + 1;
+			return;
+		}
 
-    // Accelerate if the direction is the same, otherwise reset the acceleration
-    if (enc->direction == direction) {
-      enc->accel_const = (enc->accel_const + 1) % COUNTOF(accel_inc);
-    } else {
-      enc->accel_const = 0;
-      enc->velocity    = 0;
-    }
+		// Accelerate if the direction is the same, otherwise reset the acceleration
+		if (enc->direction == direction) {
+			enc->accel_const = (enc->accel_const + 1) % COUNTOF(accel_inc);
+		} else {
+			enc->accel_const = 0;
+			enc->velocity		 = 0;
+		}
 
-    // Update the direction
-    enc->direction = direction;
+		// Update the direction
+		enc->direction = direction;
 
-    // Update the velocity
-    enc->velocity += accel_inc[enc->accel_const] * enc->accel_const * direction;
-    enc->prev_val = enc->curr_val;
-  }
+		// Update the velocity
+		enc->velocity += accel_inc[enc->accel_const] * enc->accel_const * direction;
+	}
 
-  newval =
-      enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
-  enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
-
-  // Post an event if the encoder changed.
-  if (enc->curr_val != enc->prev_val) {
-    event_s evt = {
-        .id = EVT_ENCODER_ROTATION,
-        .data.encoder =
-            {
-                .current_value = enc->curr_val,
-                .encoder_index = enc->index,
-            },
-    };
-    event_post(&evt);
-    return 1;
-  } else {
-    return 0;
-  }
+	newval =
+			enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
+	enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

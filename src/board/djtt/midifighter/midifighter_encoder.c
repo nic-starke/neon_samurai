@@ -6,6 +6,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include <math.h>
 
@@ -60,62 +61,53 @@ typedef union {
 		u16 indicator_1	 : 1;
 	};
 	u16 state;
-} encoder_led_t;
-
-/**
- * @brief The LED mode determines how the current value of the encoder should be
- * displayed via the LEDs.
- *
- * INDICATOR_MODE_SINGLE  - A single LED will be lit to display the value
- * INDICATOR_MODE_TRI     - Three LEDs will be lit to display the value (the
- * middle led is brightest) INDICATOR_MODE_MULTI   - All leds are light in
- * sequence. INDICATOR_MODE_MULTI_PWM - As above, but the brightness of the
- * final LED will be adjusted to display intermediate values.
- *
- * The modes also apply when the encoder detent mode is enabled.
- *
- */
-
-typedef struct {
-	u8 channel;
-	u8 value; // cc, or note value
-} mf_midi_cfg_t;
-
-typedef struct {
-	indicator_style_e led_mode;
-	encoder_mode_e		encoder_mode;
-	rgb_15_t					rgb_state;
-	u8								detent;
-
-	union { // Union of the various mode "configurations"
-		mf_midi_cfg_t midi;
-	} cfg;
-
-} mf_encoder_ctx_t;
+} encoder_led_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Event handler for encoder change events
+static void virtual_encoder_update(midifighter_encoder_s* enc);
+static void update_display(midifighter_encoder_s* enc);
 static void encoder_evt_handler(event_s* event);
-
-static void update_display(u8 index);
-
-static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static quadrature_ctx_t hw_ctx[MF_NUM_ENCODERS];
-static encoder_ctx_s		sw_ctx[MF_NUM_ENCODERS];
-static mf_encoder_ctx_t mf_ctx[MF_NUM_ENCODERS];
+// A single hardware context is required for each physical encoder
+static quadrature_ctx_s hw_ctx[MF_NUM_ENCODERS];
+
+// A single switch context is required for all 16 switches (in the encoders)
 static switch_x16_ctx_s switch_ctx;
 
+// The encoder config exists for each virtual encoder
+static midifighter_encoder_s mf_ctx[MF_NUM_ENCODERS];
+
+// Array of pointers to the currently active virtual encoders
+// This maps the physical encoders to their virtual counterparts
+// And allows the virtual encoders to be remapped to new ones as required..
+static midifighter_encoder_s* hw_to_virtual[MF_NUM_ENCODERS];
+
 static const u16 led_interval = ENC_MAX / 11;
+
+#warning "TODO(ns) Move this to a system-config struct..."
+static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
 // Event handlers
 static event_handler_s enc_evt_handler = {
 		.priority = 0,
 		.handler	= encoder_evt_handler,
 		.next			= NULL,
+};
+
+static const midifighter_encoder_s default_config = {
+		.enabled					= true,
+		.detent						= false,
+		.encoder_ctx			= {0},
+		.hwenc_id					= 0,
+		.led_style				= LED_STYLE_SINGLE,
+		.led_detent.value = 0,
+		.led_rgb.value		= 0,
+		.midi.channel			= 1,
+		.midi.mode				= MIDI_MODE_CC,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -130,20 +122,12 @@ void mf_encoder_init(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
-	// Set the encoder configurations
+	// Set the encoder configurations and map to the hardware encoders
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-		mf_ctx[i].encoder_mode = ENCODER_MODE_MIDI_CC;
-		mf_ctx[i].led_mode		 = (i % INDICATOR_MODE_NB);
-
-		//  Randomly set the colour of each encoder RGB.
-		mf_ctx[i].rgb_state.red		= rand() % MF_RGB_MAX_VAL;
-		mf_ctx[i].rgb_state.green = rand() % MF_RGB_MAX_VAL;
-		mf_ctx[i].rgb_state.blue	= rand() % MF_RGB_MAX_VAL;
-
-		mf_ctx[i].detent		 = true;
-		sw_ctx[i].index			 = i;
-		sw_ctx[i].curr_val	 = ENC_MID;
-		sw_ctx[i].accel_mode = (i % 2 == 0);
+		// memcpy_P(&mf_ctx[i], &default_config, sizeof(midifighter_encoder_s));
+		mf_ctx[i]					 = default_config;
+		mf_ctx[i].hwenc_id = i;
+		hw_to_virtual[i]	 = &mf_ctx[i];
 	}
 
 	// Subscribe to encoder change events
@@ -153,14 +137,9 @@ void mf_encoder_init(void) {
 
 	// Post the initial event to update display
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-		event_s evt = {
-				.id = EVT_ENCODER_ROTATION,
-				.data.encoder =
-						{
-								.current_value = sw_ctx[i].curr_val,
-								.encoder_index = i,
-						},
-		};
+		event_s evt;
+		evt.id												 = EVT_ENCODER_ROTATION;
+		evt.data.encoder.current_value = hw_to_virtual[i]->encoder_ctx.curr_val;
 		event_post(&evt);
 	}
 }
@@ -191,16 +170,6 @@ void mf_encoder_update(void) {
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
 		core_quadrature_decode(&hw_ctx[i], ch_a, ch_b);
-
-		i16 direction = 0;
-		if (hw_ctx[i].dir != DIR_ST) {
-			direction = hw_ctx[i].dir == DIR_CW ? 1 : -1;
-		}
-
-		// Process encoder changes
-		if (mf_ctx[i].encoder_mode != ENCODER_MODE_DISABLED) {
-			core_encoder_update(&sw_ctx[i], direction);
-		}
 	}
 
 	// Close the door!
@@ -210,32 +179,16 @@ void mf_encoder_update(void) {
 	switch_x16_update(&switch_ctx, swstates);
 	switch_x16_debounce(&switch_ctx);
 
-	// Process switch changes
+	// Now process virtual encoders
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-		u16 mask			= (1u << i);
-		u8	prevstate = (switch_ctx.previous & mask) ? 1 : 0;
-		u8	state			= (switch_ctx.current & mask) ? 1 : 0;
-		if (state != prevstate) {
-			event_s evt = {
-					.id = EVT_ENCODER_SWITCH_STATE,
-					.data =
-							{
-									.sw =
-											{
-													.switch_index = i,
-													.state				= state,
-											},
-							},
-			};
-			event_post(&evt);
-		}
+		virtual_encoder_update(hw_to_virtual[i]);
 	}
 }
 
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state) {
 	const u8 debug_encoder = 0;
 	assert(indicator < MF_NUM_INDICATOR_LEDS);
-	encoder_led_t leds;
+	encoder_led_s leds;
 	leds.state = 0; // turn off all leds
 
 	switch (indicator) {
@@ -259,7 +212,7 @@ void mf_debug_encoder_set_indicator(u8 indicator, u8 state) {
 
 void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
 	const u8			debug_encoder = 0;
-	encoder_led_t leds;
+	encoder_led_s leds;
 	leds.state		 = 0;
 	leds.rgb_blue	 = blue;
 	leds.rgb_red	 = red;
@@ -272,38 +225,73 @@ void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void update_display(u8 index) {
+static void virtual_encoder_update(midifighter_encoder_s* enc) {
+	if (enc->enabled) {
+		// Process changes in rotation
+		u8 id = enc->hwenc_id;
+
+		int direction = 0;
+		if (hw_ctx[id].dir == DIR_CW) {
+			direction = 1;
+		} else if (hw_ctx[id].dir == DIR_CCW) {
+			direction = -1;
+		}
+
+		core_encoder_update(&enc->encoder_ctx, direction);
+		if (enc->encoder_ctx.curr_val != enc->encoder_ctx.prev_val) {
+			event_s evt;
+			evt.id												 = EVT_ENCODER_ROTATION;
+			evt.data.encoder.current_value = enc->encoder_ctx.curr_val;
+			evt.data.encoder.encoder_index = enc->hwenc_id;
+			event_post(&evt);
+		}
+
+		// Process changes in switch state
+		u16 mask			= (1u << id);
+		u8	prevstate = (switch_ctx.previous & mask) ? 1 : 0;
+		u8	state			= (switch_ctx.current & mask) ? 1 : 0;
+		if (state != prevstate) {
+			event_s evt;
+			evt.id									 = EVT_ENCODER_SWITCH_STATE;
+			evt.data.sw.switch_index = id;
+			evt.data.sw.state				 = state;
+			event_post(&evt);
+		}
+	}
+}
+
+static void update_display(midifighter_encoder_s* enc) {
 	f32						ind_pwm;		// Partial encoder positions (e.g position = 5.7)
 	unsigned int	ind_norm;		// Integer encoder positions (e.g position = 5)
 	unsigned int	pwm_frames; // Number of PWM frames for partial brightness
-	encoder_led_t leds;				// LED states
+	encoder_led_s leds;				// LED states
 
 	// Clear all LEDs
 	leds.state = 0;
 
 	// Determine the position of the indicator led and which led requires
 	// partial brightness
-	if (sw_ctx[index].curr_val <= led_interval) {
+	if (enc->encoder_ctx.curr_val <= led_interval) {
 		ind_pwm	 = 0;
 		ind_norm = 0;
-	} else if (sw_ctx[index].curr_val == ENC_MAX) {
+	} else if (enc->encoder_ctx.curr_val == ENC_MAX) {
 		ind_pwm	 = MF_NUM_INDICATOR_LEDS;
 		ind_norm = MF_NUM_INDICATOR_LEDS;
 	} else {
-		ind_pwm	 = ((f32)sw_ctx[index].curr_val / led_interval);
+		ind_pwm	 = ((f32)enc->encoder_ctx.curr_val / led_interval);
 		ind_norm = (unsigned int)roundf(ind_pwm);
 	}
 
 	// Generate the LED states based on the display mode
-	switch (mf_ctx[index].led_mode) {
-		case INDICATOR_MODE_SINGLE: {
+	switch (enc->led_style) {
+		case LED_STYLE_SINGLE: {
 			// Set the corresponding bit for the indicator led
 			leds.state = MASK_INDICATORS & (0x8000 >> (ind_norm - 1));
 			break;
 		}
 
-		case INDICATOR_MODE_MULTI: {
-			if (mf_ctx[index].detent) {
+		case LED_STYLE_MULTI: {
+			if (enc->detent) {
 				if (ind_norm < 6) {
 					leds.state |=
 							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
@@ -318,10 +306,10 @@ static void update_display(u8 index) {
 			break;
 		}
 
-		case INDICATOR_MODE_MULTI_PWM: {
+		case LED_STYLE_MULTI_PWM: {
 			f32 diff	 = ind_pwm - (floorf(ind_pwm));
 			pwm_frames = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
-			if (mf_ctx[index].detent) {
+			if (enc->detent) {
 				if (ind_norm < 6) {
 					leds.state |=
 							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
@@ -340,28 +328,29 @@ static void update_display(u8 index) {
 	}
 
 	// Set the RGB colour based on the velocity of the encoder
-	if (mf_ctx[index].encoder_mode != ENCODER_MODE_DISABLED) {
-		mf_ctx[index].rgb_state.value = 0;
+	if (enc->enabled) {
+		enc->led_rgb.value = 0;
 		// uint8_t multi = abs(((float)sw_ctx[index].velocity / ENC_MAX_VELOCITY) *
 		//                     MF_RGB_MAX_VAL);
 		// if (sw_ctx[index].velocity > 0) {
-		//   mf_ctx[index].rgb_state.red = multi;
+		//   enc->led_rgb.red = multi;
 		// } else if (sw_ctx[index].velocity < 0) {
-		//   mf_ctx[index].rgb_state.blue = multi;
+		//   enc->led_rgb.blue = multi;
 		// } else {
-		//   mf_ctx[index].rgb_state.green = MF_RGB_MAX_VAL;
+		//   enc->led_rgb.green = MF_RGB_MAX_VAL;
 		// }
 
 		// RGB colour based on current value
-		u8 brightness = (u8)((f32)sw_ctx[index].curr_val / ENC_MAX * MF_RGB_MAX_VAL);
-		// mf_ctx[index].rgb_state.blue  = brightness;
-		// mf_ctx[index].rgb_state.green = brightness;
-		mf_ctx[index].rgb_state.red = brightness;
+		u8 brightness =
+				(u8)((f32)enc->encoder_ctx.curr_val / ENC_MAX * MF_RGB_MAX_VAL);
+		// enc->led_rgb.blue  = brightness;
+		// enc->led_rgb.green = brightness;
+		enc->led_rgb.red = brightness;
 	}
 
 	// When detent mode is enabled the detent LEDs must be displayed, and
 	// indicator LED #6 at the 12 o'clock position must be turned off.
-	if (mf_ctx[index].detent && (ind_norm == 6)) {
+	if (enc->detent && (ind_norm == 6)) {
 		leds.indicator_6 = 0;
 		leds.detent_blue = 1;
 	}
@@ -371,12 +360,12 @@ static void update_display(u8 index) {
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < p) {
 			leds.state						 = 0;
-			mf_frame_buf[p][index] = ~leds.state;
+			mf_frame_buf[p][enc->hwenc_id] = ~leds.state;
 			continue;
 		}
 
-		if (mf_ctx[index].led_mode == INDICATOR_MODE_MULTI_PWM) {
-			if (mf_ctx[index].detent) {
+		if (enc->led_style == LED_STYLE_MULTI_PWM) {
+			if (enc->detent) {
 				if (ind_norm < 6) {
 					if (p < pwm_frames) {
 						leds.state &=
@@ -402,16 +391,16 @@ static void update_display(u8 index) {
 		}
 
 		leds.rgb_blue = leds.rgb_red = leds.rgb_green = 0;
-		if ((int)(mf_ctx[index].rgb_state.red - p) > 0) {
+		if ((int)(enc->led_rgb.red - p) > 0) {
 			leds.rgb_red = 1;
 		}
-		if ((int)(mf_ctx[index].rgb_state.green - p) > 0) {
+		if ((int)(enc->led_rgb.green - p) > 0) {
 			leds.rgb_green = 1;
 		}
-		if ((int)(mf_ctx[index].rgb_state.blue - p) > 0) {
+		if ((int)(enc->led_rgb.blue - p) > 0) {
 			leds.rgb_blue = 1;
 		}
-		mf_frame_buf[p][index] = ~leds.state;
+		mf_frame_buf[p][enc->hwenc_id] = ~leds.state;
 	}
 }
 
@@ -419,16 +408,17 @@ static void encoder_evt_handler(event_s* event) {
 	assert(event);
 	switch (event->id) {
 		case EVT_ENCODER_ROTATION: {
-			update_display(event->data.encoder.encoder_index);
+			unsigned int index = event->data.encoder.encoder_index;
+			update_display(hw_to_virtual[index]);
 			break;
 		}
 
-		case EVT_ENCODER_SWITCH_STATE: {
-			u8 index							 = event->data.sw.switch_index;
-			mf_ctx[index].led_mode = (mf_ctx[index].led_mode + 1) % INDICATOR_MODE_NB;
-			update_display(index);
-			break;
-		}
+			// case EVT_ENCODER_SWITCH_STATE: {
+			// 	u8 index							 = event->data.sw.switch_index;
+			// 	mf_ctx[index].led_mode = (mf_ctx[index].led_mode + 1) % LED_STYLE_NB;
+			// 	update_display(index);
+			// break;
+			// }
 
 		case EVT_MAX_BRIGHTNESS: {
 			max_brightness = event->data.max_brightness;

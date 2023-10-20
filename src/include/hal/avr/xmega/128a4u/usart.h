@@ -36,7 +36,7 @@ typedef struct {
   spi_mode_e mode;
   u32   baudrate;
   endian_e   endian;
-} usart_config_t;
+} usart_config_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -58,7 +58,7 @@ typedef struct {
  *
  * @param config A pointer to a USART config.
  */
-void usart_module_init(USART_t* usart, const usart_config_t* config);
+void usart_module_init(USART_t* usart, const usart_config_s* config);
 
 // Enable or disable USART module transmission.
 void usart_set_tx(USART_t* usart, bool enable);

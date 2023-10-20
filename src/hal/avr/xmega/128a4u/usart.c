@@ -29,7 +29,7 @@ static void    configure_io(USART_t* usart, spi_mode_e mode);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // SPI Master only
-void usart_module_init(USART_t* usart, const usart_config_t* config) {
+void usart_module_init(USART_t* usart, const usart_config_s* config) {
   assert(usart);
   assert(config);
 

@@ -9,42 +9,30 @@
 #include "core/core_types.h"
 #include "core/core_rgb.h"
 
+#include "midi/midi.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-  ENCODER_MODE_MIDI_CC,
-  ENCODER_MODE_MIDI_REL_CC,
-  ENCODER_MODE_MIDI_NOTE,
+	LED_STYLE_SINGLE,
+	LED_STYLE_MULTI,
+	LED_STYLE_MULTI_PWM,
 
-  ENCODER_MODE_DISABLED,
-
-  ENCODER_MODE_NB,
-} encoder_mode_e;
-
-typedef enum {
-  INDICATOR_MODE_SINGLE,
-  INDICATOR_MODE_MULTI,
-  INDICATOR_MODE_MULTI_PWM,
-
-  INDICATOR_MODE_NB,
-} indicator_style_e;
+	LED_STYLE_NB,
+} led_style_e;
 
 typedef struct {
-  // Runtime context
-  u16 prev_value; // Previous value
-  u16 value;      // Current encoder value (16-bit)
-
-  rgb_15_t colour_rgb; // Current RGB colour
-  rb_8_t   colour_rb;  // Current RB (detent leds) colour
-
-  // Operating Config
-  encoder_mode_e    operating_mode;
-  indicator_style_e indicator_style;
-  u8                acceleration; // Boolean
-  u8                detent;       // Boolean
-} midifighter_encoder_t;
+	u8							 enabled;
+	u8							 hwenc_id; // Index of the physical encoder
+	rgb_15_s				 led_rgb;
+	rb_8_s					 led_detent;
+	led_style_e			 led_style; // Indicator LED style
+	u8							 detent;
+	encoder_ctx_s		 encoder_ctx;
+	midi_generator_s midi;
+} midifighter_encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

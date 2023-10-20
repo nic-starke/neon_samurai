@@ -26,13 +26,13 @@ static register8_t* get_power_reg(timer_peripheral_e periph);
 
 static int pwm_get_params(u16 freq, TC_CLKSEL_t* clk, u16* per);
 
-static void cc_buffer_set(timer_config_t* cfg, u16 val);
+static void cc_buffer_set(timer_config_s* cfg, u16 val);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int timer_init(timer_config_t* cfg) {
-  assert(cfg);
+int timer_init(timer_config_s* cfg) {
+	assert(cfg);
 
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     register8_t* pp = get_power_reg(cfg->periph);
@@ -84,33 +84,33 @@ int timer_init(timer_config_t* cfg) {
   return 0;
 }
 
-void timer_ch_isr_enable(timer_config_t* cfg, isr_priority_e priority) {
-  assert(cfg);
+void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
+	assert(cfg);
 
   const u8 shift       = cfg->channel << 1;
   const u8 mask        = (TC0_CCAINTLVL_gm) << shift;
   cfg->timer->INTCTRLB = (cfg->timer->INTCTRLB & ~mask) | (priority << shift);
 }
 
-void timer_ch_isr_disable(timer_config_t* cfg) {
-  assert(cfg);
+void timer_ch_isr_disable(timer_config_s* cfg) {
+	assert(cfg);
   const u8 shift = cfg->channel << 2;
   const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
   cfg->timer->INTCTRLB &= ~mask;
 }
 
-void timer_ovr_isr_enable(timer_config_t* cfg, isr_priority_e priority) {
-  assert(cfg);
+void timer_ovr_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
+	assert(cfg);
   cfg->timer->INTCTRLA = (cfg->timer->INTCTRLA & ~TC0_OVFINTLVL_gm) | priority;
 }
 
-void timer_ovr_isr_disable(timer_config_t* cfg) {
-  assert(cfg);
+void timer_ovr_isr_disable(timer_config_s* cfg) {
+	assert(cfg);
   cfg->timer->INTCTRLA &= ~TC0_OVFINTLVL_gm;
 }
 
-void timer_pwm_set_duty(timer_config_t* cfg, u8 duty) {
-  assert(cfg);
+void timer_pwm_set_duty(timer_config_s* cfg, u8 duty) {
+	assert(cfg);
 
   if (duty > 100) {
     duty = 100;
@@ -121,11 +121,11 @@ void timer_pwm_set_duty(timer_config_t* cfg, u8 duty) {
   cc_buffer_set(cfg, ccbuf);
 }
 
-void timer_pwm_stop(timer_config_t* cfg) {
+void timer_pwm_stop(timer_config_s* cfg) {
 #warning todo
 }
 
-void timer_pwm_start(timer_config_t* cfg) {
+void timer_pwm_start(timer_config_s* cfg) {
 #warning todo
 }
 
@@ -243,8 +243,8 @@ static int pwm_get_params(u16 freq, TC_CLKSEL_t* clk, u16* per) {
   return 0;
 }
 
-static void cc_buffer_set(timer_config_t* cfg, u16 val) {
-  assert(cfg);
+static void cc_buffer_set(timer_config_s* cfg, u16 val) {
+	assert(cfg);
 
   switch (cfg->channel) {
 

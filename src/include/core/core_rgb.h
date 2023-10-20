@@ -23,7 +23,7 @@ typedef union {
     u16 blue  : 5;
   };
   u16 value;
-} rgb_15_t;
+} rgb_15_s;
 
 /**
  * @brief An 8-bit colour-space RB data structure.
@@ -35,7 +35,7 @@ typedef union {
     u8 blue : 4;
   };
   u8 value;
-} rb_8_t;
+} rb_8_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

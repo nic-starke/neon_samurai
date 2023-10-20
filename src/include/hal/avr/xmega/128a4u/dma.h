@@ -27,7 +27,7 @@ typedef struct {
   uptr           dst_ptr;
   DMA_CH_DESTDIR_t    dst_addr_mode;
   DMA_CH_DESTRELOAD_t dst_reload_mode;
-} dma_channel_cfg_t;
+} dma_channel_cfg_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -47,6 +47,6 @@ void dma_peripheral_init(void);
  *
  * @warning Disables interrupts during configuration.
  */
-int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_t* cfg);
+int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

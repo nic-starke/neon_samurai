@@ -10,6 +10,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+// Sysex realtime subid #1
 typedef enum {
 	SYSEX_RT_MTC						 = 0x01,
 	SYSEX_RT_NOTATION				 = 0x03,
@@ -19,17 +20,20 @@ typedef enum {
 	SYSEX_RT_TUNING_STANDARD = 0x08,
 } midi_sysex_rt_e;
 
+// Sysex realtime - midi timecode
 typedef enum {
 	SYSEX_RT_MTC_FULL_MSG	 = 0x01,
 	SYSEX_RT_MTC_USER_BITS = 0x02,
 } midi_sysex_rt_mtc_e;
 
+// Sysex realtime - notation
 typedef enum {
 	SYSEX_RT_NOTATION_BAR_MARKER				 = 0x01,
 	SYSEX_RT_NOTATION_TIME_SIG_IMMEDIATE = 0x02,
 	SYSEX_RT_NOTATION_TIME_SIG_DELAYED	 = 0x42,
 } midi_sysex_rt_notation_e;
 
+// Sysex realtime - device control
 typedef enum {
 	SYSEX_RT_DEV_CTRL_MASTER_VOL				 = 0x01,
 	SYSEX_RT_DEV_CTRL_MASTER_BAL				 = 0x02,
@@ -37,6 +41,7 @@ typedef enum {
 	SYSEX_RT_DEV_CTRL_MASTER_COARSE_TUNE = 0x04,
 } midi_sysex_rt_dev_ctrl_e;
 
+// Sysex realtime - midi timecode cueing
 typedef enum {
 	SYSEX_RT_MTC_CUE_PUNCH_IN_POINTS				= 0x01,
 	SYSEX_RT_MTC_CUE_PUNCH_OUT_POINTS				= 0x02,
@@ -49,6 +54,7 @@ typedef enum {
 	SYSEX_RT_MTC_CUE_EVENT_NAME_ADDT				= 0x0E,
 } midi_sysex_rt_mtc_cueing_e;
 
+// Sysex realtime - midi machine control
 typedef enum {
 	SYSEX_RT_MMC_STOP								 = 0x01,
 	SYSEX_RT_MMC_PLAY								 = 0x02,

@@ -45,7 +45,7 @@ typedef enum {
 typedef struct {
   u16 freq; // Desired PWM frequency
   u8  duty; // Desired duty cycle percentage (0 to 100)
-} pwm_config_t;
+} pwm_config_s;
 
 typedef struct {
   volatile TC0_t*    timer;
@@ -55,23 +55,23 @@ typedef struct {
 
   timer_mode_e mode;
   union {
-    pwm_config_t pwm;
-  };
+		pwm_config_s pwm;
+	};
 
-} timer_config_t;
+} timer_config_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int timer_init(timer_config_t* cfg);
+int timer_init(timer_config_s* cfg);
 
-void timer_ch_isr_enable(timer_config_t* cfg, isr_priority_e priority);
-void timer_ch_isr_disable(timer_config_t* cfg);
-void timer_ovr_isr_enable(timer_config_t* cfg, isr_priority_e priority);
-void timer_ovr_isr_disable(timer_config_t* cfg);
+void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority);
+void timer_ch_isr_disable(timer_config_s* cfg);
+void timer_ovr_isr_enable(timer_config_s* cfg, isr_priority_e priority);
+void timer_ovr_isr_disable(timer_config_s* cfg);
 
-void timer_pwm_start(timer_config_t* cfg);
-void timer_pwm_stop(timer_config_t* cfg);
-void timer_pwm_set_duty(timer_config_t* cfg, u8 duty);
+void timer_pwm_start(timer_config_s* cfg);
+void timer_pwm_stop(timer_config_s* cfg);
+void timer_pwm_set_duty(timer_config_s* cfg, u8 duty);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
