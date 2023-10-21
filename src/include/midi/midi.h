@@ -13,6 +13,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
+	MIDI_MODE_DISABLED,
 	MIDI_MODE_CC,
 	MIDI_MODE_REL_CC,
 	MIDI_MODE_NOTE,
@@ -21,6 +22,9 @@ typedef enum {
 typedef struct {
 	midi_mode_e mode;
 	u8					channel;
+	union {
+		u8 cc;
+	} data;
 } midi_device_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

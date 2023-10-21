@@ -34,13 +34,13 @@ USB_ClassInfo_MIDI_Device_t gMIDI_Interface = {
     {
         .DataINEndpoint = 
         {
-            .Address = (MIDI_STREAM_IN_EPNUM | ENDPOINT_DIR_IN),
+            .Address = (USB_EP_MIDI_STREAM_IN | ENDPOINT_DIR_IN),
             .Size    = MIDI_STREAM_EPSIZE,
             .Banks   = 1,
         },
         .DataOUTEndpoint = 
         {
-            .Address = (MIDI_STREAM_OUT_EPNUM | ENDPOINT_DIR_OUT),
+            .Address = (USB_EP_MIDI_STREAM_OUT | ENDPOINT_DIR_OUT),
             .Size    = MIDI_STREAM_EPSIZE,
             .Banks   = 1,
         }
@@ -88,8 +88,8 @@ void EVENT_USB_Device_ConfigurationChanged(void)
     bool ConfigSuccess = true;
 #ifdef MIDI_ENABLE
     ConfigSuccess &= MIDI_Device_ConfigureEndpoints(&gMIDI_Interface);
-    // ConfigSuccess &= Endpoint_ConfigureEndpoint((MIDI_STREAM_OUT_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
-    // ConfigSuccess &= Endpoint_ConfigureEndpoint((MIDI_STREAM_IN_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
+    // ConfigSuccess &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_OUT | ENDPOINT_DIR_IN), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
+    // ConfigSuccess &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_IN | ENDPOINT_DIR_OUT), EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1);
 #endif
 
 #ifdef HID_ENABLE

@@ -3,55 +3,74 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
+#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "board/djtt/midifighter.h"
-
-#include "hal/avr/xmega/128a4u/init.h"
-
-#include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"
-#include "LUFA/Platform/XMEGA/ClockManagement.h"
-
-#include "usb/usb.h"
-#include "midi/midi.h"
-#include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define USB_VENDOR_ID								0x2580
+#define USB_PRODUCT_ID							0x0007
+#define USB_HID_EPSIZE							32
+#define USB_KEYBOARD_EPSIZE					8
+#define USB_MOUSE_EPSIZE						8
+#define USB_MIDI_STREAM_EPSIZE			64
+#define USB_CDC_NOTIFICATION_EPSIZE 8
+#define USB_CDC_EPSIZE							16
+#define USB_MIDI_POLLING_INTERVAL		0x05
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+typedef enum {
+	MIDI_AC_INTERFACE, // Audio control interface
+	MIDI_AS_INTERFACE, // Audio stream interface
+
+#ifdef HID_ENABLE
+	HID_INTERFACE,
+#endif
+
+#ifdef VSER_ENABLE
+	CCI_INTERFACE,
+	CDI_INTERFACE,
+#endif
+
+	NUM_USB_INTERFACES
+} usb_interface_e;
+
+typedef enum {
+	STRING_ID_Language		 = 0,
+	STRING_ID_Manufacturer = 1,
+	STRING_ID_Product			 = 2,
+	STRING_ID_Serial			 = 3,
+} usb_str_desc_e;
+
+typedef enum {
+	USB_EP_RESERVED,
+
+	USB_EP_MIDI_STREAM_IN,
+	USB_EP_MIDI_STREAM_OUT,
+
+#ifdef HID_ENABLE
+	HID_EPNUM,
+#endif
+
+#ifdef VSER_ENABLE
+	CDC_NOTIFICATION_EPNUM,
+	CDC_IN_EPNUM,
+	CDC_OUT_EPNUM,
+#endif
+
+	USB_EP_NB,
+} usb_endpoint_e;
+
+#if (USB_EP_NB - 1) > ENDPOINT_TOTAL_ENDPOINTS
+#error There are not enough available USB endpoints.
+#endif
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Entry point
-__attribute__((noreturn)) void main(void) {
-	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
-
-	// Board specific functionality initialisation
-	event_init();
-	midi_init();
-	mf_switch_init();
-	mf_encoder_init();
-	mf_led_init();
-	usb_init();
-
-	// Enable system interrupts
-	sei();
-
-	while (1) {
-		mf_encoder_update();
-
-		// Process events in each event channel
-		// event_channel_process(EVENT_CHANNEL_CORE);
-		event_channel_process(EVENT_CHANNEL_IO);
-		event_channel_process(EVENT_CHANNEL_MIDI_IN);
-		event_channel_process(EVENT_CHANNEL_MIDI_OUT);
-
-		usb_update();
-	}
-}
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

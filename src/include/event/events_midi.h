@@ -12,7 +12,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern event_channel_s midi_event_ch;
+extern event_channel_s midi_in_event_ch;
+extern event_channel_s midi_out_event_ch;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -24,7 +25,7 @@ typedef enum {
 
 typedef struct __attribute__((packed)) {
 	u8 channel;
-	u8 cc;
+	u8 control;
 	u8 value;
 } midi_cc_event_s;
 

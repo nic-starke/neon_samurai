@@ -14,9 +14,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	EVENT_CHANNEL_CORE, // Reserved for system events
-	EVENT_CHANNEL_IO,		// IO events
-	EVENT_CHANNEL_MIDI, // MIDI events
+	EVENT_CHANNEL_CORE,			// Reserved for system events
+	EVENT_CHANNEL_IO,				// IO events
+	EVENT_CHANNEL_MIDI_IN,	// MIDI events (rx)
+	EVENT_CHANNEL_MIDI_OUT, // MIDI events (tx)
 
 	EVENT_CHANNEL_NB,
 } event_ch_e;

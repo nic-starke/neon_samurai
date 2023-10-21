@@ -42,9 +42,6 @@ void mf_encoder_update(void);
 void mf_switch_init(void);
 void mf_switch_update(void);
 
-void mf_usb_init(void);
-void mf_usb_update(void);
-
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state);
 void mf_debug_encoder_set_rgb(bool red, bool green, bool blue);
 

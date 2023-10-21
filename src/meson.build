@@ -13,6 +13,11 @@ project_src += files(
     'event/event.c',
     'event/event_core.c',
     'event/event_io.c',
+
+    'midi/midi.c',
+    'midi/backend/midi_lufa.c',
+
+    'usb/lufa/usb_lufa.c',
     
     'hal/avr/xmega/128a4u/boot.c',
     'hal/avr/xmega/128a4u/dma.c',

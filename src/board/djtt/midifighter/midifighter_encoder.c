@@ -17,6 +17,7 @@
 #include "core/core_error.h"
 
 #include "event/events_io.h"
+#include "event/events_midi.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 
@@ -69,7 +70,10 @@ typedef union {
 
 // Event handler for encoder change events
 static void virtual_encoder_update(midifighter_encoder_s* enc);
-static void update_display(midifighter_encoder_s* enc);
+static void display_update(midifighter_encoder_s* enc);
+static void encoder_event_update(midifighter_encoder_s* enc);
+static void switch_event_update(midifighter_encoder_s* enc);
+
 static void evt_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -108,8 +112,9 @@ PROGMEM static const midifighter_encoder_s default_config = {
 		.led_style				= LED_STYLE_SINGLE,
 		.led_detent.value = 0,
 		.led_rgb.value		= 0,
-		.midi.channel			= 1,
+		.midi.channel			= 0,
 		.midi.mode				= MIDI_MODE_CC,
+		.midi.data.cc			= 0,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -127,8 +132,9 @@ void mf_encoder_init(void) {
 	// Set the encoder configurations and map to the hardware encoders
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
 		memcpy_P(&mf_ctx[i], &default_config, sizeof(midifighter_encoder_s));
-		// mf_ctx[i]					 = default_config;
 		mf_ctx[i].hwenc_id = i;
+		mf_ctx[i].midi.data.cc					 = 100 - i; // - i - 1;
+		mf_ctx[i].encoder_ctx.accel_mode = 1;
 		hw_to_virtual[i]	 = &mf_ctx[i];
 	}
 
@@ -230,41 +236,73 @@ void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static void virtual_encoder_update(midifighter_encoder_s* enc) {
-	if (enc->enabled) {
-		// Process changes in rotation
-		u8 id = enc->hwenc_id;
+	if (!enc->enabled) {
+		return;
+	}
 
-		int direction = 0;
-		if (hw_ctx[id].dir == DIR_CW) {
-			direction = 1;
-		} else if (hw_ctx[id].dir == DIR_CCW) {
-			direction = -1;
-		}
+	// Step 1 - handler encoder rotation
+	u8 id = enc->hwenc_id;
 
-		core_encoder_update(&enc->encoder_ctx, direction);
-		if (enc->encoder_ctx.curr_val != enc->encoder_ctx.prev_val) {
-			event_io_s evt;
-			evt.event_id								= EVT_IO_ENCODER_ROTATION;
-			evt.data.enc_rotation.index = enc->hwenc_id;
-			evt.data.enc_rotation.value = enc->encoder_ctx.curr_val;
-			event_post(EVENT_CHANNEL_IO, &evt);
-		}
+	int direction = 0;
+	if (hw_ctx[id].dir == DIR_CW) {
+		direction = 1;
+	} else if (hw_ctx[id].dir == DIR_CCW) {
+		direction = -1;
+	}
 
-		// Process changes in switch state
-		u16 mask			= (1u << id);
-		u8	prevstate = (switch_ctx.previous & mask) ? 1 : 0;
-		u8	state			= (switch_ctx.current & mask) ? 1 : 0;
-		if (state != prevstate) {
-			event_io_s evt;
-			evt.event_id							= EVT_IO_ENCODER_SWITCH;
-			evt.data.enc_switch.index = enc->hwenc_id;
-			evt.data.enc_switch.value = state;
-			event_post(EVENT_CHANNEL_IO, &evt);
+	core_encoder_update(&enc->encoder_ctx, direction);
+	if (enc->encoder_ctx.curr_val != enc->encoder_ctx.prev_val) {
+		// Post the rotation event to the IO event channel
+		event_io_s evt;
+		evt.event_id								= EVT_IO_ENCODER_ROTATION;
+		evt.data.enc_rotation.index = enc->hwenc_id;
+		evt.data.enc_rotation.value = enc->encoder_ctx.curr_val;
+		event_post(EVENT_CHANNEL_IO, &evt);
+
+		// Post a MIDI event if the encoder is configured for MIDI
+		switch (enc->midi.mode) {
+			case MIDI_MODE_CC: {
+				midi_event_s midi_evt;
+				midi_evt.event_id				 = MIDI_EVENT_CC;
+				midi_evt.data.cc.channel = enc->midi.channel;
+				midi_evt.data.cc.control = enc->midi.data.cc;
+
+				// Convert 16-bit encoder value to 7-bit MIDI value
+				midi_evt.data.cc.value =
+						(u8)(((f32)enc->encoder_ctx.curr_val / ENC_MAX) * 127);
+
+				event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+				break;
+			}
+
+				// case MIDI_MODE_NOTE: {
+				// 	midi_event_s midi_evt;
+				// 	midi_evt.event_id						= MIDI_EVENT_NOTE;
+				// 	midi_evt.data.note.channel	= enc->midi.channel;
+				// 	midi_evt.data.note.note			= enc->hwenc_id;
+				// 	midi_evt.data.note.velocity = enc->encoder_ctx.curr_val;
+				// 	event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+				// 	break;
+				// }
+
+			default: break;
 		}
+	}
+
+	// Step 2 - Handle encoder switch
+	u16 mask			= (1u << id);
+	u8	prevstate = (switch_ctx.previous & mask) ? 1 : 0;
+	u8	state			= (switch_ctx.current & mask) ? 1 : 0;
+	if (state != prevstate) {
+		event_io_s evt;
+		evt.event_id							= EVT_IO_ENCODER_SWITCH;
+		evt.data.enc_switch.index = enc->hwenc_id;
+		evt.data.enc_switch.value = state;
+		event_post(EVENT_CHANNEL_IO, &evt);
 	}
 }
 
-static void update_display(midifighter_encoder_s* enc) {
+static void display_update(midifighter_encoder_s* enc) {
 	f32						ind_pwm;		// Partial encoder positions (e.g position = 5.7)
 	unsigned int	ind_norm;		// Integer encoder positions (e.g position = 5)
 	unsigned int	pwm_frames; // Number of PWM frames for partial brightness
@@ -363,7 +401,7 @@ static void update_display(midifighter_encoder_s* enc) {
 	for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < p) {
-			leds.state						 = 0;
+			leds.state										 = 0;
 			mf_frame_buf[p][enc->hwenc_id] = ~leds.state;
 			continue;
 		}
@@ -414,7 +452,7 @@ static void evt_handler(void* event) {
 	event_io_s* e = (event_io_s*)event;
 	switch (e->event_id) {
 		case EVT_IO_ENCODER_ROTATION: {
-			update_display(hw_to_virtual[e->data.enc_rotation.index]);
+			display_update(hw_to_virtual[e->data.enc_rotation.index]);
 			break;
 		}
 
@@ -429,5 +467,35 @@ static void evt_handler(void* event) {
 			// 	max_brightness = event->data.max_brightness;
 			// 	break;
 			// }
+	}
+}
+
+static void encoder_event_update(midifighter_encoder_s* enc) {
+	switch (enc->midi.mode) {
+		case MIDI_MODE_CC: {
+			midi_event_s midi_evt;
+			midi_evt.event_id				 = MIDI_EVENT_CC;
+			midi_evt.data.cc.channel = enc->midi.channel;
+			midi_evt.data.cc.control = enc->midi.data.cc;
+
+			// Convert 16-bit encoder value to 7-bit MIDI value
+			midi_evt.data.cc.value =
+					(u8)((f32)enc->encoder_ctx.curr_val / ENC_MAX * 127);
+
+			event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+			break;
+		}
+
+			// case MIDI_MODE_NOTE: {
+			// 	midi_event_s midi_evt;
+			// 	midi_evt.event_id						= MIDI_EVENT_NOTE;
+			// 	midi_evt.data.note.channel	= enc->midi.channel;
+			// 	midi_evt.data.note.note			= enc->hwenc_id;
+			// 	midi_evt.data.note.velocity = enc->encoder_ctx.curr_val;
+			// 	event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+			// 	break;
+			// }
+
+		default: return;
 	}
 }
