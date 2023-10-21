@@ -14,7 +14,8 @@
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
-#include "core/core_event.h"
+#include "midi/midi.h"
+#include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -29,18 +30,24 @@ __attribute__((noreturn)) void main(void) {
 	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
 
 	// Board specific functionality initialisation
+	event_init();
+	midi_init();
 	mf_switch_init();
 	mf_encoder_init();
 	mf_led_init();
 	mf_usb_init();
-	event_init();
 
 	// Enable system interrupts
 	sei();
 
 	while (1) {
 		mf_encoder_update();
-		event_process();
+
+		// Process events in each event channel
+		// event_channel_process(EVENT_CHANNEL_CORE);
+		event_channel_process(EVENT_CHANNEL_IO);
+		event_channel_process(EVENT_CHANNEL_MIDI);
+
 		mf_usb_update();
 	}
 }

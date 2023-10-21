@@ -3,39 +3,59 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
-#include "core/core_rgb.h"
-
 #include "midi/midi.h"
+#include "event/events_midi.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define MIDI_EVENT_QUEUE_SIZE 32
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	LED_STYLE_SINGLE,
-	LED_STYLE_MULTI,
-	LED_STYLE_MULTI_PWM,
-
-	LED_STYLE_NB,
-} led_style_e;
-
-typedef struct {
-	u8							 enabled;
-	u8							 hwenc_id; // Index of the physical encoder
-	rgb_15_s				 led_rgb;
-	rb_8_s					 led_detent;
-	led_style_e			 led_style; // Indicator LED style
-	u8							 detent;
-	encoder_ctx_s		 encoder_ctx;
-	midi_device_s		 midi;
-} midifighter_encoder_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static void evt_handler(void* event);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static midi_event_s midi_event_queue[MIDI_EVENT_QUEUE_SIZE];
+
+static event_ch_handler_s midi_event_handler = {
+		.handler	= evt_handler,
+		.next			= NULL,
+		.priority = 0,
+};
+
+event_channel_s midi_event_ch = {
+		.queue			= (u8*)midi_event_queue,
+		.queue_size = MIDI_EVENT_QUEUE_SIZE,
+		.data_size	= sizeof(midi_event_s),
+		.handlers		= NULL,
+		.onehandler = false,
+};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+// int midi_update(void) {
+// }
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static void evt_handler(void* event) {
+	assert(event);
+
+	midi_event_s* e = (midi_event_s*)event;
+
+	switch (e->event_id) {
+		case MIDI_EVENT_CC: {
+			midi_cc_event_s* cc = &e->data.cc;
+			break;
+		}
+
+		default: return;
+	}
+}

@@ -55,6 +55,7 @@ enum {
   ERR_UNSUPPORTED = -3,
   ERR_STUB        = -4,
   ERR_NO_MEM      = -5,
+	ERR_DUPLICATE		= -6,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -7,7 +7,6 @@
 
 #include "core/core_types.h"
 #include "core/core_utility.h"
-#include "core/core_event.h"
 #include "core/core_encoder.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

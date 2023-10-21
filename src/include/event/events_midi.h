@@ -7,32 +7,33 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
-#include "core/core_rgb.h"
-
-#include "midi/midi.h"
+#include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern event_channel_s midi_event_ch;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	LED_STYLE_SINGLE,
-	LED_STYLE_MULTI,
-	LED_STYLE_MULTI_PWM,
+	MIDI_EVENT_CC,
 
-	LED_STYLE_NB,
-} led_style_e;
+	MIDI_EVENT_NB,
+} midi_event_e;
+
+typedef struct __attribute__((packed)) {
+	u8 channel;
+	u8 cc;
+	u8 value;
+} midi_cc_event_s;
 
 typedef struct {
-	u8							 enabled;
-	u8							 hwenc_id; // Index of the physical encoder
-	rgb_15_s				 led_rgb;
-	rb_8_s					 led_detent;
-	led_style_e			 led_style; // Indicator LED style
-	u8							 detent;
-	encoder_ctx_s		 encoder_ctx;
-	midi_device_s		 midi;
-} midifighter_encoder_s;
+	u8 event_id;
+	union {
+		midi_cc_event_s cc;
+	} data;
+} midi_event_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -3,39 +3,26 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
-#include "core/core_rgb.h"
-
 #include "midi/midi.h"
+#include "event/events_midi.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern event_channel_s midi_event_ch;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	LED_STYLE_SINGLE,
-	LED_STYLE_MULTI,
-	LED_STYLE_MULTI_PWM,
-
-	LED_STYLE_NB,
-} led_style_e;
-
-typedef struct {
-	u8							 enabled;
-	u8							 hwenc_id; // Index of the physical encoder
-	rgb_15_s				 led_rgb;
-	rb_8_s					 led_detent;
-	led_style_e			 led_style; // Indicator LED style
-	u8							 detent;
-	encoder_ctx_s		 encoder_ctx;
-	midi_device_s		 midi;
-} midifighter_encoder_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+int midi_init(void) {
+	int ret = event_channel_register(EVENT_CHANNEL_MIDI, &midi_event_ch);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

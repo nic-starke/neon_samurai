@@ -3,39 +3,51 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "core/core_types.h"
-#include "core/core_rgb.h"
-
-#include "midi/midi.h"
+#include "event/event.h"
+#include "event/events_core.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define CORE_EVENT_QUEUE_SIZE 8
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	LED_STYLE_SINGLE,
-	LED_STYLE_MULTI,
-	LED_STYLE_MULTI_PWM,
-
-	LED_STYLE_NB,
-} led_style_e;
-
-typedef struct {
-	u8							 enabled;
-	u8							 hwenc_id; // Index of the physical encoder
-	rgb_15_s				 led_rgb;
-	rb_8_s					 led_detent;
-	led_style_e			 led_style; // Indicator LED style
-	u8							 detent;
-	encoder_ctx_s		 encoder_ctx;
-	midi_device_s		 midi;
-} midifighter_encoder_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static void event_handler(void* event);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static event_core_s core_event_queue[8];
+
+static event_ch_handler_s core_event_handler = {
+		.handler	= &event_handler,
+		.next			= NULL,
+		.priority = 0,
+};
+
+event_channel_s core_event_ch = {
+		.queue			= (u8*)core_event_queue,
+		.queue_size = CORE_EVENT_QUEUE_SIZE,
+		.data_size	= sizeof(event_core_s),
+		.handlers		= &core_event_handler,
+		.onehandler = true,
+};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static void event_handler(void* event) {
+	assert(event);
+
+	event_core_s* e = (event_core_s*)event;
+	switch (e->event_id) {
+		case EVT_CORE_PLACEHOLDER: return;
+
+		default: return;
+	}
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

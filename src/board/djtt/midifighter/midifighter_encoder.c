@@ -11,10 +11,12 @@
 #include <math.h>
 
 #include "core/core_types.h"
-#include "core/core_event.h"
 #include "core/core_encoder.h"
 #include "core/core_switch.h"
 #include "core/core_rgb.h"
+#include "core/core_error.h"
+
+#include "event/events_io.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 
@@ -68,7 +70,7 @@ typedef union {
 // Event handler for encoder change events
 static void virtual_encoder_update(midifighter_encoder_s* enc);
 static void update_display(midifighter_encoder_s* enc);
-static void encoder_evt_handler(event_s* event);
+static void evt_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -92,13 +94,13 @@ static const u16 led_interval = ENC_MAX / 11;
 static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
 // Event handlers
-static event_handler_s enc_evt_handler = {
+static event_ch_handler_s io_evt_handler = {
 		.priority = 0,
-		.handler	= encoder_evt_handler,
+		.handler	= evt_handler,
 		.next			= NULL,
 };
 
-static const midifighter_encoder_s default_config = {
+PROGMEM static const midifighter_encoder_s default_config = {
 		.enabled					= true,
 		.detent						= false,
 		.encoder_ctx			= {0},
@@ -124,23 +126,25 @@ void mf_encoder_init(void) {
 
 	// Set the encoder configurations and map to the hardware encoders
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-		// memcpy_P(&mf_ctx[i], &default_config, sizeof(midifighter_encoder_s));
-		mf_ctx[i]					 = default_config;
+		memcpy_P(&mf_ctx[i], &default_config, sizeof(midifighter_encoder_s));
+		// mf_ctx[i]					 = default_config;
 		mf_ctx[i].hwenc_id = i;
 		hw_to_virtual[i]	 = &mf_ctx[i];
 	}
 
 	// Subscribe to encoder change events
-	event_subscribe(&enc_evt_handler, EVT_ENCODER_ROTATION);
-	event_subscribe(&enc_evt_handler, EVT_ENCODER_SWITCH_STATE);
-	event_subscribe(&enc_evt_handler, EVT_MAX_BRIGHTNESS);
+	int ret = event_channel_subscribe(EVENT_CHANNEL_IO, &io_evt_handler);
+	if (ret != 0) {
+		return;
+	}
 
 	// Post the initial event to update display
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-		event_s evt;
-		evt.id												 = EVT_ENCODER_ROTATION;
-		evt.data.encoder.current_value = hw_to_virtual[i]->encoder_ctx.curr_val;
-		event_post(&evt);
+		event_io_s evt;
+		evt.event_id								= EVT_IO_ENCODER_ROTATION;
+		evt.data.enc_rotation.index = i;
+		evt.data.enc_rotation.value = 0;
+		event_post(EVENT_CHANNEL_IO, &evt);
 	}
 }
 
@@ -239,11 +243,11 @@ static void virtual_encoder_update(midifighter_encoder_s* enc) {
 
 		core_encoder_update(&enc->encoder_ctx, direction);
 		if (enc->encoder_ctx.curr_val != enc->encoder_ctx.prev_val) {
-			event_s evt;
-			evt.id												 = EVT_ENCODER_ROTATION;
-			evt.data.encoder.current_value = enc->encoder_ctx.curr_val;
-			evt.data.encoder.encoder_index = enc->hwenc_id;
-			event_post(&evt);
+			event_io_s evt;
+			evt.event_id								= EVT_IO_ENCODER_ROTATION;
+			evt.data.enc_rotation.index = enc->hwenc_id;
+			evt.data.enc_rotation.value = enc->encoder_ctx.curr_val;
+			event_post(EVENT_CHANNEL_IO, &evt);
 		}
 
 		// Process changes in switch state
@@ -251,11 +255,11 @@ static void virtual_encoder_update(midifighter_encoder_s* enc) {
 		u8	prevstate = (switch_ctx.previous & mask) ? 1 : 0;
 		u8	state			= (switch_ctx.current & mask) ? 1 : 0;
 		if (state != prevstate) {
-			event_s evt;
-			evt.id									 = EVT_ENCODER_SWITCH_STATE;
-			evt.data.sw.switch_index = id;
-			evt.data.sw.state				 = state;
-			event_post(&evt);
+			event_io_s evt;
+			evt.event_id							= EVT_IO_ENCODER_SWITCH;
+			evt.data.enc_switch.index = enc->hwenc_id;
+			evt.data.enc_switch.value = state;
+			event_post(EVENT_CHANNEL_IO, &evt);
 		}
 	}
 }
@@ -404,25 +408,26 @@ static void update_display(midifighter_encoder_s* enc) {
 	}
 }
 
-static void encoder_evt_handler(event_s* event) {
+static void evt_handler(void* event) {
 	assert(event);
-	switch (event->id) {
-		case EVT_ENCODER_ROTATION: {
-			unsigned int index = event->data.encoder.encoder_index;
-			update_display(hw_to_virtual[index]);
+
+	event_io_s* e = (event_io_s*)event;
+	switch (e->event_id) {
+		case EVT_IO_ENCODER_ROTATION: {
+			update_display(hw_to_virtual[e->data.enc_rotation.index]);
 			break;
 		}
 
-			// case EVT_ENCODER_SWITCH_STATE: {
+			// case EVT_CORE_ENCODER_SWITCH_STATE: {
 			// 	u8 index							 = event->data.sw.switch_index;
 			// 	mf_ctx[index].led_mode = (mf_ctx[index].led_mode + 1) % LED_STYLE_NB;
 			// 	update_display(index);
 			// break;
 			// }
 
-		case EVT_MAX_BRIGHTNESS: {
-			max_brightness = event->data.max_brightness;
-			break;
-		}
+			// case EVE: {
+			// 	max_brightness = event->data.max_brightness;
+			// 	break;
+			// }
 	}
 }

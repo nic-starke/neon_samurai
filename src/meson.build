@@ -8,8 +8,11 @@ endforeach
 
 project_src += files(
     'core/core_encoder.c',
-    'core/core_event.c',
     'core/core_switch.c',
+
+    'event/event.c',
+    'event/event_core.c',
+    'event/event_io.c',
     
     'hal/avr/xmega/128a4u/boot.c',
     'hal/avr/xmega/128a4u/dma.c',

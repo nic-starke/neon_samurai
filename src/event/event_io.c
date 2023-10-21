@@ -3,39 +3,30 @@
 /*                  https://github.com/nic-starke/muffintwister               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "core/core_types.h"
-#include "core/core_rgb.h"
-
-#include "midi/midi.h"
+#include "event/event.h"
+#include "event/events_io.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define IO_EVENT_QUEUE_SIZE 32
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	LED_STYLE_SINGLE,
-	LED_STYLE_MULTI,
-	LED_STYLE_MULTI_PWM,
-
-	LED_STYLE_NB,
-} led_style_e;
-
-typedef struct {
-	u8							 enabled;
-	u8							 hwenc_id; // Index of the physical encoder
-	rgb_15_s				 led_rgb;
-	rb_8_s					 led_detent;
-	led_style_e			 led_style; // Indicator LED style
-	u8							 detent;
-	encoder_ctx_s		 encoder_ctx;
-	midi_device_s		 midi;
-} midifighter_encoder_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static event_io_s io_event_queue[IO_EVENT_QUEUE_SIZE];
+
+event_channel_s io_event_ch = {
+		.queue			= (u8*)io_event_queue,
+		.queue_size = IO_EVENT_QUEUE_SIZE,
+		.data_size	= sizeof(event_io_s),
+		.handlers		= NULL,
+		.onehandler = false,
+};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
