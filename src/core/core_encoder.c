@@ -47,8 +47,8 @@ static const quad_state_e quad_states[QUAD_NB][4] = {
 };
 
 // Acceleration constants
-static i16 accel_inc[] = {VEL_INC * 2, VEL_INC * 10, VEL_INC * 20, VEL_INC * 40,
-                          VEL_INC * 80};
+static i16 accel_inc[] = {VEL_INC * 4, VEL_INC * 10, VEL_INC * 20, VEL_INC * 40,
+													VEL_INC * 80};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 

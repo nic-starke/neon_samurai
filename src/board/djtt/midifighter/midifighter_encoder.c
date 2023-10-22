@@ -71,10 +71,9 @@ typedef union {
 // Event handler for encoder change events
 static void virtual_encoder_update(midifighter_encoder_s* enc);
 static void display_update(midifighter_encoder_s* enc);
-static void encoder_event_update(midifighter_encoder_s* enc);
-static void switch_event_update(midifighter_encoder_s* enc);
 
-static void evt_handler(void* event);
+static void evt_handler_io(void* event);
+static void evt_handler_midi(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -100,8 +99,14 @@ static u8 max_brightness = MF_MAX_BRIGHTNESS;
 // Event handlers
 static event_ch_handler_s io_evt_handler = {
 		.priority = 0,
-		.handler	= evt_handler,
+		.handler	= evt_handler_io,
 		.next			= NULL,
+};
+
+static event_ch_handler_s midi_in_evt_handler = {
+		.handler	= evt_handler_midi,
+		.next			= NULL,
+		.priority = 0,
 };
 
 PROGMEM static const midifighter_encoder_s default_config = {
@@ -132,14 +137,19 @@ void mf_encoder_init(void) {
 	// Set the encoder configurations and map to the hardware encoders
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
 		memcpy_P(&mf_ctx[i], &default_config, sizeof(midifighter_encoder_s));
-		mf_ctx[i].hwenc_id = i;
-		mf_ctx[i].midi.data.cc					 = 100 - i; // - i - 1;
+		mf_ctx[i].hwenc_id							 = i;
+		mf_ctx[i].midi.data.cc					 = MF_NUM_ENCODERS - i - 1;
 		mf_ctx[i].encoder_ctx.accel_mode = 1;
-		hw_to_virtual[i]	 = &mf_ctx[i];
+		hw_to_virtual[i]								 = &mf_ctx[i];
 	}
 
 	// Subscribe to encoder change events
 	int ret = event_channel_subscribe(EVENT_CHANNEL_IO, &io_evt_handler);
+	if (ret != 0) {
+		return;
+	}
+
+	ret = event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &midi_in_evt_handler);
 	if (ret != 0) {
 		return;
 	}
@@ -262,16 +272,18 @@ static void virtual_encoder_update(midifighter_encoder_s* enc) {
 		// Post a MIDI event if the encoder is configured for MIDI
 		switch (enc->midi.mode) {
 			case MIDI_MODE_CC: {
-				midi_event_s midi_evt;
-				midi_evt.event_id				 = MIDI_EVENT_CC;
-				midi_evt.data.cc.channel = enc->midi.channel;
-				midi_evt.data.cc.control = enc->midi.data.cc;
-
 				// Convert 16-bit encoder value to 7-bit MIDI value
-				midi_evt.data.cc.value =
-						(u8)(((f32)enc->encoder_ctx.curr_val / ENC_MAX) * 127);
+				u8 val = (u8)(((f32)enc->encoder_ctx.curr_val / ENC_MAX) * 127);
 
-				event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+				if (enc->midi.prev_val != val) {
+					midi_event_s midi_evt;
+					midi_evt.event_id				 = MIDI_EVENT_CC;
+					midi_evt.data.cc.channel = enc->midi.channel;
+					midi_evt.data.cc.control = enc->midi.data.cc;
+					midi_evt.data.cc.value	 = val;
+					enc->midi.prev_val			 = val;
+					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+				}
 				break;
 			}
 
@@ -446,7 +458,7 @@ static void display_update(midifighter_encoder_s* enc) {
 	}
 }
 
-static void evt_handler(void* event) {
+static void evt_handler_io(void* event) {
 	assert(event);
 
 	event_io_s* e = (event_io_s*)event;
@@ -470,31 +482,26 @@ static void evt_handler(void* event) {
 	}
 }
 
-static void encoder_event_update(midifighter_encoder_s* enc) {
-	switch (enc->midi.mode) {
-		case MIDI_MODE_CC: {
-			midi_event_s midi_evt;
-			midi_evt.event_id				 = MIDI_EVENT_CC;
-			midi_evt.data.cc.channel = enc->midi.channel;
-			midi_evt.data.cc.control = enc->midi.data.cc;
+static void evt_handler_midi(void* event) {
+	assert(event);
 
-			// Convert 16-bit encoder value to 7-bit MIDI value
-			midi_evt.data.cc.value =
-					(u8)((f32)enc->encoder_ctx.curr_val / ENC_MAX * 127);
+	midi_event_s* e = (midi_event_s*)event;
 
-			event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+	switch (e->event_id) {
+		case MIDI_EVENT_CC: {
+			midi_cc_event_s* cc = &e->data.cc;
+			for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
+				if (mf_ctx[i].midi.mode == MIDI_MODE_CC &&
+						mf_ctx[i].midi.channel == cc->channel &&
+						mf_ctx[i].midi.data.cc == cc->control) {
+					mf_ctx[i].encoder_ctx.curr_val =
+							(u16)(((f32)cc->value / 127) * ENC_MAX);
+					display_update(&mf_ctx[i]);
+					break;
+				}
+			}
 			break;
 		}
-
-			// case MIDI_MODE_NOTE: {
-			// 	midi_event_s midi_evt;
-			// 	midi_evt.event_id						= MIDI_EVENT_NOTE;
-			// 	midi_evt.data.note.channel	= enc->midi.channel;
-			// 	midi_evt.data.note.note			= enc->hwenc_id;
-			// 	midi_evt.data.note.velocity = enc->encoder_ctx.curr_val;
-			// 	event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
-			// 	break;
-			// }
 
 		default: return;
 	}

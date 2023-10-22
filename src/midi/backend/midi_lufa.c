@@ -18,13 +18,12 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MIDI_EVENT_QUEUE_SIZE 128
+#define MIDI_EVENT_QUEUE_SIZE 32
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void midi_in_handler(void* event);
 static void midi_out_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -51,12 +50,6 @@ USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device = {
 
 static midi_event_s midi_in_event_queue[MIDI_EVENT_QUEUE_SIZE];
 static midi_event_s midi_out_event_queue[MIDI_EVENT_QUEUE_SIZE];
-
-static event_ch_handler_s midi_in_event_handler = {
-		.handler	= midi_in_handler,
-		.next			= NULL,
-		.priority = 0,
-};
 
 static event_ch_handler_s midi_out_event_handler = {
 		.handler	= midi_out_handler,
@@ -89,30 +82,47 @@ int midi_init(void) {
 	ret = event_channel_register(EVENT_CHANNEL_MIDI_OUT, &midi_out_event_ch);
 	RETURN_ON_ERR(ret);
 
-	ret = event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &midi_in_event_handler);
-	RETURN_ON_ERR(ret);
-
 	ret = event_channel_subscribe(EVENT_CHANNEL_MIDI_OUT, &midi_out_event_handler);
 	RETURN_ON_ERR(ret);
 
 	return ret;
 }
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void midi_in_handler(void* event) {
-	assert(event);
+int midi_update(void) {
+	MIDI_EventPacket_t rx;
+	if (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
 
-	midi_event_s* e = (midi_event_s*)event;
+		midi_cc_event_s cc;
+		cc.channel = (rx.Data1 & 0x0F);
+		cc.control = rx.Data2;
+		cc.value	 = rx.Data3;
 
-	switch (e->event_id) {
-		case MIDI_EVENT_CC: {
-			// midi_cc_event_s* cc = &e->data.cc;
-			break;
+		midi_event_s e;
+		e.event_id = MIDI_EVENT_CC;
+		e.data.cc	 = cc;
+
+		event_post(EVENT_CHANNEL_MIDI_IN, &e);
+
+		switch (rx.Event) {
+			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {
+				midi_cc_event_s cc;
+				cc.channel = (rx.Data1 & 0x0F);
+				cc.control = rx.Data2;
+				cc.value	 = rx.Data3;
+
+				midi_event_s e;
+				e.event_id = MIDI_EVENT_CC;
+				e.data.cc	 = cc;
+
+				event_post(EVENT_CHANNEL_MIDI_IN, &e);
+				break;
+			}
 		}
-
-		default: return;
 	}
+	return 0;
 }
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static void midi_out_handler(void* event) {
 	assert(event);

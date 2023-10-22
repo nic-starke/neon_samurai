@@ -50,6 +50,7 @@ __attribute__((noreturn)) void main(void) {
 		event_channel_process(EVENT_CHANNEL_MIDI_IN);
 		event_channel_process(EVENT_CHANNEL_MIDI_OUT);
 
+		midi_update();
 		usb_update();
 	}
 }
