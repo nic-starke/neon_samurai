@@ -1,3 +1,3 @@
 # Installation Guide
 
-WIP - Muffin has not been released yet.
+WIP - NEON_SAMURAI has not been released yet.

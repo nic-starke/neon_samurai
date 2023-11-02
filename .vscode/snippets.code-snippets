@@ -5,7 +5,7 @@
     "body": [
         "/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */",
         "/*                  Copyright (c) (2021 - $CURRENT_YEAR) Nicolaus Starke               */",
-        "/*                  https://github.com/nic-starke/muffintwister               */",
+        "/*                  https://github.com/nic-starke/neon_samurai               */",
         "/*                         SPDX-License-Identifier: MIT                       */",
         "/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */",
         "${1:#pragma once}",

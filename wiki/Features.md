@@ -1,3 +1,3 @@
-# Muffin Features
+# Features
 
-The feature set for Muffin is currently in limbo. This page will be updated in due course.
+The feature set for NEON_SAMURAI is currently in limbo. This page will be updated in due course.

@@ -13,7 +13,7 @@ If the user does not like the new firmware, they can simply program the MFT with
 
 ### Accessing the Bootloader
 
-Press and hold in the four corner encoder switches, while holding them down plug in the USB cable. Wait for the MFT to boot - it should quickly reset into the bootloader mode. This is the same on the Muffin firmware.
+Press and hold in the four corner encoder switches, while holding them down plug in the USB cable. Wait for the MFT to boot - it should quickly reset into the bootloader mode. This is the same on the NEON_SAMURAI firmware.
 
 > **The encoders will be lit up in a checkerboard pattern when the bootloader is active.**
 

@@ -1,6 +1,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
-/*                  https://github.com/nic-starke/muffintwister               */
+/*                  https://github.com/nic-starke/neon_samurai               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -96,10 +96,10 @@ PROGMEM static const USB_Descriptor_String_t desc_str_lang =
 		USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
 
 PROGMEM static const USB_Descriptor_String_t desc_str_mf =
-		USB_STRING_DESCRIPTOR(L"Muffin");
+		USB_STRING_DESCRIPTOR(L"NEON");
 
 PROGMEM static const USB_Descriptor_String_t desc_str_prod =
-		USB_STRING_DESCRIPTOR(L"Twister");
+		USB_STRING_DESCRIPTOR(L"SAMURAI");
 
 PROGMEM static const USB_Descriptor_String_t desc_str_ser =
 		USB_STRING_DESCRIPTOR(L"2023");

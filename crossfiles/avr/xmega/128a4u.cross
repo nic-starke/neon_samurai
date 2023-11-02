@@ -1,6 +1,6 @@
 # Copyright (2021 - 2023) Nicolaus Starke
 # SPDX-License-Identifier: MIT 
-# https://github.com/nic-starke/muffintwister
+# https://github.com/nic-starke/neon_samurai
 
 [constants]
 F_CPU           = '32000000'
@@ -103,7 +103,7 @@ c_link_args = [
   '-mmcu=' + MCU,
   '-lm',
   '-flto=auto',
-  '-Wl,-Map=Muffin.Map',
+  '-Wl,-Map=neosam.Map',
   '-Wl,--gc-sections',
   '-B' + LIB_XMEGA7_PATH,
   ]

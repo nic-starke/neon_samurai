@@ -1,6 +1,6 @@
 # Project definition
 project(
-    'muffin', 'c',
+    'neosam', 'c',
     version: '1',
     default_options: [
         'buildtype=release',
@@ -85,7 +85,7 @@ c_link_args = [
 ]
 
 # Targets
-muffin = executable(
+neosam = executable(
     meson.project_name() + '.elf',
     [project_src],
     c_args : c_compiler_args,
@@ -97,28 +97,28 @@ muffin = executable(
 
 hex = custom_target(
     meson.project_name() + '.hex',
-    input : muffin,
+    input : neosam,
     output : meson.project_name() + '.hex',
     command : [find_program('objcopy'), meson.get_external_property('objcopy_hex_args')]
 )
 
 bin = custom_target(
     meson.project_name() + '.bin',
-    input : muffin,
+    input : neosam,
     output : meson.project_name() + '.bin',
     command : [find_program('objcopy'), meson.get_external_property('objcopy_bin_args')]
 )
 
 eep = custom_target(
     meson.project_name() + '.eep',
-    input : muffin,
+    input : neosam,
     output : meson.project_name() + '.eep',
     command : [find_program('objcopy'), meson.get_external_property('objcopy_eep_args')]
 )
 
 run_target(
     'BinSize',
-    command : [find_program('objdump'), '-Pmem-usage', muffin.full_path()]
+    command : [find_program('objdump'), '-Pmem-usage', neosam.full_path()]
 )
 
 run_target(

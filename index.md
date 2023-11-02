@@ -2,13 +2,13 @@
 toc: false
 ---
 
-# Muffin Twister Wiki
+# NEON_SAMURAI Wiki
 
-Welcome to the Muffin Twister Wiki.
+Welcome to the NEON_SAMURAI Wiki.
 
 This will be updated as required with the latest information on the project.
 
-Before using this software you must read and accept the [LICENSE](https://git.sr.ht/~Nicolaus Starke/Muffin/tree/main/LICENSE). In general, there is no warranty given, and you may be voiding any existing warranties with the original equipment manufacturer by using this software.
+Before using this software you must read and accept the license.
 
 ## [Features](wiki/Features.md)
 
