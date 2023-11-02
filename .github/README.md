@@ -86,3 +86,5 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 
 <a href="https://github.com/nic-starke"><img src="https://avatars.githubusercontent.com/u/10380155?v=4" title="nic-starke" width="75" height="75"></a>
 
+### Sponsors
+
