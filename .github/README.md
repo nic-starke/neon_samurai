@@ -1,7 +1,7 @@
 <div align="center">
   <h1>NEON_SAMURAI</h1>
   
-  <img src="./2.png" alt="NEON_SAMURAI" style="max-width: 500px; max-height: 200;">
+  <img src="./logo.png" alt="NEON_SAMURAI" style="max-width: 500px; max-height: 200;">
   
   <i>An alternative firmware for the Midifighter Twister</i>
   
