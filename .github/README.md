@@ -17,7 +17,7 @@
     <img alt="contributors" src="https://img.shields.io/github/contributors/nic-starke/neon_samurai">
     <img alt="last commit (branch)" src="https://img.shields.io/github/last-commit/nic-starke/neon_samurai/main">
     <img alt="issues" src="https://img.shields.io/github/issues/nic-starke/neon_samurai">
-    <a href="https://github.com/nic-starke/neon_samurai/blob/master/LICENSE"> <img alt="license" src="https://img.shields.io/github/license/nic-starke/neon_samurai"> </a>
+    <a href="https://github.com/nic-starke/neon_samurai/blob/main/LICENSE"> <img alt="license" src="https://img.shields.io/github/license/nic-starke/neon_samurai"> </a>
   </p>
 
 </div>
