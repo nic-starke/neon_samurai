@@ -88,3 +88,6 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 
 ### Sponsors
 
+## Analytics
+![Alt](https://repobeats.axiom.co/api/embed/349b4dffd3819c8746b8d91e4de04beaabb05ebe.svg "Repobeats analytics image")
+
