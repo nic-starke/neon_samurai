@@ -6,4 +6,4 @@ fi
 # Make sure to delete the build folder first, you may also need to execute the following line prior to first build
 # find . -type f | xargs touch
 
-meson setup --cross-file cross-file.txt $BUILD_DIR
+meson setup --cross-file cross-file.txt $BUILD_DIR  

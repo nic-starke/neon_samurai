@@ -1,18 +1,18 @@
 currentdir=$PWD
 
   # ninja clang-format
-  mkdir -p /workspaces/neosam/build
+  mkdir -p /workspaces/neon_samurai/build
   
-  cd /workspaces/neosam/build
+  cd /workspaces/neon_samurai/build
 
   if [[ $1 == clean ]]; then
     ninja clean
   fi
   
   if ninja; then
-    ninja neosam.hex
-    ninja neosam.bin
-    ninja neosam.eep
+    ninja neon_samurai.hex
+    ninja neon_samurai.bin
+    ninja neon_samurai.eep
     ninja BinSize
     # ninja EepromSize
   else
