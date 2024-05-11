@@ -4,7 +4,7 @@ AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: AcrossComments
 AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
 AlignConsecutiveDeclarations: AcrossComments
-AlignConsecutiveMacros: AcrossComments
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AlignEscapedNewlines: Right
 AlignOperands: true
 AlignTrailingComments: true
@@ -18,7 +18,7 @@ BreakBeforeBraces: Attach
 ColumnLimit: 80
 MaxEmptyLinesToKeep: 1
 PointerAlignment: Left
-ReflowComments: false
+ReflowComments: true
 SortIncludes: false
 InsertNewlineAtEOF: true
 TabWidth: 2

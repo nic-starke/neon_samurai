@@ -10,6 +10,14 @@
 #include "core/core_utility.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define EVT_HANDLER(p, n, h)                                                   \
+	static event_ch_handler_s n = {                                              \
+			.priority = p,                                                           \
+			.handler	= h,                                                           \
+			.next			= NULL,                                                        \
+	}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -23,20 +31,20 @@ typedef enum {
 } event_ch_e;
 
 /**
- * @brief 
+ * @brief
  * Priority determines the order in which handlers are called.
  * 0 means the handlers are called in the order they were registered.
  * 1 means max priority, and will be called first.
  * 255 means min priority, and will be called last.
- * 
+ *
  * Most of the time 0 priority is fine.
  * Events that must be handled sychronously (realtime priority) can
  * be posted with the event_post_rt() function - this will block
  * and call each handler in turn immediately.
  */
 typedef struct event_ch_handler {
-	u8											 priority;
-	void										 (*handler)(void* event);
+	u8 priority;
+	void (*handler)(void* event);
 	struct event_ch_handler* next;
 } event_ch_handler_s;
 
@@ -46,22 +54,22 @@ typedef struct event_ch_handler {
  * The buffer size is upto the user, if there are few events then
  * a small buffer is fine. Larger queues increase the latency of
  * events being handled when many events are posted.
- * 
+ *
  * The handlers parameter is a linked-list of event handlers for this channel.
- * 
+ *
  * If only one handler is required for all events in the channel then
  * the onehandler parameter can be set to true.
- * 
+ *
  * The size parameter is the size of the queue buffer.
- * 
+ *
  * The head parameter is the index of the next event to be handled.
  * It is private and should not be modified by the user.
  */
 typedef struct {
 	u8*									queue;			// Statically allocated queue buffer
 	uint								queue_size; // The size of the array (number of messages)
-	uint								data_size;	// Size of data for a single event (for memcpy)
-	event_ch_handler_s* handlers;		// Link list of handlers
+	uint								data_size; // Size of data for a single event (for memcpy)
+	event_ch_handler_s* handlers;	 // Link list of handlers
 	bool onehandler; // Set true if handlers is a single handler for all events
 	uint head;			 // (private)
 } event_channel_s;

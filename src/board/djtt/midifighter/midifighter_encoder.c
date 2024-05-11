@@ -27,11 +27,11 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PORT_SR_ENC (PORTC) // IO port for encoder IO shift registers
+#define PORT_SR_ENC						 (PORTC) // IO port for encoder IO shift registers
 
-#define PIN_SR_ENC_LATCH	 (0) // 74HC595N
-#define PIN_SR_ENC_CLOCK	 (1)
-#define PIN_SR_ENC_DATA_IN (2)
+#define PIN_SR_ENC_LATCH			 (0) // 74HC595N
+#define PIN_SR_ENC_CLOCK			 (1)
+#define PIN_SR_ENC_DATA_IN		 (2)
 
 #define MASK_INDICATORS				 (0xFFE0)
 #define LEFT_INDICATORS_MASK	 (0xF800)
@@ -96,18 +96,8 @@ static const u16 led_interval = ENC_MAX / 11;
 #warning "TODO(ns) Move this to a system-config struct..."
 static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
-// Event handlers
-static event_ch_handler_s io_evt_handler = {
-		.priority = 0,
-		.handler	= evt_handler_io,
-		.next			= NULL,
-};
-
-static event_ch_handler_s midi_in_evt_handler = {
-		.handler	= evt_handler_midi,
-		.next			= NULL,
-		.priority = 0,
-};
+EVT_HANDLER(0, io_evt_handler, evt_handler_io);
+EVT_HANDLER(0, midi_in_evt_handler, evt_handler_midi);
 
 PROGMEM static const midifighter_encoder_s default_config = {
 		.enabled					= true,
@@ -425,7 +415,8 @@ static void display_update(midifighter_encoder_s* enc) {
 						leds.state &=
 								~((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
 					} else {
-						leds.state |= ((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
+						leds.state |=
+								((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
 					}
 
 				} else if (ind_norm > 6) {

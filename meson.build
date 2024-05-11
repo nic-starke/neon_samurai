@@ -58,13 +58,15 @@ c_compiler_args = [
     '-O3',
     '-DRELEASE',
     '-DNDEBUG',
-    
+
     '-ffreestanding',
     '-flto=auto',
     '-fpack-struct',
     '-fshort-enums',
     '-mrelax',
-        
+
+    # '-fverbose-asm',
+
     '-Wall',
     '-Wextra',
     '-Wpedantic',

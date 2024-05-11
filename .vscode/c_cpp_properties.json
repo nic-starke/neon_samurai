@@ -18,7 +18,7 @@
                 "__AVR_XMEGA__",
                 "USE_LUFA_CONFIG_HEADER"
             ],
-            "cStandard": "c23",
+            "cStandard": "c11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
             "customConfigurationVariables": {

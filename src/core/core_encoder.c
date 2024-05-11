@@ -1,6 +1,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
-/*                  https://github.com/nic-starke/neon_samurai               */
+/*                  https://github.com/nic-starke/neon_samurai                */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -18,14 +18,14 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-  QUAD_START,
-  QUAD_CCW,
-  QUAD_CW,
-  QUAD_MIDDLE,
-  QUAD_MID_CW,
-  QUAD_MID_CCW,
+	QUAD_START,
+	QUAD_CCW,
+	QUAD_CW,
+	QUAD_MIDDLE,
+	QUAD_MID_CW,
+	QUAD_MID_CCW,
 
-  QUAD_NB,
+	QUAD_NB,
 } quad_state_e;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -37,13 +37,13 @@ typedef enum {
  * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
  */
 static const quad_state_e quad_states[QUAD_NB][4] = {
-    // Current Quadrature GrayCode
-    {QUAD_MIDDLE, QUAD_CW, QUAD_CCW, QUAD_START},
-    {QUAD_MIDDLE | DIR_CCW, QUAD_START, QUAD_CCW, QUAD_START},
-    {QUAD_MIDDLE | DIR_CW, QUAD_CW, QUAD_START, QUAD_START},
-    {QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MID_CW, QUAD_START},
-    {QUAD_MIDDLE, QUAD_MIDDLE, QUAD_MID_CW, QUAD_START | DIR_CW},
-    {QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MIDDLE, QUAD_START | DIR_CCW},
+		// Current Quadrature GrayCode
+		{QUAD_MIDDLE, QUAD_CW, QUAD_CCW, QUAD_START},
+		{QUAD_MIDDLE | DIR_CCW, QUAD_START, QUAD_CCW, QUAD_START},
+		{QUAD_MIDDLE | DIR_CW, QUAD_CW, QUAD_START, QUAD_START},
+		{QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MID_CW, QUAD_START},
+		{QUAD_MIDDLE, QUAD_MIDDLE, QUAD_MID_CW, QUAD_START | DIR_CW},
+		{QUAD_MIDDLE, QUAD_MID_CCW, QUAD_MIDDLE, QUAD_START | DIR_CCW},
 };
 
 // Acceleration constants
