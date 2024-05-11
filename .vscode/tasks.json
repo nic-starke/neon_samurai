@@ -1,0 +1,106 @@
+{
+	"version": "2.0.0",
+	"inputs": [
+		{
+			"id": "cross_file",
+			"type": "command",
+			"command": "cpptools.activeConfigCustomVariable",
+			"args": "cross_file",
+		},
+	],
+	"tasks": [
+		{
+			"label": "Meson Generate",
+			"detail": "Generates the build folder ready for compilation",
+			"type": "shell",
+			"linux": {
+				"command": "meson"
+			},
+			"args": [
+				"setup",
+				"${config:app.build_dir}",
+				"--cross-file",
+				"${input:cross_file}"
+			],
+			"problemMatcher": [
+				"$meson-gcc"
+			]
+		},
+		{
+			"label": "Clean",
+			"detail": "Clean the build folder",
+			"type": "shell",
+			"group": {
+				"kind": "build",
+			},
+			"linux": {
+				"command": "ninja"
+			},
+			"options": {
+				"cwd": "${config:app.build_dir}",
+				"env": {}
+			},
+			"args": [
+				"clean",
+			],
+		},
+		{
+			"label": "Build",
+			"detail": "Builds the project",
+			"type": "shell",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"linux": {
+				"command": "ninja"
+			},
+			"options": {
+				"cwd": "${config:app.build_dir}",
+				"env": {}
+			},
+			"args": [
+				// "-C",
+				// "${config:app.build_dir}",
+				"neosam.elf",
+				"neosam.hex",
+			],
+			"presentation": {
+				"echo": true,
+				"showReuseMessage": false,
+				"reveal": "silent",
+				"revealProblems": "onProblem",
+				"panel": "dedicated",
+				"focus": true,
+				"clear": false,
+				"close": false
+			},
+			"problemMatcher": {
+				"applyTo": "allDocuments",
+				"base": "$gcc",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}/src"
+				],
+			},
+		},
+		{
+			"label": "Size",
+			"detail": "Displays size  (mem usage) of binary",
+			"type": "shell",
+			"group": {
+				"kind": "build",
+			},
+			"linux": {
+				"command": "ninja"
+			},
+			"options": {
+				"cwd": "${config:app.build_dir}",
+				"env": {}
+			},
+			"args": [
+				"BinSize"
+			],
+		},
+	],
+}

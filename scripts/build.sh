@@ -1,9 +1,9 @@
 currentdir=$PWD
 
   # ninja clang-format
-  mkdir -p /workspaces/neon_samurai/build
-  
-  cd /workspaces/neon_samurai/build
+  mkdir -p ../_build
+
+  cd ../_build
 
   if [[ $1 == clean ]]; then
     ninja clean

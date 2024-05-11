@@ -1,7 +1,10 @@
 {
+    "env": {
+        "BUILD_DIR": "${workspaceRoot}/build"
+    },
     "configurations": [
         {
-            "name": "AVR",
+            "name": "ATXMEGA128A4U",
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/subprojects/lufa**",
@@ -15,12 +18,12 @@
                 "__AVR_XMEGA__",
                 "USE_LUFA_CONFIG_HEADER"
             ],
-            "compilerPath": "/usr/bin/avr-gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++11",
+            "cStandard": "c23",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "customConfigurationVariables": {
+                "cross_file": "crossfiles/avr/xmega/128a4u.cross"
+            }
         }
     ],
     "version": 4

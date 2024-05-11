@@ -15,7 +15,7 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 BitFieldColonSpacing: Both
 BreakBeforeBraces: Attach
-ColumnLimit: 81
+ColumnLimit: 80
 MaxEmptyLinesToKeep: 1
 PointerAlignment: Left
 ReflowComments: false
