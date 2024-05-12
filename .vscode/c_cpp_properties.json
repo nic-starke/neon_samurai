@@ -6,7 +6,7 @@
         {
             "name": "ATXMEGA128A4U",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/include",
                 "${workspaceFolder}/subprojects/lufa**",
                 "${workspaceFolder}/subprojects/qcbor**",
                 "/usr/avr/include/**"
