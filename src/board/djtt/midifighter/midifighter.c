@@ -42,13 +42,7 @@ __attribute__((noreturn)) void main(void) {
 
 	while (1) {
 		mf_encoder_update();
-
-		// Process events in each event channel
-		// event_channel_process(EVENT_CHANNEL_CORE);
-		event_channel_process(EVENT_CHANNEL_IO);
-		event_channel_process(EVENT_CHANNEL_MIDI_IN);
-		event_channel_process(EVENT_CHANNEL_MIDI_OUT);
-
+		event_update();
 		midi_update();
 		usb_update();
 	}
