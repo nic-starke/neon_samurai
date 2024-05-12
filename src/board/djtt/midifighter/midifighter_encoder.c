@@ -132,7 +132,7 @@ void mf_encoder_init(void) {
 	for (uint b = 0; b < MF_NUM_ENCODER_BANKS; b++) {
 		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
 			for (uint v = 0; v < MF_NUM_VENC_PER_ENCODER; v++) {
-				ret = vencoder_init(&vencoders[b][e][v], &encoders[0]);
+				ret = vencoder_init(&vencoders[b][e][v], &encoders[0].ctx);
 			}
 		}
 	}
