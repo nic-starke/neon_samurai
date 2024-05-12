@@ -1,18 +1,19 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
+/*                  Copyright (c) (2021 - 2024) Nicolaus Starke               */
 /*                  https://github.com/nic-starke/neon_samurai                */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
-#include "core/core_utility.h"
-#include "core/core_encoder.h"
+#include "event/events_io.h"
+
+#include "encoder/encoder_quadrature.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// Velocity increment
-#define VEL_INC 1
+#define VEL_INC 2
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -29,12 +30,15 @@ typedef enum {
 } quad_state_e;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /*
  * Rotory decoder based on
- * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary Copyright
- * 2011 Ben Buxton. Licenced under the GNU GPL Version 3. Contact: bb@cactii.net
+ * https://github.com/buxtronix/arduino/tree/master/libraries/Rotary
+ * Copyright 2011 Ben Buxton.
+ * Licenced under the GNU GPL Version 3.
+ * Contact: bb@cactii.net
  */
 static const quad_state_e quad_states[QUAD_NB][4] = {
 		// Current Quadrature GrayCode
@@ -47,22 +51,46 @@ static const quad_state_e quad_states[QUAD_NB][4] = {
 };
 
 // Acceleration constants
-static i16 accel_inc[] = {VEL_INC * 4, VEL_INC * 10, VEL_INC * 20, VEL_INC * 40,
-													VEL_INC * 80};
+static i16 accel_inc[] = {VEL_INC * 3, VEL_INC * 8, VEL_INC * 15, VEL_INC * 30,
+													VEL_INC * 50};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void core_quadrature_decode(quadrature_ctx_s* ctx, unsigned int ch_a,
-														unsigned int ch_b) {
-	unsigned int val = (ch_b << 1) | ch_a;
-	ctx->rot_state	 = quad_states[ctx->rot_state & 0x0F][val];
-	ctx->dir				 = ctx->rot_state & 0x30;
+int encoder_init(encoder_ctx_s* ctx, uint index) {
+	ctx->quad.dir = DIR_ST;
+	ctx->quad.rot = 0;
+
+	ctx->index			 = index;
+	ctx->accel_mode	 = 1;
+	ctx->accel_const = 0;
+	ctx->curr_val		 = 0;
+	ctx->prev_val		 = 0;
+	ctx->velocity		 = 0;
+
+	event_io_s evt;
+	evt.event_id								= EVT_IO_ENCODER_ROTATION;
+	evt.data.enc_rotation.index = index;
+	evt.data.enc_rotation.value = 0;
+
+	return event_post(EVENT_CHANNEL_IO, &evt);
 }
 
-void core_encoder_update(encoder_ctx_s* enc, int direction) {
+void encoder_update(encoder_ctx_s* enc, uint ch_a, uint ch_b) {
 	assert(enc);
 
-	i32 newval = 0;
+	// Decode the quadrature encoding
+	unsigned int val = (ch_b << 1) | ch_a;
+	enc->quad.rot		 = quad_states[enc->quad.rot & 0x0F][val];
+	enc->quad.dir		 = enc->quad.rot & 0x30;
+
+	i32 newval;
+	int direction;
+
+	switch (enc->quad.dir) {
+		case DIR_CCW: direction = -1; break;
+		case DIR_CW: direction = 1; break;
+		case DIR_ST: direction = 0; break;
+	}
 
 	enc->prev_val = enc->curr_val;
 	if (enc->accel_mode == 0) {
@@ -94,9 +122,19 @@ void core_encoder_update(encoder_ctx_s* enc, int direction) {
 		enc->velocity += accel_inc[enc->accel_const] * enc->accel_const * direction;
 	}
 
+	// Update the stored value
 	newval =
 			enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
 	enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
+
+	// Generate an event if the encoder changed position
+	if (enc->curr_val != enc->prev_val) {
+		event_io_s evt;
+		evt.event_id								= EVT_IO_ENCODER_ROTATION;
+		evt.data.enc_rotation.index = enc->index;
+		evt.data.enc_rotation.value = enc->curr_val;
+		event_post(EVENT_CHANNEL_IO, &evt);
+	}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -21,19 +21,19 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PORT_SR_LED     (PORTD)   // IO port for led shift registers
-#define USART_LED       (USARTD0) // USART on D0
-#define TIMER_LED       (TCD0)    // Timer on D0
-#define TIMER_PERIOD    (255)
-#define SOFT_PWM_PERIOD (32)
+#define PORT_SR_LED					(PORTD)		// IO port for led shift registers
+#define USART_LED						(USARTD0) // USART on D0
+#define TIMER_LED						(TCD0)		// Timer on D0
+#define TIMER_PERIOD				(255)
+#define SOFT_PWM_PERIOD			(32)
 
 #define PIN_SR_LED_ENABLE_N (0)
-#define PIN_SR_LED_CLOCK    (1)
+#define PIN_SR_LED_CLOCK		(1)
 #define PIN_SR_LED_DATA_OUT (3)
-#define PIN_SR_LED_LATCH    (4)
-#define PIN_SR_LED_RESET_N  (5)
+#define PIN_SR_LED_LATCH		(4)
+#define PIN_SR_LED_RESET_N	(5)
 
-#define USART_BAUD (8000000)
+#define USART_BAUD					(8000000)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -50,18 +50,18 @@ volatile u8 mf_frame = 0;
 
 void mf_led_init(void) {
 
-  // Set all LEDS off
-  memset(mf_frame_buf, 0xFFFF, sizeof(mf_frame_buf));
-  // memset(mf_frame_buf, 0x0000, sizeof(mf_frame_buf));
+	// Set all LEDS off
+	memset(mf_frame_buf, 0xFFFF, sizeof(mf_frame_buf));
+	// memset(mf_frame_buf, 0x0000, sizeof(mf_frame_buf));
 
-  // Configure GPIO for LED shift registers
-  gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);
-  gpio_dir(&PORT_SR_LED, PIN_SR_LED_CLOCK, GPIO_OUTPUT);
-  gpio_dir(&PORT_SR_LED, PIN_SR_LED_DATA_OUT, GPIO_OUTPUT);
-  gpio_dir(&PORT_SR_LED, PIN_SR_LED_LATCH, GPIO_OUTPUT);
-  gpio_dir(&PORT_SR_LED, PIN_SR_LED_RESET_N, GPIO_OUTPUT);
+	// Configure GPIO for LED shift registers
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_CLOCK, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_DATA_OUT, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_LATCH, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_RESET_N, GPIO_OUTPUT);
 
-  // Configure USART (SPI) for LED shift registers
+	// Configure USART (SPI) for LED shift registers
 	const usart_config_s usart_cfg = {
 			.baudrate = USART_BAUD,
 			.endian		= ENDIAN_LSB,
@@ -69,9 +69,9 @@ void mf_led_init(void) {
 	};
 
 	// Configure DMA to transfer display frames to the USARTs 1-byte tx buffer
-  // The configuration will transmit 1 byte at a time, for a total of:
-  // 32 bytes (block count) x 1 times (repeat count).
-  // The trigger is set to USART data buffer being empty.
+	// The configuration will transmit 1 byte at a time, for a total of:
+	// 32 bytes (block count) x 1 times (repeat count).
+	// The trigger is set to USART data buffer being empty.
 	const dma_channel_cfg_s dma_cfg = {
 			.repeat_count		 = 1,
 			.block_size			 = MF_NUM_LED_SHIFT_REGISTERS,
@@ -91,33 +91,33 @@ void mf_led_init(void) {
 	// Reset shift registers
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1);
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
-  gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
 
-  // Configure timer in single slope waveform mode
-  TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
-  TCD0.PER = TIMER_PERIOD; // Timer max tick count (timer resets at this value)
-  TCD0.CCA = 0; // Channel A -> Global brightness (0 = max, 255 = min)
-  TCD0.CCB =
-      SOFT_PWM_PERIOD; // Channel B -> Software PWM tick (RGB colour generation)
+	// Configure timer in single slope waveform mode
+	TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
+	TCD0.PER = TIMER_PERIOD; // Timer max tick count (timer resets at this value)
+	TCD0.CCA = 0; // Channel A -> Global brightness (0 = max, 255 = min)
+	TCD0.CCB =
+			SOFT_PWM_PERIOD; // Channel B -> Software PWM tick (RGB colour generation)
 
-  // Enable timer compare channel A to generate PWM on pin 0 (shift register
-  // output enable pin). The duty cycle of this PWM signal determines the
-  // maximum brightness of ALL leds
-  // TCD0.CTRLB |= TC0_CCAEN_bm;
+	// Enable timer compare channel A to generate PWM on pin 0 (shift register
+	// output enable pin). The duty cycle of this PWM signal determines the
+	// maximum brightness of ALL leds
+	// TCD0.CTRLB |= TC0_CCAEN_bm;
 
-  // Enable interrupts on compare match for channel B
-  TCD0.INTCTRLB |= (PRIORITY_MED << (2)) & TC0_CCBINTLVL_gm;
+	// Enable interrupts on compare match for channel B
+	TCD0.INTCTRLB |= (PRIORITY_MED << (2)) & TC0_CCBINTLVL_gm;
 
-  dma_channel_init(&DMA.CH0, &dma_cfg);
-  usart_module_init(&USART_LED, &usart_cfg);
-  TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer!
+	dma_channel_init(&DMA.CH0, &dma_cfg);
+	usart_module_init(&USART_LED, &usart_cfg);
+	TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer!
 }
 
 void mf_led_set_max_brightness(u8 brightness) {
-  if (brightness > MF_MAX_BRIGHTNESS) {
-    brightness = MF_MAX_BRIGHTNESS;
-  }
+	if (brightness > MF_MAX_BRIGHTNESS) {
+		brightness = MF_MAX_BRIGHTNESS;
+	}
 
 	// Post an event to the event queue
 	// core_event_s evt = {
@@ -128,23 +128,23 @@ void mf_led_set_max_brightness(u8 brightness) {
 }
 
 ISR(TCD0_CCB_vect) {
-  ATOMIC_BLOCK(ATOMIC_FORCEON) {
-    gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
-    gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
+	ATOMIC_BLOCK(ATOMIC_FORCEON) {
+		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
+		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
 
-    uptr ptr = &mf_frame_buf[mf_frame][0];
+		uptr ptr = &mf_frame_buf[mf_frame][0];
 
-    if (++mf_frame >= MF_NUM_PWM_FRAMES) {
-      mf_frame = 0;
-    }
-    // This ISR needs to trigger every 32 ticks, therefore the
-    // compare value must be incremented by 32 ticks each time the interrupt
-    // fires. The CCB value must wrap around at the TOP/PER value of the timer.
-    TCD0.CCB         = (TCD0.CCB + SOFT_PWM_PERIOD) % TIMER_PERIOD;
-    DMA.CH0.SRCADDR0 = (ptr >> 0) & 0xFF;
-    DMA.CH0.SRCADDR1 = (ptr >> 8) & 0xFF;
-    DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
-  }
+		if (++mf_frame >= MF_NUM_PWM_FRAMES) {
+			mf_frame = 0;
+		}
+		// This ISR needs to trigger every 32 ticks, therefore the
+		// compare value must be incremented by 32 ticks each time the interrupt
+		// fires. The CCB value must wrap around at the TOP/PER value of the timer.
+		TCD0.CCB				 = (TCD0.CCB + SOFT_PWM_PERIOD) % TIMER_PERIOD;
+		DMA.CH0.SRCADDR0 = (ptr >> 0) & 0xFF;
+		DMA.CH0.SRCADDR1 = (ptr >> 8) & 0xFF;
+		DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
+	}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

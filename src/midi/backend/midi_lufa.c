@@ -7,7 +7,7 @@
 
 #include "core/core_types.h"
 #include "core/core_error.h"
-#include "midi/midi.h"
+#include "protocol/midi/midi.h"
 #include "event/events_midi.h"
 #include "usb/lufa/usb_lufa.h"
 

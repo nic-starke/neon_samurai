@@ -9,7 +9,7 @@
 #include "core/core_types.h"
 #include "core/core_rgb.h"
 
-#include "midi/midi.h"
+#include "encoder/encoder_quadrature.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -24,14 +24,10 @@ typedef enum {
 } led_style_e;
 
 typedef struct {
-	u8							 enabled;
-	u8							 hwenc_id; // Index of the physical encoder
-	rgb_15_s				 led_rgb;
-	rb_8_s					 led_detent;
-	led_style_e			 led_style; // Indicator LED style
-	u8							 detent;
-	encoder_ctx_s		 encoder_ctx;
-	midi_device_s		 midi;
+	rgb_15_s			led_rgb;
+	rb_8_s				led_detent;
+	led_style_e		led_style; // Indicator LED style
+	encoder_ctx_s ctx;
 } midifighter_encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -14,7 +14,7 @@
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
 #include "usb/usb.h"
-#include "midi/midi.h"
+#include "protocol/midi/midi.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -10,18 +10,21 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MF_NUM_ENCODERS              (16)
-#define MF_NUM_ENCODER_SWITCHES      (MF_NUM_ENCODERS)
-#define MF_NUM_SIDE_SWITCHES         (6)
-#define MF_NUM_LEDS                  (256)
-#define MF_NUM_LEDS_PER_ENCODER      (16)
-#define MF_NUM_INDICATOR_LEDS        (11)
-#define MF_NUM_LED_SHIFT_REGISTERS   (32)
+#define MF_NUM_ENCODERS							 (16)
+#define MF_NUM_ENCODER_SWITCHES			 (MF_NUM_ENCODERS)
+#define MF_NUM_SIDE_SWITCHES				 (6)
+#define MF_NUM_LEDS									 (256)
+#define MF_NUM_LEDS_PER_ENCODER			 (16)
+#define MF_NUM_INDICATOR_LEDS				 (11)
+#define MF_NUM_LED_SHIFT_REGISTERS	 (32)
 #define MF_NUM_INPUT_SHIFT_REGISTERS (6)
-#define MF_NUM_PWM_FRAMES            (32)
+#define MF_NUM_PWM_FRAMES						 (32)
 
-#define MF_MAX_BRIGHTNESS (MF_NUM_PWM_FRAMES)
-#define MF_MIN_BRIGHTNESS (1)
+#define MF_MAX_BRIGHTNESS						 (MF_NUM_PWM_FRAMES)
+#define MF_MIN_BRIGHTNESS						 (1)
+
+#define MF_NUM_ENCODER_BANKS				 (3)
+#define MF_NUM_VENC_PER_ENCODER			 (3)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

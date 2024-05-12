@@ -45,13 +45,16 @@
 			],
 		},
 		{
-			"label": "Build",
-			"detail": "Builds the project",
+			"label": "Build (clean)",
+			"detail": "Builds the project, cleans first",
 			"type": "shell",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
+			"dependsOn": [
+				"Clean"
+			],
 			"linux": {
 				"command": "ninja"
 			},
@@ -60,8 +63,6 @@
 				"env": {}
 			},
 			"args": [
-				// "-C",
-				// "${config:app.build_dir}",
 				"neosam.elf",
 				"neosam.hex",
 			],
@@ -71,7 +72,7 @@
 				"reveal": "silent",
 				"revealProblems": "onProblem",
 				"panel": "dedicated",
-				"focus": true,
+				"focus": false,
 				"clear": false,
 				"close": false
 			},
@@ -86,7 +87,7 @@
 		},
 		{
 			"label": "Size",
-			"detail": "Displays size  (mem usage) of binary",
+			"detail": "Displays size (mem usage) of binary",
 			"type": "shell",
 			"group": {
 				"kind": "build",
@@ -100,6 +101,34 @@
 			},
 			"args": [
 				"BinSize"
+			],
+		},
+		{
+			"label": "Flash Board",
+			"detail": "Programs the board with a built binary",
+			"type": "shell",
+			"group": {
+				"kind": "build",
+			},
+			"dependsOn": "Build (clean)",
+			"linux": {
+				"command": "avrdude"
+			},
+			"args": [
+				"-v",
+				"-c",
+				"jtag3pdi",
+				"-p",
+				"x128a4u",
+				"-P",
+				"usb",
+				"-U",
+				"flash:w:\"${config:app.build_dir}/neosam.hex\":a",
+				// # avrdude -v -u -c jtag3pdi -p x128a4u -P usb -U eeprom:w:"build/neosam.eep"
+				//  if using dfu-programmer
+				// #sudo dfu-programmer atxmega128a4u:1,8 flash ./builddir/neosam.hex
+				// #where :1,8 is the usb BUS and DEVICE numbers from lsusb
+				// # but make sure to put the mft into bootloader mode and then exec lsusb, then dfu-programmer
 			],
 		},
 	],

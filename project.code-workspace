@@ -9,12 +9,12 @@
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "C_Cpp.autocompleteAddParentheses": false,
     // "python.defaultInterpreterPath": "${workspaceFolder}/../.venv/bin/python3",
-    
+
     // Custom configuration values
     "app": {
       "build_dir":"${workspaceFolder}/build"
     },
-    
+
     "avr":{
       "cc": "/usr/bin/avr-gcc",
       "libc": "/usr/avr/lib/",
@@ -24,6 +24,8 @@
     "files.associations": {
       "*.h": "c",
       "*.c": "c",
+      "chrono": "c",
+      "variant": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
