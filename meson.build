@@ -55,7 +55,7 @@ project_src += board_src
 c_compiler_args = [
     '-std=gnu11',
 
-    '-O3',
+    '-Ofast',
     '-DRELEASE',
     '-DNDEBUG',
 
@@ -84,6 +84,7 @@ c_compiler_args = [
 
 c_link_args = [
   '-flto',
+  '-fuse-ld=mold',
 ]
 
 # Targets
