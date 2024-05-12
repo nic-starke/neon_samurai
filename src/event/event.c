@@ -37,6 +37,16 @@ int event_init(void) {
 	return 0;
 }
 
+int event_update(void) {
+
+	for (uint i = 0; i < EVENT_CHANNEL_NB; i++) {
+		int ret = event_channel_process(i);
+		RETURN_ON_ERR(ret);
+	}
+
+	return 0;
+}
+
 int event_channel_register(event_ch_e ch, event_channel_s* def) {
 	assert(def);
 	assert(ch < EVENT_CHANNEL_NB);
@@ -57,22 +67,14 @@ int event_channel_register(event_ch_e ch, event_channel_s* def) {
 	return 0;
 }
 
-/**
- * @brief Processes all messages in the event queue for the specified channel.
- * 
- * @param ch The channel to process.
- * @return int 0 on success, otherwise an error code.
- */
 int event_channel_process(event_ch_e ch) {
 	event_channel_s* channel = channels[ch];
 
 	// Check if the channel is registered
 	assert(channel);
 
-	uint num_msg = channel->head;
-
 	// Process all events in the queue
-	for (uint i = 0; i < num_msg; ++i) {
+	for (uint i = 0; i < channel->head; ++i) {
 		void* event = &channel->queue[i * channel->data_size];
 
 		// Call the event handlers
@@ -94,12 +96,10 @@ int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler) {
 	assert(ch < EVENT_CHANNEL_NB);
 
 	event_channel_s* channel = channels[ch];
+	assert(channel);
 
-	// Check if the channel is registered
-	if (!channel) {
-		return ERR_NULL_PTR;
-	}
-
+	// If the channel is configured for only one subscriber
+	// return an error.
 	if (channel->onehandler) {
 		return ERR_UNSUPPORTED;
 	}
@@ -150,11 +150,7 @@ int event_channel_unsubscribe(event_ch_e ch, event_ch_handler_s* h) {
 	assert(ch < EVENT_CHANNEL_NB);
 
 	event_channel_s* channel = channels[ch];
-
-	// Check if the channel is registered
-	if (!channel) {
-		return ERR_NULL_PTR;
-	}
+	assert(channel);
 
 	if (channel->onehandler) {
 		return ERR_UNSUPPORTED;
@@ -162,7 +158,7 @@ int event_channel_unsubscribe(event_ch_e ch, event_ch_handler_s* h) {
 
 	event_ch_handler_s* curr = channel->handlers;
 
-	// If the list is empty, return
+	// If there are no more handlers then return
 	if (curr == NULL) {
 		return 0;
 	}
@@ -214,9 +210,6 @@ int event_post_rt(event_ch_e ch, void* event) {
 
 	// Call the event handlers directly
 	event_ch_handler_s* handler = channel->handlers;
-	if (!handler) {
-		return ERR_NULL_PTR;
-	}
 
 	while (handler) {
 		handler->handler(event);
