@@ -82,7 +82,8 @@ int midi_init(void) {
 	ret = event_channel_register(EVENT_CHANNEL_MIDI_OUT, &midi_out_event_ch);
 	RETURN_ON_ERR(ret);
 
-	ret = event_channel_subscribe(EVENT_CHANNEL_MIDI_OUT, &midi_out_event_handler);
+	ret =
+			event_channel_subscribe(EVENT_CHANNEL_MIDI_OUT, &midi_out_event_handler);
 	RETURN_ON_ERR(ret);
 
 	return ret;
@@ -91,17 +92,6 @@ int midi_init(void) {
 int midi_update(void) {
 	MIDI_EventPacket_t rx;
 	if (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
-
-		midi_cc_event_s cc;
-		cc.channel = (rx.Data1 & 0x0F);
-		cc.control = rx.Data2;
-		cc.value	 = rx.Data3;
-
-		midi_event_s e;
-		e.event_id = MIDI_EVENT_CC;
-		e.data.cc	 = cc;
-
-		event_post(EVENT_CHANNEL_MIDI_IN, &e);
 
 		switch (rx.Event) {
 			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {

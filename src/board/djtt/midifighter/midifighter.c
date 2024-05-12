@@ -1,9 +1,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
-/*                  https://github.com/nic-starke/neon_samurai               */
+/*                  https://github.com/nic-starke/neon_samurai                */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "board/djtt/midifighter.h"
