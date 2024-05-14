@@ -9,7 +9,7 @@
 #include "core/core_types.h"
 #include "core/core_rgb.h"
 
-#include "encoder/encoder_quadrature.h"
+#include "io/encoder/encoder_quadrature.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -24,11 +24,10 @@ typedef enum {
 } led_style_e;
 
 typedef struct {
-	rgb_15_s			led_rgb;
-	rb_8_s				led_detent;
-	led_style_e		led_style; // Indicator LED style
-	encoder_ctx_s ctx;
-} midifighter_encoder_s;
+	rgb_15_s		led_rgb;
+	rb_8_s			led_detent;
+	led_style_e led_style; // Indicator LED style
+} mf_display_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

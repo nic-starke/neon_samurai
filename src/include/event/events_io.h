@@ -7,6 +7,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
+#include "io/encoder/encoder_quadrature.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -25,9 +26,14 @@ typedef enum {
 } events_io_e;
 
 typedef struct __attribute__((packed)) {
-	u8	index;
-	u16 value;
+	encoder_s* enc;
+	u16				 value;
 } event_io_encoder_rotation_s;
+
+typedef struct __attribute__((packed)) {
+	encoder_s* enc;
+	u8				 value;
+} event_io_encoder_switch_s;
 
 typedef struct __attribute__((packed)) {
 	u8 index;
@@ -38,10 +44,10 @@ typedef struct {
 	u8 event_id;
 	union {
 		event_io_encoder_rotation_s enc_rotation;
-		event_io_switch_s						enc_switch;
+		event_io_encoder_switch_s		enc_switch;
 		event_io_switch_s						button;
 	} data;
-} event_io_s;
+} io_event_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

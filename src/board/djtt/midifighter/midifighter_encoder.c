@@ -15,11 +15,13 @@
 #include "core/core_rgb.h"
 #include "core/core_error.h"
 
-#include "encoder/encoder_virtual.h"
-
 #include "event/event.h"
 #include "event/events_io.h"
 #include "event/events_midi.h"
+
+#include "io/io_device.h"
+
+#include "virtmap/virtmap.h"
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 
@@ -41,6 +43,10 @@
 #define CLEAR_LEFT_INDICATORS	 (0x03FF) // Mask to clear mid and left-side leds
 #define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
 #define MASK_PWM_INDICATORS		 (0xFBE0)
+
+#define NUM_ENC_DEVS					 (MF_NUM_ENC_BANKS * MF_NUM_ENCODERS)
+#define NUM_VIRTMAPS                                                           \
+	(MF_NUM_ENC_BANKS * MF_NUM_ENCODERS * MF_NUM_VIRTMAPS_PER_ENC)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -70,10 +76,9 @@ typedef union {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void display_update(midifighter_encoder_s* enc);
+static void display_update(encoder_s* enc, mf_display_s* dis);
 
 static void evt_handler_io(void* event);
-static void evt_handler_midi(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -83,7 +88,6 @@ static const u16 led_interval = ENC_MAX / 11;
 static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
 EVT_HANDLER(0, io_evt_handler, evt_handler_io);
-EVT_HANDLER(0, midi_in_evt_handler, evt_handler_midi);
 
 // PROGMEM static const midifighter_encoder_s default_config = {
 // 		.enabled					= true,
@@ -98,17 +102,20 @@ EVT_HANDLER(0, midi_in_evt_handler, evt_handler_midi);
 // 		.midi.data.cc			= 0,
 // };
 
-// A single hardware context is required for each physical encoder
-static midifighter_encoder_s encoders[MF_NUM_ENCODERS];
-static vencoder_ctx_s				 vencoders[MF_NUM_ENCODER_BANKS][MF_NUM_ENCODERS]
-															 [MF_NUM_VENC_PER_ENCODER];
+static mf_display_s enc_dis[MF_NUM_ENCODERS];
+static iodev_s			enc_dev[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
+static encoder_s		enc_ctx[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
+static virtmap_s		enc_vmap[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS]
+												 [MF_NUM_VIRTMAPS_PER_ENC];
 
 // A single switch context is required for all 16 switches (in the encoders)
 static switch_x16_ctx_s switch_ctx;
 
+static uint active_bank = 0;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void mf_encoder_init(void) {
+int mf_encoder_init(void) {
 	// Configure GPIO for encoder IO shift regsiters
 	gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_LATCH, GPIO_OUTPUT);
 	gpio_dir(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, GPIO_OUTPUT);
@@ -118,24 +125,29 @@ void mf_encoder_init(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
+	// Configure event channels
 	int ret = event_channel_subscribe(EVENT_CHANNEL_IO, &io_evt_handler);
-	// RETURN_ON_ERR(ret);
+	RETURN_ON_ERR(ret);
 
-	ret = event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &midi_in_evt_handler);
-	// RETURN_ON_ERR(ret);
-
-	for (uint i = 0; i < COUNTOF(encoders); i++) {
-		ret = encoder_init(&encoders[i].ctx, i);
-		// RETURN_ON_ERR(ret);
-	}
-
-	for (uint b = 0; b < MF_NUM_ENCODER_BANKS; b++) {
+	// Initialise encoder devices and virtual parameter mappings
+	uint enc_idx = 0;
+	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
 		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-			for (uint v = 0; v < MF_NUM_VENC_PER_ENCODER; v++) {
-				ret = vencoder_init(&vencoders[b][e][v], &encoders[0].ctx);
+			ret = iodev_init(DEV_TYPE_ENCODER, &enc_dev[b][e], &enc_ctx[b][e],
+											 enc_idx++);
+			RETURN_ON_ERR(ret);
+
+			for (uint v = 0; v < MF_NUM_VIRTMAPS_PER_ENC; v++) {
+				iodev_assign_virtmap(&enc_dev[b][e], &enc_vmap[b][e][v]);
+				RETURN_ON_ERR(ret);
 			}
 		}
 	}
+
+	// ret = iodev_register_arr(DEV_TYPE_ENCODER, &enc_dev);
+	// RETURN_ON_ERR(ret);
+
+	return 0;
 }
 
 // Scan the hardware state of the midifighter and update local contexts
@@ -163,7 +175,7 @@ void mf_encoder_update(void) {
 		u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
-		encoder_update(&encoders[i].ctx, ch_a, ch_b);
+		encoder_update(&enc_ctx[active_bank][i], ch_a, ch_b);
 	}
 
 	// Close the door!
@@ -175,8 +187,9 @@ void mf_encoder_update(void) {
 }
 
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state) {
-	const u8 debug_encoder = 0;
 	assert(indicator < MF_NUM_INDICATOR_LEDS);
+
+	const u8			debug_encoder = 0;
 	encoder_led_s leds;
 	leds.state = 0; // turn off all leds
 
@@ -214,76 +227,10 @@ void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// static void virtual_encoder_update(midifighter_encoder_s* enc) {
-// 	if (!enc->enabled) {
-// 		return;
-// 	}
+static void display_update(encoder_s* enc, mf_display_s* dis) {
+	assert(enc);
+	assert(dis);
 
-// 	// Step 1 - handler encoder rotation
-// 	u8 id = enc->hwenc_id;
-
-// 	int direction = 0;
-// 	if (hw_ctx[id].dir == DIR_CW) {
-// 		direction = 1;
-// 	} else if (hw_ctx[id].dir == DIR_CCW) {
-// 		direction = -1;
-// 	}
-
-// 	core_encoder_update(&enc->encoder_ctx, direction);
-// 	if (enc->encoder_ctx.curr_val != enc->encoder_ctx.prev_val) {
-// 		// Post the rotation event to the IO event channel
-// 		event_io_s evt;
-// 		evt.event_id								= EVT_IO_ENCODER_ROTATION;
-// 		evt.data.enc_rotation.index = enc->hwenc_id;
-// 		evt.data.enc_rotation.value = enc->encoder_ctx.curr_val;
-// 		event_post(EVENT_CHANNEL_IO, &evt);
-
-// 		// Post a MIDI event if the encoder is configured for MIDI
-// 		switch (enc->midi.mode) {
-// 			case MIDI_MODE_CC: {
-// 				// Convert 16-bit encoder value to 7-bit MIDI value
-// 				u8 val = (u8)(((f32)enc->encoder_ctx.curr_val / ENC_MAX) * 127);
-
-// 				if (enc->midi.prev_val != val) {
-// 					midi_event_s midi_evt;
-// 					midi_evt.event_id				 = MIDI_EVENT_CC;
-// 					midi_evt.data.cc.channel = enc->midi.channel;
-// 					midi_evt.data.cc.control = enc->midi.data.cc;
-// 					midi_evt.data.cc.value	 = val;
-// 					enc->midi.prev_val			 = val;
-// 					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
-// 				}
-// 				break;
-// 			}
-
-// 				// case MIDI_MODE_NOTE: {
-// 				// 	midi_event_s midi_evt;
-// 				// 	midi_evt.event_id						= MIDI_EVENT_NOTE;
-// 				// 	midi_evt.data.note.channel	= enc->midi.channel;
-// 				// 	midi_evt.data.note.note			= enc->hwenc_id;
-// 				// 	midi_evt.data.note.velocity = enc->encoder_ctx.curr_val;
-// 				// 	event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
-// 				// 	break;
-// 				// }
-
-// 			default: break;
-// 		}
-// 	}
-
-// 	// Step 2 - Handle encoder switch
-// 	u16 mask			= (1u << id);
-// 	u8	prevstate = (switch_ctx.previous & mask) ? 1 : 0;
-// 	u8	state			= (switch_ctx.current & mask) ? 1 : 0;
-// 	if (state != prevstate) {
-// 		event_io_s evt;
-// 		evt.event_id							= EVT_IO_ENCODER_SWITCH;
-// 		evt.data.enc_switch.index = enc->hwenc_id;
-// 		evt.data.enc_switch.value = state;
-// 		event_post(EVENT_CHANNEL_IO, &evt);
-// 	}
-// }
-
-static void display_update(midifighter_encoder_s* enc) {
 	f32						ind_pwm;		// Partial encoder positions (e.g position = 5.7)
 	unsigned int	ind_norm;		// Integer encoder positions (e.g position = 5)
 	unsigned int	pwm_frames; // Number of PWM frames for partial brightness
@@ -294,19 +241,19 @@ static void display_update(midifighter_encoder_s* enc) {
 
 	// Determine the position of the indicator led and which led requires
 	// partial brightness
-	if (enc->ctx.curr_val <= led_interval) {
+	if (enc->curr_val <= led_interval) {
 		ind_pwm	 = 0;
 		ind_norm = 0;
-	} else if (enc->ctx.curr_val == ENC_MAX) {
+	} else if (enc->curr_val == ENC_MAX) {
 		ind_pwm	 = MF_NUM_INDICATOR_LEDS;
 		ind_norm = MF_NUM_INDICATOR_LEDS;
 	} else {
-		ind_pwm	 = ((f32)enc->ctx.curr_val / led_interval);
+		ind_pwm	 = ((f32)enc->curr_val / led_interval);
 		ind_norm = (unsigned int)roundf(ind_pwm);
 	}
 
 	// Generate the LED states based on the display mode
-	switch (enc->led_style) {
+	switch (dis->led_style) {
 		case LED_STYLE_SINGLE: {
 			// Set the corresponding bit for the indicator led
 			leds.state = MASK_INDICATORS & (0x8000 >> (ind_norm - 1));
@@ -314,7 +261,7 @@ static void display_update(midifighter_encoder_s* enc) {
 		}
 
 		case LED_STYLE_MULTI: {
-			if (enc->ctx.detent) {
+			if (enc->detent) {
 				if (ind_norm < 6) {
 					leds.state |=
 							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
@@ -332,7 +279,7 @@ static void display_update(midifighter_encoder_s* enc) {
 		case LED_STYLE_MULTI_PWM: {
 			f32 diff	 = ind_pwm - (floorf(ind_pwm));
 			pwm_frames = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
-			if (enc->ctx.detent) {
+			if (enc->detent) {
 				if (ind_norm < 6) {
 					leds.state |=
 							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
@@ -352,7 +299,7 @@ static void display_update(midifighter_encoder_s* enc) {
 
 	// When detent mode is enabled the detent LEDs must be displayed, and
 	// indicator LED #6 at the 12 o'clock position must be turned off.
-	if (enc->ctx.detent && (ind_norm == 6)) {
+	if (enc->detent && (ind_norm == 6)) {
 		leds.indicator_6 = 0;
 		leds.detent_blue = 1;
 	}
@@ -361,13 +308,13 @@ static void display_update(midifighter_encoder_s* enc) {
 	for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < p) {
-			leds.state											= 0;
-			mf_frame_buf[p][enc->ctx.index] = ~leds.state;
+			leds.state									= 0;
+			mf_frame_buf[p][enc->index] = ~leds.state;
 			continue;
 		}
 
-		if (enc->led_style == LED_STYLE_MULTI_PWM) {
-			if (enc->ctx.detent) {
+		if (dis->led_style == LED_STYLE_MULTI_PWM) {
+			if (enc->detent) {
 				if (ind_norm < 6) {
 					if (p < pwm_frames) {
 						leds.state &=
@@ -394,27 +341,27 @@ static void display_update(midifighter_encoder_s* enc) {
 		}
 
 		leds.rgb_blue = leds.rgb_red = leds.rgb_green = 0;
-		if ((int)(enc->led_rgb.red - p) > 0) {
+		if ((int)(dis->led_rgb.red - p) > 0) {
 			leds.rgb_red = 1;
 		}
-		if ((int)(enc->led_rgb.green - p) > 0) {
+		if ((int)(dis->led_rgb.green - p) > 0) {
 			leds.rgb_green = 1;
 		}
-		if ((int)(enc->led_rgb.blue - p) > 0) {
+		if ((int)(dis->led_rgb.blue - p) > 0) {
 			leds.rgb_blue = 1;
 		}
-		mf_frame_buf[p][enc->ctx.index] = ~leds.state;
+		mf_frame_buf[p][enc->index] = ~leds.state;
 	}
 }
 
 static void evt_handler_io(void* event) {
 	assert(event);
 
-	event_io_s* e = (event_io_s*)event;
+	io_event_s* e = (io_event_s*)event;
 	switch (e->event_id) {
 		case EVT_IO_ENCODER_ROTATION: {
-
-			display_update(&encoders[e->data.enc_rotation.index]);
+			uint dis = e->data.enc_rotation.enc->index / MF_NUM_ENC_BANKS;
+			display_update(e->data.enc_rotation.enc, &enc_dis[dis]);
 			break;
 		}
 
@@ -430,29 +377,4 @@ static void evt_handler_io(void* event) {
 			// 	break;
 			// }
 	}
-}
-
-static void evt_handler_midi(void* event) {
-	// assert(event);
-
-	// midi_event_s* e = (midi_event_s*)event;
-
-	// switch (e->event_id) {
-	// 	case MIDI_EVENT_CC: {
-	// 		midi_cc_event_s* cc = &e->data.cc;
-	// 		for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
-	// 			if (mf_ctx[i].midi.mode == MIDI_MODE_CC &&
-	// 					mf_ctx[i].midi.channel == cc->channel &&
-	// 					mf_ctx[i].midi.data.cc == cc->control) {
-	// 				mf_ctx[i].encoder_ctx.curr_val =
-	// 						(u16)(((f32)cc->value / 127) * ENC_MAX);
-	// 				display_update(&mf_ctx[i]);
-	// 				break;
-	// 			}
-	// 		}
-	// 		break;
-	// 	}
-
-	// 	default: return;
-	// }
 }

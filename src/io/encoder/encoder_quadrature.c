@@ -9,7 +9,7 @@
 #include "core/core_types.h"
 #include "event/events_io.h"
 
-#include "encoder/encoder_quadrature.h"
+#include "io/encoder/encoder_quadrature.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -56,26 +56,29 @@ static i16 accel_inc[] = {VEL_INC * 3, VEL_INC * 8, VEL_INC * 15, VEL_INC * 30,
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int encoder_init(encoder_ctx_s* ctx, uint index) {
+int encoder_init(void* enc, uint index) {
+	assert(enc);
+	encoder_s* ctx = (encoder_s*)enc;
+
 	ctx->quad.dir = DIR_ST;
 	ctx->quad.rot = 0;
 
 	ctx->index			 = index;
-	ctx->accel_mode	 = 1;
+	ctx->accel_mode	 = 0;
 	ctx->accel_const = 0;
 	ctx->curr_val		 = 0;
 	ctx->prev_val		 = 0;
 	ctx->velocity		 = 0;
 
-	event_io_s evt;
+	io_event_s evt;
 	evt.event_id								= EVT_IO_ENCODER_ROTATION;
-	evt.data.enc_rotation.index = index;
+	evt.data.enc_rotation.enc		= ctx;
 	evt.data.enc_rotation.value = 0;
 
 	return event_post(EVENT_CHANNEL_IO, &evt);
 }
 
-void encoder_update(encoder_ctx_s* enc, uint ch_a, uint ch_b) {
+void encoder_update(encoder_s* enc, uint ch_a, uint ch_b) {
 	assert(enc);
 
 	// Decode the quadrature encoding
@@ -129,9 +132,9 @@ void encoder_update(encoder_ctx_s* enc, uint ch_a, uint ch_b) {
 
 	// Generate an event if the encoder changed position
 	if (enc->curr_val != enc->prev_val) {
-		event_io_s evt;
+		io_event_s evt;
 		evt.event_id								= EVT_IO_ENCODER_ROTATION;
-		evt.data.enc_rotation.index = enc->index;
+		evt.data.enc_rotation.enc		= enc;
 		evt.data.enc_rotation.value = enc->curr_val;
 		event_post(EVENT_CHANNEL_IO, &evt);
 	}

@@ -25,7 +25,8 @@
       "*.h": "c",
       "*.c": "c",
       "chrono": "c",
-      "variant": "c"
+      "variant": "c",
+      "numbers": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",

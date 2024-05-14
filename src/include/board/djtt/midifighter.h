@@ -23,8 +23,9 @@
 #define MF_MAX_BRIGHTNESS						 (MF_NUM_PWM_FRAMES)
 #define MF_MIN_BRIGHTNESS						 (1)
 
-#define MF_NUM_ENCODER_BANKS				 (3)
-#define MF_NUM_VENC_PER_ENCODER			 (3)
+#define MF_NUM_ENC_BANKS						 (3)
+#define MF_NUM_ENC_PER_BANK					 (MF_NUM_ENCODERS)
+#define MF_NUM_VIRTMAPS_PER_ENC			 (2)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -39,7 +40,7 @@ void mf_led_init(void);
 void mf_led_transmit(void);
 void mf_max_brightness(u8 brightness);
 
-void mf_encoder_init(void);
+int	 mf_encoder_init(void);
 void mf_encoder_update(void);
 
 void mf_switch_init(void);

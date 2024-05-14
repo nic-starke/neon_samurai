@@ -69,10 +69,10 @@
 			"presentation": {
 				"echo": true,
 				"showReuseMessage": false,
-				"reveal": "silent",
-				"revealProblems": "onProblem",
+				"reveal": "always",
+				"revealProblems": "never",
 				"panel": "dedicated",
-				"focus": false,
+				"focus": true,
 				"clear": false,
 				"close": false
 			},

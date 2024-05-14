@@ -9,15 +9,19 @@ endforeach
 project_src += files(
     'core/core_switch.c',
 
-    'encoder/encoder_quadrature.c',
-    'encoder/encoder_virtual.c',
 
     'event/event.c',
     'event/event_core.c',
     'event/event_io.c',
 
+    'io/io_device.c',
+    'io/encoder/encoder_quadrature.c',
+
     'midi/midi.c',
     'midi/backend/midi_lufa.c',
+
+    'virtmap/virtmap.c',
+    'virtmap/virtmanager.c',
 
     'usb/lufa/usb_lufa.c',
 

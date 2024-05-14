@@ -14,7 +14,8 @@
 #define ENC_MAX					 (UINT16_MAX)	 // Maximum encoder value (16-bits)
 #define ENC_MIN					 (0)					 // Minimum encoder value (16-bits)
 #define ENC_MID					 (ENC_MAX / 2) // Mid position encoder value (16-bits)
-#define ENC_MAX_VELOCITY (1500)				 // Maximum encoder velocity (absolute)
+#define ENC_RANGE				 (u16)(ENC_MAX - ENC_MIN)
+#define ENC_MAX_VELOCITY (1500) // Maximum encoder velocity (absolute)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -40,18 +41,18 @@ typedef struct {
 		u8						rot; // Rotational state
 	} quad;							 // Quadrature decoding context
 
-} encoder_ctx_s;
+} encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /**
  * @brief Initialises a single encoder context.
  *
- * @param enc Pointer to encoder context
- * @param index Encoder index
+ * @param enc Pointer to encoder_s.
+ * @param index Encoder index.
  * @return 0 on success, !0 on failure.
  */
-int encoder_init(encoder_ctx_s* ctx, uint index);
+int encoder_init(void* enc, uint index);
 
 /**
  * @brief Perform an update of a quadrature encoder.
@@ -67,4 +68,4 @@ int encoder_init(encoder_ctx_s* ctx, uint index);
  * @param ch_a Current state of quadrature channel A.
  * @param ch_b Current state of quadrature channel B.
  */
-void encoder_update(encoder_ctx_s* enc, uint ch_a, uint ch_b);
+void encoder_update(encoder_s* enc, uint ch_a, uint ch_b);
