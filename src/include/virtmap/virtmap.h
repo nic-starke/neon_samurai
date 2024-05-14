@@ -29,10 +29,15 @@ typedef struct virtmap_s {
 	 * Note that if the lower value is greater than the upper value then
 	 * the generated values will be in reverse order, i.e the output
 	 * will start at 5000 and reduce as the encoder is rotated clockwise.
+	 *
+	 * Note that the upper and lower values should be within the range
+	 * defined for the protocol to be used. For example, if the protocol is
+	 * configured for midi CC then there is no point in using a range above
+	 * 127 or below 0.
 	 */
 	struct {
-		i32 lower;
-		i32 upper;
+		i16 lower;
+		i16 upper;
 	} range;
 
 	/**
@@ -51,6 +56,8 @@ typedef struct virtmap_s {
 		u16 stop;
 	} position;
 
+	u16								curr_value;
+	u16								prev_value;
 	proto_cfg_s				proto;
 	struct virtmap_s* next;
 } virtmap_s;

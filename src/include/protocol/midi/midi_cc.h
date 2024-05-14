@@ -10,7 +10,7 @@
 
 #define MIDI_CC_MIN		(MIDI_CC_MSB_BANK)
 #define MIDI_CC_MAX		(MIDI_CC_MONO2)
-#define MIDI_CC_RANGE (u8)(MIDI_CC_MAX - MIDI_CC_MIN)
+#define MIDI_CC_RANGE (MIDI_CC_MAX - MIDI_CC_MIN)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -26,15 +26,6 @@
 int iodev_init(iodev_type_e type, iodev_s* dev, void* ctx, uint index);
 
 /**
- * @brief Register an array of IO devices of a single type.
- *
- * @param type Type of the devices.
- * @param arr Pointer to the array.
- * @return int 0 on success, !0 on failure.
- */
-int iodev_register_arr(iodev_type_e type, iodev_s* arr);
-
-/**
  * @brief Assigns a virtual parameter mapping to an io device.
  *
  * @param dev Pointer to the device.
@@ -43,4 +34,5 @@ int iodev_register_arr(iodev_type_e type, iodev_s* arr);
  */
 int iodev_assign_virtmap(iodev_s* dev, virtmap_s* virtmap);
 
+#warning "this should be inside an io event handler, not exposed externally..."
 int iodev_update(iodev_type_e type, iodev_s* dev);

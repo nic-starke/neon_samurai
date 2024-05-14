@@ -22,9 +22,6 @@ static int process_encoder_rotation(iodev_s* dev, virtmap_s* vmap);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-static iodev_s* devices[DEV_TYPE_NB] = {0};
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int iodev_init(iodev_type_e type, iodev_s* dev, void* ctx, uint index) {
@@ -58,23 +55,6 @@ int iodev_init(iodev_type_e type, iodev_s* dev, void* ctx, uint index) {
 	return 0;
 }
 
-int iodev_register_arr(iodev_type_e type, iodev_s* arr) {
-	assert(arr);
-
-	if (type >= DEV_TYPE_NB) {
-		return ERR_BAD_PARAM;
-	}
-
-	// Check if this device type was already registered.
-	if (devices[type] != NULL) {
-		return ERR_DUPLICATE;
-	}
-
-	devices[type] = arr;
-
-	return 0;
-}
-
 int iodev_assign_virtmap(iodev_s* dev, virtmap_s* virtmap) {
 	assert(dev);
 	assert(virtmap);
@@ -103,7 +83,6 @@ int iodev_update(iodev_type_e type, iodev_s* dev) {
 
 	switch (type) {
 		case DEV_TYPE_ENCODER: {
-
 			process_encoder_rotation(dev, dev->vmap);
 
 			virtmap_s* v = dev->vmap->next;
@@ -113,9 +92,11 @@ int iodev_update(iodev_type_e type, iodev_s* dev) {
 				v = v->next;
 			}
 		}
+
 		case DEV_TYPE_ENCODER_SWITCH: {
 			break;
 		}
+
 		case DEV_TYPE_SWITCH: {
 			break;
 		}
@@ -139,12 +120,6 @@ static int process_encoder_rotation(iodev_s* dev, virtmap_s* vmap) {
 		return 0;
 	}
 
-	// const u16 enc_range = ENC_MAX - ENC_MIN;
-	// const i32 new_range = vmap->range.upper - vmap->range.lower;
-
-	// f32 val = (((ctx->curr_val - ENC_MIN) * new_range) / enc_range) +
-	// vmap->range.lower;
-
 	switch (vmap->proto.type) {
 
 		case PROTOCOL_MIDI: {
@@ -158,17 +133,26 @@ static int process_encoder_rotation(iodev_s* dev, virtmap_s* vmap) {
 					// Convert the encoder range to an 8-bit range after vmapping
 					bool invert = (vmap->range.lower > vmap->range.upper);
 
-					u8 val = (((u32)ctx->curr_val * MIDI_CC_RANGE) / ENC_RANGE);
+					// Normalise to the value from an encoder range to the vmap range
+					// NOTE -  The vmap range should not extend beyond the range of the
+					// protocol
+					const i32 vmap_range = vmap->range.upper - vmap->range.lower;
+					const i32 enc_range	 = vmap->position.stop - vmap->position.start;
+					i32 val = (((ctx->curr_val - vmap->position.start) * vmap_range) /
+										 enc_range) +
+										vmap->range.lower;
 
 					if (invert) {
 						val = MIDI_CC_MAX - val;
 					}
 
-					if (val == vmap->proto.midi.prev_val) {
+					if (vmap->curr_value == val) {
 						return 0;
 					}
 
-					vmap->proto.midi.prev_val = val;
+					vmap->prev_value = vmap->curr_value;
+					vmap->curr_value = val;
+
 					midi_event_s midi_evt;
 					midi_evt.type						 = MIDI_EVENT_CC;
 					midi_evt.data.cc.channel = vmap->proto.midi.channel;

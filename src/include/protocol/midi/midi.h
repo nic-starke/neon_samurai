@@ -27,7 +27,6 @@ typedef struct {
 	union {
 		midi_cc_e cc;
 	} data;
-	u16 prev_val;
 } midi_cfg_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

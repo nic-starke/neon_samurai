@@ -136,16 +136,15 @@ int mf_encoder_init(void) {
 			ret = iodev_init(DEV_TYPE_ENCODER, &enc_dev[b][e], &enc_ctx[b][e], e);
 			RETURN_ON_ERR(ret);
 
-#warning                                                                       \
-		"This virtmap assignment applies a simple default CC mapping, to get started"
+#warning "This virtmap assignment applies a simple default CC mapping"
 			for (uint v = 0; v < MF_NUM_VIRTMAPS_PER_ENC; v++) {
 				virtmap_s* map = &enc_vmap[b][e][v];
 
 				const u16 inc				= ENC_RANGE / MF_NUM_VIRTMAPS_PER_ENC;
 				map->position.start = inc * v;
 				map->position.stop	= inc * (v + 1);
-				map->range.lower		= ENC_MIN;
-				map->range.upper		= ENC_MAX;
+				map->range.lower		= MIDI_CC_MIN;
+				map->range.upper		= MIDI_CC_MAX;
 				map->next						= NULL;
 
 				map->proto.type					= PROTOCOL_MIDI;
