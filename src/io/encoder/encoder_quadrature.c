@@ -56,30 +56,30 @@ static i16 accel_inc[] = {VEL_INC * 3, VEL_INC * 8, VEL_INC * 15, VEL_INC * 30,
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int encoder_init(void* enc, uint index) {
-	assert(enc);
-	encoder_s* ctx = (encoder_s*)enc;
+int encoder_init(iodev_s* dev) {
+	assert(dev);
+	encoder_s* enc = (encoder_s*)dev->ctx;
 
-	ctx->quad.dir = DIR_ST;
-	ctx->quad.rot = 0;
-
-	ctx->index			 = index;
-	ctx->accel_mode	 = 0;
-	ctx->accel_const = 0;
-	ctx->curr_val		 = 0;
-	ctx->prev_val		 = 0;
-	ctx->velocity		 = 0;
+	enc->quad.dir		 = DIR_ST;
+	enc->quad.rot		 = 0;
+	enc->accel_mode	 = 1;
+	enc->accel_const = 0;
+	enc->curr_val		 = 0;
+	enc->prev_val		 = 0;
+	enc->velocity		 = 0;
 
 	io_event_s evt;
-	evt.event_id								= EVT_IO_ENCODER_ROTATION;
-	evt.data.enc_rotation.enc		= ctx;
+	evt.type										= EVT_IO_ENCODER_ROTATION;
+	evt.dev											= dev;
 	evt.data.enc_rotation.value = 0;
 
 	return event_post(EVENT_CHANNEL_IO, &evt);
 }
 
-void encoder_update(encoder_s* enc, uint ch_a, uint ch_b) {
-	assert(enc);
+void encoder_update(iodev_s* dev, uint ch_a, uint ch_b) {
+	assert(dev);
+
+	encoder_s* enc = (encoder_s*)dev->ctx;
 
 	// Decode the quadrature encoding
 	unsigned int val = (ch_b << 1) | ch_a;
@@ -133,8 +133,8 @@ void encoder_update(encoder_s* enc, uint ch_a, uint ch_b) {
 	// Generate an event if the encoder changed position
 	if (enc->curr_val != enc->prev_val) {
 		io_event_s evt;
-		evt.event_id								= EVT_IO_ENCODER_ROTATION;
-		evt.data.enc_rotation.enc		= enc;
+		evt.type										= EVT_IO_ENCODER_ROTATION;
+		evt.dev											= dev;
 		evt.data.enc_rotation.value = enc->curr_val;
 		event_post(EVENT_CHANNEL_IO, &evt);
 	}

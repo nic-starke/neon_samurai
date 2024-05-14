@@ -8,6 +8,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
+#include "io/io_device_types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -34,7 +35,6 @@ typedef struct {
 	u8	accel_const; // Acceleration constant
 	i8	direction;	 // Current direction
 	u8	detent;			 // Detent - 1 = enabled, 0 = disabled
-	u8	index;			 // Assigned hardware encoder number/index
 
 	struct {
 		encoder_dir_e dir; // Current direction
@@ -48,11 +48,10 @@ typedef struct {
 /**
  * @brief Initialises a single encoder context.
  *
- * @param enc Pointer to encoder_s.
- * @param index Encoder index.
+ * @param dev Pointer to io device structure.
  * @return 0 on success, !0 on failure.
  */
-int encoder_init(void* enc, uint index);
+int encoder_init(iodev_s* dev);
 
 /**
  * @brief Perform an update of a quadrature encoder.
@@ -68,4 +67,4 @@ int encoder_init(void* enc, uint index);
  * @param ch_a Current state of quadrature channel A.
  * @param ch_b Current state of quadrature channel B.
  */
-void encoder_update(encoder_s* enc, uint ch_a, uint ch_b);
+void encoder_update(iodev_s* dev, uint ch_a, uint ch_b);

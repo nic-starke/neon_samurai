@@ -101,8 +101,8 @@ int midi_update(void) {
 				cc.value	 = rx.Data3;
 
 				midi_event_s e;
-				e.event_id = MIDI_EVENT_CC;
-				e.data.cc	 = cc;
+				e.type		= MIDI_EVENT_CC;
+				e.data.cc = cc;
 
 				event_post(EVENT_CHANNEL_MIDI_IN, &e);
 				break;
@@ -119,7 +119,7 @@ static void midi_out_handler(void* event) {
 
 	midi_event_s* e = (midi_event_s*)event;
 
-	switch (e->event_id) {
+	switch (e->type) {
 		case MIDI_EVENT_CC: {
 			midi_cc_event_s* cc = &e->data.cc;
 

@@ -20,9 +20,6 @@ project_src += files(
     'midi/midi.c',
     'midi/backend/midi_lufa.c',
 
-    'virtmap/virtmap.c',
-    'virtmap/virtmanager.c',
-
     'usb/lufa/usb_lufa.c',
 
     'hal/avr/xmega/128a4u/boot.c',

@@ -76,7 +76,7 @@ typedef union {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void display_update(encoder_s* enc, mf_display_s* dis);
+static void display_update(iodev_s* dev);
 
 static void evt_handler_io(void* event);
 
@@ -130,15 +130,30 @@ int mf_encoder_init(void) {
 	RETURN_ON_ERR(ret);
 
 	// Initialise encoder devices and virtual parameter mappings
-	uint enc_idx = 0;
+	midi_cc_e cc = MIDI_CC_MIN;
 	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
 		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-			ret = iodev_init(DEV_TYPE_ENCODER, &enc_dev[b][e], &enc_ctx[b][e],
-											 enc_idx++);
+			ret = iodev_init(DEV_TYPE_ENCODER, &enc_dev[b][e], &enc_ctx[b][e], e);
 			RETURN_ON_ERR(ret);
 
+#warning                                                                       \
+		"This virtmap assignment applies a simple default CC mapping, to get started"
 			for (uint v = 0; v < MF_NUM_VIRTMAPS_PER_ENC; v++) {
-				iodev_assign_virtmap(&enc_dev[b][e], &enc_vmap[b][e][v]);
+				virtmap_s* map = &enc_vmap[b][e][v];
+
+				const u16 inc				= ENC_RANGE / MF_NUM_VIRTMAPS_PER_ENC;
+				map->position.start = inc * v;
+				map->position.stop	= inc * (v + 1);
+				map->range.lower		= ENC_MIN;
+				map->range.upper		= ENC_MAX;
+				map->next						= NULL;
+
+				map->proto.type					= PROTOCOL_MIDI;
+				map->proto.midi.channel = 0;
+				map->proto.midi.mode		= MIDI_MODE_CC;
+				map->proto.midi.data.cc = cc++;
+
+				iodev_assign_virtmap(&enc_dev[b][e], map);
 				RETURN_ON_ERR(ret);
 			}
 		}
@@ -175,7 +190,7 @@ void mf_encoder_update(void) {
 		u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
-		encoder_update(&enc_ctx[active_bank][i], ch_a, ch_b);
+		encoder_update(&enc_dev[active_bank][i], ch_a, ch_b);
 	}
 
 	// Close the door!
@@ -227,9 +242,11 @@ void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void display_update(encoder_s* enc, mf_display_s* dis) {
-	assert(enc);
-	assert(dis);
+static void display_update(iodev_s* dev) {
+	assert(dev);
+
+	encoder_s*		enc = (encoder_s*)dev->ctx;
+	mf_display_s* dis = &enc_dis[dev->idx];
 
 	f32						ind_pwm;		// Partial encoder positions (e.g position = 5.7)
 	unsigned int	ind_norm;		// Integer encoder positions (e.g position = 5)
@@ -308,8 +325,8 @@ static void display_update(encoder_s* enc, mf_display_s* dis) {
 	for (unsigned int p = 0; p < MF_NUM_PWM_FRAMES; ++p) {
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < p) {
-			leds.state									= 0;
-			mf_frame_buf[p][enc->index] = ~leds.state;
+			leds.state								= 0;
+			mf_frame_buf[p][dev->idx] = ~leds.state;
 			continue;
 		}
 
@@ -350,7 +367,7 @@ static void display_update(encoder_s* enc, mf_display_s* dis) {
 		if ((int)(dis->led_rgb.blue - p) > 0) {
 			leds.rgb_blue = 1;
 		}
-		mf_frame_buf[p][enc->index] = ~leds.state;
+		mf_frame_buf[p][dev->idx] = ~leds.state;
 	}
 }
 
@@ -358,10 +375,10 @@ static void evt_handler_io(void* event) {
 	assert(event);
 
 	io_event_s* e = (io_event_s*)event;
-	switch (e->event_id) {
+	switch (e->type) {
 		case EVT_IO_ENCODER_ROTATION: {
-			uint dis = e->data.enc_rotation.enc->index / MF_NUM_ENC_BANKS;
-			display_update(e->data.enc_rotation.enc, &enc_dis[dis]);
+			display_update(e->dev);
+			iodev_update(DEV_TYPE_ENCODER, e->dev);
 			break;
 		}
 

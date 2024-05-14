@@ -8,12 +8,9 @@
 
 #include "core/core_types.h"
 
+#include "protocol/midi/midi_cc.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define MIDI_CC_MAX		(127)
-#define MIDI_CC_MIN		(0)
-#define MIDI_CC_RANGE (u8)(MIDI_CC_MAX - MIDI_CC_MIN)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -28,7 +25,7 @@ typedef struct {
 	midi_mode_e mode;
 	u8					channel;
 	union {
-		u8 cc;
+		midi_cc_e cc;
 	} data;
 	u16 prev_val;
 } midi_cfg_s;

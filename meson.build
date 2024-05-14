@@ -72,6 +72,7 @@ c_compiler_args = [
     '-Wpedantic',
     # '-Werror',
     '-Wshadow',
+    '-Wincompatible-pointer-types',
     '-Wstrict-overflow',
     '-Werror-implicit-function-declaration',
     '-Wnull-dereference',

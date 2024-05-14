@@ -30,7 +30,7 @@ typedef struct __attribute__((packed)) {
 } midi_cc_event_s;
 
 typedef struct {
-	u8 event_id;
+	u8 type;
 	union {
 		midi_cc_event_s cc;
 	} data;

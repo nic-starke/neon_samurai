@@ -43,7 +43,7 @@ static void event_handler(void* event) {
 	assert(event);
 
 	event_core_s* e = (event_core_s*)event;
-	switch (e->event_id) {
+	switch (e->type) {
 		case EVT_CORE_PLACEHOLDER: return;
 
 		default: return;

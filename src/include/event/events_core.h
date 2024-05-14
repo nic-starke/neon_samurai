@@ -23,7 +23,7 @@ typedef enum {
 } events_core_e;
 
 typedef struct {
-	u8	event_id;
+	u8	type;
 	u32 data;
 } event_core_s;
 

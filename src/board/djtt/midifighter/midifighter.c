@@ -16,6 +16,7 @@
 #include "usb/usb.h"
 #include "protocol/midi/midi.h"
 #include "event/event.h"
+#include "virtmap/virtmanager.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -32,9 +33,11 @@ __attribute__((noreturn)) void main(void) {
 	// Board specific functionality initialisation
 	event_init();
 	midi_init();
+
 	mf_switch_init();
 	mf_encoder_init();
 	mf_led_init();
+
 	usb_init();
 
 	// Enable system interrupts

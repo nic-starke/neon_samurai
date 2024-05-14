@@ -8,6 +8,7 @@
 
 #include "core/core_types.h"
 #include "io/encoder/encoder_quadrature.h"
+#include "io/io_device_types.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -26,22 +27,20 @@ typedef enum {
 } events_io_e;
 
 typedef struct __attribute__((packed)) {
-	encoder_s* enc;
-	u16				 value;
+	u16 value;
 } event_io_encoder_rotation_s;
 
 typedef struct __attribute__((packed)) {
-	encoder_s* enc;
-	u8				 value;
+	u8 value;
 } event_io_encoder_switch_s;
 
 typedef struct __attribute__((packed)) {
-	u8 index;
 	u8 value;
 } event_io_switch_s;
 
 typedef struct {
-	u8 event_id;
+	u8			 type;
+	iodev_s* dev;
 	union {
 		event_io_encoder_rotation_s enc_rotation;
 		event_io_encoder_switch_s		enc_switch;
