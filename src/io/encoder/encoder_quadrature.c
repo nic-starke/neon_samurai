@@ -51,7 +51,7 @@ static const quad_state_e quad_states[QUAD_NB][4] = {
 };
 
 // Acceleration constants
-static i16 accel_inc[] = {VEL_INC * 3, VEL_INC * 8, VEL_INC * 15, VEL_INC * 30,
+static i16 accel_inc[] = {VEL_INC * 8, VEL_INC * 10, VEL_INC * 15, VEL_INC * 30,
 													VEL_INC * 50};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -125,10 +125,17 @@ void encoder_update(iodev_s* dev, uint ch_a, uint ch_b) {
 		enc->velocity += accel_inc[enc->accel_const] * enc->accel_const * direction;
 	}
 
-	// Update the stored value
+	// Apply the velocity
 	newval =
 			enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
-	enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
+
+	// Clamp the new value between min and max positions
+	if (dev->vmap_mode == VIRTMAP_MODE_TOGGLE) {
+		enc->curr_val =
+				CLAMP(newval, dev->vmap->position.start, dev->vmap->position.stop);
+	} else {
+		enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
+	}
 
 	// Generate an event if the encoder changed position
 	if (enc->curr_val != enc->prev_val) {

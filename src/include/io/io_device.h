@@ -24,15 +24,3 @@
  * @return int 0 on success, !0 on failure.
  */
 int iodev_init(iodev_type_e type, iodev_s* dev, void* ctx, uint index);
-
-/**
- * @brief Assigns a virtual parameter mapping to an io device.
- *
- * @param dev Pointer to the device.
- * @param virtmap Pointer to the virtual mapping structure.
- * @return int 0 on success, !0 on failure.
- */
-int iodev_assign_virtmap(iodev_s* dev, virtmap_s* virtmap);
-
-#warning "this should be inside an io event handler, not exposed externally..."
-int iodev_update(iodev_type_e type, iodev_s* dev);

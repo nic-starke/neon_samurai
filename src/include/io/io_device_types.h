@@ -65,7 +65,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "core/core_types.h"
-#include "virtmap/virtmap.h"
+#include "virtmap/virtmap_types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -80,9 +80,11 @@ typedef enum {
 } iodev_type_e;
 
 typedef struct io_dev_s {
-	void*			 ctx; // pointer to device context (such as encoder_s)
-	uint			 idx; // hardware index
-	virtmap_s* vmap;
+	void* ctx; // pointer to device context (such as encoder_s)
+	uint	idx; // hardware index
+
+	virtmap_mode_e vmap_mode;
+	virtmap_s*		 vmap;
 } iodev_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

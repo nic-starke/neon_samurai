@@ -26,7 +26,8 @@ typedef enum {
 typedef struct {
 	rgb_15_s		led_rgb;
 	rb_8_s			led_detent;
-	led_style_e led_style; // Indicator LED style
+	led_style_e led_style;
+	bool				overlay_vmaps;
 } mf_display_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -17,75 +17,77 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Get the state of a single switch
-switch_state_e switch_x16_state(switch_x16_ctx_s* ctx, u16 index) {
-  return (ctx->current & (1u << index));
+switch_state_e switch_x16_state(switch_x16_ctx_s* ctx, u8 index) {
+	return (ctx->current & (1u << index));
 }
 
 switch_state_e switch_x8_state(switch_x8_ctx_s* ctx, u8 index) {
-  return (ctx->current & (1u << index));
+	return (ctx->current & (1u << index));
 }
 
 // Get the state of all switches as a bitfield
 u16 switch_x16_states(switch_x16_ctx_s* ctx) {
-  return (ctx->current);
+	return (ctx->current);
 }
 
 u8 switch_x8_states(switch_x8_ctx_s* ctx) {
-  return (ctx->current);
+	return (ctx->current);
+}
+
+bool switch_was_pressed(switch_x16_ctx_s* ctx, u8 index) {
+	return (ctx->raw & ctx->current) & (1u << index);
+}
+
+bool switch_was_released(switch_x16_ctx_s* ctx, u8 index) {
+	return (ctx->raw & ~ctx->current) & (1u << index);
 }
 
 // Debounce algorithm for 8 switches (call before checking switch state)
 void switch_x8_debounce(switch_x8_ctx_s* ctx) {
-  // Store the current state
-  ctx->previous = ctx->current;
-  u8 new_state  = 0xFF;
+	// Store the current state
+	ctx->previous = ctx->current;
+	ctx->current	= 0xFF;
 
-  // AND the new state with EVERY debounce sample, if there was a glitch
-  // then the state of the switch will revert to 0.
-  for (int i = 0; i < SWITCH_DEBOUNCE_SAMPLES; ++i) {
-    new_state &= ctx->buf[i];
-  }
+	// AND the new state with EVERY debounce sample, if there was a glitch
+	// then the state of the switch will revert to 0.
+	for (int i = 0; i < SWITCH_DEBOUNCE_SAMPLES; ++i) {
+		ctx->current &= ctx->buf[i];
+	}
 
-  // Update the current raw
-  ctx->current = new_state;
-
-  // Set the raw states to XOR of new and old
-  ctx->raw = new_state ^ ctx->previous;
+	// Set the raw states to XOR of new and old
+	ctx->raw = ctx->current ^ ctx->previous;
 }
 
 // Debounce algorithm for 16 switches
 void switch_x16_debounce(switch_x16_ctx_s* ctx) {
-  // Store the current state
-  ctx->previous = ctx->current;
-  u16 new_state = 0xFFFF;
+	// Store the current state
+	ctx->previous = ctx->current;
+	ctx->current	= 0xFFFF;
 
-  // AND the new state with EVERY debounce sample, if there was a glitch
-  // then the state of the switch will revert to 0.
-  for (int i = 0; i < SWITCH_DEBOUNCE_SAMPLES; ++i) {
-    new_state &= ctx->buf[i];
-  }
+	// AND the new state with EVERY debounce sample, if there was a glitch
+	// then the state of the switch will revert to 0.
+	for (int i = 0; i < SWITCH_DEBOUNCE_SAMPLES; ++i) {
+		ctx->current &= ctx->buf[i];
+	}
 
-  // Update the current raw
-  ctx->current = new_state;
-
-  // Set the raw states to XOR of new and old
-  ctx->raw = new_state ^ ctx->previous;
+	// Set the raw states to XOR of new and old
+	ctx->raw = ctx->current ^ ctx->previous;
 }
 
 void switch_x8_update(switch_x8_ctx_s* ctx, u8 gpio_state) {
-  // Update the gpio states
-  ctx->buf[ctx->index] = gpio_state;
+	// Update the gpio states
+	ctx->buf[ctx->index] = gpio_state;
 
-  // Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
-  ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
+	// Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
+	ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
 }
 
 void switch_x16_update(switch_x16_ctx_s* ctx, u16 gpio_state) {
-  // Update the gpio states
-  ctx->buf[ctx->index] = gpio_state;
+	// Update the gpio states
+	ctx->buf[ctx->index] = gpio_state;
 
-  // Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
-  ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
+	// Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
+	ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

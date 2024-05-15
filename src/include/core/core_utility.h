@@ -35,3 +35,11 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+__attribute__((__gnu_inline__)) static inline i32
+convert_range(i32 c, i32 omin, i32 omax, i32 nmin, i32 nmax) {
+	const i32 or = omax - omin;
+	const i32 nr = nmax - nmin;
+
+	return (((c - omin) * nr) / or) + nmin;
+}

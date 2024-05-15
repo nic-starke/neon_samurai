@@ -77,6 +77,7 @@ typedef union {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static void display_update(iodev_s* dev);
+static void draw_virtmap(iodev_s* dev);
 
 static void evt_handler_io(void* event);
 
@@ -87,7 +88,7 @@ static const u16 led_interval = ENC_MAX / 11;
 #warning "TODO(ns) Move this to a system-config struct..."
 static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
-EVT_HANDLER(0, io_evt_handler, evt_handler_io);
+EVT_HANDLER(2, io_evt_handler, evt_handler_io);
 
 // PROGMEM static const midifighter_encoder_s default_config = {
 // 		.enabled					= true,
@@ -133,7 +134,8 @@ int mf_encoder_init(void) {
 	midi_cc_e cc = MIDI_CC_MIN;
 	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
 		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-			ret = iodev_init(DEV_TYPE_ENCODER, &enc_dev[b][e], &enc_ctx[b][e], e);
+			ret = iodev_init(DEV_TYPE_ENCODER, &enc_dev[b][e], (void*)&enc_ctx[b][e],
+											 e);
 			RETURN_ON_ERR(ret);
 
 #warning "This virtmap assignment applies a simple default CC mapping"
@@ -152,7 +154,7 @@ int mf_encoder_init(void) {
 				map->proto.midi.mode		= MIDI_MODE_CC;
 				map->proto.midi.data.cc = cc++;
 
-				iodev_assign_virtmap(&enc_dev[b][e], map);
+				virtmap_assign(map, &enc_dev[b][e]);
 				RETURN_ON_ERR(ret);
 			}
 		}
@@ -179,9 +181,15 @@ void mf_encoder_update(void) {
 		swstates |= (state << i);
 	}
 
+	// Execute the debounce and update routine for the switches
+	switch_x16_update(&switch_ctx, swstates);
+	switch_x16_debounce(&switch_ctx);
+
 	// Clock the 32 bits for the 2x16 quadrature encoder signals, and update
 	// encoder state.
 	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
+		iodev_s* dev = &enc_dev[active_bank][i];
+
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
 		u8 ch_a = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
@@ -189,15 +197,24 @@ void mf_encoder_update(void) {
 		u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 
-		encoder_update(&enc_dev[active_bank][i], ch_a, ch_b);
+		encoder_update(dev, ch_a, ch_b);
+
+		// bool pressed = switch_was_released(&switch_ctx, i);
+
+		// switch(dev->vmap_mode) {
+		// 	case VIRTMAP_MODE_TOGGLE: {
+		// 		if (pressed) {
+		// 			draw_virtmap(dev);
+		// 		}
+		// 		break;
+		// 	}
+
+		// 	default: break;
+		// }
 	}
 
 	// Close the door!
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
-
-	// Execute the debounce and update routine for the switches
-	switch_x16_update(&switch_ctx, swstates);
-	switch_x16_debounce(&switch_ctx);
 }
 
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state) {
@@ -248,8 +265,8 @@ static void display_update(iodev_s* dev) {
 	mf_display_s* dis = &enc_dis[dev->idx];
 
 	f32						ind_pwm;		// Partial encoder positions (e.g position = 5.7)
-	unsigned int	ind_norm;		// Integer encoder positions (e.g position = 5)
-	unsigned int	pwm_frames; // Number of PWM frames for partial brightness
+	uint					ind_norm;		// Integer encoder positions (e.g position = 5)
+	uint					pwm_frames; // Number of PWM frames for partial brightness
 	encoder_led_s leds;				// LED states
 
 	// Clear all LEDs
@@ -370,14 +387,49 @@ static void display_update(iodev_s* dev) {
 	}
 }
 
+static void draw_virtmap(iodev_s* dev) {
+	assert(dev);
+
+	encoder_s* enc = (encoder_s*)dev->ctx;
+	// mf_display_s* dis = &enc_dis[dev->idx];
+
+	// virtmap_mode_e mode = VMAP_DUAL;
+
+	virtmap_s* p = dev->vmap;
+
+	u16 p_val = convert_range(p->curr_value, p->range.lower, p->range.upper,
+														p->position.start, p->position.stop);
+
+	encoder_led_s leds = {0};
+	encoder_s*		ctx	 = (encoder_s*)dev->ctx;
+
+	for (uint frame = 0; frame < MF_NUM_PWM_FRAMES; frame++) {
+		leds.state = 0;
+		leds.state = MASK_INDICATORS & (0x8000 >> ((p_val / led_interval)));
+		// leds.state |= MASK_INDICATORS & (0x8000 >> ((ctx->curr_val /
+		// led_interval)));
+
+		virtmap_s* s = p->next;
+		while (s != NULL) {
+			if (frame < MF_NUM_PWM_FRAMES / 3) {
+				u16 s_val = convert_range(s->curr_value, s->range.lower, s->range.upper,
+																	s->position.start, s->position.stop);
+				leds.state |= MASK_INDICATORS & (0x8000 >> ((s_val / led_interval)));
+			}
+			s = s->next;
+		}
+		mf_frame_buf[frame][dev->idx] = ~leds.state;
+	}
+}
+
 static void evt_handler_io(void* event) {
 	assert(event);
 
 	io_event_s* e = (io_event_s*)event;
 	switch (e->type) {
 		case EVT_IO_ENCODER_ROTATION: {
-			display_update(e->dev);
-			iodev_update(DEV_TYPE_ENCODER, e->dev);
+			// display_update(e->dev);
+			draw_virtmap(e->dev);
 			break;
 		}
 

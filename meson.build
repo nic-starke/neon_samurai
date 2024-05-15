@@ -60,7 +60,8 @@ c_compiler_args = [
     '-DNDEBUG',
 
     '-ffreestanding',
-    '-flto=auto',
+    '-fwhole-program',
+    # '-flto=auto',
     '-fpack-struct',
     '-fshort-enums',
     '-mrelax',

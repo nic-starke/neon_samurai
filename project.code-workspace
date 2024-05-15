@@ -38,7 +38,12 @@
       "tuple": "c",
       "type_traits": "c",
       "utility": "c",
-      "compare": "c"
+      "compare": "c",
+      "random": "c",
+      "limits": "c",
+      "semaphore": "c",
+      "valarray": "c",
+      "algorithm": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",

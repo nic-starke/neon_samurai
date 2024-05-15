@@ -1,5 +1,5 @@
 # Copyright (2021 - 2023) Nicolaus Starke
-# SPDX-License-Identifier: MIT 
+# SPDX-License-Identifier: MIT
 # https://github.com/nic-starke/neon_samurai
 
 [constants]
@@ -90,19 +90,11 @@ c_args = [
   '-DF_USB=' + F_USB,
   '-DF_CPU=' + F_CPU,
   '-DBOARD=' + USR_BOARD,
-  '-fdata-sections',
-  '-ffunction-sections',
-  '-fpack-struct',
-  '-fshort-enums',
-  '-flto=auto',
-  '-std=gnu99',
-  '-mrelax',
   ]
 
 c_link_args = [
   '-mmcu=' + MCU,
   '-lm',
-  '-flto=auto',
   '-Wl,-Map=neosam.Map',
   '-Wl,--gc-sections',
   '-B' + LIB_XMEGA7_PATH,
