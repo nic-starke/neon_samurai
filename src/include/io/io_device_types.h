@@ -83,8 +83,9 @@ typedef struct io_dev_s {
 	void* ctx; // pointer to device context (such as encoder_s)
 	uint	idx; // hardware index
 
-	virtmap_mode_e vmap_mode;
-	virtmap_s*		 vmap;
+	virtmap_display_mode_e vmap_display_mode;
+	virtmap_mode_e				 vmap_mode;
+	virtmap_s*						 vmap;
 } iodev_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

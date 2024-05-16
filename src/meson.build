@@ -7,15 +7,17 @@ project_inc += include_directories(f)
 endforeach
 
 project_src += files(
-    'core/core_switch.c',
-
-
     'event/event.c',
     'event/event_core.c',
     'event/event_io.c',
 
     'io/io_device.c',
     'io/encoder/encoder_quadrature.c',
+    'io/switch/switch.c',
+
+    'lfo/lfo.c',
+
+    'menu/menu.c',
 
     'midi/midi.c',
     'midi/backend/midi_lufa.c',

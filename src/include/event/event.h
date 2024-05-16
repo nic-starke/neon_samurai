@@ -8,6 +8,7 @@
 
 #include "core/core_types.h"
 #include "core/core_utility.h"
+#include "core/core_error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -51,7 +52,7 @@ typedef enum {
  */
 typedef struct event_ch_handler {
 	u8 priority;
-	void (*handler)(void* event);
+	int (*handler)(void* event);
 	struct event_ch_handler* next;
 } event_ch_handler_s;
 

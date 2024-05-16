@@ -30,6 +30,13 @@ typedef enum {
 	VIRTMAP_MODE_NB,
 } virtmap_mode_e;
 
+typedef enum {
+	VIRTMAP_DISPLAY_SINGLE,
+	VIRTMAP_DISPLAY_OVERLAY,
+
+	VIRTMAP_DISPLAY_NB,
+} virtmap_display_mode_e;
+
 typedef struct virtmap_s {
 	/**
 	 * @brief The lower and upper range determine the numerical values that will

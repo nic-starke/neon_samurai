@@ -16,7 +16,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void event_handler(void* event);
+static int event_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -39,15 +39,18 @@ event_channel_s core_event_ch = {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void event_handler(void* event) {
+static int event_handler(void* event) {
 	assert(event);
 
 	event_core_s* e = (event_core_s*)event;
 	switch (e->type) {
-		case EVT_CORE_PLACEHOLDER: return;
+		case EVT_CORE_REQ_CFG_SAVE: return ERR_NOT_IMPLEMENTED;
 
-		default: return;
+		default: return ERR_BAD_PARAM;
 	}
+
+	return 0;
+	;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

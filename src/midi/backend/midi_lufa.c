@@ -24,7 +24,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void midi_out_handler(void* event);
+static int midi_out_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -114,7 +114,7 @@ int midi_update(void) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void midi_out_handler(void* event) {
+static int midi_out_handler(void* event) {
 	assert(event);
 
 	midi_event_s* e = (midi_event_s*)event;
@@ -132,6 +132,8 @@ static void midi_out_handler(void* event) {
 			break;
 		}
 
-		default: return;
+		default: return ERR_BAD_PARAM;
 	}
+
+	return 0;
 }

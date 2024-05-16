@@ -43,7 +43,8 @@
       "limits": "c",
       "semaphore": "c",
       "valarray": "c",
-      "algorithm": "c"
+      "algorithm": "c",
+      "cstdint": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",

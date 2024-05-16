@@ -17,14 +17,24 @@ extern event_channel_s core_event_ch;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	EVT_CORE_PLACEHOLDER,
+	EVT_CORE_REQ_CFG_RESET,
+	EVT_CORE_RES_CFG_RESET,
+
+	EVT_CORE_REQ_CFG_LOAD,
+	EVT_CORE_RES_CFG_LOAD,
+
+	EVT_CORE_REQ_CFG_SAVE,
+	EVT_CORE_RES_CFG_SAVE,
+
+	EVT_CORE_MENU_STARTING,
+	EVT_CORE_MENU_STOPPING,
 
 	EVT_CORE_NB,
 } events_core_e;
 
 typedef struct {
-	u8	type;
-	u32 data;
+	u8		type;
+	void* data;
 } event_core_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

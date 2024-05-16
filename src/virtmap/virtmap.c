@@ -17,7 +17,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void evt_handler_io(void* event);
+static int	evt_handler_io(void* event);
 static void evt_enc_rotation(encoder_s* enc, virtmap_s* vmap);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -78,7 +78,7 @@ int virtmap_toggle(virtmap_s* vmap) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void evt_handler_io(void* event) {
+static int evt_handler_io(void* event) {
 	assert(event);
 	io_event_s* e		 = (io_event_s*)event;
 	virtmap_s*	vmap = e->dev->vmap;
@@ -89,9 +89,10 @@ static void evt_handler_io(void* event) {
 
 			case EVT_IO_ENCODER_ROTATION: {
 				evt_enc_rotation((encoder_s*)e->dev->ctx, vmap);
+				break;
 			}
 
-			default: return;
+			default: return ERR_BAD_PARAM;
 		}
 
 		// Move to the next one
@@ -100,6 +101,8 @@ static void evt_handler_io(void* event) {
 		// But only process the next one if it is not null and overlay mode is
 		// active
 	} while (vmap != NULL && e->dev->vmap_mode == VIRTMAP_MODE_OVERLAY);
+
+	return 0;
 }
 
 static void evt_enc_rotation(encoder_s* enc, virtmap_s* vmap) {
