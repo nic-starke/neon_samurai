@@ -5,10 +5,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "core/core_types.h"
-#include "core/core_error.h"
+#include "sys/types.h"
+#include "sys/error.h"
+#include "event/midi.h"
 #include "protocol/midi/midi.h"
-#include "event/events_midi.h"
 #include "usb/lufa/usb_lufa.h"
 
 #include "LUFA/Common/Common.h"

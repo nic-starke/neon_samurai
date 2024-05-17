@@ -7,34 +7,37 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "sys/types.h"
-
-#include "protocol/midi/midi_cc.h"
+#include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern event_channel_s midi_in_event_ch;
+extern event_channel_s midi_out_event_ch;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	MIDI_MODE_DISABLED,
-	MIDI_MODE_CC,
-	MIDI_MODE_REL_CC,
-	MIDI_MODE_NOTE,
-} midi_mode_e;
+	MIDI_EVENT_CC,
+
+	MIDI_EVENT_NB,
+} midi_event_e;
+
+typedef struct __attribute__((packed)) {
+	u8 channel;
+	u8 control;
+	u8 value;
+} midi_cc_event_s;
 
 typedef struct {
-	midi_mode_e mode;
-	u8					channel;
+	u8 type;
 	union {
-		midi_cc_e cc;
+		midi_cc_event_s cc;
 	} data;
-} midi_cfg_s;
+} midi_event_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-int midi_init(void);
-int midi_update(void);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

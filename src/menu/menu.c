@@ -11,7 +11,7 @@
 // */
 
 // #include "menu/menu.h"
-// #include "core/core_error.h"
+// #include "sys/error.h"
 // #include "event/event.h"
 // #include "event/events_core.h"
 
@@ -104,9 +104,9 @@
 // 		}
 
 // 		case MENU_ACTION_SAVE: {
-// 			event_core_s evt;
+// 			event_sys_s evt;
 // 			evt.type = EVT_CORE_REQ_CFG_SAVE;
-// 			int ret = event_post_rt(EVENT_CHANNEL_CORE, &evt);
+// 			int ret = event_post_rt(EVENT_CHANNEL_SYS, &evt);
 // 			RETURN_ON_ERR(ret);
 
 // 			if (current_menu->on_save != NULL) {

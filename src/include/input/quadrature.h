@@ -6,29 +6,31 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#include "sys/types.h"
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
-	WAVEFORM_SINE,
-	WAVEFORM_SAW,
-	WAVEFORM_SQUARE,
-
-	WAVEFORM_NB,
-} waveform_e;
-
 typedef struct {
-	i16				 frequency;
-	i16				 amplitude;
-	i16				 phase;
-	i16				 sampleRate;
-	waveform_e waveform;
-} lfo_s;
+	u8 dir; // Current direction
+	u8 rot; // Rotational state
+} quadrature_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-i16 lfo_update(lfo_s* lfo);
+/**
+ * @brief Processes the input from a quadrature encoder and returns
+ * a direction.
+ *
+ * @param ctx Pointer to quadrature context.
+ * @param ch_a Current value of channel A.
+ * @param ch_b Current value of channel B.
+ */
+void quadrature_update(quadrature_s* ctx, uint ch_a, uint ch_b);
+
+/**
+ * @brief Get the last known direction of a quadrature encoder.
+ *
+ * @param ctx Pointer to quadrature context.
+ * @return int 0 = stationary, 1 = CW, -1 = CCW.
+ */
+int inline quadrature_direction(quadrature_s* ctx);

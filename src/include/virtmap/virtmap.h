@@ -7,10 +7,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "core/core_types.h"
-#include "protocol/protocol.h"
-#include "virtmap/virtmap_types.h"
-#include "io/io_device_types.h"
+#include "virtmap/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -18,20 +15,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /**
- * @brief Initialise the virtual parameter mapping manager.
+ * @brief Adds a virtmap to a virtmap list.
  *
- * @return int 0 on success, !0 on failure.
- */
-int virtmap_manager_init(void);
-
-/**
- * @brief Assigns a virtual parameter mapping to a hardware device.
- *
- * @param vmap Pointer to the vmap.
- * @param dev Pointer to the device.
+ * @param head Pointer to the head of the vmap list.
+ * @param vmap Pointer to vmap to add to list.
  * @return int 0 on success, 0! on failure.
  */
-int virtmap_assign(virtmap_s* vmap, iodev_s* dev);
+int virtmap_assign(virtmap_s* head, virtmap_s* vmap);
 
 /**
  * @brief "Toggles" a vmap linked list by counter-clockwise rotation.

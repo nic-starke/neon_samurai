@@ -3,38 +3,52 @@
 /*                  https://github.com/nic-starke/neon_samurai               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
-
-#include "protocol/midi/midi_cc.h"
+#include "event/event.h"
+#include "event/sys.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define SYS_EVENT_QUEUE_SIZE 8
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	MIDI_MODE_DISABLED,
-	MIDI_MODE_CC,
-	MIDI_MODE_REL_CC,
-	MIDI_MODE_NOTE,
-} midi_mode_e;
-
-typedef struct {
-	midi_mode_e mode;
-	u8					channel;
-	union {
-		midi_cc_e cc;
-	} data;
-} midi_cfg_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static int event_handler(void* event);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int midi_init(void);
-int midi_update(void);
+static event_sys_s sys_event_queue[8];
+
+static event_ch_handler_s sys_event_handler = {
+		.handler	= &event_handler,
+		.next			= NULL,
+		.priority = 0,
+};
+
+event_channel_s sys_event_ch = {
+		.queue			= (u8*)sys_event_queue,
+		.queue_size = SYS_EVENT_QUEUE_SIZE,
+		.data_size	= sizeof(event_sys_s),
+		.handlers		= &sys_event_handler,
+		.onehandler = true,
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static int event_handler(void* event) {
+	assert(event);
+
+	event_sys_s* e = (event_sys_s*)event;
+	switch (e->type) {
+		case EVT_SYS_REQ_CFG_SAVE: return ERR_NOT_IMPLEMENTED;
+
+		default: return ERR_BAD_PARAM;
+	}
+
+	return 0;
+}

@@ -47,7 +47,7 @@ project_inc = []
 project_src = []
 
 subdir('src')
-subdir('src/board/djtt/midifighter')
+subdir('src/midifighter')
 
 project_src += board_src
 

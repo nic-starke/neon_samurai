@@ -8,23 +8,8 @@ endforeach
 
 project_src += files(
     'event/event.c',
-    'event/event_core.c',
-    'event/event_io.c',
-
-    'io/io_device.c',
-    'io/encoder/encoder_quadrature.c',
-    'io/switch/switch.c',
-
-    'lfo/lfo.c',
-
-    'menu/menu.c',
-
-    'midi/midi.c',
-    'midi/backend/midi_lufa.c',
-
-    'usb/lufa/usb_lufa.c',
-
-    'virtmap/virtmap.c',
+    'event/sys.c',
+    'event/io.c',
 
     'hal/avr/xmega/128a4u/boot.c',
     'hal/avr/xmega/128a4u/dma.c',
@@ -32,4 +17,21 @@ project_src += files(
     'hal/avr/xmega/128a4u/init.c',
     'hal/avr/xmega/128a4u/usart.c',
     'hal/avr/xmega/128a4u/timer.c',
+
+    'input/encoder.c',
+    'input/quadrature.c',
+    'input/switch.c',
+
+    'lfo/lfo.c',
+
+    'menu/menu.c',
+
+    'midi/backend/midi_lufa.c',
+    'midi/midi.c',
+
+    'virtmap/virtmap.c',
+
+    'usb/lufa/usb_lufa.c',
+
+
 )

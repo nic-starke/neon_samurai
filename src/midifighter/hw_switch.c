@@ -3,38 +3,34 @@
 /*                  https://github.com/nic-starke/neon_samurai               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
+#include <avr/io.h>
 
-#include "protocol/midi/midi_cc.h"
+#include "hal/avr/xmega/128a4u/gpio.h"
+
+#include "midifighter/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define PORT_SW (PORTA) // IO port for side-switches
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	MIDI_MODE_DISABLED,
-	MIDI_MODE_CC,
-	MIDI_MODE_REL_CC,
-	MIDI_MODE_NOTE,
-} midi_mode_e;
-
-typedef struct {
-	midi_mode_e mode;
-	u8					channel;
-	union {
-		midi_cc_e cc;
-	} data;
-} midi_cfg_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-int midi_init(void);
-int midi_update(void);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void hw_switch_init(void) {
+	// Configure gpios for side switches
+	for (int i = 0; i < MF_NUM_SIDE_SWITCHES; ++i) {
+		gpio_dir(&PORT_SW, i, GPIO_INPUT);
+		gpio_mode(&PORT_SW, i, PORT_OPC_PULLUP_gc);
+	}
+}
+
+void hw_switch_update(void) {
+	// switch_x8_update
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -44,7 +44,9 @@
       "semaphore": "c",
       "valarray": "c",
       "algorithm": "c",
-      "cstdint": "c"
+      "cstdint": "c",
+      "list": "c",
+      "*.tcc": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",

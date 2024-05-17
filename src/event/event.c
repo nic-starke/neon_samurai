@@ -7,12 +7,12 @@
 
 #include <string.h>
 
-#include "core/core_types.h"
-#include "core/core_error.h"
+#include "sys/types.h"
+#include "sys/error.h"
 
 #include "event/event.h"
-#include "event/events_core.h"
-#include "event/events_io.h"
+#include "event/sys.h"
+#include "event/io.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -28,7 +28,7 @@ static event_channel_s* channels[EVENT_CHANNEL_NB] = {0};
 
 int event_init(void) {
 	// Register the core event channel
-	int ret = event_channel_register(EVENT_CHANNEL_CORE, &core_event_ch);
+	int ret = event_channel_register(EVENT_CHANNEL_SYS, &sys_event_ch);
 	RETURN_ON_ERR(ret);
 
 	ret = event_channel_register(EVENT_CHANNEL_IO, &io_event_ch);

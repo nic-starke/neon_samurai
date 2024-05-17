@@ -7,34 +7,32 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "sys/types.h"
-
-#include "protocol/midi/midi_cc.h"
+#include "input/quadrature.h"
+#include "input/switch.h"
+#include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern event_channel_s io_event_ch;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	MIDI_MODE_DISABLED,
-	MIDI_MODE_CC,
-	MIDI_MODE_REL_CC,
-	MIDI_MODE_NOTE,
-} midi_mode_e;
+	EVT_IO_ENCODER_ROTATION,
+	EVT_IO_ENCODER_SWITCH,
+	EVT_IO_BUTTON,
+
+	EVT_IO_NB,
+} events_io_e;
 
 typedef struct {
-	midi_mode_e mode;
-	u8					channel;
-	union {
-		midi_cc_e cc;
-	} data;
-} midi_cfg_s;
+	u8		type;
+	void* ctx;
+} io_event_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-int midi_init(void);
-int midi_update(void);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

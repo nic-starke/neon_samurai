@@ -6,7 +6,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "core/core_types.h"
+#include "sys/types.h"
 #include "hal/avr/xmega/128a4u/gpio.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -21,38 +21,38 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void gpio_mode(PORT_t* port, u8 pin, PORT_OPC_t mode) {
-  assert(port);
+	assert(port);
 
-  // Get pointer to pin register
-  volatile u8* ctrl = (&port->PIN0CTRL + PIN_MASK(pin));
+	// Get pointer to pin register
+	volatile u8* ctrl = (&port->PIN0CTRL + PIN_MASK(pin));
 
-  *ctrl &= ~PORT_ISC_gm; // Clear the mode
-  *ctrl |= mode;         // Set the mode
+	*ctrl &= ~PORT_ISC_gm; // Clear the mode
+	*ctrl |= mode;				 // Set the mode
 }
 
 void gpio_dir(PORT_t* port, u8 pin, gpio_dir_e dir) {
-  assert(port);
+	assert(port);
 
-  if (dir == GPIO_INPUT) {
-    port->DIRCLR = PIN_MASK(pin);
-  } else if (dir == GPIO_OUTPUT) {
-    port->DIRSET = PIN_MASK(pin);
-  }
+	if (dir == GPIO_INPUT) {
+		port->DIRCLR = PIN_MASK(pin);
+	} else if (dir == GPIO_OUTPUT) {
+		port->DIRSET = PIN_MASK(pin);
+	}
 }
 
 void gpio_set(PORT_t* port, u8 pin, u8 state) {
-  assert(port);
+	assert(port);
 
-  if (state) {
-    port->OUTSET = PIN_MASK(pin);
-  } else {
-    port->OUTCLR = PIN_MASK(pin);
-  }
+	if (state) {
+		port->OUTSET = PIN_MASK(pin);
+	} else {
+		port->OUTCLR = PIN_MASK(pin);
+	}
 }
 
 u8 gpio_get(PORT_t* port, u8 pin) {
-  assert(port);
-  return port->IN & PIN_MASK(pin);
+	assert(port);
+	return port->IN & PIN_MASK(pin);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

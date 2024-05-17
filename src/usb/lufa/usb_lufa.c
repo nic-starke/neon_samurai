@@ -8,7 +8,7 @@
 
 #include <avr/pgmspace.h>
 
-#include "core/core_types.h"
+#include "sys/types.h"
 #include "usb/usb.h"
 #include "usb/lufa/usb_lufa.h"
 
@@ -309,10 +309,11 @@ PROGMEM static const usb_descriptor_s desc_cfg = {
 																USB_Audio_Descriptor_StreamEndpoint_Std_t),
 														.Type = DTYPE_Endpoint,
 												},
-										.EndpointAddress = (ENDPOINT_DIR_IN | USB_EP_MIDI_STREAM_IN),
-										.Attributes			 = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
+										.EndpointAddress =
+												(ENDPOINT_DIR_IN | USB_EP_MIDI_STREAM_IN),
+										.Attributes				 = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
 																		ENDPOINT_USAGE_DATA),
-										.EndpointSize		 = USB_MIDI_STREAM_EPSIZE,
+										.EndpointSize			 = USB_MIDI_STREAM_EPSIZE,
 										.PollingIntervalMS = USB_MIDI_POLLING_INTERVAL,
 								},
 						.Refresh						= 0,
@@ -395,21 +396,21 @@ PROGMEM static const usb_descriptor_s desc_cfg = {
 													.SubClass					 = CDC_CSCP_NoDataSubclass,
 													.Protocol					 = CDC_CSCP_NoDataProtocol,
 													.InterfaceStrIndex = NO_DESCRIPTOR},
-		.CDC_DataOutEndpoint = {.Header = {.Size = sizeof(USB_Descriptor_Endpoint_t),
-																			 .Type = DTYPE_Endpoint},
-														.EndpointAddress =
-																(ENDPOINT_DIR_OUT | CDC_OUT_EPNUM),
-														.Attributes = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
-																					 ENDPOINT_USAGE_DATA),
-														.EndpointSize			 = CDC_EPSIZE,
-														.PollingIntervalMS = 0x05},
-		.CDC_DataInEndpoint	 = {.Header = {.Size = sizeof(USB_Descriptor_Endpoint_t),
-																			 .Type = DTYPE_Endpoint},
-														.EndpointAddress = (ENDPOINT_DIR_IN | CDC_IN_EPNUM),
-														.Attributes = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
-																					 ENDPOINT_USAGE_DATA),
-														.EndpointSize			 = CDC_EPSIZE,
-														.PollingIntervalMS = 0x05},
+		.CDC_DataOutEndpoint =
+				{.Header					= {.Size = sizeof(USB_Descriptor_Endpoint_t),
+														 .Type = DTYPE_Endpoint},
+				 .EndpointAddress = (ENDPOINT_DIR_OUT | CDC_OUT_EPNUM),
+				 .Attributes =
+						 (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+				 .EndpointSize			= CDC_EPSIZE,
+				 .PollingIntervalMS = 0x05},
+		.CDC_DataInEndpoint = {.Header = {.Size = sizeof(USB_Descriptor_Endpoint_t),
+																			.Type = DTYPE_Endpoint},
+													 .EndpointAddress = (ENDPOINT_DIR_IN | CDC_IN_EPNUM),
+													 .Attributes = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
+																					ENDPOINT_USAGE_DATA),
+													 .EndpointSize			= CDC_EPSIZE,
+													 .PollingIntervalMS = 0x05},
 #endif
 };
 
@@ -435,7 +436,8 @@ int usb_update(void) {
  * control endpoint, this function is called so that the descriptor details can
  * be passed back and the appropriate descriptor sent back to the USB host.
  */
-uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex,
+uint16_t CALLBACK_USB_GetDescriptor(const uint16_t		 wValue,
+																		const uint16_t		 wIndex,
 																		const void** const DescriptorAddress) {
 	const uint8_t DescriptorType	= (wValue >> 8);
 	const uint8_t DescriptorIndex = (wValue & 0xFF);
@@ -522,8 +524,10 @@ void EVENT_USB_Device_Disconnect(void) {
 // Callback for USB device configuration changed
 void EVENT_USB_Device_ConfigurationChanged(void) {
 	MIDI_Device_ConfigureEndpoints(&lufa_usb_midi_device);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_OUT | ENDPOINT_DIR_IN), EP_TYPE_BULK, USB_MIDI_STREAM_EPSIZE, 1);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_IN | ENDPOINT_DIR_OUT), EP_TYPE_BULK, USB_MIDI_STREAM_EPSIZE, 1);
+	// ConfigSuccess &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_OUT |
+	// ENDPOINT_DIR_IN), EP_TYPE_BULK, USB_MIDI_STREAM_EPSIZE, 1); ConfigSuccess
+	// &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_IN | ENDPOINT_DIR_OUT),
+	// EP_TYPE_BULK, USB_MIDI_STREAM_EPSIZE, 1);
 
 #ifdef HID_ENABLE
 	ConfigSuccess &= Endpoint_ConfigureEndpoint(
@@ -532,9 +536,12 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 
 #ifdef VSER_ENABLE
 	ConfigSuccess &= CDC_Device_ConfigureEndpoints(&gCDC_Interface);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM | ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK, CDC_EPSIZE, 1);
+	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM |
+	// ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
+	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM |
+	// ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1); ConfigSuccess &=
+	// Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK,
+	// CDC_EPSIZE, 1);
 #endif
 }
 

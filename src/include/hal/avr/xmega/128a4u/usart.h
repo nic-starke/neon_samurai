@@ -7,7 +7,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
-#include "core/core_types.h"
+#include "sys/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -24,18 +24,18 @@
 // } uart_module_e;
 
 typedef enum {
-  SPI_MODE_CLK_LO_PHA_LO,
-  SPI_MODE_CLK_LO_PHA_HI,
-  SPI_MODE_CLK_HI_PHA_LO,
-  SPI_MODE_CLK_HI_PHA_HI,
+	SPI_MODE_CLK_LO_PHA_LO,
+	SPI_MODE_CLK_LO_PHA_HI,
+	SPI_MODE_CLK_HI_PHA_LO,
+	SPI_MODE_CLK_HI_PHA_HI,
 
-  SPI_MODE_NB,
+	SPI_MODE_NB,
 } spi_mode_e;
 
 typedef struct {
-  spi_mode_e mode;
-  u32   baudrate;
-  endian_e   endian;
+	spi_mode_e mode;
+	u32				 baudrate;
+	endian_e	 endian;
 } usart_config_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -6,9 +6,9 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "core/core_types.h"
-#include "core/core_utility.h"
-#include "core/core_error.h"
+#include "sys/types.h"
+#include "sys/utility.h"
+#include "sys/error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -30,7 +30,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	EVENT_CHANNEL_CORE,			// Reserved for system events
+	EVENT_CHANNEL_SYS,			// Reserved for system events
 	EVENT_CHANNEL_IO,				// IO events
 	EVENT_CHANNEL_MIDI_IN,	// MIDI events (rx)
 	EVENT_CHANNEL_MIDI_OUT, // MIDI events (tx)

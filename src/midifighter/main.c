@@ -1,40 +1,56 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
-/*                  https://github.com/nic-starke/neon_samurai               */
+/*                  https://github.com/nic-starke/neon_samurai                */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
+#include "midifighter/midifighter.h"
 
-#include "protocol/midi/midi_cc.h"
+#include "hal/avr/xmega/128a4u/init.h"
+
+#include "LUFA/Common/Common.h"
+#include "LUFA/Drivers/USB/USB.h"
+#include "LUFA/Platform/XMEGA/ClockManagement.h"
+
+#include "usb/usb.h"
+#include "protocol/midi/midi.h"
+#include "event/event.h"
+#include "virtmap/virtmap.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-typedef enum {
-	MIDI_MODE_DISABLED,
-	MIDI_MODE_CC,
-	MIDI_MODE_REL_CC,
-	MIDI_MODE_NOTE,
-} midi_mode_e;
-
-typedef struct {
-	midi_mode_e mode;
-	u8					channel;
-	union {
-		midi_cc_e cc;
-	} data;
-} midi_cfg_s;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-int midi_init(void);
-int midi_update(void);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+// Entry point
+__attribute__((noreturn)) void main(void) {
+	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
+
+	// Board specific functionality initialisation
+	event_init();
+	midi_init();
+	virtmap_manager_init();
+
+	hw_switch_init();
+	hw_encoder_init();
+
+	hw_led_init();
+
+	usb_init();
+
+	// Enable system interrupts
+	sei();
+
+	while (1) {
+		hw_encoder_scan();
+		event_update();
+		midi_update();
+		usb_update();
+	}
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
