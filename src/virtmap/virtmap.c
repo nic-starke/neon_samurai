@@ -41,13 +41,13 @@ int virtmap_assign(virtmap_s** head, virtmap_s* vmap) {
 	return 0;
 }
 
-int virtmap_toggle(virtmap_s* vmap) {
+int virtmap_toggle(virtmap_s** vmap) {
 	assert(vmap);
 
-	virtmap_s* head = vmap;				// first item in linked head
-	virtmap_s* next = vmap->next; // second item in linked head
+	virtmap_s* head = *vmap;			// first item in linked head
+	virtmap_s* next = head->next; // second item in linked head
 	head->next			= NULL;				// disconnect first and second
-	vmap						= next;				// set original pointer to second item
+	*vmap						= next;				// set original pointer to second item
 
 	// find the end of the head
 	while (next->next != NULL) {

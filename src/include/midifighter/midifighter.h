@@ -48,8 +48,17 @@ typedef enum {
 
 typedef enum {
 	SW_MODE_NONE,
-	SW_MODE_CONTROL,
-	SW_MODE_PROTOCOL,
+
+	SW_MODE_VMAP_CYCLE,
+	SW_MODE_VMAP_HOLD,
+
+	SW_MODE_RESET_ON_PRESS,
+	SW_MODE_RESET_ON_RELEASE,
+
+	SW_MODE_FINE_ADJUST_TOGGLE,
+	SW_MODE_FINE_ADJUST_HOLD,
+
+	SW_MODE_MIDI,
 } switch_mode_e;
 
 typedef struct {
@@ -73,9 +82,9 @@ typedef struct {
 	} virtmap;
 
 	// Encoder Switch
-	switch_s			sw_ctx;
-	switch_mode_e sw_mode;
-	proto_cfg_s		sw_cfg;
+	switch_state_e sw_state;
+	switch_mode_e	 sw_mode;
+	proto_cfg_s		 sw_cfg;
 } mf_encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -87,8 +96,9 @@ void hw_led_init(void);
 void hw_encoder_init(void);
 void hw_encoder_scan(void);
 
-void hw_switch_init(void);
-void hw_switch_update(void);
+void					 hw_switch_init(void);
+void					 hw_switch_update(void);
+switch_state_e hw_enc_switch_state(uint idx);
 
 void mf_input_init(void);
 void mf_input_update(void);

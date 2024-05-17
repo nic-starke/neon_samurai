@@ -87,4 +87,18 @@ void hw_encoder_scan(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 }
 
+switch_state_e hw_enc_switch_state(uint idx) {
+	assert(idx < MF_NUM_ENCODER_SWITCHES);
+
+	if (switch_was_pressed(&switch_ctx, idx)) {
+		return SWITCH_PRESSED;
+	}
+
+	if (switch_was_released(&switch_ctx, idx)) {
+		return SWITCH_RELEASED;
+	}
+
+	return SWITCH_IDLE;
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

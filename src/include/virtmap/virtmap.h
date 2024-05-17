@@ -26,7 +26,7 @@ int virtmap_assign(virtmap_s** head, virtmap_s* vmap);
 /**
  * @brief "Toggles" a vmap linked list by counter-clockwise rotation.
  *
- * @param vmap Pointer to a linked list of vmaps.
+ * @param head Pointer to pointer of the head of the vmap list.
  * @return int 0 on success, 0! on failure.
  */
-int virtmap_toggle(virtmap_s* vmap);
+int virtmap_toggle(virtmap_s** head);

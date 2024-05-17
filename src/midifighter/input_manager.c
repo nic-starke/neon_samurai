@@ -73,6 +73,7 @@ static void sw_encoder_init(void) {
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
 			enc->virtmap.mode			= VIRTMAP_MODE_TOGGLE;
 			enc->virtmap.head			= NULL;
+			enc->sw_mode					= SW_MODE_VMAP_CYCLE;
 
 			for (uint v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
 				virtmap_s* map = &vmaps[b][e][v];
@@ -100,9 +101,88 @@ static void sw_encoder_init(void) {
 
 static void sw_encoder_update(void) {
 	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
-		mf_encoder_s* enc		= &encoders[active_bank][i];
-		int						dir		= quadrature_direction(enc->quad_ctx);
-		bool					moved = encoder_update(&enc->enc_ctx, dir);
+		mf_encoder_s* enc = &encoders[active_bank][i];
+
+		enc->sw_state = hw_enc_switch_state(enc->idx);
+
+		if (enc->sw_state == SWITCH_PRESSED) {
+			switch (enc->sw_mode) {
+				case SW_MODE_NONE: {
+					break;
+				}
+
+				case SW_MODE_VMAP_CYCLE: {
+					virtmap_toggle(&enc->virtmap.head);
+					enc->enc_ctx.curr_val = enc->virtmap.head->enc_value;
+					mf_draw_encoder(enc);
+					break;
+				}
+
+				case SW_MODE_VMAP_HOLD: {
+					// ?
+					break;
+				}
+
+				case SW_MODE_RESET_ON_PRESS: {
+					enc->enc_ctx.curr_val = 0;
+					break;
+				}
+
+				case SW_MODE_RESET_ON_RELEASE: {
+					break;
+				}
+
+				case SW_MODE_FINE_ADJUST_TOGGLE: {
+					break;
+				}
+
+				case SW_MODE_FINE_ADJUST_HOLD: {
+					break;
+				}
+
+				default: break;
+			}
+
+			enc->sw_state = SWITCH_IDLE;
+		} else if (enc->sw_state == SWITCH_RELEASED) {
+			switch (enc->sw_mode) {
+				case SW_MODE_NONE: {
+					break;
+				}
+
+				case SW_MODE_VMAP_CYCLE: {
+					break;
+				}
+
+				case SW_MODE_VMAP_HOLD: {
+					// ?
+					break;
+				}
+
+				case SW_MODE_RESET_ON_PRESS: {
+					break;
+				}
+
+				case SW_MODE_RESET_ON_RELEASE: {
+					enc->enc_ctx.curr_val = 0;
+					break;
+				}
+
+				case SW_MODE_FINE_ADJUST_TOGGLE: {
+					break;
+				}
+
+				case SW_MODE_FINE_ADJUST_HOLD: {
+					break;
+				}
+
+				default: break;
+			}
+			enc->sw_state = SWITCH_IDLE;
+		}
+
+		int	 dir	 = quadrature_direction(enc->quad_ctx);
+		bool moved = encoder_update(&enc->enc_ctx, dir);
 
 		if (moved == false)
 			continue;
@@ -141,9 +221,10 @@ static void sw_encoder_update(void) {
 							// Convert the encoder range to an 8-bit range after vmapping
 							bool invert = (vmap->range.lower > vmap->range.upper);
 
-							i32 val = convert_range(enc->enc_ctx.curr_val,
-																			vmap->position.start, vmap->position.stop,
-																			vmap->range.lower, vmap->range.upper);
+							vmap->enc_value = enc->enc_ctx.curr_val;
+							i32 val					= convert_range(enc->enc_ctx.curr_val,
+																							vmap->position.start, vmap->position.stop,
+																							vmap->range.lower, vmap->range.upper);
 
 							if (invert) {
 								val = MIDI_CC_MAX - val;

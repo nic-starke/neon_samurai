@@ -35,11 +35,11 @@ u8 switch_x8_states(switch_x8_ctx_s* ctx) {
 	return (ctx->current);
 }
 
-bool switch_was_pressed(switch_x16_ctx_s* ctx, u8 index) {
+inline bool switch_was_pressed(switch_x16_ctx_s* ctx, u8 index) {
 	return (ctx->raw & ctx->current) & (1u << index);
 }
 
-bool switch_was_released(switch_x16_ctx_s* ctx, u8 index) {
+inline bool switch_was_released(switch_x16_ctx_s* ctx, u8 index) {
 	return (ctx->raw & ~ctx->current) & (1u << index);
 }
 

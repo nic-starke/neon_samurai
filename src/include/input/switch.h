@@ -36,6 +36,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
+	SWITCH_IDLE,
 	SWITCH_RELEASED,
 	SWITCH_PRESSED,
 } switch_state_e;
@@ -55,10 +56,6 @@ typedef struct {
 	u16 previous;											// states bitfield (private)
 	u16 raw;													// switch states bitfield (private)
 } switch_x16_ctx_s;
-
-typedef struct {
-
-} switch_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
