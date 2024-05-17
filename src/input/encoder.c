@@ -37,11 +37,11 @@ int encoder_init(encoder_s* enc) {
 	return 0;
 }
 
-void encoder_update(encoder_s* enc, int direction) {
+bool encoder_update(encoder_s* enc, int direction) {
 	enc->prev_val = enc->curr_val;
 	if (enc->accel_mode == 0) {
 		if (direction == 0) {
-			return;
+			return false;
 		}
 
 		enc->velocity = 1500 * direction;
@@ -50,7 +50,7 @@ void encoder_update(encoder_s* enc, int direction) {
 		if (direction == 0) {
 			enc->velocity =
 					(enc->velocity > 0) ? enc->velocity - 1 : enc->velocity + 1;
-			return;
+			return false;
 		}
 
 		// Accelerate if the direction is the same, otherwise reset the acceleration
@@ -74,13 +74,12 @@ void encoder_update(encoder_s* enc, int direction) {
 			enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
 	enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
 
-	// Generate an event if the encoder changed position
-	if (enc->curr_val != enc->prev_val) {
-		io_event_s evt;
-		evt.type = EVT_IO_ENCODER_ROTATION;
-		evt.ctx	 = enc;
-		event_post(EVENT_CHANNEL_IO, &evt);
-	}
+	return (bool)(enc->curr_val != enc->prev_val);
+}
+
+inline void encoder_clamp(encoder_s* enc, u16 min, u16 max) {
+	assert(enc);
+	enc->curr_val = CLAMP(enc->curr_val, min, max);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

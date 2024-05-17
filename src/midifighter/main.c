@@ -33,12 +33,10 @@ __attribute__((noreturn)) void main(void) {
 	// Board specific functionality initialisation
 	event_init();
 	midi_init();
-	virtmap_manager_init();
-
-	hw_switch_init();
-	hw_encoder_init();
 
 	hw_led_init();
+
+	mf_input_init();
 
 	usb_init();
 
@@ -46,7 +44,7 @@ __attribute__((noreturn)) void main(void) {
 	sei();
 
 	while (1) {
-		hw_encoder_scan();
+		mf_input_update();
 		event_update();
 		midi_update();
 		usb_update();

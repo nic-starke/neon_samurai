@@ -17,11 +17,11 @@
 /**
  * @brief Adds a virtmap to a virtmap list.
  *
- * @param head Pointer to the head of the vmap list.
+ * @param head Pointer to pointer of the head of the vmap list.
  * @param vmap Pointer to vmap to add to list.
  * @return int 0 on success, 0! on failure.
  */
-int virtmap_assign(virtmap_s* head, virtmap_s* vmap);
+int virtmap_assign(virtmap_s** head, virtmap_s* vmap);
 
 /**
  * @brief "Toggles" a vmap linked list by counter-clockwise rotation.

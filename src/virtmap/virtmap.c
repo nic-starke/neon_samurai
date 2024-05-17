@@ -20,17 +20,16 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int virtmap_assign(virtmap_s* head, virtmap_s* vmap) {
-	assert(head);
+int virtmap_assign(virtmap_s** head, virtmap_s* vmap) {
 	assert(vmap);
 
 	// If nothing assigned yet then assign.
-	if (head == NULL) {
-		head = vmap;
+	if (*head == NULL) {
+		*head = vmap;
 		return 0;
 	}
 
-	virtmap_s* v = head;
+	virtmap_s* v = *head;
 
 	// Traverse the linked head of vmaps..
 	while (v->next != NULL) {

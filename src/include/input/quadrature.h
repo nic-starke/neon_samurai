@@ -33,4 +33,4 @@ void quadrature_update(quadrature_s* ctx, uint ch_a, uint ch_b);
  * @param ctx Pointer to quadrature context.
  * @return int 0 = stationary, 1 = CW, -1 = CCW.
  */
-int inline quadrature_direction(quadrature_s* ctx);
+int quadrature_direction(quadrature_s* ctx);

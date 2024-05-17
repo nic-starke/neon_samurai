@@ -55,21 +55,21 @@ static const quad_state_e quad_states[QUAD_NB][4] = {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-inline void quadrature_update(quadrature_s* ctx, uint ch_a, uint ch_b) {
+void quadrature_update(quadrature_s* ctx, uint ch_a, uint ch_b) {
 	assert(ctx);
 
-	unsigned int val = (ch_b << 1) | ch_a;
-	ctx->rot				 = quad_states[ctx->rot & 0x0F][val];
-	ctx->dir				 = ctx->rot & 0x30;
+	uint val = (ch_b << 1) | ch_a;
+	ctx->rot = quad_states[ctx->rot & 0x0F][val];
+	ctx->dir = ctx->rot & 0x30;
 }
 
 inline int quadrature_direction(quadrature_s* ctx) {
 	assert(ctx);
 
-	switch (ctx->dir) {
-		case DIR_ST: return 0;
-		case DIR_CW: return 1;
-		case DIR_CCW: return -1;
+	if (ctx->dir == DIR_CW) {
+		return 1;
+	} else if (ctx->dir == DIR_CCW) {
+		return -1;
 	}
 
 	return 0;

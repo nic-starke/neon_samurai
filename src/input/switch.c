@@ -91,11 +91,6 @@ void switch_x16_update(switch_x16_ctx_s* ctx, u16 gpio_state) {
 	ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
 
 	switch_x16_debounce(ctx);
-
-	// for (uint i = 0; i < 16; i++)
-	// {
-	// 	io_event_s
-	// }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -51,10 +51,10 @@ int encoder_init(encoder_s* enc);
  * constant).
  *
  * @param enc Pointer to encoder device.
- * @param ch_a Current state of quadrature channel A.
- * @param ch_b Current state of quadrature channel B.
+ * @param direction Current direction of encoder (-1, 0, +1)
+ * @return True if encoder position changed.
  */
-void encoder_update(encoder_s* enc, int direction);
+bool encoder_update(encoder_s* enc, int direction);
 
 /**
  * @brief Clamps the current value of the encoder between a min

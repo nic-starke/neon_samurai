@@ -29,7 +29,7 @@
 
 #define MF_NUM_ENC_BANKS						 (3)
 #define MF_NUM_ENC_PER_BANK					 (MF_NUM_ENCODERS)
-#define MF_NUM_VIRTMAPS_PER_ENC			 (2)
+#define MF_NUM_VMAPS_PER_ENC				 (2)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -66,9 +66,9 @@ typedef struct {
 	bool					detent;
 	encoder_s			enc_ctx;
 	quadrature_s* quad_ctx;
+
 	struct {
 		virtmap_s*		 head;
-		virtmap_s			 map[MF_NUM_VIRTMAPS_PER_ENC];
 		virtmap_mode_e mode;
 	} virtmap;
 
@@ -83,15 +83,15 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void hw_led_init(void);
-void hw_led_transmit(void);
-
-void mf_max_brightness(u8 brightness);
 
 void hw_encoder_init(void);
 void hw_encoder_scan(void);
 
 void hw_switch_init(void);
 void hw_switch_update(void);
+
+void mf_input_init(void);
+void mf_input_update(void);
 
 int mf_display_init(void);
 int mf_draw_encoder(mf_encoder_s* enc);

@@ -46,6 +46,11 @@ void hw_encoder_init(void) {
 	// Latch initial encoder data
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
+
+	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
+		mf_enc_quad[i].dir = 0;
+		mf_enc_quad[i].rot = 0;
+	}
 }
 
 // Scan the hardware state of the midifighter and update local contexts
