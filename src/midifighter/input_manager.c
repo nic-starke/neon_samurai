@@ -22,9 +22,12 @@
 
 static void sw_encoder_init(void);
 static void sw_encoder_update(void);
+static int	midi_in_handler(void* evt);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+EVT_HANDLER(1, evt_midi, midi_in_handler);
 
 static mf_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS][MF_NUM_VMAPS_PER_ENC];
@@ -50,6 +53,8 @@ void mf_input_init(void) {
 	hw_encoder_init();
 	hw_switch_init();
 	sw_encoder_init();
+
+	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
 void mf_input_update(void) {
@@ -270,4 +275,59 @@ static void sw_encoder_update(void) {
 
 		mf_draw_encoder(enc);
 	}
+}
+
+static int midi_in_handler(void* evt) {
+	midi_event_s* midi = (midi_event_s*)evt;
+
+	switch (midi->type) {
+		case MIDI_EVENT_CC: {
+			for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
+				for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
+					mf_encoder_s* enc		 = &encoders[b][e];
+					bool					update = false;
+
+					virtmap_s*	 vmap	 = enc->virtmap.head;
+					proto_cfg_s* proto = &vmap->proto;
+
+					while (vmap != NULL) {
+
+						// Check if the vmap matches the incoming midi
+						if (proto->type != PROTOCOL_MIDI) {
+							goto NEXT;
+						} else if (proto->midi.channel != midi->data.cc.channel) {
+							goto NEXT;
+						} else if (proto->midi.data.cc != midi->data.cc.control) {
+							goto NEXT;
+						}
+
+						// do not update if the encoder is moving.
+						if (enc->enc_ctx.velocity != 0) {
+							goto NEXT;
+						}
+
+						update								= true;
+						vmap->curr_value			= midi->data.cc.value;
+						enc->enc_ctx.curr_val = convert_range(
+								vmap->curr_value, vmap->range.lower, vmap->range.upper,
+								vmap->position.start, vmap->position.stop);
+						enc->enc_ctx.prev_val	 = enc->enc_ctx.curr_val;
+						vmap->enc_value				 = enc->enc_ctx.curr_val;
+						enc->enc_ctx.direction = 0;
+						enc->enc_ctx.velocity	 = 0;
+
+					NEXT:
+						vmap = vmap->next;
+					}
+					if (update) {
+						mf_draw_encoder(enc);
+					}
+				}
+			}
+
+			break;
+		}
+	}
+
+	return 0;
 }

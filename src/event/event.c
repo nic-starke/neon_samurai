@@ -189,7 +189,7 @@ int event_post(event_ch_e ch, void* event) {
 	assert(channel);
 
 	// Check there is space in the channel event queue
-	if (channel->head >= channel->queue_size) {
+	if (channel->head >= (channel->queue_size - 1)) {
 		return ERR_NO_MEM;
 	}
 

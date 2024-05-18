@@ -29,7 +29,7 @@ typedef struct __attribute__((packed)) {
 	u8 value;
 } midi_cc_event_s;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
 	u8 type;
 	union {
 		midi_cc_event_s cc;

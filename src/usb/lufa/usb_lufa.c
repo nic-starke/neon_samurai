@@ -102,7 +102,7 @@ PROGMEM static const USB_Descriptor_String_t desc_str_prod =
 		USB_STRING_DESCRIPTOR(L"SAMURAI");
 
 PROGMEM static const USB_Descriptor_String_t desc_str_ser =
-		USB_STRING_DESCRIPTOR(L"2023");
+		USB_STRING_DESCRIPTOR(L"2024");
 
 PROGMEM static const USB_Descriptor_Device_t desc_device = {
 		.Header = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},

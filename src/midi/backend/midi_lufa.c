@@ -91,7 +91,8 @@ int midi_init(void) {
 
 int midi_update(void) {
 	MIDI_EventPacket_t rx;
-	if (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
+
+	while (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
 
 		switch (rx.Event) {
 			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {
@@ -107,8 +108,11 @@ int midi_update(void) {
 				event_post(EVENT_CHANNEL_MIDI_IN, &e);
 				break;
 			}
+
+			default: return 0;
 		}
 	}
+
 	return 0;
 }
 

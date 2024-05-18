@@ -41,6 +41,7 @@ bool encoder_update(encoder_s* enc, int direction) {
 	enc->prev_val = enc->curr_val;
 	if (enc->accel_mode == 0) {
 		if (direction == 0) {
+			enc->velocity = 0;
 			return false;
 		}
 
@@ -48,8 +49,8 @@ bool encoder_update(encoder_s* enc, int direction) {
 	} else {
 		// If the encoder stopped moving then decelerate
 		if (direction == 0) {
-			enc->velocity =
-					(enc->velocity > 0) ? enc->velocity - 1 : enc->velocity + 1;
+			enc->velocity = (enc->velocity > 0) ? enc->velocity - VEL_INC
+																					: enc->velocity + VEL_INC;
 			return false;
 		}
 
