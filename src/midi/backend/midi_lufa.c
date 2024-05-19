@@ -7,6 +7,7 @@
 
 #include "sys/types.h"
 #include "sys/error.h"
+#include "sys/print.h"
 #include "event/midi.h"
 #include "protocol/midi/midi.h"
 #include "usb/lufa/usb_lufa.h"
@@ -124,8 +125,7 @@ static int midi_out_handler(void* event) {
 
 	midi_event_s* e = (midi_event_s*)event;
 
-	const char* const str = "sending midi\r\n";
-	printusb(str);
+	println_pmem("sending midi");
 
 	switch (e->type) {
 		case MIDI_EVENT_CC: {

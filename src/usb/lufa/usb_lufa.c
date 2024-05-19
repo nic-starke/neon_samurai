@@ -11,6 +11,7 @@
 #include "sys/types.h"
 #include "usb/usb.h"
 #include "usb/lufa/usb_lufa.h"
+#include "sys/print.h"
 
 #include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"
@@ -33,31 +34,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 extern USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device;
-
-static USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
-		.Config =
-				{
-						.ControlInterfaceNumber = 0,
-						.DataINEndpoint =
-								{
-										.Address = (CDC_IN_EPNUM | ENDPOINT_DIR_IN),
-										.Size		 = USB_CDC_EPSIZE,
-										.Banks	 = 1,
-								},
-						.DataOUTEndpoint =
-								{
-										.Address = (CDC_OUT_EPNUM | ENDPOINT_DIR_OUT),
-										.Size		 = USB_CDC_EPSIZE,
-										.Banks	 = 1,
-								},
-						.NotificationEndpoint =
-								{
-										.Address = (CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN),
-										.Size		 = USB_CDC_NOTIFICATION_EPSIZE,
-										.Banks	 = 1,
-								},
-				},
-};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -128,6 +104,31 @@ PROGMEM static const USB_Descriptor_String_t desc_str_prod =
 
 PROGMEM static const USB_Descriptor_String_t desc_str_ser =
 		USB_STRING_DESCRIPTOR(L"2024");
+
+static USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
+		.Config =
+				{
+						.ControlInterfaceNumber = 0,
+						.DataINEndpoint =
+								{
+										.Address = (CDC_IN_EPNUM | ENDPOINT_DIR_IN),
+										.Size		 = USB_CDC_EPSIZE,
+										.Banks	 = 1,
+								},
+						.DataOUTEndpoint =
+								{
+										.Address = (CDC_OUT_EPNUM | ENDPOINT_DIR_OUT),
+										.Size		 = USB_CDC_EPSIZE,
+										.Banks	 = 1,
+								},
+						.NotificationEndpoint =
+								{
+										.Address = (CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN),
+										.Size		 = USB_CDC_NOTIFICATION_EPSIZE,
+										.Banks	 = 1,
+								},
+				},
+};
 
 PROGMEM static const USB_Descriptor_Device_t desc_device = {
 		.Header = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
@@ -440,7 +441,6 @@ PROGMEM static const usb_descriptor_s desc_cfg = {
 };
 
 static bool vser_active = false;
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int usb_init(void) {
@@ -596,13 +596,12 @@ void EVENT_CDC_Device_ControLineStateChanged(
 								 CDC_CONTROL_LINE_OUT_DTR) != 0;
 }
 
-void printusb(const char* const str) {
+void println_progmem(const char* const str) {
 	assert(str);
 
 	if (vser_active) {
-		CDC_Device_SendString(&lufa_usb_cdc_device, str);
+		CDC_Device_SendString_P(&lufa_usb_cdc_device, str);
 		CDC_Device_Flush(&lufa_usb_cdc_device);
 	}
 }
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
