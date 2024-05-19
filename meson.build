@@ -59,6 +59,8 @@ c_compiler_args = [
     '-DRELEASE',
     '-DNDEBUG',
 
+    '-DVSER_ENABLE',
+
     '-ffreestanding',
     '-fwhole-program',
     # '-flto=auto',

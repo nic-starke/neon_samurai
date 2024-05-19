@@ -34,6 +34,31 @@
 
 extern USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device;
 
+static USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
+		.Config =
+				{
+						.ControlInterfaceNumber = 0,
+						.DataINEndpoint =
+								{
+										.Address = (CDC_IN_EPNUM | ENDPOINT_DIR_IN),
+										.Size		 = USB_CDC_EPSIZE,
+										.Banks	 = 1,
+								},
+						.DataOUTEndpoint =
+								{
+										.Address = (CDC_OUT_EPNUM | ENDPOINT_DIR_OUT),
+										.Size		 = USB_CDC_EPSIZE,
+										.Banks	 = 1,
+								},
+						.NotificationEndpoint =
+								{
+										.Address = (CDC_NOTIFICATION_EPNUM | ENDPOINT_DIR_IN),
+										.Size		 = USB_CDC_NOTIFICATION_EPSIZE,
+										.Banks	 = 1,
+								},
+				},
+};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
@@ -124,7 +149,8 @@ PROGMEM static const USB_Descriptor_Device_t desc_device = {
 		.ReleaseNumber				= VERSION_BCD(0, 0, 1),
 		.ManufacturerStrIndex = DESC_STR_MF,
 		.ProductStrIndex			= DESC_STR_PROD,
-		.SerialNumStrIndex		= DESC_STR_SER,
+		// .SerialNumStrIndex		= DESC_STR_SER,
+		.SerialNumStrIndex		= USE_INTERNAL_SERIAL,
 
 		.NumberOfConfigurations = FIXED_NUM_CONFIGURATIONS,
 };
@@ -141,9 +167,8 @@ PROGMEM static const usb_descriptor_s desc_cfg = {
 						.TotalInterfaces				= NUM_USB_INTERFACES,
 						.ConfigurationNumber		= 1,
 						.ConfigurationStrIndex	= NO_DESCRIPTOR,
-						.ConfigAttributes =
-								(USB_CONFIG_ATTR_RESERVED | USB_CONFIG_ATTR_SELFPOWERED),
-						.MaxPowerConsumption = USB_CONFIG_POWER_MA(480),
+						.ConfigAttributes				= (USB_CONFIG_ATTR_RESERVED),
+						.MaxPowerConsumption		= USB_CONFIG_POWER_MA(480),
 				},
 
 		.Audio_Interface_Association =
@@ -385,7 +410,7 @@ PROGMEM static const usb_descriptor_s desc_cfg = {
 				 .EndpointAddress = (ENDPOINT_DIR_IN | CDC_NOTIFICATION_EPNUM),
 				 .Attributes =
 						 (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-				 .EndpointSize			= CDC_NOTIFICATION_EPSIZE,
+				 .EndpointSize			= USB_CDC_NOTIFICATION_EPSIZE,
 				 .PollingIntervalMS = 0xFF},
 		.CDC_DCI_Interface = {.Header = {.Size = sizeof(USB_Descriptor_Interface_t),
 																		 .Type = DTYPE_Interface},
@@ -402,17 +427,19 @@ PROGMEM static const usb_descriptor_s desc_cfg = {
 				 .EndpointAddress = (ENDPOINT_DIR_OUT | CDC_OUT_EPNUM),
 				 .Attributes =
 						 (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-				 .EndpointSize			= CDC_EPSIZE,
+				 .EndpointSize			= USB_CDC_EPSIZE,
 				 .PollingIntervalMS = 0x05},
 		.CDC_DataInEndpoint = {.Header = {.Size = sizeof(USB_Descriptor_Endpoint_t),
 																			.Type = DTYPE_Endpoint},
 													 .EndpointAddress = (ENDPOINT_DIR_IN | CDC_IN_EPNUM),
 													 .Attributes = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
 																					ENDPOINT_USAGE_DATA),
-													 .EndpointSize			= CDC_EPSIZE,
+													 .EndpointSize			= USB_CDC_EPSIZE,
 													 .PollingIntervalMS = 0x05},
 #endif
 };
+
+static bool vser_active = false;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -423,8 +450,18 @@ int usb_init(void) {
 
 int usb_update(void) {
 	// The USB packets are periodically transmitted by LUFA, calling the
-	// MIDI_Device_USBTask function flushes the packets immediately to the host.
+	// MIDI_Device_USBTask function flushes the packets immediately to the host.)
 	MIDI_Device_USBTask(&lufa_usb_midi_device);
+
+#ifdef VSER_ENABLE
+	// Throw away unused received bytes from host
+	if (vser_active) {
+		while (CDC_Device_ReceiveByte(&lufa_usb_cdc_device) == true) {}
+		CDC_Device_USBTask(&lufa_usb_cdc_device);
+	}
+
+#endif
+
 	USB_USBTask(); // LUFA usb stack update
 	return 0;
 }
@@ -524,10 +561,6 @@ void EVENT_USB_Device_Disconnect(void) {
 // Callback for USB device configuration changed
 void EVENT_USB_Device_ConfigurationChanged(void) {
 	MIDI_Device_ConfigureEndpoints(&lufa_usb_midi_device);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_OUT |
-	// ENDPOINT_DIR_IN), EP_TYPE_BULK, USB_MIDI_STREAM_EPSIZE, 1); ConfigSuccess
-	// &= Endpoint_ConfigureEndpoint((USB_EP_MIDI_STREAM_IN | ENDPOINT_DIR_OUT),
-	// EP_TYPE_BULK, USB_MIDI_STREAM_EPSIZE, 1);
 
 #ifdef HID_ENABLE
 	ConfigSuccess &= Endpoint_ConfigureEndpoint(
@@ -535,13 +568,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 #endif
 
 #ifdef VSER_ENABLE
-	ConfigSuccess &= CDC_Device_ConfigureEndpoints(&gCDC_Interface);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_NOTIFICATION_EPNUM |
-	// ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
-	// ConfigSuccess &= Endpoint_ConfigureEndpoint((CDC_OUT_EPNUM |
-	// ENDPOINT_DIR_OUT), EP_TYPE_BULK, CDC_EPSIZE, 1); ConfigSuccess &=
-	// Endpoint_ConfigureEndpoint((CDC_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_BULK,
-	// CDC_EPSIZE, 1);
+	CDC_Device_ConfigureEndpoints(&lufa_usb_cdc_device);
 #endif
 }
 
@@ -553,8 +580,29 @@ void EVENT_USB_Device_ControlRequest(void) {
 #endif
 
 #ifdef VSER_ENABLE
-	CDC_Device_ProcessControlRequest(&gCDC_Interface);
+	CDC_Device_ProcessControlRequest(&lufa_usb_cdc_device);
 #endif
+}
+
+void EVENT_CDC_Device_ControLineStateChanged(
+		USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo) {
+	/* You can get changes to the virtual CDC lines in this callback; a common
+		 use-case is to use the Data Terminal Ready (DTR) flag to enable and
+		 disable CDC communications in your application when set to avoid the
+		 application blocking while waiting for a host to become ready and read
+		 in the pending data from the USB endpoints.
+	*/
+	vser_active = (CDCInterfaceInfo->State.ControlLineStates.HostToDevice &
+								 CDC_CONTROL_LINE_OUT_DTR) != 0;
+}
+
+void printusb(const char* const str) {
+	assert(str);
+
+	if (vser_active) {
+		CDC_Device_SendString(&lufa_usb_cdc_device, str);
+		CDC_Device_Flush(&lufa_usb_cdc_device);
+	}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -24,16 +24,17 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
+
+#ifdef VSER_ENABLE
+	CCI_INTERFACE,
+	CDI_INTERFACE,
+#endif
+
 	MIDI_AC_INTERFACE, // Audio control interface
 	MIDI_AS_INTERFACE, // Audio stream interface
 
 #ifdef HID_ENABLE
 	HID_INTERFACE,
-#endif
-
-#ifdef VSER_ENABLE
-	CCI_INTERFACE,
-	CDI_INTERFACE,
 #endif
 
 	NUM_USB_INTERFACES
@@ -70,6 +71,9 @@ typedef enum {
 #endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void printusb(const char* str);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

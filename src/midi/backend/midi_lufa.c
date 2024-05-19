@@ -93,7 +93,8 @@ int midi_update(void) {
 	MIDI_EventPacket_t rx;
 
 	while (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
-
+		// const char* str = "received midi\n";
+		// printusb("received_midi\n");
 		switch (rx.Event) {
 			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {
 				midi_cc_event_s cc;
@@ -122,6 +123,9 @@ static int midi_out_handler(void* event) {
 	assert(event);
 
 	midi_event_s* e = (midi_event_s*)event;
+
+	const char* const str = "sending midi\r\n";
+	printusb(str);
 
 	switch (e->type) {
 		case MIDI_EVENT_CC: {

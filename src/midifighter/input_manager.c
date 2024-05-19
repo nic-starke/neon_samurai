@@ -306,15 +306,11 @@ static int midi_in_handler(void* evt) {
 							goto NEXT;
 						}
 
-						update								= true;
-						vmap->curr_value			= midi->data.cc.value;
-						enc->enc_ctx.curr_val = convert_range(
-								vmap->curr_value, vmap->range.lower, vmap->range.upper,
-								vmap->position.start, vmap->position.stop);
-						enc->enc_ctx.prev_val	 = enc->enc_ctx.curr_val;
-						vmap->enc_value				 = enc->enc_ctx.curr_val;
-						enc->enc_ctx.direction = 0;
-						enc->enc_ctx.velocity	 = 0;
+						update					 = true;
+						vmap->curr_value = midi->data.cc.value;
+						vmap->enc_value	 = convert_range(
+								 vmap->curr_value, vmap->range.lower, vmap->range.upper,
+								 vmap->position.start, vmap->position.stop);
 
 					NEXT:
 						vmap = vmap->next;
