@@ -98,7 +98,7 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 #### Setting up pre-commit.
 
 - install pre-commit
-- run `pre-commit install-hooks` in the root of the project.
+- run `pre-commit install-hooks` and then `pre-commit install` in the root of the project from a terminal.
 
 #### Setting up the build system:
 
