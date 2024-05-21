@@ -36,7 +36,7 @@ static volatile u32 thetime = 0;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void systime_start(void) {
-	TCE0.PER			= DIV_ROUND(F_CPU, 500);
+	TCE0.PER			= DIV_ROUND(F_CPU, 1000);
 	TCE0.CTRLB		= TC_WGMODE_NORMAL_gc;
 	TCE0.INTCTRLA = TC_OVFINTLVL_LO_gc;
 	TCE0.CNT			= 0;
@@ -50,5 +50,5 @@ u32 systime_ms(void) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 ISR(TCE0_OVF_vect) {
-	thetime += 5;
+	thetime += 1;
 }
