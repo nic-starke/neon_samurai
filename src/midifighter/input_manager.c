@@ -208,7 +208,8 @@ static void sw_encoder_update(void) {
 				continue;
 			}
 
-			vmap->curr_pos = newpos;
+			vmap->curr_pos		= newpos;
+			vmap->last_update = systime_ms();
 
 			switch (vmap->proto.type) {
 
@@ -219,7 +220,6 @@ static void sw_encoder_update(void) {
 						}
 
 						case MIDI_MODE_CC: {
-							// Convert the encoder range to an 8-bit range after vmapping
 							bool invert = (vmap->range.lower > vmap->range.upper);
 
 							i32 val = convert_range(vmap->curr_pos, vmap->position.start,
@@ -298,10 +298,10 @@ static int midi_in_handler(void* evt) {
 							goto NEXT;
 						}
 
-						// else if ((timenow - vmap->last_update) < config.enc_dead_time) {
-						// 	println_pmem("skipped");
-						// 	goto NEXT;
-						// }
+						else if ((timenow - vmap->last_update) < config.enc_dead_time) {
+							println_pmem("skipped");
+							goto NEXT;
+						}
 
 						u16 newpos = convert_range(midi->data.cc.value, vmap->range.lower,
 																			 vmap->range.upper, vmap->position.start,

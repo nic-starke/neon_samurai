@@ -71,8 +71,6 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	virtmap_s* v = enc->virtmap.head;
 	uint			 vmap_positions[MF_NUM_VMAPS_PER_ENC];
 	vmap_positions[0] = v->curr_pos;
-	// convert_range(v->curr_pos, v->range.lower, v->range.upper,
-	// 														v->position.start, v->position.stop);
 
 	if (vmap_positions[0] <= led_interval) {
 		ind_pwm	 = 0;

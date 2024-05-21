@@ -113,6 +113,25 @@ meson subprojects packagefiles --apply
 - Run the user task `Generate`
 - Run the default build task.
 
+#### udev Rules for AVR Programmers
+
+/etc/udev/rules.d/50-avr-isp.rules
+
+```bash
+SUBSYSTEM!="usb", ACTION!="add", GOTO="avrisp_end"
+
+#Atmel Corp. JTAG ICE mkII
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="2103", MODE="660", GROUP="dialout"
+#Atmel Corp. AVRISP mkII
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="2104", MODE="660", GROUP="dialout"
+#Atmel Corp. Dragon
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="2107", MODE="660", GROUP="dialout"
+#Atmel Corp. ATMEL-ICE
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="2141", MODE="660", GROUP="dialout"
+#Atmel Corp. JTAGICE3
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="2140", MODE="660", GROUP="dialout"
+```
+
 ### Contributors
 
 <a href="https://github.com/nic-starke"><img src="https://avatars.githubusercontent.com/u/10380155?v=4" title="nic-starke" width="75" height="75"></a>
