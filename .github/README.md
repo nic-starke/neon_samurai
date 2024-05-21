@@ -82,6 +82,33 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 - Fork the project, make changes, and submit a pull request to have your improvements considered for inclusion.
 - Join our [Discussions](https://github.com/nic-starke/neon_samurai/discussions) to share your ideas, ask questions, or connect with other users.
 
+### Development Environment
+
+#### Dependencies:
+
+- avr-gcc (v14)
+- avr-libc
+- python3
+- meson
+- cmake
+- ninja
+- avrdude (for programming flash)
+
+
+#### Setting up the build system:
+
+- In a terminal after you have checked out:
+
+```shell
+meson subprojects checkout
+meson subprojects update
+meson subprojects packagefiles --apply
+```
+
+- Run the user task `Generate`
+- Run the default build task.
+
+
 ### Contributors
 
 <a href="https://github.com/nic-starke"><img src="https://avatars.githubusercontent.com/u/10380155?v=4" title="nic-starke" width="75" height="75"></a>
