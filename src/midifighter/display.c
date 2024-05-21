@@ -69,25 +69,26 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	encoder_led_s leds = {0};
 
 	virtmap_s* v = enc->virtmap.head;
-	uint			 vmap_val[MF_NUM_VMAPS_PER_ENC];
-	vmap_val[0] = convert_range(v->curr_value, v->range.lower, v->range.upper,
-															v->position.start, v->position.stop);
+	uint			 vmap_positions[MF_NUM_VMAPS_PER_ENC];
+	vmap_positions[0] = v->curr_pos;
+	// convert_range(v->curr_pos, v->range.lower, v->range.upper,
+	// 														v->position.start, v->position.stop);
 
-	if (vmap_val[0] <= led_interval) {
+	if (vmap_positions[0] <= led_interval) {
 		ind_pwm	 = 0;
 		ind_norm = 0;
-	} else if (vmap_val[0] == ENC_MAX) {
+	} else if (vmap_positions[0] == ENC_MAX) {
 		ind_pwm	 = MF_NUM_INDICATOR_LEDS;
 		ind_norm = MF_NUM_INDICATOR_LEDS;
 	} else {
-		ind_pwm	 = ((f32)vmap_val[0] / led_interval);
+		ind_pwm	 = ((f32)vmap_positions[0] / led_interval);
 		ind_norm = (unsigned int)roundf(ind_pwm);
 	}
 
 	// virtmap_s* o = v->next;
 	// if (enc->display.virtmode == VIRTMAP_DISPLAY_OVERLAY) {
 	// 	while (o != NULL) {
-	// 		vmap_val[i] = convert_range(o->curr_value, o->range.lower,
+	// 		vmap_positions[i] = convert_range(o->curr_value, o->range.lower,
 	// o->range.upper, 																o->position.start,
 	// o->position.stop); 																o = o->next;
 	// 	}
@@ -184,7 +185,8 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 		if (f < MF_NUM_PWM_FRAMES / 3) {
 			// for (uint i = 1; i < MF_NUM_VMAPS_PER_ENC; i++) {
 			// 	leds.state |=
-			// 			MASK_INDICATORS & (0x8000 >> ((vmap_val[i] / led_interval)));
+			// 			MASK_INDICATORS & (0x8000 >> ((vmap_positions[i] /
+			// led_interval)));
 			// }
 		}
 

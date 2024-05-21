@@ -107,10 +107,12 @@ int midi_update(void) {
 				e.type		= MIDI_EVENT_CC;
 				e.data.cc = cc;
 
+#ifdef VSER_ENABLE
 				char										 buf[64];
 				static const char* const formatstr = "CH: %u, CC: %u, VAL: %u";
 				sprintf(buf, formatstr, cc.channel, cc.control, cc.value);
 				println(buf);
+#endif
 
 				event_post(EVENT_CHANNEL_MIDI_IN, &e);
 				break;

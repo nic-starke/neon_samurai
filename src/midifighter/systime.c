@@ -1,53 +1,54 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*                  Copyright (c) (2021 - 2023) Nicolaus Starke               */
+/*                  Copyright (c) (2021 - 2024) Nicolaus Starke               */
 /*                  https://github.com/nic-starke/neon_samurai                */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "midifighter/midifighter.h"
-
-#include "hal/avr/xmega/128a4u/init.h"
-
-#include "LUFA/Common/Common.h"
-#include "LUFA/Drivers/USB/USB.h"
-#include "LUFA/Platform/XMEGA/ClockManagement.h"
+#include <avr/interrupt.h>
 
 #include "sys/time.h"
-#include "usb/usb.h"
-#include "protocol/midi/midi.h"
-#include "event/event.h"
-#include "virtmap/virtmap.h"
+#include "sys/print.h"
+#include "hal/avr/xmega/128a4u/timer.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define DIV_ROUND(a, b) (((a) + (b) / 2) / (b))
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+// static timer_config_s sys_timer = {
+// 	.timer = &TCE0,
+// 	.periph = TIMER_TCE0,
+// 	.channel = TIMER_CHANNEL_A,
+// 	.freq = 1000,
+// 	.mode = TIMER_MODE_OVF,
+// 	.pwm = {0},
+// };
+
+static volatile u32 thetime = 0;
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// Entry point
-__attribute__((noreturn)) void main(void) {
-	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
+void systime_start(void) {
+	TCE0.PER			= DIV_ROUND(F_CPU, 500);
+	TCE0.CTRLB		= TC_WGMODE_NORMAL_gc;
+	TCE0.INTCTRLA = TC_OVFINTLVL_LO_gc;
+	TCE0.CNT			= 0;
+	TCE0.CTRLA		= TC_CLKSEL_DIV1_gc;
+}
 
-	event_init();
-	midi_init();
-	hw_led_init();
-	mf_input_init();
-	systime_start();
-
-	usb_init();
-
-	// Enable system interrupts
-	sei();
-
-	while (1) {
-		mf_input_update();
-		event_update();
-		midi_update();
-		usb_update();
-	}
+u32 systime_ms(void) {
+	return thetime;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+ISR(TCE0_OVF_vect) {
+	thetime += 5;
+}

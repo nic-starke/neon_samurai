@@ -79,9 +79,9 @@ typedef struct virtmap_s {
 		u16 stop;
 	} position;
 
-	u16								enc_value;
-	u16								curr_value;
-	u16								prev_value;
+	u16								curr_pos;
+	u16								prev_pos;
+	i32								curr_val;
 	proto_cfg_s				proto;
 	struct virtmap_s* next;
 } virtmap_s;

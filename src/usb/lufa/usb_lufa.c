@@ -105,6 +105,7 @@ PROGMEM static const USB_Descriptor_String_t desc_str_prod =
 PROGMEM static const USB_Descriptor_String_t desc_str_ser =
 		USB_STRING_DESCRIPTOR(L"2024");
 
+#ifdef VSER_ENABLE
 static USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
 		.Config =
 				{
@@ -129,6 +130,7 @@ static USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
 								},
 				},
 };
+#endif
 
 PROGMEM static const USB_Descriptor_Device_t desc_device = {
 		.Header = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
@@ -584,6 +586,7 @@ void EVENT_USB_Device_ControlRequest(void) {
 #endif
 }
 
+#ifdef VSER_ENABLE
 void EVENT_CDC_Device_ControLineStateChanged(
 		USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo) {
 	/* You can get changes to the virtual CDC lines in this callback; a common
@@ -625,5 +628,7 @@ void printbuf(u8* buf, uint len) {
 		CDC_Device_Flush(&lufa_usb_cdc_device);
 	}
 }
+
+#endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

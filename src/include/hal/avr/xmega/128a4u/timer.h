@@ -63,6 +63,7 @@ typedef struct {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int timer_init(timer_config_s* cfg);
+u16 timer_getval(timer_config_s* cfg);
 
 void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority);
 void timer_ch_isr_disable(timer_config_s* cfg);
@@ -72,6 +73,7 @@ void timer_ovr_isr_disable(timer_config_s* cfg);
 void timer_pwm_start(timer_config_s* cfg);
 void timer_pwm_stop(timer_config_s* cfg);
 void timer_pwm_set_duty(timer_config_s* cfg, u8 duty);
+void timer_get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel, u16* period);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

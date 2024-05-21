@@ -23,8 +23,6 @@
 
 typedef struct {
 	i32 velocity;		 // Current rotational velocity
-	u16 curr_val;		 // Current value
-	u16 prev_val;		 // Previous value
 	u8	accel_mode;	 // Acceleration mode
 	u8	accel_const; // Acceleration constant
 	i8	direction;	 // Current direction
@@ -52,19 +50,5 @@ int encoder_init(encoder_s* enc);
  *
  * @param enc Pointer to encoder device.
  * @param direction Current direction of encoder (-1, 0, +1)
- * @return True if encoder position changed.
  */
-bool encoder_update(encoder_s* enc, int direction);
-
-/**
- * @brief Clamps the current value of the encoder between a min
- * and max value range.
- *
- * Min and max must be u16 to conform with the types used by
- * the encoder system.
- *
- * @param enc Pointer to encoder device.
- * @param min Minimum value of range.
- * @param max Maximum value of range.
- */
-void encoder_clamp(encoder_s* enc, u16 min, u16 max);
+void encoder_update(encoder_s* enc, int direction);

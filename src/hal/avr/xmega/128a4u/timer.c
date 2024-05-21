@@ -84,6 +84,10 @@ int timer_init(timer_config_s* cfg) {
 	return 0;
 }
 
+u16 timer_getval(timer_config_s* cfg) {
+	return cfg->timer->CNT;
+}
+
 void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
 	assert(cfg);
 
@@ -135,8 +139,8 @@ void timer_pwm_start(timer_config_s* cfg) {
 #define NUM_PRESCALERS (sizeof(prescalers) / sizeof(prescalers[0]))
 #define MAX_PER				 UINT16_MAX
 
-static void get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
-													 u16* period) {
+void timer_get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
+													u16* period) {
 	PROGMEM static const u16 prescalers[]		 = {1, 2, 4, 8, 64, 256, 1024};
 	const u32								 clocks_per_tick = F_CPU / freq;
 	u32											 lowest_error		 = UINT32_MAX;

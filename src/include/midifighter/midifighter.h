@@ -85,6 +85,7 @@ typedef struct {
 	switch_state_e sw_state;
 	switch_mode_e	 sw_mode;
 	proto_cfg_s		 sw_cfg;
+
 } mf_encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

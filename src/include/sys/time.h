@@ -7,8 +7,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include <avr/pgmspace.h>
-
 #include "sys/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -16,13 +14,14 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifdef VSER_ENABLE
-#define println_pmem(s) (println_progmem(PSTR(s)))
-void println_progmem(const char* const str);
-void println(const char* const str);
-void printbuf(u8* buf, uint len);
-#else
-#define println_pmem(str)
-#define println(str)
-#define printbuf(b, l)
-#endif
+/**
+ * @brief Start the system time.
+ */
+void systime_start(void);
+
+/**
+ * @brief Get the system time.
+ *
+ * @return u32 Current time in milliseconds.
+ */
+u32 systime_ms(void);

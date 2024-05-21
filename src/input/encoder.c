@@ -12,7 +12,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define VEL_INC 2
+#define VEL_INC 1
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -21,31 +21,29 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Acceleration constants
-static i16 accel_curve[] = {VEL_INC * 8, VEL_INC * 10, VEL_INC * 15,
-														VEL_INC * 30, VEL_INC * 50};
+static i16 accel_curve[] = {VEL_INC * 3, VEL_INC * 4, VEL_INC * 5, VEL_INC * 6};
+// static i16 accel_curve[] = {VEL_INC * 8, VEL_INC * 10, VEL_INC * 15,
+// 														VEL_INC * 30, VEL_INC * 50};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int encoder_init(encoder_s* enc) {
 	assert(enc);
-
-	enc->accel_mode	 = 1;
+	enc->accel_mode	 = 0;
 	enc->accel_const = 0;
-	enc->curr_val		 = 0;
-	enc->prev_val		 = 0;
 	enc->velocity		 = 0;
 	return 0;
 }
 
-bool encoder_update(encoder_s* enc, int direction) {
-	enc->prev_val = enc->curr_val;
+void encoder_update(encoder_s* enc, int direction) {
+	// enc->prev_val = enc->curr_val;
 	if (enc->accel_mode == 0) {
 		if (direction == 0) {
 			enc->velocity = 0;
-			return false;
+			return;
 		}
 
-		enc->velocity = 1500 * direction;
+		enc->velocity = ENC_MAX_VELOCITY * direction;
 	} else {
 		// If the encoder stopped moving then decelerate
 		if (direction == 0) {
@@ -57,12 +55,15 @@ bool encoder_update(encoder_s* enc, int direction) {
 				enc->velocity = 0;
 			}
 
-			return false;
+			return;
 		}
 
 		// Accelerate if the direction is the same, otherwise reset the acceleration
 		if (enc->direction == direction) {
-			enc->accel_const = (enc->accel_const + 1) % COUNTOF(accel_curve);
+			enc->accel_const += 1;
+			if (enc->accel_const >= (COUNTOF(accel_curve) - 1)) {
+				enc->accel_const = COUNTOF(accel_curve) - 1;
+			}
 		} else {
 			enc->accel_const = 0;
 			enc->velocity		 = 0;
@@ -74,19 +75,8 @@ bool encoder_update(encoder_s* enc, int direction) {
 		// Update the velocity
 		enc->velocity +=
 				accel_curve[enc->accel_const] * enc->accel_const * direction;
+		enc->velocity = CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
 	}
-
-	// Apply the velocity
-	i32 newval =
-			enc->curr_val + CLAMP(enc->velocity, -ENC_MAX_VELOCITY, ENC_MAX_VELOCITY);
-	enc->curr_val = CLAMP(newval, ENC_MIN, ENC_MAX);
-
-	return (bool)(enc->curr_val != enc->prev_val);
-}
-
-inline void encoder_clamp(encoder_s* enc, u16 min, u16 max) {
-	assert(enc);
-	enc->curr_val = CLAMP(enc->curr_val, min, max);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

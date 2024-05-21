@@ -7,22 +7,19 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include <avr/pgmspace.h>
-
 #include "sys/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/* Amount of time (ms) that an encoder will ignore external events
+	after it has recently moved */
+#define DEFAULT_ENC_PLAYDEAD_TIME (80)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifdef VSER_ENABLE
-#define println_pmem(s) (println_progmem(PSTR(s)))
-void println_progmem(const char* const str);
-void println(const char* const str);
-void printbuf(u8* buf, uint len);
-#else
-#define println_pmem(str)
-#define println(str)
-#define printbuf(b, l)
-#endif
+typedef struct {
+	u8 enc_dead_time;
+} sys_config_s;
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

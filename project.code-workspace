@@ -51,6 +51,7 @@
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "mesonbuild.configureOnOpen": false,
 
   },
 
