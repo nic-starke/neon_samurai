@@ -1,10 +1,10 @@
 <div align="center">
   <h1>NEON_SAMURAI</h1>
-  
+
   <img src="./logo.png" alt="NEON_SAMURAI" style="max-width: 500px; max-height: 200;">
-  
-  <i>An alternative firmware for the Midifighter Twister</i>
-  
+
+<i>An alternative firmware for the Midifighter Twister</i>
+
   <h4 align="center">
     <a href="#introduction">Introduction</a> -
     <a href="#features">Features</a> -
@@ -22,8 +22,7 @@
 
 </div>
 
-
-## Introduction 
+## Introduction
 
 NEON_SAMURAI is an alternative firmware for the DJ Tech Tools Midi Fighter Twister. It focuses on extending the original functionality and aims to explore new features (see the features section for more info).
 
@@ -32,25 +31,26 @@ If you use this software you must accept the License, please be aware that using
 ## Features
 
 KEY:
- - ✅ Feature implemented.
- - ⏲ Feature planned, not complete yet.
- - Not planned.
 
-| Feature                         |  Status                 |
-| --------------------------      | :-----------------:     |
-| Configurable Channels      			|  ✅                     |
-| Acceleration                    |  ✅                     |
-| Firmware Recovery (DJTT)        |  ✅                     |
-| 14-bit CC/NRPN                  |  ⏲                      |
-| LFOs                            |  ⏲                      |
-| Virtual Banks                   |  ⏲                      |
-| HID - Mouse/Keyboard            |  ⏲                      |
-| Standalone Configuration        |  ⏲                      |
-| Improved Button/Switch Modes    |  ⏲                      |
-| Hyper Knobs                     |  ⏲                      |
-| Open Sound Control (OSC)        |  ⏲                      |
-| Traktor Sequencer               |  Not planned            |
-| Midi 2.0                        |  Not planned            |
+- ✅ Feature implemented.
+- ⏲ Feature planned, not complete yet.
+- Not planned.
+
+| Feature                      |   Status    |
+| ---------------------------- | :---------: |
+| Configurable Channels        |     ✅      |
+| Acceleration                 |     ✅      |
+| Firmware Recovery (DJTT)     |     ✅      |
+| 14-bit CC/NRPN               |      ⏲      |
+| LFOs                         |      ⏲      |
+| Virtual Banks                |      ⏲      |
+| HID - Mouse/Keyboard         |      ⏲      |
+| Standalone Configuration     |      ⏲      |
+| Improved Button/Switch Modes |      ⏲      |
+| Hyper Knobs                  |      ⏲      |
+| Open Sound Control (OSC)     |      ⏲      |
+| Traktor Sequencer            | Not planned |
+| Midi 2.0                     | Not planned |
 
 ## Download
 
@@ -74,7 +74,7 @@ Coming soon.
 
 Coming soon.
 
-## Contributing 
+## Contributing
 
 Contributions to make **neosam** even better are welcomed. If you'd like to get involved, you can:
 
@@ -93,7 +93,12 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 - cmake
 - ninja
 - avrdude (for programming flash)
+- pre-commit (for githooks)
 
+#### Setting up pre-commit.
+
+- install pre-commit
+- run `pre-commit install-hooks` in the root of the project.
 
 #### Setting up the build system:
 
@@ -108,7 +113,6 @@ meson subprojects packagefiles --apply
 - Run the user task `Generate`
 - Run the default build task.
 
-
 ### Contributors
 
 <a href="https://github.com/nic-starke"><img src="https://avatars.githubusercontent.com/u/10380155?v=4" title="nic-starke" width="75" height="75"></a>
@@ -116,5 +120,5 @@ meson subprojects packagefiles --apply
 ### Sponsors
 
 ## Analytics
-![Alt](https://repobeats.axiom.co/api/embed/349b4dffd3819c8746b8d91e4de04beaabb05ebe.svg "Repobeats analytics image")
 
+![Alt](https://repobeats.axiom.co/api/embed/349b4dffd3819c8746b8d91e4de04beaabb05ebe.svg "Repobeats analytics image")

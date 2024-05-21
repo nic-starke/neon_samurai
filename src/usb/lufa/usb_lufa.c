@@ -601,7 +601,29 @@ void println_progmem(const char* const str) {
 
 	if (vser_active) {
 		CDC_Device_SendString_P(&lufa_usb_cdc_device, str);
+		CDC_Device_SendString_P(&lufa_usb_cdc_device, PSTR("\r\n"));
 		CDC_Device_Flush(&lufa_usb_cdc_device);
 	}
 }
+
+void println(const char* const str) {
+	assert(str);
+
+	if (vser_active) {
+		CDC_Device_SendString(&lufa_usb_cdc_device, str);
+		CDC_Device_SendString_P(&lufa_usb_cdc_device, PSTR("\r\n"));
+		CDC_Device_Flush(&lufa_usb_cdc_device);
+	}
+}
+
+void printbuf(u8* buf, uint len) {
+	assert(buf);
+
+	if (vser_active) {
+		CDC_Device_SendData(&lufa_usb_cdc_device, buf, len);
+		CDC_Device_SendString_P(&lufa_usb_cdc_device, PSTR("\r\n"));
+		CDC_Device_Flush(&lufa_usb_cdc_device);
+	}
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

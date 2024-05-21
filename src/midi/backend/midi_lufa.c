@@ -94,10 +94,10 @@ int midi_update(void) {
 	MIDI_EventPacket_t rx;
 
 	while (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
-		// const char* str = "received midi\n";
-		// printusb("received_midi\n");
+
 		switch (rx.Event) {
 			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {
+				println_pmem("Rx CC:");
 				midi_cc_event_s cc;
 				cc.channel = (rx.Data1 & 0x0F);
 				cc.control = rx.Data2;
@@ -106,6 +106,11 @@ int midi_update(void) {
 				midi_event_s e;
 				e.type		= MIDI_EVENT_CC;
 				e.data.cc = cc;
+
+				char										 buf[64];
+				static const char* const formatstr = "CH: %u, CC: %u, VAL: %u";
+				sprintf(buf, formatstr, cc.channel, cc.control, cc.value);
+				println(buf);
 
 				event_post(EVENT_CHANNEL_MIDI_IN, &e);
 				break;
@@ -125,23 +130,30 @@ static int midi_out_handler(void* event) {
 
 	midi_event_s* e = (midi_event_s*)event;
 
-	println_pmem("sending midi");
+	MIDI_EventPacket_t pkt = {0};
 
 	switch (e->type) {
 		case MIDI_EVENT_CC: {
 			midi_cc_event_s* cc = &e->data.cc;
+			// println_pmem("Tx CC:");
 
-			MIDI_EventPacket_t pkt;
 			pkt.Event = MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE);
 			pkt.Data1 = (cc->channel & 0x0F | MIDI_COMMAND_CONTROL_CHANGE);
 			pkt.Data2 = (cc->control & 0x7F);
 			pkt.Data3 = (cc->value & 0x7F);
+
 			MIDI_Device_SendEventPacket(&lufa_usb_midi_device, &pkt);
 			break;
 		}
 
-		default: return ERR_BAD_PARAM;
+		default: {
+			return ERR_BAD_PARAM;
+		}
 	}
+
+	// printbuf(&pkt.Data1, 1);
+	// printbuf(&pkt.Data2, 1);
+	// printbuf(&pkt.Data3, 1);
 
 	return 0;
 }

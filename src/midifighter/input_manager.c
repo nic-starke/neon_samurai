@@ -7,6 +7,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "sys/error.h"
+#include "sys/print.h"
 #include "input/encoder.h"
 #include "event/event.h"
 #include "event/io.h"
@@ -285,19 +286,15 @@ static int midi_in_handler(void* evt) {
 			for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
 				for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
 					mf_encoder_s* enc		 = &encoders[b][e];
+					virtmap_s*		vmap	 = enc->virtmap.head;
 					bool					update = false;
-
-					virtmap_s*	 vmap	 = enc->virtmap.head;
-					proto_cfg_s* proto = &vmap->proto;
-
 					while (vmap != NULL) {
-
 						// Check if the vmap matches the incoming midi
-						if (proto->type != PROTOCOL_MIDI) {
+						if (vmap->proto.type != PROTOCOL_MIDI) {
 							goto NEXT;
-						} else if (proto->midi.channel != midi->data.cc.channel) {
+						} else if (vmap->proto.midi.channel != midi->data.cc.channel) {
 							goto NEXT;
-						} else if (proto->midi.data.cc != midi->data.cc.control) {
+						} else if (vmap->proto.midi.data.cc != midi->data.cc.control) {
 							goto NEXT;
 						}
 

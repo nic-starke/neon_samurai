@@ -49,8 +49,14 @@ bool encoder_update(encoder_s* enc, int direction) {
 	} else {
 		// If the encoder stopped moving then decelerate
 		if (direction == 0) {
-			enc->velocity = (enc->velocity > 0) ? enc->velocity - VEL_INC
-																					: enc->velocity + VEL_INC;
+			if (enc->velocity >= VEL_INC) {
+				enc->velocity -= VEL_INC;
+			} else if (enc->velocity <= -VEL_INC) {
+				enc->velocity += VEL_INC;
+			} else {
+				enc->velocity = 0;
+			}
+
 			return false;
 		}
 

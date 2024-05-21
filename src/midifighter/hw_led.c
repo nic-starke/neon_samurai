@@ -80,10 +80,10 @@ void hw_led_init(void) {
 			.dbuf_mode			 = DMA_DBUFMODE_DISABLED_gc,
 			.int_prio				 = PRIORITY_OFF,
 			.err_prio				 = PRIORITY_OFF,
-			.src_ptr				 = &mf_frame_buf[0][0],
+			.src_ptr				 = (uptr)&mf_frame_buf[0][0],
 			.src_addr_mode	 = DMA_CH_SRCDIR_INC_gc,
 			.src_reload_mode = DMA_CH_SRCRELOAD_NONE_gc,
-			.dst_ptr				 = &USART_LED.DATA,
+			.dst_ptr				 = (uptr)&USART_LED.DATA,
 			.dst_addr_mode	 = DMA_CH_DESTDIR_FIXED_gc,
 			.dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
 	};
@@ -132,7 +132,7 @@ ISR(TCD0_CCB_vect) {
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
 
-		uptr ptr = &mf_frame_buf[mf_frame][0];
+		uptr ptr = (uptr)&mf_frame_buf[mf_frame][0];
 
 		if (++mf_frame >= MF_NUM_PWM_FRAMES) {
 			mf_frame = 0;
