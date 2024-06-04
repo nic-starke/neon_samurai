@@ -8,9 +8,13 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MIDI_CC_MIN		(MIDI_CC_MSB_BANK)
-#define MIDI_CC_MAX		(MIDI_CC_MONO2)
-#define MIDI_CC_RANGE (MIDI_CC_MAX - MIDI_CC_MIN)
+#define MIDI_CC_MIN				(MIDI_CC_MSB_BANK)
+#define MIDI_CC_MAX				(MIDI_CC_MONO2)
+#define MIDI_CC_RANGE			(MIDI_CC_MAX - MIDI_CC_MIN)
+
+#define MIDI_CC_14B_MIN		(0)
+#define MIDI_CC_14B_MAX		(0x3FFF)
+#define MIDI_CC_14B_RANGE (MIDI_CC_14B_MAX - MIDI_CC_14B_MIN)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

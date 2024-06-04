@@ -97,7 +97,7 @@ int midi_update(void) {
 
 		switch (rx.Event) {
 			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {
-				println_pmem("Rx CC:");
+				// println_pmem("Rx CC:");
 				midi_cc_event_s cc;
 				cc.channel = (rx.Data1 & 0x0F);
 				cc.control = rx.Data2;
@@ -108,10 +108,11 @@ int midi_update(void) {
 				e.data.cc = cc;
 
 #ifdef VSER_ENABLE
-				char										 buf[64];
-				static const char* const formatstr = "CH: %u, CC: %u, VAL: %u";
-				sprintf(buf, formatstr, cc.channel, cc.control, cc.value);
-				println(buf);
+#warning "Clib printf functions use lots of memory."
+				// char										 buf[64];
+				// static const char* const formatstr = "CH: %u, CC: %u, VAL: %u";
+				// sprintf(buf, formatstr, cc.channel, cc.control, cc.value);
+				// println(buf);
 #endif
 
 				event_post(EVENT_CHANNEL_MIDI_IN, &e);

@@ -22,10 +22,10 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef struct {
-	i32 velocity;		 // Current rotational velocity
-	u8	accel_mode;	 // Acceleration mode
-	u8	accel_const; // Acceleration constant
-	i8	direction;	 // Current direction
+	i32 velocity;		// Current rotational velocity
+	u8	accel_mode; // Acceleration mode
+	u8	accel_tick; // Acceleration tick constant (1 tick per ms)
+	i8	direction;	// Current direction
 } encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

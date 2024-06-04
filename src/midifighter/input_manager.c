@@ -6,6 +6,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+#include <stdio.h>
+
 #include "sys/config.h"
 #include "sys/error.h"
 #include "sys/print.h"
@@ -26,12 +28,14 @@
 static void sw_encoder_init(void);
 static void sw_encoder_update(void);
 static int	midi_in_handler(void* evt);
+static void print_dir(uint enc_idx, int dir);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static sys_config_s config = {
-		.enc_dead_time = DEFAULT_ENC_PLAYDEAD_TIME,
+		.enc_dead_time			= DEFAULT_ENC_PLAYDEAD_TIME,
+		.midi_throttle_time = DEFAULT_MIDI_THROTTLE_TIME,
 };
 
 EVT_HANDLER(1, evt_midi, midi_in_handler);
@@ -84,19 +88,29 @@ static void sw_encoder_init(void) {
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
 			enc->virtmap.mode			= VIRTMAP_MODE_TOGGLE;
+			// enc->virtmap.mode			= VIRTMAP_MODE_OVERLAY;
 			enc->virtmap.head			= NULL;
 			enc->sw_mode					= SW_MODE_VMAP_CYCLE;
 
 			for (uint v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
 				virtmap_s* map = &vmaps[b][e][v];
 
-				map->position.start			= ENC_MIN;
-				map->position.stop			= ENC_MAX;
-				map->range.lower				= MIDI_CC_MIN;
-				map->range.upper				= MIDI_CC_MAX;
+				if (e == 0 && v == 0) {
+					map->position.start	 = ENC_MIN;
+					map->position.stop	 = ENC_MAX;
+					map->range.lower		 = MIDI_CC_14B_MIN;
+					map->range.upper		 = MIDI_CC_14B_MAX;
+					map->proto.midi.mode = MIDI_MODE_CC_14;
+				} else {
+					map->position.start	 = ENC_MIN;
+					map->position.stop	 = ENC_MAX;
+					map->range.lower		 = MIDI_CC_MIN;
+					map->range.upper		 = MIDI_CC_MAX;
+					map->proto.midi.mode = MIDI_MODE_CC;
+				}
+
 				map->proto.type					= PROTOCOL_MIDI;
 				map->proto.midi.channel = 0;
-				map->proto.midi.mode		= MIDI_MODE_CC;
 				map->proto.midi.data.cc = cc++;
 
 				virtmap_assign(&enc->virtmap.head, map);
@@ -111,7 +125,18 @@ static void sw_encoder_init(void) {
 	}
 }
 
+static u32 last_update = 0;
+
 static void sw_encoder_update(void) {
+	bool update_enc = false;
+	u32	 timenow		= systime_ms();
+
+	// throttle update function to 1ms frequency
+	if ((timenow - last_update) > 1) {
+		update_enc	= true;
+		last_update = timenow;
+	}
+
 	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
 		mf_encoder_s* enc = &encoders[active_bank][i];
 
@@ -192,8 +217,10 @@ static void sw_encoder_update(void) {
 			enc->sw_state = SWITCH_IDLE;
 		}
 
-		int dir = quadrature_direction(enc->quad_ctx);
-		encoder_update(&enc->enc_ctx, dir);
+		if (update_enc) {
+			int dir = quadrature_direction(enc->quad_ctx);
+			encoder_update(&enc->enc_ctx, dir);
+		}
 
 		virtmap_s* vmap = enc->virtmap.head;
 
@@ -208,7 +235,15 @@ static void sw_encoder_update(void) {
 				continue;
 			}
 
-			vmap->curr_pos		= newpos;
+			vmap->curr_pos = newpos;
+#warning "this bypasses everything, remove it after debugging
+			print_dir(i, enc->enc_ctx.direction);
+			break;
+
+			// bool skip = ((timenow - vmap->last_update) <
+			// config.midi_throttle_time); if (skip) { 	continue;
+			// }
+
 			vmap->last_update = systime_ms();
 
 			switch (vmap->proto.type) {
@@ -241,6 +276,38 @@ static void sw_encoder_update(void) {
 							midi_evt.data.cc.channel = vmap->proto.midi.channel;
 							midi_evt.data.cc.control = vmap->proto.midi.data.cc;
 							midi_evt.data.cc.value	 = val & MIDI_CC_MAX;
+							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+							break;
+						}
+
+						case MIDI_MODE_CC_14: {
+							bool invert = (vmap->range.lower > vmap->range.upper);
+
+							i32 val = convert_range(vmap->curr_pos, vmap->position.start,
+																			vmap->position.stop, vmap->range.lower,
+																			vmap->range.upper);
+
+							if (invert) {
+								val = 0x3FFF - val;
+							}
+
+							if (vmap->curr_val == val) {
+								break;
+							}
+
+							vmap->curr_val = val;
+
+							midi_event_s midi_evt;
+							// Send the MSB
+							midi_evt.type						 = MIDI_EVENT_CC;
+							midi_evt.data.cc.channel = vmap->proto.midi.channel;
+							midi_evt.data.cc.control = vmap->proto.midi.data.cc;
+							midi_evt.data.cc.value	 = (val >> 7) & 0x7F;
+							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+
+							// Then the LSB
+							midi_evt.data.cc.control = vmap->proto.midi.data.cc + 32;
+							midi_evt.data.cc.value	 = val & 0x7F;
 							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 							break;
 						}
@@ -299,7 +366,7 @@ static int midi_in_handler(void* evt) {
 						}
 
 						else if ((timenow - vmap->last_update) < config.enc_dead_time) {
-							println_pmem("skipped");
+							// println_pmem("skipped");
 							goto NEXT;
 						}
 
@@ -320,4 +387,11 @@ static int midi_in_handler(void* evt) {
 	}
 
 	return 0;
+}
+
+static void print_dir(uint enc_idx, int dir) {
+	char										 buf[20]	 = {0};
+	static const char* const formatstr = "ed[%d][%d]";
+	sprintf(buf, formatstr, enc_idx, dir);
+	println(buf);
 }

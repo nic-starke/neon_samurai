@@ -49,6 +49,7 @@ avrdude 		    = AVR_GCC_PATH / 'avrdude'
 
 [properties]
 objcopy_hex_args = [
+  '--strip-debug',
   '-O',
   'ihex',
   '-R',
@@ -57,6 +58,7 @@ objcopy_hex_args = [
   '@OUTPUT@']
 
 objcopy_bin_args = [
+  '--strip-debug',
   '-O',
   'binary',
   '-R',

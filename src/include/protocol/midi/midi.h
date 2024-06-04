@@ -17,6 +17,7 @@
 typedef enum {
 	MIDI_MODE_DISABLED,
 	MIDI_MODE_CC,
+	MIDI_MODE_CC_14,
 	MIDI_MODE_REL_CC,
 	MIDI_MODE_NOTE,
 } midi_mode_e;

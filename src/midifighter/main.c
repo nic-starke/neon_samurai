@@ -14,6 +14,7 @@
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
 #include "sys/time.h"
+#include "sys/print.h"
 #include "usb/usb.h"
 #include "protocol/midi/midi.h"
 #include "event/event.h"
@@ -41,6 +42,8 @@ __attribute__((noreturn)) void main(void) {
 
 	// Enable system interrupts
 	sei();
+
+	// println_pmem("Init done");
 
 	while (1) {
 		mf_input_update();

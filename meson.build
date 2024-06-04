@@ -61,6 +61,9 @@ c_compiler_args = [
 
     '-DVSER_ENABLE',
 
+# Generate debug symbols
+    '-g3',
+
     '-ffreestanding',
     '-fwhole-program',
     # '-flto=auto',
