@@ -7,8 +7,32 @@
 			"command": "cpptools.activeConfigCustomVariable",
 			"args": "cross_file",
 		},
+		{
+			"id": "platform",
+			"type": "command",
+			"command": "cpptools.activeConfigCustomVariable",
+			"args": "platform",
+		},
 	],
 	"tasks": [
+		{
+			"label": "Meson Generate with CrossFile",
+			"detail": "Generates the build folder ready for compilation",
+			"type": "shell",
+			"linux": {
+				"command": "meson"
+			},
+			"args": [
+				"setup",
+				"${config:app.build_dir}/${input:platform}",
+				"--cross-file",
+				"${input:cross_file}",
+				"--wipe",
+			],
+			"problemMatcher": [
+				"$meson-gcc"
+			]
+		},
 		{
 			"label": "Meson Generate",
 			"detail": "Generates the build folder ready for compilation",
@@ -18,9 +42,8 @@
 			},
 			"args": [
 				"setup",
-				"${config:app.build_dir}",
-				"--cross-file",
-				"${input:cross_file}"
+				"${config:app.build_dir}/${input:platform}",
+				"--wipe",
 			],
 			"problemMatcher": [
 				"$meson-gcc"
@@ -37,7 +60,7 @@
 				"command": "ninja"
 			},
 			"options": {
-				"cwd": "${config:app.build_dir}",
+				"cwd": "${config:app.build_dir}/${input:platform}",
 				"env": {}
 			},
 			"args": [
@@ -59,12 +82,13 @@
 				"command": "ninja"
 			},
 			"options": {
-				"cwd": "${config:app.build_dir}",
+				"cwd": "${config:app.build_dir}/${input:platform}",
 				"env": {}
 			},
 			"args": [
-				"neosam.elf",
-				"neosam.hex",
+				// "${input:ninja_target}",
+				// "neosam.elf",
+				// "neosam.hex",
 			],
 			"presentation": {
 				"echo": true,

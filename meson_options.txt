@@ -1,4 +1,1 @@
-option('flash',
-  type : 'boolean',
-  value : false,
-  description : 'Flash binary with AVRDude')
+option('platform', type: 'combo', choices: ['linux', 'midifighter'], value: 'linux', description: 'Target platform')

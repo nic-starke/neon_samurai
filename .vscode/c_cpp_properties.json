@@ -4,7 +4,7 @@
     },
     "configurations": [
         {
-            "name": "ATXMEGA128A4U",
+            "name": "Midifighter",
             "includePath": [
                 "${workspaceFolder}/src/include",
                 "${workspaceFolder}/subprojects/lufa**",
@@ -22,7 +22,22 @@
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
             "customConfigurationVariables": {
-                "cross_file": "crossfiles/avr/xmega/128a4u.cross"
+                "cross_file": "crossfiles/avr/xmega/128a4u.cross",
+                "platform": "midifighter"
+            }
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/src/include"
+            ],
+            "defines": [
+            ],
+            "cStandard": "c11",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": [],
+            "customConfigurationVariables": {
+                "platform": "linux"
             }
         }
     ],

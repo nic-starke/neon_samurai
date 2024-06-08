@@ -1,49 +1,81 @@
 {
+  "inputs": [
+		{
+			"id": "platform",
+			"type": "command",
+			"command": "cpptools.activeConfigCustomVariable",
+			"args": "platform",
+		},
+  ],
     "configurations": [
-    {
-      "name": "Debug - BlackMagicProbe",
-      "type": "cortex-debug",
-      "request": "attach",
-      "cwd": "${workspaceRoot}",
-      "executable": "${config:app.build_dir}_debug/zephyr/zephyr.elf",
-      // "runToEntryPoint": "main",
+      {
+        "name": "(gdb) Launch",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${fileDirname}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set Disassembly Flavor to Intel",
+                "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ]
+      }
+    // {
+    //   "name": "Debug - BlackMagicProbe",
+    //   "type": "cortex-debug",
+    //   "request": "attach",
+    //   "cwd": "${workspaceRoot}",
+    //   "executable": "${config:app.build_dir}_debug/zephyr/zephyr.elf",
+    //   // "runToEntryPoint": "main",
       
-      "servertype": "bmp",
-      "interface": "swd",
-      "BMPGDBSerialPort": "/dev/ttyACM0",
-      "gdbTarget": "/dev/ttyACM0",
-      "debuggerArgs": [],
-      "preLaunchTask": "West Build",
-      "preAttachCommands": [
-        "monitor tpwr disable",
-        "monitor connect_srst enable",
-      ],
-      "internalConsoleOptions": "openOnSessionStart",
-      "postAttachCommands": [
-        // "monitor reset",
-        "monitor halt",
-        "interrupt",
-        "dir ${config:zephyr.base}",
-        "file ${config:app.build_dir}_debug/zephyr/zephyr.elf",
-        "load",
-        "b arch_system_halt",
-        "b main",
-        "continue",
-        // "monitor swdp_scan",
-      ],
+    //   "servertype": "bmp",
+    //   "interface": "swd",
+    //   "BMPGDBSerialPort": "/dev/ttyACM0",
+    //   "gdbTarget": "/dev/ttyACM0",
+    //   "debuggerArgs": [],
+    //   "preLaunchTask": "West Build",
+    //   "preAttachCommands": [
+    //     "monitor tpwr disable",
+    //     "monitor connect_srst enable",
+    //   ],
+    //   "internalConsoleOptions": "openOnSessionStart",
+    //   "postAttachCommands": [
+    //     // "monitor reset",
+    //     "monitor halt",
+    //     "interrupt",
+    //     "dir ${config:zephyr.base}",
+    //     "file ${config:app.build_dir}_debug/zephyr/zephyr.elf",
+    //     "load",
+    //     "b arch_system_halt",
+    //     "b main",
+    //     "continue",
+    //     // "monitor swdp_scan",
+    //   ],
       
-      "toolchainPrefix": "arm-zephyr-eabi",
-      "gdbPath": "${config:zephyr.sdk}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
-      // "gdbPath": "gdb-multiarch",
-      "armToolchainPath": "${config:zephyr.sdk}/arm-zephyr-eabi/bin",
+    //   "toolchainPrefix": "arm-zephyr-eabi",
+    //   "gdbPath": "${config:zephyr.sdk}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
+    //   // "gdbPath": "gdb-multiarch",
+    //   "armToolchainPath": "${config:zephyr.sdk}/arm-zephyr-eabi/bin",
       
-      "device":"stm32h750xx",
-      // "cmsisPack": "",
-      // "configFiles": [],   
-      // "searchDir": [],
-      // "showDevDebugOutput": "none",
-      // "loadFiles": null,
-      // "rtos": "Zephyr",
-    }
+    //   "device":"stm32h750xx",
+    //   // "cmsisPack": "",
+    //   // "configFiles": [],   
+    //   // "searchDir": [],
+    //   // "showDevDebugOutput": "none",
+    //   // "loadFiles": null,
+    //   // "rtos": "Zephyr",
+    // }
     ]
   }
