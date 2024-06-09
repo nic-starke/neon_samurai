@@ -1,1 +1,0 @@
-option('platform', type: 'combo', choices: ['linux', 'midifighter'], value: 'linux', description: 'Target platform')

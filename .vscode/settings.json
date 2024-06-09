@@ -10,4 +10,5 @@
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "C_Cpp.intelliSenseEngineFallback": "enabled",
+    "cmake.sourceDirectory": "/home/nic/workspace/personal/neon_samurai",
 }

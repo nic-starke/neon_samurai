@@ -6,3 +6,6 @@
 	path = subprojects/lufa
 	url = https://github.com/nic-starke/lufa.git
 
+[submodule "cmake-buildsystem"]
+	path = cmake/utils
+	url = git@github.com:nic-starke/cmake-buildsystem.git

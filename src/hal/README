@@ -1,0 +1,3 @@
+# /hal
+
+The /hal directory contains abstraction code for the underlying platform/hardware.
