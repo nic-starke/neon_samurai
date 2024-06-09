@@ -18,6 +18,9 @@
 
 // Entry point
 int main(int argc, char* argv[]) {
+	(void)argc;
+	(void)argv;
+
 	printf("hello world\r\n");
 	return 0;
 }

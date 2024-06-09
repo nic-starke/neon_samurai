@@ -1,18 +1,21 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Common Sources
 # This cmakelists generates a library that a platform-specific application
-# can link against/
+# can link against.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-add_library(common INTERFACE)
+set(LIB_NAME common)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/include/${LIB_NAME})
 
-file(GLOB_RECURSE COMMON_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
-target_sources(common INTERFACE ${COMMON_SOURCES})
-target_include_directories(common INTERFACE ${CMAKE_SOURCE_DIR}/include)
+add_library(${LIB_NAME} INTERFACE)
+
+file(GLOB_RECURSE ${LIB_NAME}_sources "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
+target_sources(${LIB_NAME} INTERFACE ${${LIB_NAME}_sources})
+target_include_directories(${LIB_NAME} INTERFACE ${INCLUDE_DIR})
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Configuration Files (cmake generated source/header)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-configure_file (
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/sys/version.h.in"
-  "${PROJECT_BINARY_DIR}/src/include/sys/version.h")
+configure_file(
+  "${INCLUDE_DIR}/sys/project.h.in"
+  "${PROJECT_BINARY_DIR}/include/${LIB_NAME}/sys/project.h")

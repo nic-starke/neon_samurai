@@ -1,5 +1,7 @@
 {
 	"version": "2.0.0",
+	
+	
 	"inputs": [
 		{
 			"id": "cross_file",
@@ -14,14 +16,21 @@
 			"args": "platform",
 		},
 	],
+
+
 	"tasks": [
 		{
-			"label": "Meson Generate",
-			"detail": "Generates the build folder ready for compilation",
+			"label": "CMake Configure",
+			"detail": "Generates the build-system ready for compilation",
 			"type": "shell",
-			"linux": {
-				"command": "scripts/generate.sh"
-			},
+			"command": "cmake",
+			"args": [
+				"-G",
+				"Ninja",
+				"-B",
+				"${config:app.build_dir}/${input:platform}",
+				"-DPLATFORM=${input:platform}",
+			],
 			"problemMatcher": []
 		},
 		{
@@ -31,9 +40,7 @@
 			"group": {
 				"kind": "build"
 			},
-			"linux": {
-				"command": "ninja"
-			},
+			"command" : "ninja",
 			"options": {
 				"cwd": "${config:app.build_dir}/${input:platform}",
 				"env": {}
@@ -53,19 +60,11 @@
 			"dependsOn": [
 				"Clean"
 			],
-			"linux": {
-				"command": "meson"
-			},
+			"command" : "ninja",
 			"options": {
-				// "cwd": "${config:app.build_dir}/${input:platform}",
-				"env": {}
+				"cwd": "${config:app.build_dir}/${input:platform}",
 			},
 			"args": [
-				"compile",
-				"-C",
-				"${config:app.build_dir}/${input:platform}",
-				// "neosam.elf",
-				// "neosam.hex"
 			],
 			"presentation": {
 				"echo": true,
@@ -77,55 +76,48 @@
 				"clear": false,
 				"close": false
 			},
-			"problemMatcher": {
-				"applyTo": "allDocuments",
-				"base": "$gcc",
-				"fileLocation": [
-					"relative",
-					"${workspaceFolder}/src"
-				]
-			}
+			"problemMatcher": ["$gcc"]
 		},
-		{
-			"label": "Size",
-			"detail": "Displays size (mem usage) of binary",
-			"type": "shell",
-			"group": {
-				"kind": "build"
-			},
-			"linux": {
-				"command": "ninja"
-			},
-			"options": {
-				"cwd": "${config:app.build_dir}",
-				"env": {}
-			},
-			"args": [
-				"BinSize"
-			]
-		},
-		{
-			"label": "Flash Board",
-			"detail": "Programs the board with a built binary",
-			"type": "shell",
-			"group": {
-				"kind": "build"
-			},
-			"dependsOn": "Build (clean)",
-			"linux": {
-				"command": "avrdude"
-			},
-			"args": [
-				"-v",
-				"-c",
-				"jtag3pdi",
-				"-p",
-				"x128a4u",
-				"-P",
-				"usb",
-				"-U",
-				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
-			]
-		}
+		// {
+		// 	"label": "Size",
+		// 	"detail": "Displays size (mem usage) of binary",
+		// 	"type": "shell",
+		// 	"group": {
+		// 		"kind": "build"
+		// 	},
+		// 	"linux": {
+		// 		"command": "ninja"
+		// 	},
+		// 	"options": {
+		// 		"cwd": "${config:app.build_dir}",
+		// 		"env": {}
+		// 	},
+		// 	"args": [
+		// 		"BinSize"
+		// 	]
+		// },
+		// {
+		// 	"label": "Flash Board",
+		// 	"detail": "Programs the board with a built binary",
+		// 	"type": "shell",
+		// 	"group": {
+		// 		"kind": "build"
+		// 	},
+		// 	"dependsOn": "Build (clean)",
+		// 	"linux": {
+		// 		"command": "avrdude"
+		// 	},
+		// 	"args": [
+		// 		"-v",
+		// 		"-c",
+		// 		"jtag3pdi",
+		// 		"-p",
+		// 		"x128a4u",
+		// 		"-P",
+		// 		"usb",
+		// 		"-U",
+		// 		"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
+		// 	]
+		// }
 	],
 }
