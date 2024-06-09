@@ -96,8 +96,6 @@ endif()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Output Message
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-message("${PROJECT_NAME}")
-message("CMake Generating...")
 message("---------------------------------------")
 message("Build type:       \t ${CMAKE_BUILD_TYPE}")
 message("Build directory:  \t ${CMAKE_BINARY_DIR}")
@@ -111,6 +109,5 @@ message("Build directory:  \t ${CMAKE_BINARY_DIR}")
 # message("Build libcpp:     \t ${LIBCPP}")
 # message("CCache executable:\t ${CCACHE}")
 # message("Building doc:     \t ${BUILD_DOC}")
-message("---------------------------------------")
 message("${PROJECT_NAME} Version:          \t ${PROJECT_VERSION}")
 message("---------------------------------------")

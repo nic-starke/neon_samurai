@@ -5,8 +5,11 @@
     "configurations": [
         {
             "name": "Midifighter",
+            "customConfigurationVariables": {
+                "cross_file": "avr/xmega/128a4u.cross",
+                "platform": "midifighter"
+            },
             "includePath": [
-                "${workspaceFolder}/src/include",
                 "${workspaceFolder}/subprojects/lufa**",
                 "${workspaceFolder}/subprojects/qcbor**",
                 "/usr/avr/include/**"
@@ -21,16 +24,9 @@
             "cStandard": "c11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
-            "customConfigurationVariables": {
-                "cross_file": "avr/xmega/128a4u.cross",
-                "platform": "midifighter"
-            }
         },
         {
             "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/src/include"
-            ],
             "defines": [
             ],
             "cStandard": "c11",

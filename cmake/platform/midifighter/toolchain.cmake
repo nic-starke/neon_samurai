@@ -1,27 +1,57 @@
-set(CMAKE_SYSTEM_NAME               Generic)
-set(CMAKE_SYSTEM_PROCESSOR          arm)
+# CMake Toolchain File for AVR XMEGA
 
-# Without that flag CMake is not able to pass test compilation check
-set(CMAKE_TRY_COMPILE_TARGET_TYPE   STATIC_LIBRARY)
+# Define constants from the Meson cross-file
+set(F_CPU "32000000")
+set(F_USB "48000000")
+set(MCU "atxmega128a4u")
+set(MCU_ARCH "ARCH_XMEGA")
+set(MCU_DEFINE "ATXMEGA128A4U")
+set(USR_BOARD "USER_BOARD")
+set(AVR_GCC_PATH "/usr/bin/")  # Update this with your actual AVR GCC toolchain path
+set(AVR_LIBC_PATH "/usr/avr/include/")
+set(LIB_XMEGA7_PATH "/usr/avr/lib/avrxmega7")
 
-set(CMAKE_AR                        ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-ar${CMAKE_EXECUTABLE_SUFFIX})
-set(CMAKE_ASM_COMPILER              ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-gcc${CMAKE_EXECUTABLE_SUFFIX})
-set(CMAKE_C_COMPILER                ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-gcc${CMAKE_EXECUTABLE_SUFFIX})
-set(CMAKE_CXX_COMPILER              ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-g++${CMAKE_EXECUTABLE_SUFFIX})
-set(CMAKE_LINKER                    ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-ld${CMAKE_EXECUTABLE_SUFFIX})
-set(CMAKE_OBJCOPY                   ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-objcopy${CMAKE_EXECUTABLE_SUFFIX} CACHE INTERNAL "")
-set(CMAKE_RANLIB                    ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-ranlib${CMAKE_EXECUTABLE_SUFFIX} CACHE INTERNAL "")
-set(CMAKE_SIZE                      ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-size${CMAKE_EXECUTABLE_SUFFIX} CACHE INTERNAL "")
-set(CMAKE_STRIP                     ${BAREMETAL_ARM_TOOLCHAIN_PATH}arm-none-eabi-strip${CMAKE_EXECUTABLE_SUFFIX} CACHE INTERNAL "")
+# Define compiler flags in a list variable
+set(CMAKE_C_FLAGS_LIST
+    "-I${AVR_LIBC_PATH}"
+    "-mmcu=${MCU}"
+    "-DARCH=${MCU_ARCH}"
+    "-D${MCU_DEFINE}"
+    "-DF_USB=${F_USB}"
+    "-DF_CPU=${F_CPU}"
+    "-DBOARD=${USR_BOARD}"
+    "-fdata-sections"
+    "-ffunction-sections"
+    "-Wl,--gc-sections"
+    # "-Wno-psabi"
+    # "--specs=nosys.specs"
+)
 
-set(CMAKE_C_FLAGS                   "-Wno-psabi --specs=nosys.specs -fdata-sections -ffunction-sections -Wl,--gc-sections" CACHE INTERNAL "")
-set(CMAKE_CXX_FLAGS                 "${CMAKE_C_FLAGS} -fno-exceptions" CACHE INTERNAL "")
+# Convert list to a single string with space-separated elements
+string(REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS_LIST}")
 
-set(CMAKE_C_FLAGS_DEBUG             "-Os -g" CACHE INTERNAL "")
-set(CMAKE_C_FLAGS_RELEASE           "-Os -DNDEBUG" CACHE INTERNAL "")
-set(CMAKE_CXX_FLAGS_DEBUG           "${CMAKE_C_FLAGS_DEBUG}" CACHE INTERNAL "")
-set(CMAKE_CXX_FLAGS_RELEASE         "${CMAKE_C_FLAGS_RELEASE}" CACHE INTERNAL "")
+# Define other CMake variables as before
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-exceptions")
+set(CMAKE_C_FLAGS_DEBUG "-Os -g3")
+set(CMAKE_C_FLAGS_RELEASE "-Ofast -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
+# Set compiler and linker paths
+set(CMAKE_AR            "${AVR_GCC_PATH}avr-ar${CMAKE_EXECUTABLE_SUFFIX}")
+set(CMAKE_ASM_COMPILER  "${AVR_GCC_PATH}avr-as${CMAKE_EXECUTABLE_SUFFIX}")
+set(CMAKE_C_COMPILER    "${AVR_GCC_PATH}avr-gcc${CMAKE_EXECUTABLE_SUFFIX}")
+set(CMAKE_CXX_COMPILER  "${AVR_GCC_PATH}avr-g++${CMAKE_EXECUTABLE_SUFFIX}")
+set(CMAKE_LINKER        "${AVR_GCC_PATH}avr-ld${CMAKE_EXECUTABLE_SUFFIX}")
+set(CMAKE_OBJCOPY       "${AVR_GCC_PATH}avr-objcopy${CMAKE_EXECUTABLE_SUFFIX}" CACHE INTERNAL "")
+set(CMAKE_RANLIB        "${AVR_GCC_PATH}avr-ranlib${CMAKE_EXECUTABLE_SUFFIX}" CACHE INTERNAL "")
+set(CMAKE_SIZE          "${AVR_GCC_PATH}avr-size${CMAKE_EXECUTABLE_SUFFIX}" CACHE INTERNAL "")
+set(CMAKE_STRIP         "${AVR_GCC_PATH}avr-strip${CMAKE_EXECUTABLE_SUFFIX}" CACHE INTERNAL "")
+
+# Set compiler flags
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE INTERNAL "")
+
+# Set find root path modes
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)

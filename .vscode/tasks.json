@@ -30,6 +30,7 @@
 				"-B",
 				"${config:app.build_dir}/${input:platform}",
 				"-DPLATFORM=${input:platform}",
+				"--toolchain=${workspaceFolder}/cmake/platform/${input:platform}/toolchain.cmake"
 			],
 			"problemMatcher": []
 		},
@@ -73,7 +74,7 @@
 				"revealProblems": "never",
 				"panel": "dedicated",
 				"focus": true,
-				"clear": false,
+				"clear": true,
 				"close": false
 			},
 			"problemMatcher": ["$gcc"]
