@@ -9,15 +9,14 @@
 project(
     'neosam', 'c',
     version: '1.1',
+    meson_version: '>= 1.4.0',
     default_options: [
-        'buildtype=release',
+        'buildtype=debugoptimized',
         'c_std=c11',
-        'warning_level=1',
-        #'b_staticpic=false',
-        # 'b_lto=true',
     ],
     license: 'MIT',
 )
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Configuration Files
@@ -97,4 +96,12 @@ subdir(join_paths('src/platform/', platform))
 project_src += platform_src
 project_inc += include_directories(join_paths('src/include/platform/', platform))
 
-subdir(join_paths('meson/platform/', platform))
+
+# neosam = executable(
+#     meson.project_name(),
+#     [project_src],
+#     c_args: c_compiler_args,
+#     link_args: c_link_args,
+#     include_directories: [project_inc],
+#     dependencies: [project_dep],
+# )

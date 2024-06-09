@@ -22,7 +22,7 @@
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
             "customConfigurationVariables": {
-                "cross_file": "crossfiles/avr/xmega/128a4u.cross",
+                "cross_file": "avr/xmega/128a4u.cross",
                 "platform": "midifighter"
             }
         },

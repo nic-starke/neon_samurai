@@ -8,10 +8,6 @@
 
 assert(meson.is_cross_build(), 'Not a valid cross-compilation environment')
 
-if get_option('target') != 'midifighter'
-    error('This file should only be included when building for midifighter.')
-endif
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Meson imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -21,6 +17,9 @@ cmake = import('cmake')
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Dependencies
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+add_global_arguments('-DQCBOR_DISABLE_FLOAT_HW_USE', language: 'c')
+add_global_arguments('-DUSE_LUFA_CONFIG_HEADER', language: 'c')
 
 qcbor_options = cmake.subproject_options()
 qcbor_subproject = cmake.subproject('qcbor', options: qcbor_options)
@@ -33,9 +32,6 @@ lufa_dep = dependency(
     required: true,
     native: false,
 )
-
-add_global_arguments('-DQCBOR_DISABLE_FLOAT_HW_USE', language: 'c')
-add_global_arguments('-DUSE_LUFA_CONFIG_HEADER', language: 'c')
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Source Files
