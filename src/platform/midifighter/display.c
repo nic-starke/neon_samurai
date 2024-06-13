@@ -8,7 +8,7 @@
 
 #include <math.h>
 
-#include "midifighter/midifighter.h"
+#include "platform/midifighter/midifighter.h"
 
 #include "input/encoder.h"
 

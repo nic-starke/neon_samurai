@@ -5,7 +5,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "midifighter/midifighter.h"
+#include "platform/midifighter/midifighter.h"
 
 #include "hal/avr/xmega/128a4u/init.h"
 

@@ -1,7 +1,0 @@
-[wrap-git]
-url = https://github.com/nic-starke/lufa.git
-revision = master
-patch_directory = lufa
-
-[provide]
-dependency_names = lufa_dep

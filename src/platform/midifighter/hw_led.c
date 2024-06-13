@@ -17,7 +17,7 @@
 #include "hal/avr/xmega/128a4u/usart.h"
 #include "hal/avr/xmega/128a4u/timer.h"
 
-#include "midifighter/midifighter.h"
+#include "platform/midifighter/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

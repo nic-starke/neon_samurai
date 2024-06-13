@@ -10,9 +10,7 @@
                 "platform": "midifighter"
             },
             "includePath": [
-                "${workspaceFolder}/subprojects/lufa**",
-                "${workspaceFolder}/subprojects/qcbor**",
-                "/usr/avr/include/**"
+                "/usr/lib/avr/include/**"
             ],
             "defines": [
                 "ARCH=ARCH_XMEGA",
@@ -24,11 +22,11 @@
             "cStandard": "c11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
+            "compileCommands": "${workspaceFolder}/build/midifighter/compile_commands.json"
         },
         {
             "name": "Linux",
-            "defines": [
-            ],
+            "defines": [],
             "cStandard": "c11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],

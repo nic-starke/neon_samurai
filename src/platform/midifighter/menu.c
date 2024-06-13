@@ -11,7 +11,7 @@
 // */
 
 // #include "midifighter/midifighter_display.h"
-// #include "midifighter/midifighter.h"
+// #include "platform/midifighter/midifighter.h"
 // #include "menu/menu.h"
 
 // /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -15,7 +15,7 @@
 #include "lfo/lfo.h"
 #include "virtmap/virtmap.h"
 
-#include "midifighter/midifighter.h"
+#include "platform/midifighter/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

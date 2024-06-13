@@ -1,6 +1,0 @@
-[wrap-git]
-url = https://github.com/laurencelundblade/QCBOR.git
-revision = master
-
-[provide]
-dependency_names = qcbor_dep

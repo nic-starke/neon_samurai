@@ -8,8 +8,8 @@ set(MCU_ARCH "ARCH_XMEGA")
 set(MCU_DEFINE "ATXMEGA128A4U")
 set(USR_BOARD "USER_BOARD")
 set(AVR_GCC_PATH "/usr/bin/")  # Update this with your actual AVR GCC toolchain path
-set(AVR_LIBC_PATH "/usr/avr/include/")
-set(LIB_XMEGA7_PATH "/usr/avr/lib/avrxmega7")
+set(AVR_LIBC_PATH "/usr/lib/avr/include/")
+set(LIB_XMEGA7_PATH "/usr/lib/avr/lib/avrxmega7")
 
 # Define compiler flags in a list variable
 set(CMAKE_C_FLAGS_LIST

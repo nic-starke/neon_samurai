@@ -3,13 +3,9 @@
 
   "settings": {
     "cmake.configureOnOpen": false,
-    "C_Cpp.default.compilerPath": "/usr/bin/avr-gcc",
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
     "C_Cpp.default.includePath": [
       "${default}",
-      "${workspaceFolder}/src/include",
-      "${workspaceFolder}/src/common/include",
-      "${workspaceFolder}/build/include"
+      "${workspaceFolder}/src/include/**",
     ],
     "cmake.sourceDirectory": "${workspaceFolder}/src",
     "cmake.buildDirectory": "${workspaceFolder}/build",

@@ -1,11 +1,3 @@
-[submodule "subprojects/qcbor"]
-	path = subprojects/qcbor
-	url = https://github.com/laurencelundblade/QCBOR.git
-
-[submodule "subprojects/lufa"]
-	path = subprojects/lufa
-	url = https://github.com/nic-starke/lufa.git
-
 [submodule "cmake-buildsystem"]
 	path = cmake/utils
 	url = git@github.com:nic-starke/cmake-buildsystem.git

@@ -10,14 +10,14 @@
 
 #include "sys/types.h"
 #include "usb/usb.h"
-#include "usb/lufa/usb_lufa.h"
+#include "platform/midifighter/usb.h"
 #include "sys/print.h"
 
 #include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Drivers/USB/Class/Common/MIDIClassCommon.h"
 #include "LUFA/Drivers/USB/Class/Device/MIDIClassDevice.h"
-#include "LUFAConfig.h"
+#include "platform/midifighter/LUFAConfig.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

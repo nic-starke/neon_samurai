@@ -10,7 +10,7 @@
 #include "sys/print.h"
 #include "event/midi.h"
 #include "protocol/midi/midi.h"
-#include "usb/lufa/usb_lufa.h"
+#include "platform/midifighter/usb.h"
 
 #include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"

@@ -9,7 +9,7 @@
 
 #include "hal/avr/xmega/128a4u/gpio.h"
 
-#include "midifighter/midifighter.h"
+#include "platform/midifighter/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

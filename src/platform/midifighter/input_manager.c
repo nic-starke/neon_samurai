@@ -18,7 +18,7 @@
 #include "event/midi.h"
 #include "event/sys.h"
 
-#include "midifighter/midifighter.h"
+#include "platform/midifighter/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
