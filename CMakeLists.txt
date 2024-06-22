@@ -89,12 +89,6 @@ else()
     message(FATAL_ERROR "The directory ${CMAKE_SOURCE_DIR}/cmake/platform/${PLATFORM_NAME} does not exist.")
 endif()
 
-# if(EXISTS "${CMAKE_SOURCE_DIR}/src/platform/${PLATFORM_NAME}")
-#     add_subdirectory(${CMAKE_SOURCE_DIR}/src/platform/${PLATFORM_NAME})
-# else()
-#     message(FATAL_ERROR "The directory ${CMAKE_SOURCE_DIR}/src/platform/${PLATFORM_NAME} does not exist.")
-# endif()
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Output Message
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

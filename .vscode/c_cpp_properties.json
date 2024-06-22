@@ -9,9 +9,6 @@
                 "cross_file": "avr/xmega/128a4u.cross",
                 "platform": "midifighter"
             },
-            "includePath": [
-                "/usr/lib/avr/include/**"
-            ],
             "defines": [
                 "ARCH=ARCH_XMEGA",
                 "ATXMEGA128A4U",
