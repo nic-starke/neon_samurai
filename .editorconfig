@@ -15,11 +15,11 @@ end_of_line = lf
 insert_final_newline = false
 
 # Source Code (refer to .clang-format as well)
-[*.{c++,c,cc,cpp,cxx,h,h++,hh,hpp,hxx,inl,ipp,tlh,tli}]
+[*.{c++,c,cc,cpp,cxx,h,h++,hh,hpp,hxx,inl,ipp,tlh,tli,CMakeLists.txt}]
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = tab
-indent_size = 2
+indent_size = 4
 max_line_length = 80
 
 [*.tsv]
