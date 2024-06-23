@@ -10,9 +10,9 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define SAMPLE_RATE			1000 // Update rate in Hz
-#define TWO_PI					(2 * 314) // Using scaled value for 2 * π (multiplied by 100)
-#define MAX_PHASE				(2 * 314) // Max phase value corresponding to 2 * π
+#define SAMPLE_RATE		1000 // Update rate in Hz
+#define TWO_PI			(2 * 314) // Using scaled value for 2 * π (multiplied by 100)
+#define MAX_PHASE		(2 * 314) // Max phase value corresponding to 2 * π
 #define AMPLITUDE_SCALE 1 // Scaling factor for amplitude and other values
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -23,7 +23,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-i16 fixed_sine(i16 phase) {
+static i16 fixed_sine(i16 phase) {
 	// Normalize phase to [0, 2π] range and use approximation
 	i16 angle = (phase * 360) / MAX_PHASE;
 	if (angle < 90) {
@@ -45,21 +45,22 @@ Implements the 5-order polynomial approximation to sin(x).
 The result is accurate to within +- 1 count. ie: +/-2.44e-4.
 */
 int16_t fpsin(int16_t i) {
-	/* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2, which
-	 * is the region of the curve fit). */
+	/* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2,
+	 * which is the region of the curve fit). */
 	/* ------------------------------------------------------------------- */
 	i <<= 1;
 	uint8_t c = i < 0; // set carry for output pos/neg
 
 	if (i ==
-			(i |
-			 0x4000)) // flip input value to corresponding value in range [0..8192)
+		(i |
+		 0x4000)) // flip input value to corresponding value in range [0..8192)
 		i = (1 << 15) - i;
 	i = (i & 0x7FFF) >> 1;
 	/* ------------------------------------------------------------------- */
 
 	/* The following section implements the formula:
-	 = y * 2^-n * ( A1 - 2^(q-p)* y * 2^-n * y * 2^-n * [B1 - 2^-r * y * 2^-n * C1
+		= y * 2^-n * ( A1 - 2^(q-p)* y * 2^-n * y * 2^-n * [B1 - 2^-r * y * 2^-n
+	* C1
 	* y]) * 2^(a-q) Where the constants are defined as follows:
 	*/
 	enum {
@@ -76,12 +77,12 @@ int16_t fpsin(int16_t i) {
 	};
 
 	uint32_t y = (C1 * ((uint32_t)i)) >> n;
-	y					 = B1 - (((uint32_t)i * y) >> r);
-	y					 = (uint32_t)i * (y >> n);
-	y					 = (uint32_t)i * (y >> n);
-	y					 = A1 - (y >> (p - q));
-	y					 = (uint32_t)i * (y >> n);
-	y					 = (y + (1UL << (q - a - 1))) >> (q - a); // Rounding
+	y		   = B1 - (((uint32_t)i * y) >> r);
+	y		   = (uint32_t)i * (y >> n);
+	y		   = (uint32_t)i * (y >> n);
+	y		   = A1 - (y >> (p - q));
+	y		   = (uint32_t)i * (y >> n);
+	y		   = (y + (1UL << (q - a - 1))) >> (q - a); // Rounding
 
 	return c ? -y : y;
 }

@@ -22,10 +22,10 @@ typedef enum {
 } waveform_e;
 
 typedef struct {
-	i16				 frequency;
-	i16				 amplitude;
-	i16				 phase;
-	i16				 sampleRate;
+	i16		   frequency;
+	i16		   amplitude;
+	i16		   phase;
+	i16		   sampleRate;
 	waveform_e waveform;
 } lfo_s;
 

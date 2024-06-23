@@ -48,10 +48,10 @@ typedef struct {
 } pwm_config_s;
 
 typedef struct {
-	volatile TC0_t*		 timer;
+	volatile TC0_t*	   timer;
 	timer_peripheral_e periph;
-	timer_channel_e		 channel;
-	u32								 freq; // Timer frequency (Hz)
+	timer_channel_e	   channel;
+	u32				   freq; // Timer frequency (Hz)
 
 	timer_mode_e mode;
 	union {

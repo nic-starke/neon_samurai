@@ -18,9 +18,9 @@
  */
 typedef union {
 	struct {
-		u16 red		: 5;
+		u16 red	  : 5;
 		u16 green : 5;
-		u16 blue	: 5;
+		u16 blue  : 5;
 	};
 	u16 value;
 } rgb_15_s;

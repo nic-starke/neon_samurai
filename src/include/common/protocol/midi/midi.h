@@ -24,7 +24,7 @@ typedef enum {
 
 typedef struct {
 	midi_mode_e mode;
-	u8					channel;
+	u8			channel;
 	union {
 		midi_cc_e cc;
 	} data;

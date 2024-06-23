@@ -18,12 +18,12 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MASK_INDICATORS				 (0xFFE0)
-#define LEFT_INDICATORS_MASK	 (0xF800)
-#define RIGHT_INDICATORS_MASK	 (0x03E0)
-#define CLEAR_LEFT_INDICATORS	 (0x03FF) // Mask to clear mid and left-side leds
+#define MASK_INDICATORS		   (0xFFE0)
+#define LEFT_INDICATORS_MASK   (0xF800)
+#define RIGHT_INDICATORS_MASK  (0x03E0)
+#define CLEAR_LEFT_INDICATORS  (0x03FF) // Mask to clear mid and left-side leds
 #define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
-#define MASK_PWM_INDICATORS		 (0xFBE0)
+#define MASK_PWM_INDICATORS	   (0xFBE0)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -32,9 +32,9 @@ typedef union {
 	struct {
 		u16 detent_blue	 : 1;
 		u16 detent_red	 : 1;
-		u16 rgb_blue		 : 1;
-		u16 rgb_red			 : 1;
-		u16 rgb_green		 : 1;
+		u16 rgb_blue	 : 1;
+		u16 rgb_red		 : 1;
+		u16 rgb_green	 : 1;
 		u16 indicator_11 : 1;
 		u16 indicator_10 : 1;
 		u16 indicator_9	 : 1;
@@ -63,13 +63,13 @@ static u8 max_brightness = MF_MAX_BRIGHTNESS;
 int mf_draw_encoder(mf_encoder_s* enc) {
 	assert(enc);
 
-	f32	 ind_pwm;		 // index for LED indicator positions (e.g position = 5.7)
+	f32	 ind_pwm;	 // index for LED indicator positions (e.g position = 5.7)
 	uint ind_norm;	 // integer of above
 	uint max_frames; // max frames to generate (for the correct brightness)
 	encoder_led_s leds = {0};
 
 	virtmap_s* v = enc->virtmap.head;
-	uint			 vmap_positions[MF_NUM_VMAPS_PER_ENC];
+	uint	   vmap_positions[MF_NUM_VMAPS_PER_ENC];
 	vmap_positions[0] = v->curr_pos;
 
 	if (vmap_positions[0] <= led_interval) {
@@ -87,8 +87,9 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	// if (enc->display.virtmode == VIRTMAP_DISPLAY_OVERLAY) {
 	// 	while (o != NULL) {
 	// 		vmap_positions[i] = convert_range(o->curr_value, o->range.lower,
-	// o->range.upper, 																o->position.start,
-	// o->position.stop); 																o = o->next;
+	// o->range.upper,
+	// o->position.start, o->position.stop);
+	// o = o->next;
 	// 	}
 	// }
 
@@ -103,11 +104,11 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 		case DIS_MODE_MULTI: {
 			if (enc->detent) {
 				if (ind_norm < 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
+					leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 1)) &
+								  LEFT_INDICATORS_MASK;
 				} else if (ind_norm > 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 5)) & RIGHT_INDICATORS_MASK;
+					leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
+								  RIGHT_INDICATORS_MASK;
 				}
 			} else {
 				// Default mode - set the indicator leds upto "led_index"
@@ -117,15 +118,15 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 		}
 
 		case DIS_MODE_MULTI_PWM: {
-			f32 diff	 = ind_pwm - (floorf(ind_pwm));
+			f32 diff   = ind_pwm - (floorf(ind_pwm));
 			max_frames = (unsigned int)((diff)*MF_NUM_PWM_FRAMES);
 			if (enc->detent) {
 				if (ind_norm < 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
+					leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 1)) &
+								  LEFT_INDICATORS_MASK;
 				} else if (ind_norm > 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 5)) & RIGHT_INDICATORS_MASK;
+					leds.state |= (LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
+								  RIGHT_INDICATORS_MASK;
 				}
 			} else {
 				// Default mode - set the indicator leds upto "led_index"
@@ -148,7 +149,7 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	for (unsigned int f = 0; f < MF_NUM_PWM_FRAMES; ++f) {
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < f) {
-			leds.state								= 0;
+			leds.state				  = 0;
 			mf_frame_buf[f][enc->idx] = ~leds.state;
 			continue;
 		}
@@ -157,25 +158,29 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 			if (enc->detent) {
 				if (ind_norm < 6) {
 					if (f < max_frames) {
-						leds.state &=
-								~((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
+						leds.state &= ~((0x8000 >> (int)(ind_pwm - 1)) &
+										MASK_PWM_INDICATORS);
 					} else {
-						leds.state |=
-								((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
+						leds.state |= ((0x8000 >> (int)(ind_pwm - 1)) &
+									   MASK_PWM_INDICATORS);
 					}
 
 				} else if (ind_norm > 6) {
 					if (f < max_frames) {
-						leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+						leds.state |=
+							((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
 					} else {
-						leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+						leds.state &=
+							~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
 					}
 				}
 			} else {
 				if (f < max_frames) {
-					leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+					leds.state |=
+						((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
 				} else {
-					leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+					leds.state &=
+						~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
 				}
 			}
 		}
@@ -214,10 +219,10 @@ static void display_update(input_dev_encoder_s* dev) {
 	quadrature_s*		enc = (quadrature_s*)dev->ctx;
 	mf_display_s* dis = &enc_dis[dev->idx];
 
-	f32						ind_pwm;		// Partial encoder positions (e.g position = 5.7)
-	uint					ind_norm;		// Integer encoder positions (e.g position = 5)
-	uint					pwm_frames; // Number of PWM frames for partial brightness
-	encoder_led_s leds;				// LED states
+	f32						ind_pwm;		// Partial encoder positions (e.g
+position = 5.7) uint					ind_norm;		// Integer encoder
+positions (e.g position = 5) uint					pwm_frames; // Number of PWM
+frames for partial brightness encoder_led_s leds;				// LED states
 
 	// Clear all LEDs
 	leds.state = 0;
@@ -247,9 +252,8 @@ static void display_update(input_dev_encoder_s* dev) {
 			if (enc->enc_ctx.detent) {
 				if (ind_norm < 6) {
 					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
-				} else if (ind_norm > 6) {
-					leds.state |=
+							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) &
+LEFT_INDICATORS_MASK; } else if (ind_norm > 6) { leds.state |=
 							(LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
 RIGHT_INDICATORS_MASK;
 				}
@@ -266,9 +270,8 @@ RIGHT_INDICATORS_MASK;
 			if (enc->enc_ctx.detent) {
 				if (ind_norm < 6) {
 					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
-				} else if (ind_norm > 6) {
-					leds.state |=
+							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) &
+LEFT_INDICATORS_MASK; } else if (ind_norm > 6) { leds.state |=
 							(LEFT_INDICATORS_MASK >> (ind_norm - 5)) &
 RIGHT_INDICATORS_MASK;
 				}
@@ -303,24 +306,24 @@ RIGHT_INDICATORS_MASK;
 				if (ind_norm < 6) {
 					if (p < pwm_frames) {
 						leds.state &=
-								~((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
-					} else {
-						leds.state |=
-								((0x8000 >> (int)(ind_pwm - 1)) & MASK_PWM_INDICATORS);
+								~((0x8000 >> (int)(ind_pwm - 1)) &
+MASK_PWM_INDICATORS); } else { leds.state |=
+								((0x8000 >> (int)(ind_pwm - 1)) &
+MASK_PWM_INDICATORS);
 					}
 
 				} else if (ind_norm > 6) {
 					if (p < pwm_frames) {
-						leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
-					} else {
-						leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+						leds.state |= ((0x8000 >> (int)ind_pwm) &
+MASK_PWM_INDICATORS); } else { leds.state &= ~((0x8000 >> (int)ind_pwm) &
+MASK_PWM_INDICATORS);
 					}
 				}
 			} else {
 				if (p < pwm_frames) {
-					leds.state |= ((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
-				} else {
-					leds.state &= ~((0x8000 >> (int)ind_pwm) & MASK_PWM_INDICATORS);
+					leds.state |= ((0x8000 >> (int)ind_pwm) &
+MASK_PWM_INDICATORS); } else { leds.state &= ~((0x8000 >> (int)ind_pwm) &
+MASK_PWM_INDICATORS);
 				}
 			}
 		}

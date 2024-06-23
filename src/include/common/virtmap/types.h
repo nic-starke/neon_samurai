@@ -44,7 +44,8 @@ typedef struct virtmap_s {
 	 *
 	 * E.g if the lower value is 1000 and the upper value is 5000, then the
 	 * virtual encoder will output the value 1000 at the position.start point
-	 * (see position struct below) and the value 5000 at the position.stop point.
+	 * (see position struct below) and the value 5000 at the position.stop
+	 * point.
 	 *
 	 * Every intermediate point is linearly interpolated, so halfway between
 	 * start and stop would output a value of  3000 in this  example.
@@ -65,13 +66,13 @@ typedef struct virtmap_s {
 
 	/**
 	 * @brief The start and stop position are the absolute values determining
-	 * where the virtual encoder begins and ends on the physical encoder rotation.
-	 * E.g if the start value is 0% and the stop value is 50% then the virtual
-	 * encoder will only operate from 0 degrees to 180 degrees (midpoint) of the
-	 * physical encoder.
+	 * where the virtual encoder begins and ends on the physical encoder
+	 * rotation. E.g if the start value is 0% and the stop value is 50% then the
+	 * virtual encoder will only operate from 0 degrees to 180 degrees
+	 * (midpoint) of the physical encoder.
 	 *
-	 * Note that the start and stop values are not percentages, they are a 16-bit
-	 * value. To calculate percentages use the appropriate defines for
+	 * Note that the start and stop values are not percentages, they are a
+	 * 16-bit value. To calculate percentages use the appropriate defines for
 	 * min/max encoder value.
 	 */
 	struct {
@@ -79,10 +80,10 @@ typedef struct virtmap_s {
 		u16 stop;
 	} position;
 
-	u16								curr_pos;
-	i32								curr_val;
-	u32								last_update;
-	proto_cfg_s				proto;
+	u16				  curr_pos;
+	i32				  curr_val;
+	u32				  last_update;
+	proto_cfg_s		  proto;
 	struct virtmap_s* next;
 } virtmap_s;
 

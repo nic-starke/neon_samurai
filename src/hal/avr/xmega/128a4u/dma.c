@@ -23,9 +23,9 @@
 
 void dma_peripheral_init(void) {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		PR.PRGEN &= ~PR_DMA_bm;			// Enable power to the DMA controller
+		PR.PRGEN &= ~PR_DMA_bm;		// Enable power to the DMA controller
 		DMA.CTRL &= ~DMA_ENABLE_bm; // Disable
-		DMA.CTRL |= DMA_RESET_bm;		// Reset (all registers cleared)
+		DMA.CTRL |= DMA_RESET_bm;	// Reset (all registers cleared)
 		DMA.CTRL |= DMA_ENABLE_bm;	// Enable
 	}
 }
@@ -37,7 +37,7 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg) {
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		ch->CTRLA &= ~DMA_CH_ENABLE_bm; // Disable DMA channel
-		ch->CTRLA |= DMA_CH_RESET_bm;		// Reset the channel (and registers)
+		ch->CTRLA |= DMA_CH_RESET_bm;	// Reset the channel (and registers)
 
 		// Source configuration
 		ch->SRCADDR0 = (cfg->src_ptr >> 0) & 0xFF;
@@ -68,13 +68,14 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg) {
 		}
 
 		ch->CTRLB |= ((cfg->err_prio << DMA_CH_ERRINTLVL_gp) |
-									(cfg->int_prio << DMA_CH_TRNINTLVL_gp));
+					  (cfg->int_prio << DMA_CH_TRNINTLVL_gp));
 
 		/**
 		 * Set the double buffer mode for the DMA controller.
-		 * If enabled - this will "interlink" DMA channel 0 and 1, or channel 2 and
-		 * 3 After the primary channel is complete the secondary channel will fire a
-		 * dma transaction, which then re-enables the primary channel...
+		 * If enabled - this will "interlink" DMA channel 0 and 1, or channel 2
+		 * and 3 After the primary channel is complete the secondary channel
+		 * will fire a dma transaction, which then re-enables the primary
+		 * channel...
 		 */
 		DMA.CTRL = (DMA.CTRL & ~DMA_DBUFMODE_gm) | cfg->dbuf_mode;
 

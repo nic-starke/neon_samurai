@@ -47,7 +47,7 @@ inline bool switch_was_released(switch_x16_ctx_s* ctx, u8 index) {
 void switch_x8_debounce(switch_x8_ctx_s* ctx) {
 	// Store the current state
 	ctx->previous = ctx->current;
-	ctx->current	= 0xFF;
+	ctx->current  = 0xFF;
 
 	// AND the new state with EVERY debounce sample, if there was a glitch
 	// then the state of the switch will revert to 0.
@@ -63,7 +63,7 @@ void switch_x8_debounce(switch_x8_ctx_s* ctx) {
 void switch_x16_debounce(switch_x16_ctx_s* ctx) {
 	// Store the current state
 	ctx->previous = ctx->current;
-	ctx->current	= 0xFFFF;
+	ctx->current  = 0xFFFF;
 
 	// AND the new state with EVERY debounce sample, if there was a glitch
 	// then the state of the switch will revert to 0.
@@ -80,7 +80,7 @@ void switch_x8_update(switch_x8_ctx_s* ctx, u8 gpio_state) {
 	ctx->buf[ctx->index] = gpio_state;
 
 	// Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
-	ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
+	ctx->index = (u8)(ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
 }
 
 void switch_x16_update(switch_x16_ctx_s* ctx, u16 gpio_state) {
@@ -88,7 +88,7 @@ void switch_x16_update(switch_x16_ctx_s* ctx, u16 gpio_state) {
 	ctx->buf[ctx->index] = gpio_state;
 
 	// Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
-	ctx->index = (ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
+	ctx->index = (u8)(ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
 
 	switch_x16_debounce(ctx);
 }
@@ -106,7 +106,7 @@ void switch_x16_update(switch_x16_ctx_s* ctx, u16 gpio_state) {
  */
 u8 SideSwitchWasPressed(u8 Mask) {
   return (mSideSwitchStates.raw_state & mSideSwitchStates.debounces_states) &
-         Mask;
+		 Mask;
 }
 
 /**
@@ -118,7 +118,7 @@ u8 SideSwitchWasPressed(u8 Mask) {
  */
 u8 SideSwitchWasReleased(u8 Mask) {
   return (mSideSwitchStates.raw_state & (~mSideSwitchStates.debounces_states)) &
-         Mask;
+		 Mask;
 }
 
 #endif

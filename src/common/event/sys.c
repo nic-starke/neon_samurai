@@ -23,17 +23,17 @@ static int event_handler(void* event);
 static event_sys_s sys_event_queue[8];
 
 static event_ch_handler_s sys_event_handler = {
-		.handler	= &event_handler,
-		.next			= NULL,
-		.priority = 0,
+	.handler  = &event_handler,
+	.next	  = NULL,
+	.priority = 0,
 };
 
 event_channel_s sys_event_ch = {
-		.queue			= (u8*)sys_event_queue,
-		.queue_size = SYS_EVENT_QUEUE_SIZE,
-		.data_size	= sizeof(event_sys_s),
-		.handlers		= &sys_event_handler,
-		.onehandler = true,
+	.queue		= (u8*)sys_event_queue,
+	.queue_size = SYS_EVENT_QUEUE_SIZE,
+	.data_size	= sizeof(event_sys_s),
+	.handlers	= &sys_event_handler,
+	.onehandler = true,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

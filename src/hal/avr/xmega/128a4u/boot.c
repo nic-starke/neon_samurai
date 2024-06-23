@@ -31,22 +31,22 @@ void (*bootloader)(void) = (void (*)(void))(BOOT_SECTION_START / 2 + 0x1FC / 2);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void bootloader_check(void) {
-  // Check if the reset was caused by the watchdog timer, and that the bootkey
-  // is valid.
-  if (((RST.STATUS & RST_WDRF_bm)) && (boot_key == BOOTKEY)) {
-    boot_key = 0; // Reset the bootkey to stop a bootloader loop.
+	// Check if the reset was caused by the watchdog timer, and that the bootkey
+	// is valid.
+	if (((RST.STATUS & RST_WDRF_bm)) && (boot_key == BOOTKEY)) {
+		boot_key = 0; // Reset the bootkey to stop a bootloader loop.
 
-    /**
-     * Copied from the GCC AVR options documentation -
-     * https://gcc.gnu.org/onlinedocs/gcc-6.3.0/gcc/AVR-Options.html In order to
-     * facilitate indirect jump on devices with more than 128 Ki bytes of
-     * program memory space, there is a special function register called EIND
-     * that serves as most significant part of the target address when EICALL or
-     * EIJMP instructions are used.
-     * */
-    EIND = BOOT_SECTION_START >> 17;
-    bootloader();
-  }
+		/**
+		 * Copied from the GCC AVR options documentation -
+		 * https://gcc.gnu.org/onlinedocs/gcc-6.3.0/gcc/AVR-Options.html In
+		 * order to facilitate indirect jump on devices with more than 128 Ki
+		 * bytes of program memory space, there is a special function register
+		 * called EIND that serves as most significant part of the target
+		 * address when EICALL or EIJMP instructions are used.
+		 * */
+		EIND = BOOT_SECTION_START >> 17;
+		bootloader();
+	}
 }
 
 /*
@@ -57,11 +57,11 @@ void bootloader_check(void) {
   the required value, the bootloader will be executed.
 */
 void bootloader_start(void) {
-  // USB_Disable();
-  // IRQ_DisableInterrupts();
-  boot_key = BOOTKEY;
-  wdt_enable(WDTO_30MS);
-  while (1) {}
+	// USB_Disable();
+	// IRQ_DisableInterrupts();
+	boot_key = BOOTKEY;
+	wdt_enable(WDTO_30MS);
+	while (1) {}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

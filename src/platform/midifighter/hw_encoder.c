@@ -19,10 +19,10 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PORT_SR_ENC				 (PORTC) // IO port for encoder IO shift registers
+#define PORT_SR_ENC		   (PORTC) // IO port for encoder IO shift registers
 
-#define PIN_SR_ENC_LATCH	 (0) // 74HC595N
-#define PIN_SR_ENC_CLOCK	 (1)
+#define PIN_SR_ENC_LATCH   (0) // 74HC595N
+#define PIN_SR_ENC_CLOCK   (1)
 #define PIN_SR_ENC_DATA_IN (2)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
