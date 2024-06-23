@@ -99,7 +99,7 @@ void hw_encoder_scan(void);
 
 void		   hw_switch_init(void);
 void		   hw_switch_update(void);
-switch_state_e hw_enc_switch_state(uint idx);
+switch_state_e hw_enc_switch_state(u8 idx);
 
 void mf_input_init(void);
 void mf_input_update(void);

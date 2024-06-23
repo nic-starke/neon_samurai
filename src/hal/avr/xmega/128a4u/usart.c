@@ -39,8 +39,8 @@ void usart_module_init(USART_t* usart, const usart_config_s* config) {
 		PR.PRPC &= ~(get_mask(usart));
 
 		// Disable rx and tx
-		usart->CTRLB &= ~USART_RXEN_bm;
-		usart->CTRLB &= ~USART_TXEN_bm;
+		usart->CTRLB &= (u8)~USART_RXEN_bm;
+		usart->CTRLB &= (u8)~USART_TXEN_bm;
 
 		// Configure IO pins
 		configure_io(usart, config->mode);
@@ -53,23 +53,23 @@ void usart_module_init(USART_t* usart, const usart_config_s* config) {
 			(config->mode == SPI_MODE_CLK_HI_PHA_HI)) {
 			usart->CTRLC |= USART_UCPHA_bm;
 		} else {
-			usart->CTRLC &= ~USART_UCPHA_bm;
+			usart->CTRLC &= (u8)~USART_UCPHA_bm;
 		}
 
 		// Set endianness
 		if (config->endian == ENDIAN_LSB) {
 			usart->CTRLC |= USART_DORD_bm;
 		} else {
-			usart->CTRLC &= ~USART_DORD_bm;
+			usart->CTRLC &= (u8)~USART_DORD_bm;
 		}
 
-		u16 baud = 0;
+		u32 baud = 0;
 
 		if (config->baudrate < (F_CPU / 2)) {
 			baud = (F_CPU / (config->baudrate * 2)) - 1;
 		}
 
-		usart->BAUDCTRLB = (u8)((~USART_BSCALE_gm) & (baud & 0xF00) >> 8);
+		usart->BAUDCTRLB = (u8)((u8)(~USART_BSCALE_gm) & (baud & 0xF00) >> 8u);
 		usart->BAUDCTRLA = (u8)(baud);
 
 		// Enable
@@ -84,7 +84,7 @@ void usart_set_tx(USART_t* usart, bool enable) {
 	if (enable) {
 		usart->CTRLB |= USART_TXEN_bm;
 	} else {
-		usart->CTRLB &= ~USART_TXEN_bm;
+		usart->CTRLB &= (u8)~USART_TXEN_bm;
 	}
 }
 
@@ -94,7 +94,7 @@ void usart_set_rx(USART_t* usart, bool enable) {
 	if (enable) {
 		usart->CTRLB |= USART_RXEN_bm;
 	} else {
-		usart->CTRLB &= ~USART_RXEN_bm;
+		usart->CTRLB &= (u8)~USART_RXEN_bm;
 	}
 }
 

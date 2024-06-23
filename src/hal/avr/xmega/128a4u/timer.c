@@ -19,8 +19,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void			get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
-								   u16* period);
 static u8			get_bitmask(timer_peripheral_e periph);
 static register8_t* get_power_reg(timer_peripheral_e periph);
 
@@ -48,8 +46,9 @@ int timer_init(timer_config_s* cfg) {
 				u16			period;
 				TC_CLKSEL_t clk_sel;
 
-				get_parameters(cfg->freq, &clk_sel, &period);
-				cfg->timer->CTRLA |= clk_sel;
+				timer_get_parameters((unsigned int)cfg->freq, &clk_sel,
+									 &period);
+				cfg->timer->CTRLA |= (u8)clk_sel;
 				cfg->timer->PER = period;
 				break;
 			}
@@ -74,9 +73,10 @@ int timer_init(timer_config_s* cfg) {
 				// PORTD.DIR |= (1u << cfg->channel);
 
 				// Set clock source (starts the timer)
-				cfg->timer->CTRLA |= clk_sel;
+				cfg->timer->CTRLA |= (u8)clk_sel;
 				break;
 			}
+			case TIMER_MODE_NB:
 			default: return ERR_BAD_PARAM;
 		}
 	} // ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -91,14 +91,15 @@ u16 timer_getval(timer_config_s* cfg) {
 void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
 	assert(cfg);
 
-	const u8 shift		 = cfg->channel << 1;
-	const u8 mask		 = (TC0_CCAINTLVL_gm) << shift;
-	cfg->timer->INTCTRLB = (cfg->timer->INTCTRLB & ~mask) | (priority << shift);
+	const u8 shift = (u8)cfg->channel << 1;
+	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
+	cfg->timer->INTCTRLB =
+		(u8)(cfg->timer->INTCTRLB & ~mask) | (u8)(priority << shift);
 }
 
 void timer_ch_isr_disable(timer_config_s* cfg) {
 	assert(cfg);
-	const u8 shift = cfg->channel << 2;
+	const u8 shift = (u8)cfg->channel << 2;
 	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
 	cfg->timer->INTCTRLB &= ~mask;
 }
@@ -106,12 +107,12 @@ void timer_ch_isr_disable(timer_config_s* cfg) {
 void timer_ovr_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
 	assert(cfg);
 	cfg->timer->INTCTRLA =
-		(cfg->timer->INTCTRLA & ~TC0_OVFINTLVL_gm) | priority;
+		(cfg->timer->INTCTRLA & (u8)~TC0_OVFINTLVL_gm) | (u8)priority;
 }
 
 void timer_ovr_isr_disable(timer_config_s* cfg) {
 	assert(cfg);
-	cfg->timer->INTCTRLA &= ~TC0_OVFINTLVL_gm;
+	cfg->timer->INTCTRLA &= (u8)~TC0_OVFINTLVL_gm;
 }
 
 void timer_pwm_set_duty(timer_config_s* cfg, u8 duty) {

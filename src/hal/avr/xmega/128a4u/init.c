@@ -13,6 +13,7 @@
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
 #include "hal/avr/xmega/128a4u/dma.h"
+#include "hal/avr/xmega/128a4u/init.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

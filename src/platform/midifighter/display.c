@@ -135,6 +135,7 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 			break;
 		}
 
+		case DIS_MODE_NB:
 		default: return ERR_BAD_PARAM;
 	}
 

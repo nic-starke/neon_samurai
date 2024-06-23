@@ -87,7 +87,7 @@ void hw_encoder_scan(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 }
 
-switch_state_e hw_enc_switch_state(uint idx) {
+switch_state_e hw_enc_switch_state(u8 idx) {
 	assert(idx < MF_NUM_ENCODER_SWITCHES);
 
 	if (switch_was_pressed(&switch_ctx, idx)) {

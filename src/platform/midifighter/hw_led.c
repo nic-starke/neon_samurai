@@ -38,6 +38,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+void mf_led_set_max_brightness(u8 brightness);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // LED frame buffer
@@ -51,7 +54,7 @@ volatile u8 mf_frame = 0;
 void hw_led_init(void) {
 
 	// Set all LEDS off
-	memset(mf_frame_buf, 0xFFFF, sizeof(mf_frame_buf));
+	memset((u16*)mf_frame_buf, (int)0xFFFF, (size_t)sizeof(mf_frame_buf));
 	// memset(mf_frame_buf, 0x0000, sizeof(mf_frame_buf));
 
 	// Configure GPIO for LED shift registers
@@ -62,7 +65,7 @@ void hw_led_init(void) {
 	gpio_dir(&PORT_SR_LED, PIN_SR_LED_RESET_N, GPIO_OUTPUT);
 
 	// Configure USART (SPI) for LED shift registers
-	const usart_config_s usart_cfg = {
+	usart_config_s usart_cfg = {
 		.baudrate = USART_BAUD,
 		.endian	  = ENDIAN_LSB,
 		.mode	  = SPI_MODE_CLK_LO_PHA_LO,
@@ -72,7 +75,7 @@ void hw_led_init(void) {
 	// The configuration will transmit 1 byte at a time, for a total of:
 	// 32 bytes (block count) x 1 times (repeat count).
 	// The trigger is set to USART data buffer being empty.
-	const dma_channel_cfg_s dma_cfg = {
+	dma_channel_cfg_s dma_cfg = {
 		.repeat_count	 = 1,
 		.block_size		 = MF_NUM_LED_SHIFT_REGISTERS,
 		.burst_len		 = DMA_CH_BURSTLEN_1BYTE_gc,
@@ -144,8 +147,8 @@ ISR(TCD0_CCB_vect) {
 		// fires. The CCB value must wrap around at the TOP/PER value of the
 		// timer.
 		TCD0.CCB		 = (TCD0.CCB + SOFT_PWM_PERIOD) % TIMER_PERIOD;
-		DMA.CH0.SRCADDR0 = (ptr >> 0) & 0xFF;
-		DMA.CH0.SRCADDR1 = (ptr >> 8) & 0xFF;
+		DMA.CH0.SRCADDR0 = (u8)(ptr >> 0) & 0xFF;
+		DMA.CH0.SRCADDR1 = (u8)(ptr >> 8) & 0xFF;
 		DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
 	}
 }
