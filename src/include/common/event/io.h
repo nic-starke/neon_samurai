@@ -27,7 +27,7 @@ typedef enum {
 } events_io_e;
 
 typedef struct {
-	u8	  type;
+	u8		type;
 	void* ctx;
 } io_event_s;
 

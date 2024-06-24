@@ -80,10 +80,10 @@ typedef struct virtmap_s {
 		u16 stop;
 	} position;
 
-	u16				  curr_pos;
-	i32				  curr_val;
-	u32				  last_update;
-	proto_cfg_s		  proto;
+	u16								curr_pos;
+	i32								curr_val;
+	u32								last_update;
+	proto_cfg_s				proto;
 	struct virtmap_s* next;
 } virtmap_s;
 

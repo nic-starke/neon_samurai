@@ -108,7 +108,7 @@ int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler) {
 
 	// If the list is empty, add the handler to the start
 	if (curr == NULL) {
-		channel->handlers		= new_handler;
+		channel->handlers				= new_handler;
 		channel->handlers->next = NULL;
 		return 0;
 	}
@@ -137,7 +137,7 @@ int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler) {
 	while (curr->next) {
 		if (curr->next->priority < new_handler->priority) {
 			new_handler->next = curr->next;
-			curr->next		  = new_handler;
+			curr->next				= new_handler;
 			return 0;
 		}
 		curr = curr->next;

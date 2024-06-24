@@ -21,9 +21,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Acceleration constants
-static i16 accel_curve[] = {VEL_INC,	  VEL_INC * 5,	VEL_INC * 15,
-							VEL_INC * 30, VEL_INC * 60, VEL_INC * 100,
-							VEL_INC * 200};
+static i16 accel_curve[] = {VEL_INC,			VEL_INC * 5,	VEL_INC * 15,
+														VEL_INC * 30, VEL_INC * 60, VEL_INC * 100,
+														VEL_INC * 200};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -31,7 +31,7 @@ int encoder_init(encoder_s* enc) {
 	assert(enc);
 	enc->accel_mode = 0;
 	enc->accel_tick = 0;
-	enc->velocity	= 0;
+	enc->velocity		= 0;
 	return 0;
 }
 
@@ -43,7 +43,7 @@ void encoder_update(encoder_s* enc, int direction) {
 		}
 
 		enc->direction = (i8)direction;
-		enc->velocity  = 500 * direction;
+		enc->velocity	 = 500 * direction;
 		// enc->velocity = ENC_MAX_VELOCITY * direction;
 	} else {
 
@@ -61,7 +61,7 @@ void encoder_update(encoder_s* enc, int direction) {
 			}
 		}
 		enc->velocity =
-			(accel_curve[enc->accel_tick] * enc->accel_tick * direction);
+				(accel_curve[enc->accel_tick] * enc->accel_tick * direction);
 
 		enc->direction = (i8)direction;
 	}

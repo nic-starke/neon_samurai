@@ -21,7 +21,7 @@ PointerAlignment: Left
 ReflowComments: true
 SortIncludes: false
 InsertNewlineAtEOF: true
-TabWidth: 4
-IndentWidth: 4
+TabWidth: 2
+IndentWidth: 2
 IndentCaseLabels: true
 UseTab: Always

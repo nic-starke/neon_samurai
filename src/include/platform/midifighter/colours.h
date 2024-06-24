@@ -8,7 +8,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MF_RGB_WHITE   (0x32DF) // red = max, blue = 12, green = 22
+#define MF_RGB_WHITE	 (0x32DF) // red = max, blue = 12, green = 22
 
 #define MF_RGB_MAX_VAL (31)
 

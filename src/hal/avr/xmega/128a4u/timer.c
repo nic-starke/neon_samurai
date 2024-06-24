@@ -19,7 +19,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static u8			get_bitmask(timer_peripheral_e periph);
+static u8						get_bitmask(timer_peripheral_e periph);
 static register8_t* get_power_reg(timer_peripheral_e periph);
 
 static int pwm_get_params(u16 freq, TC_CLKSEL_t* clk, u16* per);
@@ -43,11 +43,10 @@ int timer_init(timer_config_s* cfg) {
 				cfg->timer->CTRLB |= TC_WGMODE_NORMAL_gc;
 
 				// Configure timer period and divisor
-				u16			period;
+				u16					period;
 				TC_CLKSEL_t clk_sel;
 
-				timer_get_parameters((unsigned int)cfg->freq, &clk_sel,
-									 &period);
+				timer_get_parameters((unsigned int)cfg->freq, &clk_sel, &period);
 				cfg->timer->CTRLA |= (u8)clk_sel;
 				cfg->timer->PER = period;
 				break;
@@ -56,7 +55,7 @@ int timer_init(timer_config_s* cfg) {
 			case TIMER_MODE_PWM: {
 				// Configure timer period and divisor
 				TC_CLKSEL_t clk_sel = 0;
-				u16			period	= 0;
+				u16					period	= 0;
 
 				int status = pwm_get_params(cfg->pwm.freq, &clk_sel, &period);
 				RETURN_ON_ERR(status);
@@ -92,22 +91,22 @@ void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
 	assert(cfg);
 
 	const u8 shift = (u8)cfg->channel << 1;
-	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
+	const u8 mask	 = (TC0_CCAINTLVL_gm) << shift;
 	cfg->timer->INTCTRLB =
-		(u8)(cfg->timer->INTCTRLB & ~mask) | (u8)(priority << shift);
+			(u8)(cfg->timer->INTCTRLB & ~mask) | (u8)(priority << shift);
 }
 
 void timer_ch_isr_disable(timer_config_s* cfg) {
 	assert(cfg);
 	const u8 shift = (u8)cfg->channel << 2;
-	const u8 mask  = (TC0_CCAINTLVL_gm) << shift;
+	const u8 mask	 = (TC0_CCAINTLVL_gm) << shift;
 	cfg->timer->INTCTRLB &= ~mask;
 }
 
 void timer_ovr_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
 	assert(cfg);
 	cfg->timer->INTCTRLA =
-		(cfg->timer->INTCTRLA & (u8)~TC0_OVFINTLVL_gm) | (u8)priority;
+			(cfg->timer->INTCTRLA & (u8)~TC0_OVFINTLVL_gm) | (u8)priority;
 }
 
 void timer_ovr_isr_disable(timer_config_s* cfg) {
@@ -123,31 +122,35 @@ void timer_pwm_set_duty(timer_config_s* cfg, u8 duty) {
 	}
 
 	cfg->pwm.duty = duty;
-	u16 ccbuf	  = (cfg->timer->PER * duty) / 100;
+	u16 ccbuf			= (cfg->timer->PER * duty) / 100;
 	cc_buffer_set(cfg, ccbuf);
 }
 
+#warning "TODO"
 void timer_pwm_stop(timer_config_s* cfg) {
-#warning todo
+	(void)cfg;
 }
 
+#warning "TODO"
 void timer_pwm_start(timer_config_s* cfg) {
-#warning todo
+	(void)cfg;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
 #define NUM_PRESCALERS (sizeof(prescalers) / sizeof(prescalers[0]))
-#define MAX_PER		   UINT16_MAX
+#define MAX_PER				 UINT16_MAX
 
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
 void timer_get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
-						  u16* period) {
-	PROGMEM static const u16 prescalers[]	 = {1, 2, 4, 8, 64, 256, 1024};
-	const u32				 clocks_per_tick = F_CPU / freq;
-	u32						 lowest_error	 = UINT32_MAX;
-	u32						 per			 = 0;
-	u16						 best_per		 = 0;
+													u16* period) {
+	PROGMEM static const u32 prescalers[]		 = {1, 2, 4, 8, 64, 256, 1024};
+	const u32								 clocks_per_tick = F_CPU / freq;
+	u32											 lowest_error		 = UINT32_MAX;
+	u32											 per						 = 0;
+	u16											 best_per				 = 0;
 
 	u8 i = 0;
 
@@ -158,17 +161,18 @@ void timer_get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
 			continue;
 
 		u32 error;
-		error =
-			abs((i32)clocks_per_tick - (int32_t)((per + 1) * prescalers[i]));
+
+		error = abs(clocks_per_tick - ((per + 1u) * prescalers[i]));
 		if (error < lowest_error) {
 			lowest_error = error;
-			best_per	 = per;
+			best_per		 = per;
 		}
 	}
 
 	*clk_sel = (TC_CLKSEL_t)i + 1;
 	*period	 = best_per;
 }
+#pragma GCC diagnostic pop
 
 static u8 get_bitmask(timer_peripheral_e periph) {
 	switch (periph) {
@@ -226,26 +230,26 @@ static register8_t* get_power_reg(timer_peripheral_e periph) {
  * @return int 0 = success, anything else = failure.
  */
 static int pwm_get_params(u16 freq, TC_CLKSEL_t* clk, u16* per) {
-	// assert(clk);
-	// assert(per);
+	assert(clk);
+	assert(per);
 
-	// if (freq == 0) {
-	//   return ERR_BAD_PARAM;
-	// }
+	if (freq == 0) {
+		return ERR_BAD_PARAM;
+	}
 
-	// u16 period;
-	// u8  prescaler;
+	u16 period;
+	u8	prescaler;
 
-	// // calculate the best period and prescaler for the desired PWM frequency
-	// for (prescaler = 1; prescaler <= 7; prescaler++) {
-	//   period = (u16)(F_CPU / (freq * prescaler));
-	//   if (period <= 0xFFFF) {
-	//     break;
-	//   }
-	// }
+	// calculate the best period and prescaler for the desired PWM frequency
+	for (prescaler = 1; prescaler <= 7; prescaler++) {
+		period = (u16)(F_CPU / (freq * prescaler));
+		if (period <= 0xFFFF) {
+			break;
+		}
+	}
 
-	// *per = period;
-	// *clk = prescaler;
+	*per = period;
+	*clk = prescaler;
 
 	return 0;
 }

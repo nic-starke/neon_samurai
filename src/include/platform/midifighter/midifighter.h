@@ -14,22 +14,22 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MF_NUM_ENCODERS				 (16)
-#define MF_NUM_ENCODER_SWITCHES		 (MF_NUM_ENCODERS)
-#define MF_NUM_SIDE_SWITCHES		 (6)
-#define MF_NUM_LEDS					 (256)
-#define MF_NUM_LEDS_PER_ENCODER		 (16)
-#define MF_NUM_INDICATOR_LEDS		 (11)
+#define MF_NUM_ENCODERS							 (16)
+#define MF_NUM_ENCODER_SWITCHES			 (MF_NUM_ENCODERS)
+#define MF_NUM_SIDE_SWITCHES				 (6)
+#define MF_NUM_LEDS									 (256)
+#define MF_NUM_LEDS_PER_ENCODER			 (16)
+#define MF_NUM_INDICATOR_LEDS				 (11)
 #define MF_NUM_LED_SHIFT_REGISTERS	 (32)
 #define MF_NUM_INPUT_SHIFT_REGISTERS (6)
-#define MF_NUM_PWM_FRAMES			 (32)
+#define MF_NUM_PWM_FRAMES						 (32)
 
-#define MF_MAX_BRIGHTNESS			 (MF_NUM_PWM_FRAMES)
-#define MF_MIN_BRIGHTNESS			 (1)
+#define MF_MAX_BRIGHTNESS						 (MF_NUM_PWM_FRAMES)
+#define MF_MIN_BRIGHTNESS						 (1)
 
-#define MF_NUM_ENC_BANKS			 (3)
-#define MF_NUM_ENC_PER_BANK			 (MF_NUM_ENCODERS)
-#define MF_NUM_VMAPS_PER_ENC		 (2)
+#define MF_NUM_ENC_BANKS						 (3)
+#define MF_NUM_ENC_PER_BANK					 (MF_NUM_ENCODERS)
+#define MF_NUM_VMAPS_PER_ENC				 (2)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -67,24 +67,24 @@ typedef struct {
 
 	// Display Configuration
 	struct {
-		display_mode_e		   mode;
+		display_mode_e				 mode;
 		virtmap_display_mode_e virtmode;
 	} display;
 
 	// Encoder
-	bool		  detent;
-	encoder_s	  enc_ctx;
+	bool					detent;
+	encoder_s			enc_ctx;
 	quadrature_s* quad_ctx;
 
 	struct {
-		virtmap_s*	   head;
+		virtmap_s*		 head;
 		virtmap_mode_e mode;
 	} virtmap;
 
 	// Encoder Switch
 	switch_state_e sw_state;
-	switch_mode_e  sw_mode;
-	proto_cfg_s	   sw_cfg;
+	switch_mode_e	 sw_mode;
+	proto_cfg_s		 sw_cfg;
 
 } mf_encoder_s;
 
@@ -97,8 +97,8 @@ void hw_led_init(void);
 void hw_encoder_init(void);
 void hw_encoder_scan(void);
 
-void		   hw_switch_init(void);
-void		   hw_switch_update(void);
+void					 hw_switch_init(void);
+void					 hw_switch_update(void);
 switch_state_e hw_enc_switch_state(u8 idx);
 
 void mf_input_init(void);

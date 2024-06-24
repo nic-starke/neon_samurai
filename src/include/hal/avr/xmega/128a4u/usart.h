@@ -34,8 +34,8 @@ typedef enum {
 
 typedef struct {
 	spi_mode_e mode;
-	u32		   baudrate;
-	endian_e   endian;
+	u32				 baudrate;
+	endian_e	 endian;
 } usart_config_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

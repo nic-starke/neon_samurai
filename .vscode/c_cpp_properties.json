@@ -16,7 +16,6 @@
                 "__AVR_XMEGA__",
                 "USE_LUFA_CONFIG_HEADER"
             ],
-            "cStandard": "c11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
             "compileCommands": "${workspaceFolder}/build/midifighter/compile_commands.json"
@@ -24,7 +23,6 @@
         {
             "name": "Linux",
             "defines": [],
-            "cStandard": "c11",
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
             "customConfigurationVariables": {

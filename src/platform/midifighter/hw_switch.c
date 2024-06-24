@@ -23,7 +23,7 @@
 
 void hw_switch_init(void) {
 	// Configure gpios for side switches
-	for (int i = 0; i < MF_NUM_SIDE_SWITCHES; ++i) {
+	for (u8 i = 0; i < MF_NUM_SIDE_SWITCHES; ++i) {
 		gpio_dir(&PORT_SW, i, GPIO_INPUT);
 		gpio_mode(&PORT_SW, i, PORT_OPC_PULLUP_gc);
 	}

@@ -47,7 +47,7 @@ inline bool switch_was_released(switch_x16_ctx_s* ctx, u8 index) {
 void switch_x8_debounce(switch_x8_ctx_s* ctx) {
 	// Store the current state
 	ctx->previous = ctx->current;
-	ctx->current  = 0xFF;
+	ctx->current	= 0xFF;
 
 	// AND the new state with EVERY debounce sample, if there was a glitch
 	// then the state of the switch will revert to 0.
@@ -63,7 +63,7 @@ void switch_x8_debounce(switch_x8_ctx_s* ctx) {
 void switch_x16_debounce(switch_x16_ctx_s* ctx) {
 	// Store the current state
 	ctx->previous = ctx->current;
-	ctx->current  = 0xFFFF;
+	ctx->current	= 0xFFFF;
 
 	// AND the new state with EVERY debounce sample, if there was a glitch
 	// then the state of the switch will revert to 0.

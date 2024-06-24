@@ -13,11 +13,11 @@
 
 /* Amount of time (ms) that an encoder will ignore external events
 	after it has recently moved */
-#define DEFAULT_ENC_PLAYDEAD_TIME  (80)
+#define DEFAULT_ENC_PLAYDEAD_TIME	 (80)
 
 #define DEFAULT_MIDI_THROTTLE_TIME (10)
 
-#define DEFAULT_BRIGHTNESS		   (UINT8_MAX)
+#define DEFAULT_BRIGHTNESS				 (UINT8_MAX)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

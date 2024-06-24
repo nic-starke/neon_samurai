@@ -2,11 +2,13 @@
 include(${CMAKE_CURRENT_LIST_DIR}/utils/compiler/CheckAndApplyFlags.cmake)
 
 set(default_cc_flags
-# Diagonistics
+	-std=c23
+	# Diagonistics
 	-ffunction-sections               # Place each function in its own section (ELF Only)
 	-fdata-sections                   # Place each data in its own section (ELF Only)
 	-fdiagnostics-show-option         # Show the corresponding warning option for each diagnostic
-	-fcolor-diagnostics               # Use colors in diagnostics
+	-fcolor-diagnostics=always               # Use colors in diagnostics
+	-fdiagnostics-color=always			   # Use colors in diagnostics
 
 # Warnings
 	-Wall                             # Enable all common compiler warnings
@@ -40,7 +42,7 @@ set(default_cc_flags
 	-Wshift-overflow=2                # Warn about shift operations that may cause overflow
 	-Wsign-conversion                 # Warn about implicit conversions that may change the sign of an integer value
 	-Wstrict-overflow                 # Warn about strict violations of the C99 Strict Aliasing Rules
-	-Wswitch-enum                     # Warn about switch statements that do not handle all enum values
+	# -Wswitch-enum                     # Warn about switch statements that do not handle all enum values
 	-Wtrampolines                     # Warn about trampolines generated for nested functions
 	-Wundef                           # Warn if an undefined identifier is evaluated in '#if'
 	-Wunused                          # Warn about unused variables, functions, labels, etc.
@@ -51,6 +53,7 @@ set(default_cc_flags
 	# Disabled warnings
 	# -Wno-padded                       # Disable warnings about padded structs
 	# -Wno-lto-type-mismatch # Disable warnings about type mismatches in Link Time Optimization (LTO)
+	-Wno-main						 # Disable "no int return" from 'main' function
 )
 
 set(default_link_flags

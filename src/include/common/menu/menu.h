@@ -28,17 +28,17 @@ typedef void(display_f)(void* ctx);
 typedef struct menu_page_s {
 	struct menu_page_s* parent;
 	struct menu_page_s* child;
-	display_f*			update_display;
-	transition_f*		on_enter;
-	transition_f*		on_next;
-	transition_f*		on_prev;
+	display_f*					update_display;
+	transition_f*				on_enter;
+	transition_f*				on_next;
+	transition_f*				on_prev;
 } menu_page_s;
 
 typedef struct {
 	struct menu_page_s* entry;
-	transition_f*		on_start;
-	transition_f*		on_exit;
-	transition_f*		on_save;
+	transition_f*				on_start;
+	transition_f*				on_exit;
+	transition_f*				on_save;
 } menu_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

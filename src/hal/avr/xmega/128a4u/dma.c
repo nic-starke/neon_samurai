@@ -23,10 +23,10 @@
 
 void dma_peripheral_init(void) {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		PR.PRGEN &= (u8)~PR_DMA_bm;		// Enable power to the DMA controller
+		PR.PRGEN &= (u8)~PR_DMA_bm;			// Enable power to the DMA controller
 		DMA.CTRL &= (u8)~DMA_ENABLE_bm; // Disable
-		DMA.CTRL |= DMA_RESET_bm;		// Reset (all registers cleared)
-		DMA.CTRL |= DMA_ENABLE_bm;		// Enable
+		DMA.CTRL |= DMA_RESET_bm;				// Reset (all registers cleared)
+		DMA.CTRL |= DMA_ENABLE_bm;			// Enable
 	}
 }
 
@@ -37,7 +37,7 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg) {
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		ch->CTRLA &= (u8)~DMA_CH_ENABLE_bm; // Disable DMA channel
-		ch->CTRLA |= DMA_CH_RESET_bm;		// Reset the channel (and registers)
+		ch->CTRLA |= DMA_CH_RESET_bm;				// Reset the channel (and registers)
 
 		// Source configuration
 		ch->SRCADDR0 = (u8)(cfg->src_ptr >> 0) & 0xFF;
@@ -68,7 +68,7 @@ int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg) {
 		}
 
 		ch->CTRLB |= (u8)((cfg->err_prio << DMA_CH_ERRINTLVL_gp) |
-						  (cfg->int_prio << DMA_CH_TRNINTLVL_gp));
+											(cfg->int_prio << DMA_CH_TRNINTLVL_gp));
 
 		/**
 		 * Set the double buffer mode for the DMA controller.

@@ -12,17 +12,17 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define ENC_MAX			 (UINT16_MAX)  // Maximum encoder value (16-bits)
-#define ENC_MIN			 (0)		   // Minimum encoder value (16-bits)
-#define ENC_MID			 (ENC_MAX / 2) // Mid position encoder value (16-bits)
-#define ENC_RANGE		 (u16)(ENC_MAX - ENC_MIN)
+#define ENC_MAX					 (UINT16_MAX)	 // Maximum encoder value (16-bits)
+#define ENC_MIN					 (0)					 // Minimum encoder value (16-bits)
+#define ENC_MID					 (ENC_MAX / 2) // Mid position encoder value (16-bits)
+#define ENC_RANGE				 (u16)(ENC_MAX - ENC_MIN)
 #define ENC_MAX_VELOCITY (1500) // Maximum encoder velocity (absolute)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef struct {
-	i32 velocity;	// Current rotational velocity
+	i32 velocity;		// Current rotational velocity
 	u8	accel_mode; // Acceleration mode
 	u8	accel_tick; // Acceleration tick constant (1 tick per ms)
 	i8	direction;	// Current direction

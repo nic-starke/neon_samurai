@@ -20,18 +20,18 @@
  * @param h Pointer to handler function.
  */
 #define EVT_HANDLER(p, n, h)                                                   \
-	static event_ch_handler_s n = {                                            \
-		.priority = p,                                                         \
-		.handler  = h,                                                         \
-		.next	  = NULL,                                                      \
+	static event_ch_handler_s n = {                                              \
+			.priority = p,                                                           \
+			.handler	= h,                                                           \
+			.next			= NULL,                                                        \
 	}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef enum {
-	EVENT_CHANNEL_SYS,		// Reserved for system events
-	EVENT_CHANNEL_IO,		// IO events
+	EVENT_CHANNEL_SYS,			// Reserved for system events
+	EVENT_CHANNEL_IO,				// IO events
 	EVENT_CHANNEL_MIDI_IN,	// MIDI events (rx)
 	EVENT_CHANNEL_MIDI_OUT, // MIDI events (tx)
 
@@ -74,12 +74,12 @@ typedef struct event_ch_handler {
  * It is private and should not be modified by the user.
  */
 typedef struct {
-	u8*	 queue;		 // Statically allocated queue buffer
-	uint queue_size; // The size of the array (number of messages)
-	uint data_size;	 // Size of data for a single event (for memcpy)
-	event_ch_handler_s* handlers; // Link list of handlers
+	u8*									queue;			// Statically allocated queue buffer
+	uint								queue_size; // The size of the array (number of messages)
+	uint								data_size; // Size of data for a single event (for memcpy)
+	event_ch_handler_s* handlers;	 // Link list of handlers
 	bool onehandler; // Set true if handlers is a single handler for all events
-	uint head;		 // (private)
+	uint head;			 // (private)
 } event_channel_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

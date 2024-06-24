@@ -21,19 +21,19 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PORT_SR_LED			(PORTD)	  // IO port for led shift registers
-#define USART_LED			(USARTD0) // USART on D0
-#define TIMER_LED			(TCD0)	  // Timer on D0
-#define TIMER_PERIOD		(255)
-#define SOFT_PWM_PERIOD		(32)
+#define PORT_SR_LED					(PORTD)		// IO port for led shift registers
+#define USART_LED						(USARTD0) // USART on D0
+#define TIMER_LED						(TCD0)		// Timer on D0
+#define TIMER_PERIOD				(255)
+#define SOFT_PWM_PERIOD			(32)
 
 #define PIN_SR_LED_ENABLE_N (0)
-#define PIN_SR_LED_CLOCK	(1)
+#define PIN_SR_LED_CLOCK		(1)
 #define PIN_SR_LED_DATA_OUT (3)
-#define PIN_SR_LED_LATCH	(4)
+#define PIN_SR_LED_LATCH		(4)
 #define PIN_SR_LED_RESET_N	(5)
 
-#define USART_BAUD			(8000000)
+#define USART_BAUD					(8000000)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -66,9 +66,9 @@ void hw_led_init(void) {
 
 	// Configure USART (SPI) for LED shift registers
 	usart_config_s usart_cfg = {
-		.baudrate = USART_BAUD,
-		.endian	  = ENDIAN_LSB,
-		.mode	  = SPI_MODE_CLK_LO_PHA_LO,
+			.baudrate = USART_BAUD,
+			.endian		= ENDIAN_LSB,
+			.mode			= SPI_MODE_CLK_LO_PHA_LO,
 	};
 
 	// Configure DMA to transfer display frames to the USARTs 1-byte tx buffer
@@ -76,19 +76,19 @@ void hw_led_init(void) {
 	// 32 bytes (block count) x 1 times (repeat count).
 	// The trigger is set to USART data buffer being empty.
 	dma_channel_cfg_s dma_cfg = {
-		.repeat_count	 = 1,
-		.block_size		 = MF_NUM_LED_SHIFT_REGISTERS,
-		.burst_len		 = DMA_CH_BURSTLEN_1BYTE_gc,
-		.trig_source	 = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // empty usart buffer
-		.dbuf_mode		 = DMA_DBUFMODE_DISABLED_gc,
-		.int_prio		 = PRIORITY_OFF,
-		.err_prio		 = PRIORITY_OFF,
-		.src_ptr		 = (uptr)&mf_frame_buf[0][0],
-		.src_addr_mode	 = DMA_CH_SRCDIR_INC_gc,
-		.src_reload_mode = DMA_CH_SRCRELOAD_NONE_gc,
-		.dst_ptr		 = (uptr)&USART_LED.DATA,
-		.dst_addr_mode	 = DMA_CH_DESTDIR_FIXED_gc,
-		.dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
+			.repeat_count		 = 1,
+			.block_size			 = MF_NUM_LED_SHIFT_REGISTERS,
+			.burst_len			 = DMA_CH_BURSTLEN_1BYTE_gc,
+			.trig_source		 = DMA_CH_TRIGSRC_USARTD0_DRE_gc, // empty usart buffer
+			.dbuf_mode			 = DMA_DBUFMODE_DISABLED_gc,
+			.int_prio				 = PRIORITY_OFF,
+			.err_prio				 = PRIORITY_OFF,
+			.src_ptr				 = (uptr)&mf_frame_buf[0][0],
+			.src_addr_mode	 = DMA_CH_SRCDIR_INC_gc,
+			.src_reload_mode = DMA_CH_SRCRELOAD_NONE_gc,
+			.dst_ptr				 = (uptr)&USART_LED.DATA,
+			.dst_addr_mode	 = DMA_CH_DESTDIR_FIXED_gc,
+			.dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
 	};
 
 	// Reset shift registers
@@ -99,11 +99,10 @@ void hw_led_init(void) {
 
 	// Configure timer in single slope waveform mode
 	TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
-	TCD0.PER =
-		TIMER_PERIOD; // Timer max tick count (timer resets at this value)
-	TCD0.CCA = 0;	  // Channel A -> Global brightness (0 = max, 255 = min)
+	TCD0.PER = TIMER_PERIOD; // Timer max tick count (timer resets at this value)
+	TCD0.CCA = 0; // Channel A -> Global brightness (0 = max, 255 = min)
 	TCD0.CCB = SOFT_PWM_PERIOD; // Channel B -> Software PWM tick (RGB colour
-								// generation)
+															// generation)
 
 	// Enable timer compare channel A to generate PWM on pin 0 (shift register
 	// output enable pin). The duty cycle of this PWM signal determines the
@@ -146,7 +145,7 @@ ISR(TCD0_CCB_vect) {
 		// compare value must be incremented by 32 ticks each time the interrupt
 		// fires. The CCB value must wrap around at the TOP/PER value of the
 		// timer.
-		TCD0.CCB		 = (TCD0.CCB + SOFT_PWM_PERIOD) % TIMER_PERIOD;
+		TCD0.CCB				 = (TCD0.CCB + SOFT_PWM_PERIOD) % TIMER_PERIOD;
 		DMA.CH0.SRCADDR0 = (u8)(ptr >> 0) & 0xFF;
 		DMA.CH0.SRCADDR1 = (u8)(ptr >> 8) & 0xFF;
 		DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;

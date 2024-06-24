@@ -10,15 +10,15 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define USB_VENDOR_ID				0x2580
-#define USB_PRODUCT_ID				0x0007
-#define USB_HID_EPSIZE				32
-#define USB_KEYBOARD_EPSIZE			8
-#define USB_MOUSE_EPSIZE			8
-#define USB_MIDI_STREAM_EPSIZE		64
+#define USB_VENDOR_ID								0x2580
+#define USB_PRODUCT_ID							0x0007
+#define USB_HID_EPSIZE							32
+#define USB_KEYBOARD_EPSIZE					8
+#define USB_MOUSE_EPSIZE						8
+#define USB_MIDI_STREAM_EPSIZE			64
 #define USB_CDC_NOTIFICATION_EPSIZE 8
-#define USB_CDC_EPSIZE				16
-#define USB_MIDI_POLLING_INTERVAL	0x05
+#define USB_CDC_EPSIZE							16
+#define USB_MIDI_POLLING_INTERVAL		0x05
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -41,10 +41,10 @@ typedef enum {
 } usb_interface_e;
 
 typedef enum {
-	STRING_ID_Language	   = 0,
+	STRING_ID_Language		 = 0,
 	STRING_ID_Manufacturer = 1,
-	STRING_ID_Product	   = 2,
-	STRING_ID_Serial	   = 3,
+	STRING_ID_Product			 = 2,
+	STRING_ID_Serial			 = 3,
 } usb_str_desc_e;
 
 typedef enum {
@@ -63,12 +63,8 @@ typedef enum {
 	CDC_OUT_EPNUM,
 #endif
 
-	USB_EP_NB,
+	USB_EP_NB, // must be less than 5
 } usb_endpoint_e;
-
-#if (USB_EP_NB - 1) > ENDPOINT_TOTAL_ENDPOINTS
-#error There are not enough available USB endpoints.
-#endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -29,14 +29,14 @@ typedef enum {
 	ENDIAN_MSB,
 } endian_e;
 
-typedef uint8_t		 u8;
-typedef uint16_t	 u16;
-typedef uint32_t	 u32;
+typedef uint8_t			 u8;
+typedef uint16_t		 u16;
+typedef uint32_t		 u32;
 typedef unsigned int uint;
 
-typedef volatile uint8_t	  vu8;
-typedef volatile uint16_t	  vu16;
-typedef volatile uint32_t	  vu32;
+typedef volatile uint8_t			vu8;
+typedef volatile uint16_t			vu16;
+typedef volatile uint32_t			vu32;
 typedef volatile unsigned int vuint;
 
 typedef int8_t	i8;
@@ -47,7 +47,7 @@ typedef volatile int8_t	 vi8;
 typedef volatile int16_t vi16;
 typedef volatile int32_t vi32;
 
-typedef float  f32;
+typedef float	 f32;
 typedef double f64;
 
 typedef uintptr_t uptr;

@@ -10,20 +10,20 @@
 	switch_x16_xxx. x8 is for a set of 8 switches, x16 is for a set of 16
 	switches. If you need to handle 32 switches then use two sets of x16. If you
 	need to handle < 8 switches then just use the x8. Each unique set of
-   switches needs its own unique context struct. For general use:
+	 switches needs its own unique context struct. For general use:
 
 			1. Poll the state of your switches and then add them to a bitfield.
-   Then call the switch_xN_update() function and pass in the bitfield.
+	 Then call the switch_xN_update() function and pass in the bitfield.
 
 			2. Call the debounce function once before you attempt to read the
-   state of the switches.
+	 state of the switches.
 
 			3. Call the switch_xN_state functions to get the state of the
-   switch(es).
+	 switch(es).
 
 
 	Note - The debounce should not be called every time you poll, that is a
-   waste of cpu time.
+	 waste of cpu time.
 */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -44,18 +44,18 @@ typedef enum {
 
 typedef struct {
 	u8 buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
-	u8 index;						 // current buffer index
-	u8 current;						 // states bitfield (private)
-	u8 previous;					 // states bitfield (private)
-	u8 raw;							 // switch states bitfield (private)
+	u8 index;												 // current buffer index
+	u8 current;											 // states bitfield (private)
+	u8 previous;										 // states bitfield (private)
+	u8 raw;													 // switch states bitfield (private)
 } switch_x8_ctx_s;
 
 typedef struct {
 	u16 buf[SWITCH_DEBOUNCE_SAMPLES]; // debounce buffer (private)
-	u8	index;						  // current buffer index
-	u16 current;					  // states bitfield (private)
-	u16 previous;					  // states bitfield (private)
-	u16 raw;						  // switch states bitfield (private)
+	u8	index;												// current buffer index
+	u16 current;											// states bitfield (private)
+	u16 previous;											// states bitfield (private)
+	u16 raw;													// switch states bitfield (private)
 } switch_x16_ctx_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

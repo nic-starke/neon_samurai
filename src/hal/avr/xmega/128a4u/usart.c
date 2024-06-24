@@ -16,13 +16,13 @@
 
 // Missing defines for xmega usart
 #define USART_UCPHA_bm (0x02) // clock phase bitmask
-#define USART_DORD_bm  (0x04) // data order bitmask
+#define USART_DORD_bm	 (0x04) // data order bitmask
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static u8	get_mask(USART_t* usart);
+static u8		get_mask(USART_t* usart);
 static void configure_io(USART_t* usart, spi_mode_e mode);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -50,7 +50,7 @@ void usart_module_init(USART_t* usart, const usart_config_s* config) {
 
 		// Set clock phase
 		if ((config->mode == SPI_MODE_CLK_LO_PHA_HI) ||
-			(config->mode == SPI_MODE_CLK_HI_PHA_HI)) {
+				(config->mode == SPI_MODE_CLK_HI_PHA_HI)) {
 			usart->CTRLC |= USART_UCPHA_bm;
 		} else {
 			usart->CTRLC &= (u8)~USART_UCPHA_bm;
@@ -114,31 +114,31 @@ static void configure_io(USART_t* usart, spi_mode_e mode) {
 	// Default pins are  SCK = 1, RX = 2, TX = 3
 	// Remapped pins are SCK = 5, RX = 6, TX = 7
 
-	bool	remap = false;
-	PORT_t* port  = NULL;
+	bool		remap = false;
+	PORT_t* port	= NULL;
 
 	if (usart == &USARTC0) {
-		port  = &PORTC;
+		port	= &PORTC;
 		remap = (PORTC.REMAP & PORT_USART0_bm);
 	} else if (usart == &USARTC1) {
-		port  = &PORTC;
+		port	= &PORTC;
 		remap = true;
 	} else if (usart == &USARTD0) {
-		port  = &PORTD;
+		port	= &PORTD;
 		remap = (PORTD.REMAP & PORT_USART0_bm);
 	} else if (usart == &USARTD1) {
-		port  = &PORTD;
+		port	= &PORTD;
 		remap = true;
 	} else if (usart == &USARTE0) {
-		port  = &PORTE;
+		port	= &PORTE;
 		remap = (PORTE.REMAP & PORT_USART0_bm);
 	}
 
-	const u8   sck = (remap ? 5 : 1);
-	const u8   rx  = (remap ? 6 : 2);
-	const u8   tx  = (remap ? 7 : 3);
+	const u8	 sck = (remap ? 5 : 1);
+	const u8	 rx	 = (remap ? 6 : 2);
+	const u8	 tx	 = (remap ? 7 : 3);
 	const bool invert_sck =
-		(mode == SPI_MODE_CLK_HI_PHA_LO || mode == SPI_MODE_CLK_HI_PHA_HI);
+			(mode == SPI_MODE_CLK_HI_PHA_LO || mode == SPI_MODE_CLK_HI_PHA_HI);
 
 	gpio_mode(port, sck, PORT_OPC_TOTEM_gc | (invert_sck ? (0x01 << 6) : 0));
 

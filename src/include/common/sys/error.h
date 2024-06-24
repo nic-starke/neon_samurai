@@ -17,10 +17,10 @@
  * @param l Label to goto.
  */
 #define EXIT_ON_ERR(s, l)                                                      \
-	do {                                                                       \
-		if (s != SUCCESS) {                                                    \
-			goto l;                                                            \
-		}                                                                      \
+	do {                                                                         \
+		if (s != SUCCESS) {                                                        \
+			goto l;                                                                  \
+		}                                                                          \
 	} while (0)
 
 /**
@@ -29,10 +29,10 @@
  * @param s Error/status code to check.
  */
 #define RETURN_ON_ERR(s)                                                       \
-	do {                                                                       \
-		if (s != SUCCESS) {                                                    \
-			return s;                                                          \
-		}                                                                      \
+	do {                                                                         \
+		if (s != SUCCESS) {                                                        \
+			return s;                                                                \
+		}                                                                          \
 	} while (0)
 
 /**
@@ -42,10 +42,10 @@
  * @param l Label to goto.
  */
 #define EXIT_IF_NULL(p, l)                                                     \
-	do {                                                                       \
-		if (p == NULL) {                                                       \
-			goto l;                                                            \
-		}                                                                      \
+	do {                                                                         \
+		if (p == NULL) {                                                           \
+			goto l;                                                                  \
+		}                                                                          \
 	} while (0)
 
 /**
@@ -55,10 +55,10 @@
  * @param l Label to goto.
  */
 #define RETURN_ERR_IF_NULL(p)                                                  \
-	do {                                                                       \
-		if (p == NULL) {                                                       \
-			return ERR_NULL_PTR;                                               \
-		}                                                                      \
+	do {                                                                         \
+		if (p == NULL) {                                                           \
+			return ERR_NULL_PTR;                                                     \
+		}                                                                          \
 	} while (0)
 
 /**
@@ -67,23 +67,23 @@
  * @param p Pointer to check against null.
  */
 #define RETURN_IF_NULL(p)                                                      \
-	do {                                                                       \
-		if (p == NULL) {                                                       \
-			return;                                                            \
-		}                                                                      \
+	do {                                                                         \
+		if (p == NULL) {                                                           \
+			return;                                                                  \
+		}                                                                          \
 	} while (0)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum {
-	SUCCESS				= 0,
-	ERR_BAD_PARAM		= -1,
-	ERR_NULL_PTR		= -2,
-	ERR_UNSUPPORTED		= -3,
-	ERR_STUB			= -4,
-	ERR_NO_MEM			= -5,
-	ERR_DUPLICATE		= -6,
+	SUCCESS							= 0,
+	ERR_BAD_PARAM				= -1,
+	ERR_NULL_PTR				= -2,
+	ERR_UNSUPPORTED			= -3,
+	ERR_STUB						= -4,
+	ERR_NO_MEM					= -5,
+	ERR_DUPLICATE				= -6,
 	ERR_NOT_IMPLEMENTED = -7,
 };
 

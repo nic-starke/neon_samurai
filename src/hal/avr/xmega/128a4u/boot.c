@@ -54,11 +54,11 @@ void bootloader_check(void) {
 }
 
 /*
-  This function starts the watchdog timer and then enters an infinite loop.
-  The watchdog timer will reset the AVR after 30ms as the system did not
-  "pet the dog". The bootloader_check function will then be called during
-  the system startup (after reset), and because the bootkey was set to
-  the required value, the bootloader will be executed.
+	This function starts the watchdog timer and then enters an infinite loop.
+	The watchdog timer will reset the AVR after 30ms as the system did not
+	"pet the dog". The bootloader_check function will then be called during
+	the system startup (after reset), and because the bootkey was set to
+	the required value, the bootloader will be executed.
 */
 void bootloader_start(void) {
 	// USB_Disable();

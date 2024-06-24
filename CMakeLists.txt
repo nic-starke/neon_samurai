@@ -19,7 +19,8 @@ project(NEON_SAMURAI
   LANGUAGES C CXX ASM
 )
 
-set_property(GLOBAL PROPERTY C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 23)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # CMake includes for helper functions/utilities
@@ -70,8 +71,6 @@ endif()
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Platform & Build Directory
@@ -88,6 +87,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/platform/${PLATFORM_NAME}")
 else()
     message(FATAL_ERROR "The directory ${CMAKE_SOURCE_DIR}/cmake/platform/${PLATFORM_NAME} does not exist.")
 endif()
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Output Message
