@@ -236,9 +236,9 @@ static void sw_encoder_update(void) {
 			}
 
 			vmap->curr_pos = (u16)newpos;
-#warning "REMOVE - this bypasses everything, remove it after debugging"
-			print_dir(i, enc->enc_ctx.direction);
-			break;
+			// #warning "REMOVE - this bypasses everything, remove it after debugging"
+			// print_dir(i, enc->enc_ctx.direction);
+			// break;
 
 			// bool skip = ((timenow - vmap->last_update) <
 			// config.midi_throttle_time); if (skip) { 	continue;

@@ -20,8 +20,15 @@
     },
 
     "files.associations": {
+      "*.embeddedhtml": "html",
+      "*.meson": "meson",
       "*.h": "c",
       "*.c": "c",
+      "chrono": "c",
+      "random": "c",
+      "limits": "c",
+      "valarray": "c",
+      "algorithm": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
   },

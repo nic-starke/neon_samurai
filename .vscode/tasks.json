@@ -15,6 +15,16 @@
 			"command": "cpptools.activeConfigCustomVariable",
 			"args": "platform",
 		},
+		{
+			"id": "build_type",
+			"type": "pickString",
+			"description": "Select the build type",
+			"default": "Release",
+			"options": [
+				"Debug",
+				"Release"
+			]
+		}
 	],
 
 
@@ -30,7 +40,8 @@
 				"-B",
 				"${config:app.build_dir}/${input:platform}",
 				"-DPLATFORM=${input:platform}",
-				"--toolchain=${workspaceFolder}/cmake/platform/${input:platform}/toolchain.cmake"
+				"--toolchain=${workspaceFolder}/cmake/platform/${input:platform}/toolchain.cmake",
+				"-DCMAKE_BUILD_TYPE=${input:build_type}",
 			],
 			"problemMatcher": []
 		},
@@ -41,12 +52,15 @@
 			"group": {
 				"kind": "build"
 			},
-			"command" : "ninja",
+			"command" : "cmake",
 			"options": {
-				"cwd": "${config:app.build_dir}/${input:platform}",
+				// "cwd": "${config:app.build_dir}/${input:platform}",
 				"env": {}
 			},
 			"args": [
+				"--build",
+				"${config:app.build_dir}/${input:platform}",
+				"--target",
 				"clean"
 			]
 		},
@@ -61,11 +75,13 @@
 			"dependsOn": [
 				"Clean"
 			],
-			"command" : "ninja",
+			"command" : "cmake",
 			"options": {
-				"cwd": "${config:app.build_dir}/${input:platform}",
+				// "cwd": "${config:app.build_dir}/${input:platform}",
 			},
 			"args": [
+				"--build",
+				"${config:app.build_dir}/${input:platform}",
 			],
 			"presentation": {
 				"echo": true,
@@ -97,28 +113,28 @@
 		// 		"BinSize"
 		// 	]
 		// },
-		// {
-		// 	"label": "Flash Board",
-		// 	"detail": "Programs the board with a built binary",
-		// 	"type": "shell",
-		// 	"group": {
-		// 		"kind": "build"
-		// 	},
-		// 	"dependsOn": "Build (clean)",
-		// 	"linux": {
-		// 		"command": "avrdude"
-		// 	},
-		// 	"args": [
-		// 		"-v",
-		// 		"-c",
-		// 		"jtag3pdi",
-		// 		"-p",
-		// 		"x128a4u",
-		// 		"-P",
-		// 		"usb",
-		// 		"-U",
-		// 		"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
-		// 	]
-		// }
+		{
+			"label": "Flash Board",
+			"detail": "Programs the board with a built binary",
+			"type": "shell",
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "Build (clean)",
+			"linux": {
+				"command": "avrdude"
+			},
+			"args": [
+				"-v",
+				"-c",
+				"jtag3pdi",
+				"-p",
+				"x128a4u",
+				"-P",
+				"usb",
+				"-U",
+				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
+			]
+		}
 	],
 }

@@ -37,33 +37,23 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src/hal/avr/xmega/128a4u)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Build Types
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-set(default_build_type "RelWithDebInfo")
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
-
-  # Set the possible values of build type for cmake-gui/ccmake
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo"
-)
-endif()
-
-# Set compiler flags based on the build type
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-    set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-    set(CMAKE_C_FLAGS_RELEASE "-O3")
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g3")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g3")
-elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
-    set(CMAKE_C_FLAGS_MINSIZEREL "-Os")
-else()
-    message(WARNING "Unknown build type: ${CMAKE_BUILD_TYPE}")
-endif()
+# # Set compiler flags based on the build type
+# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+#     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+#     set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+# elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+#     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g3")
+#     set(CMAKE_C_FLAGS_RELEASE "-O3 -g3")
+# elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+#     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g3")
+#     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g3")
+# elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+#     set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
+#     set(CMAKE_C_FLAGS_MINSIZEREL "-Os")
+# else()
+#     message(WARNING "Unknown build type: ${CMAKE_BUILD_TYPE}")
+# endif()
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Other
