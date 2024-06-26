@@ -51,7 +51,7 @@ set(CMAKE_C_FLAGS_LIST
     "-ffunction-sections"
     "-Wl,--gc-sections"
     # "-Wl,--print-gc-sections"
-    "-Wl,--print-memory-usage"
+    # "-Wl,--print-memory-usage"
     "-Wl,--relax"
 
 )

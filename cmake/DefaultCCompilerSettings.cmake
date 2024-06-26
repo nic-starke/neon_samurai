@@ -2,12 +2,11 @@
 include(${CMAKE_CURRENT_LIST_DIR}/utils/compiler/CheckAndApplyFlags.cmake)
 
 set(default_cc_flags
-	-std=c23
+	-std=c11
 	# Diagonistics
 	-ffunction-sections               # Place each function in its own section (ELF Only)
 	-fdata-sections                   # Place each data in its own section (ELF Only)
 	-fdiagnostics-show-option         # Show the corresponding warning option for each diagnostic
-	-fcolor-diagnostics=always               # Use colors in diagnostics
 	-fdiagnostics-color=always			   # Use colors in diagnostics
 
 # Warnings
