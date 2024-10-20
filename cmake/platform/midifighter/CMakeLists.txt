@@ -88,8 +88,6 @@ set(LUFA_SOURCES
 # Executable
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 add_executable(neosam)
-set_target_properties(neosam PROPERTIES OUTPUT_NAME "neosam")
-set_target_properties(neosam PROPERTIES SUFFIX "_${PROJECT_VERSION}.elf")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # LUFA
@@ -115,6 +113,11 @@ target_include_directories(neosam PRIVATE
 )
 
 target_link_libraries(neosam PRIVATE common hal_xmega128a4u)
+
+set_target_properties(neosam PROPERTIES
+    OUTPUT_NAME "neosam"
+    SUFFIX ".elf"
+)
 
 # Add post build commands for AVR-based platforms
 # See toolchain.cmake

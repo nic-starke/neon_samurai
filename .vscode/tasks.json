@@ -127,13 +127,14 @@
 			"args": [
 				"-v",
 				"-c",
-				"jtag3pdi",
+				"avrispmkII",
+				// "jtag3pdi",
 				"-p",
 				"x128a4u",
 				"-P",
 				"usb",
 				"-U",
-				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
+				"flash:w:\"${config:app.build_dir}/${input:platform}/neosam.hex\":a"
 			]
 		}
 	],

@@ -9,8 +9,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # AVR-GCC Toolchain
 set(AVR_GCC_PATH        /usr/bin/)
-set(AVR_LIBC_PATH       /usr/lib/avr/include/)
-set(LIB_XMEGA7_PATH     /usr/lib/avr/lib/avrxmega7)
+set(AVR_LIBC_PATH       /usr/lib/gcc/avr/14.1.0/include/)
+set(LIB_XMEGA7_PATH     /usr/lib/gcc/avr/14.1.0/avrxmega7)
 
 set(CMAKE_AR            avr-ar)
 set(CMAKE_ADDR2LINE     avr-addr2line)
@@ -51,7 +51,7 @@ set(CMAKE_C_FLAGS_LIST
     "-ffunction-sections"
     "-Wl,--gc-sections"
     # "-Wl,--print-gc-sections"
-    # "-Wl,--print-memory-usage"
+    "-Wl,--print-memory-usage"
     "-Wl,--relax"
 
 )
@@ -71,55 +71,57 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # Custom command function
 function(add_avr_post_build_commands target)
-    set(VER "_${PROJECT_VERSION}")
-    # Print the ELF memory usage
-    # add_custom_command(
-    #     TARGET ${target} POST_BUILD
-    #     COMMAND ${CMAKE_SIZE} -C $<TARGET_FILE:${target}>
-    #     COMMENT " =========== Memory Usage =========== "
-    # )
+    # Get the runtime output directory of the target
+    get_target_property(TARGET_OUTPUT_DIR ${target} RUNTIME_OUTPUT_DIRECTORY)
+
+    # If the RUNTIME_OUTPUT_DIRECTORY is not set, fall back to CMAKE_RUNTIME_OUTPUT_DIRECTORY
+    if(NOT TARGET_OUTPUT_DIR)
+        set(TARGET_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endif()
 
     # Generate the EEPROM file
     add_custom_command(
         TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -j .eeprom --no-change-warnings --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0 -O ihex $<TARGET_FILE:${target}> ${CMAKE_CURRENT_BINARY_DIR}/${target}${VER}.eep
+        COMMAND ${CMAKE_OBJCOPY} -j .eeprom --no-change-warnings --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0 -O ihex $<TARGET_FILE:${target}> ${TARGET_OUTPUT_DIR}/${target}.eep
         COMMENT " =========== Generating EEPROM file  =========== "
     )
-
-    # Print the EEPROM file size
-    # add_custom_command(
-    #     TARGET ${target} POST_BUILD
-    #     COMMAND ${CMAKE_SIZE} ${CMAKE_BINARY_DIR}/${target}${VER}.eep
-    #     COMMENT " =========== EEPROM file size  =========== "
-    # )
 
     # Generate the HEX file
     add_custom_command(
         TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --strip-debug -O ihex -R .eeprom $<TARGET_FILE:${target}> ${CMAKE_CURRENT_BINARY_DIR}/${target}${VER}.hex
+        COMMAND ${CMAKE_OBJCOPY} --strip-debug -O ihex -R .eeprom $<TARGET_FILE:${target}> ${TARGET_OUTPUT_DIR}/${target}.hex
         COMMENT " =========== Generating HEX file  ==========="
     )
-
-    # Print the HEX file size
-    # add_custom_command(
-    #     TARGET ${target} POST_BUILD
-    #     COMMAND ${CMAKE_SIZE} -C -x --common ${CMAKE_BINARY_DIR}/${target}${VER}.hex
-    #     COMMENT " =========== HEX file size  =========== "
-    # )
 
     # Generate the BIN file
     add_custom_command(
         TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --strip-debug -O binary -R .eeprom $<TARGET_FILE:${target}> ${CMAKE_CURRENT_BINARY_DIR}/${target}${VER}.bin
+        COMMAND ${CMAKE_OBJCOPY} --strip-debug -O binary -R .eeprom $<TARGET_FILE:${target}> ${TARGET_OUTPUT_DIR}/${target}.bin
         COMMENT " =========== Generating BIN file  =========== "
     )
 
-    # Print the BIN file size
-    # add_custom_command(
-    #     TARGET ${target} POST_BUILD
-    #     COMMAND ${CMAKE_SIZE} -A --target=bin ${CMAKE_BINARY_DIR}/${target}${VER}.bin
-    #     COMMENT " =========== BIN file size  =========== "
-    # )
-
+    # Optional: Print file sizes
+    if(CMAKE_SIZE)
+        add_custom_command(
+            TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_SIZE} -C --mcu=${MCU} $<TARGET_FILE:${target}>
+            COMMENT " =========== ELF file size =========== "
+        )
+        add_custom_command(
+            TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_SIZE} ${TARGET_OUTPUT_DIR}/${target}.eep
+            COMMENT " =========== EEPROM file size  =========== "
+        )
+        # add_custom_command(
+        #     TARGET ${target} POST_BUILD
+        #     COMMAND ${CMAKE_SIZE} -C -x --common ${TARGET_OUTPUT_DIR}/${target}.hex
+        #     COMMENT " =========== HEX file sizes  =========== "
+        # )
+        # add_custom_command(
+        #     TARGET ${target} POST_BUILD
+        #     COMMAND ${CMAKE_SIZE} -A ${TARGET_OUTPUT_DIR}/${target}.bin
+        #     COMMENT " =========== BIN file size  =========== "
+        # )
+    endif()
 
 endfunction()

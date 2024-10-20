@@ -71,6 +71,9 @@ endif()
 
 string(TOLOWER "${PLATFORM}" PLATFORM_NAME)
 
+# Set the output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 # Check if the platform directories exist before adding them
 if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/platform/${PLATFORM_NAME}")
     add_subdirectory(${CMAKE_SOURCE_DIR}/cmake/platform/${PLATFORM_NAME})
@@ -78,6 +81,10 @@ else()
     message(FATAL_ERROR "The directory ${CMAKE_SOURCE_DIR}/cmake/platform/${PLATFORM_NAME} does not exist.")
 endif()
 
+# After adding the platform-specific subdirectory, ensure the output directory is set correctly
+set_target_properties(neosam PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Output Message
@@ -85,6 +92,7 @@ endif()
 message("---------------------------------------")
 message("Build type:       \t ${CMAKE_BUILD_TYPE}")
 message("Build directory:  \t ${CMAKE_BINARY_DIR}")
+message("Binary directory: \t ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 # message("Install prefix:   \t ${CMAKE_INSTALL_PREFIX}")
 # message("Testing enabled:  \t ${ENABLE_TESTING}")
 # message("Clang-tidy:       \t ${ENABLE_CLANG_TIDY}")
@@ -95,5 +103,5 @@ message("Build directory:  \t ${CMAKE_BINARY_DIR}")
 # message("Build libcpp:     \t ${LIBCPP}")
 # message("CCache executable:\t ${CCACHE}")
 # message("Building doc:     \t ${BUILD_DOC}")
-message("${PROJECT_NAME} Version:          \t ${PROJECT_VERSION}")
+message("${PROJECT_NAME} Version:  \t ${PROJECT_VERSION}")
 message("---------------------------------------")
