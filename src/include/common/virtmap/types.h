@@ -60,8 +60,8 @@ typedef struct virtmap_s {
 	 * 127 or below 0.
 	 */
 	struct {
-		i16 lower;
-		i16 upper;
+		i8 lower;
+		i8 upper;
 	} range;
 
 	/**
@@ -76,12 +76,12 @@ typedef struct virtmap_s {
 	 * min/max encoder value.
 	 */
 	struct {
-		u16 start;
-		u16 stop;
+		u8 start;
+		u8 stop;
 	} position;
 
-	u16								curr_pos;
-	i32								curr_val;
+	u8								curr_pos;
+	i16								curr_val;
 	u32								last_update;
 	proto_cfg_s				proto;
 	struct virtmap_s* next;

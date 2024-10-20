@@ -65,7 +65,7 @@ void mf_input_init(void) {
 	hw_switch_init();
 	sw_encoder_init();
 
-	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+	// event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
 void mf_input_update(void) {
@@ -125,18 +125,7 @@ static void sw_encoder_init(void) {
 	}
 }
 
-static u32 last_update = 0;
-
 static void sw_encoder_update(void) {
-	bool update_enc = false;
-	u32	 timenow		= systime_ms();
-
-	// throttle update function to 1ms frequency
-	if ((timenow - last_update) > 1) {
-		update_enc	= true;
-		last_update = timenow;
-	}
-
 	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
 		mf_encoder_s* enc = &encoders[active_bank][i];
 
@@ -150,7 +139,7 @@ static void sw_encoder_update(void) {
 
 				case SW_MODE_VMAP_CYCLE: {
 					virtmap_toggle(&enc->virtmap.head);
-					mf_draw_encoder(enc);
+					// mf_draw_encoder(enc);
 					break;
 				}
 
@@ -217,16 +206,14 @@ static void sw_encoder_update(void) {
 			enc->sw_state = SWITCH_IDLE;
 		}
 
-		if (update_enc) {
-			int dir = quadrature_direction(enc->quad_ctx);
-			encoder_update(&enc->enc_ctx, dir);
-		}
+		int dir = quadrature_direction(enc->quad_ctx);
+		encoder_update(&enc->enc_ctx, dir);
 
 		virtmap_s* vmap = enc->virtmap.head;
 
 		do {
 
-			i32 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
+			i16 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
 			newpos		 = CLAMP(newpos, ENC_MIN, ENC_MAX);
 			newpos		 = CLAMP(newpos, vmap->position.start, vmap->position.stop);
 
@@ -235,16 +222,7 @@ static void sw_encoder_update(void) {
 				continue;
 			}
 
-			vmap->curr_pos = (u16)newpos;
-			// #warning "REMOVE - this bypasses everything, remove it after debugging"
-			// print_dir(i, enc->enc_ctx.direction);
-			// break;
-
-			// bool skip = ((timenow - vmap->last_update) <
-			// config.midi_throttle_time); if (skip) { 	continue;
-			// }
-
-			vmap->last_update = systime_ms();
+			vmap->curr_pos = (u8)newpos;
 
 			switch (vmap->proto.type) {
 
@@ -257,7 +235,7 @@ static void sw_encoder_update(void) {
 						case MIDI_MODE_CC: {
 							bool invert = (vmap->range.lower > vmap->range.upper);
 
-							i32 val = convert_range(vmap->curr_pos, vmap->position.start,
+							i16 val = convert_range(vmap->curr_pos, vmap->position.start,
 																			vmap->position.stop, vmap->range.lower,
 																			vmap->range.upper);
 
@@ -283,7 +261,7 @@ static void sw_encoder_update(void) {
 						case MIDI_MODE_CC_14: {
 							bool invert = (vmap->range.lower > vmap->range.upper);
 
-							i32 val = convert_range(vmap->curr_pos, vmap->position.start,
+							i16 val = convert_range(vmap->curr_pos, vmap->position.start,
 																			vmap->position.stop, vmap->range.lower,
 																			vmap->range.upper);
 
@@ -334,7 +312,7 @@ static void sw_encoder_update(void) {
 			vmap = vmap->next;
 		} while ((enc->virtmap.mode == VIRTMAP_MODE_OVERLAY) && (vmap != NULL));
 
-		mf_draw_encoder(enc);
+		// mf_draw_encoder(enc);
 	}
 }
 

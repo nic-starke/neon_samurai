@@ -36,7 +36,7 @@ __attribute__((noreturn)) void main(void) {
 	midi_init();
 	hw_led_init();
 	mf_input_init();
-	systime_start();
+	// systime_start();
 
 	usb_init();
 

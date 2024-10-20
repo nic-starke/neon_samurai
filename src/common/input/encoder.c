@@ -43,7 +43,7 @@ void encoder_update(encoder_s* enc, int direction) {
 		}
 
 		enc->direction = (i8)direction;
-		enc->velocity	 = 500 * direction;
+		enc->velocity	 = 5 * direction;
 		// enc->velocity = ENC_MAX_VELOCITY * direction;
 	} else {
 
