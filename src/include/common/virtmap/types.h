@@ -48,7 +48,7 @@ typedef struct virtmap_s {
 	 * point.
 	 *
 	 * Every intermediate point is linearly interpolated, so halfway between
-	 * start and stop would output a value of  3000 in this  example.
+	 * start and stop would output a value of 3000 in this  example.
 	 *
 	 * Note that if the lower value is greater than the upper value then
 	 * the generated values will be in reverse order, i.e the output
@@ -72,7 +72,7 @@ typedef struct virtmap_s {
 	 * (midpoint) of the physical encoder.
 	 *
 	 * Note that the start and stop values are not percentages, they are a
-	 * 16-bit value. To calculate percentages use the appropriate defines for
+	 * 8-bit value. To calculate percentages use the appropriate defines for
 	 * min/max encoder value.
 	 */
 	struct {
@@ -82,7 +82,6 @@ typedef struct virtmap_s {
 
 	u8								curr_pos;
 	i16								curr_val;
-	u32								last_update;
 	proto_cfg_s				proto;
 	struct virtmap_s* next;
 } virtmap_s;

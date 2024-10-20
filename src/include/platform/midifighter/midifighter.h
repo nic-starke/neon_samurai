@@ -49,15 +49,25 @@ typedef enum {
 typedef enum {
 	SW_MODE_NONE,
 
+	// Cycle between virtual mappings on press
 	SW_MODE_VMAP_CYCLE,
+
+	// Alternative virtual mapping active while switch held
 	SW_MODE_VMAP_HOLD,
 
+	// Reset encoder value on press
 	SW_MODE_RESET_ON_PRESS,
+
+	// Reset encoder value on release
 	SW_MODE_RESET_ON_RELEASE,
 
+	// Toggle fine adjust mode on press
 	SW_MODE_FINE_ADJUST_TOGGLE,
+
+	// Fine adjust mode active while switch held
 	SW_MODE_FINE_ADJUST_HOLD,
 
+	// Switch actives a MIDI event (CC, Note, etc)
 	SW_MODE_MIDI,
 } switch_mode_e;
 
@@ -85,8 +95,10 @@ typedef struct {
 	switch_state_e sw_state;
 	switch_mode_e	 sw_mode;
 	proto_cfg_s		 sw_cfg;
-
+	u32						 update_display;
 } mf_encoder_s;
+
+extern mf_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

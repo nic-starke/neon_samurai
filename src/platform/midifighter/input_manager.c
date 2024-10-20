@@ -40,7 +40,7 @@ static sys_config_s config = {
 
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
-static mf_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
+mf_encoder_s		 encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS][MF_NUM_VMAPS_PER_ENC];
 
 // PROGMEM static const midifighter_encoder_s default_config = {
@@ -65,7 +65,7 @@ void mf_input_init(void) {
 	hw_switch_init();
 	sw_encoder_init();
 
-	// event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
 void mf_input_update(void) {
@@ -91,6 +91,7 @@ static void sw_encoder_init(void) {
 			// enc->virtmap.mode			= VIRTMAP_MODE_OVERLAY;
 			enc->virtmap.head			= NULL;
 			enc->sw_mode					= SW_MODE_VMAP_CYCLE;
+			enc->sw_state					= SWITCH_IDLE;
 
 			for (uint v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
 				virtmap_s* map = &vmaps[b][e][v];
@@ -139,7 +140,7 @@ static void sw_encoder_update(void) {
 
 				case SW_MODE_VMAP_CYCLE: {
 					virtmap_toggle(&enc->virtmap.head);
-					// mf_draw_encoder(enc);
+					mf_draw_encoder(enc);
 					break;
 				}
 
@@ -312,7 +313,14 @@ static void sw_encoder_update(void) {
 			vmap = vmap->next;
 		} while ((enc->virtmap.mode == VIRTMAP_MODE_OVERLAY) && (vmap != NULL));
 
+		if (enc->update_display == 0) {
+			enc->update_display = systime_ms();
+		}
 		// mf_draw_encoder(enc);
+		// io_event_s evt;
+		// evt.type = EVT_IO_ENCODER_ROTATION;
+		// evt.ctx	 = enc;
+		// return event_post(EVENT_CHANNEL_IO, &evt);
 	}
 }
 
@@ -343,10 +351,10 @@ static int midi_in_handler(void* evt) {
 							goto NEXT;
 						}
 
-						else if ((timenow - vmap->last_update) < config.enc_dead_time) {
-							// println_pmem("skipped");
-							goto NEXT;
-						}
+						// else if ((timenow - vmap->last_update) < config.enc_dead_time) {
+						// 	// println_pmem("skipped");
+						// 	goto NEXT;
+						// }
 
 						u16 newpos = (u16)convert_range(
 								midi->data.cc.value, vmap->range.lower, vmap->range.upper,

@@ -16,6 +16,8 @@
 #include "event/io.h"
 #include "event/midi.h"
 
+#include "sys/time.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define MASK_INDICATORS				 (0xFFE0)
@@ -59,6 +61,32 @@ static const u16 led_interval = ENC_MAX / 11;
 static u8 max_brightness = MF_MAX_BRIGHTNESS;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern mf_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
+
+void display_update(void) {
+
+	u32 time_now = systime_ms();
+
+	// Check every encoder to see if it needs to be updated.
+	// Specifically, if the update_display variable is not 0 then we update
+	// the display. But, we rate limit to avoid too many updates, around 25fps is
+	// good enough. 25fps == 1000 / 25
+
+	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
+#warning "TODO - get the current bank from the global context?"
+		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
+			mf_encoder_s* enc = &encoders[b][e];
+
+			if (enc->update_display != 0) {
+				if ((time_now - enc->update_display) > (1000 / 25)) {
+					mf_draw_encoder(enc);
+					enc->update_display = 0;
+				}
+			}
+		}
+	}
+}
 
 int mf_draw_encoder(mf_encoder_s* enc) {
 	assert(enc);

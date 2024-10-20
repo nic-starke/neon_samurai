@@ -19,6 +19,7 @@
 #include "protocol/midi/midi.h"
 #include "event/event.h"
 #include "virtmap/virtmap.h"
+#include "display/display.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -36,7 +37,7 @@ __attribute__((noreturn)) void main(void) {
 	midi_init();
 	hw_led_init();
 	mf_input_init();
-	// systime_start();
+	systime_start();
 
 	usb_init();
 
@@ -48,6 +49,7 @@ __attribute__((noreturn)) void main(void) {
 	while (1) {
 		mf_input_update();
 		event_update();
+		display_update();
 		midi_update();
 		usb_update();
 	}
