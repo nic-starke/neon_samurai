@@ -27,6 +27,7 @@
 
 static void sw_encoder_init(void);
 static void sw_encoder_update(void);
+static void vmap_update(mf_encoder_s* enc, virtmap_s* map);
 static int	midi_in_handler(void* evt);
 static void print_dir(uint enc_idx, int dir);
 
@@ -35,8 +36,7 @@ static void print_dir(uint enc_idx, int dir);
 
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
-mf_encoder_s		 gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
-static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS][MF_NUM_VMAPS_PER_ENC];
+mf_encoder_s gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 
 // PROGMEM static const midifighter_encoder_s default_config = {
 // 		.enabled					= true,
@@ -79,14 +79,14 @@ static void sw_encoder_init(void) {
 			enc->quad_ctx					= &gQUAD_ENC[e];
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
-			enc->virtmap.mode			= VIRTMAP_MODE_TOGGLE;
-			// enc->virtmap.mode			= VIRTMAP_MODE_OVERLAY;
-			enc->virtmap.head			= NULL;
+			enc->detent						= false;
+			enc->vmap_mode				= VIRTMAP_MODE_TOGGLE;
+			enc->vmap_active			= 0;
 			enc->sw_mode					= SW_MODE_VMAP_CYCLE;
 			enc->sw_state					= SWITCH_IDLE;
 
 			for (uint v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
-				virtmap_s* map = &vmaps[b][e][v];
+				virtmap_s* map = &enc->vmaps[v];
 
 				if (e == 0 && v == 0) {
 					map->position.start	 = ENC_MIN;
@@ -105,8 +105,6 @@ static void sw_encoder_init(void) {
 				map->proto.type					= PROTOCOL_MIDI;
 				map->proto.midi.channel = 0;
 				map->proto.midi.cc			= cc++;
-
-				virtmap_assign(&enc->virtmap.head, map);
 			}
 		}
 	}
@@ -125,7 +123,7 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_VMAP_CYCLE: {
-					virtmap_toggle(&enc->virtmap.head);
+					enc->vmap_active = (enc->vmap_active + 1) % MF_NUM_VMAPS_PER_ENC;
 					mf_draw_encoder(enc);
 					break;
 				}
@@ -136,7 +134,7 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_RESET_ON_PRESS: {
-					enc->virtmap.head->curr_pos = 0;
+					enc->vmaps[enc->vmap_active].curr_pos = 0;
 					break;
 				}
 
@@ -176,7 +174,7 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_RESET_ON_RELEASE: {
-					enc->virtmap.head->curr_pos = 0;
+					enc->vmaps[enc->vmap_active].curr_pos = 0;
 					break;
 				}
 
@@ -196,108 +194,13 @@ static void sw_encoder_update(void) {
 		int dir = quadrature_direction(enc->quad_ctx);
 		encoder_update(&enc->enc_ctx, dir);
 
-		virtmap_s* vmap = enc->virtmap.head;
-
-		do {
-
-			i16 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
-			newpos		 = CLAMP(newpos, ENC_MIN, ENC_MAX);
-			newpos		 = CLAMP(newpos, vmap->position.start, vmap->position.stop);
-
-			if ((vmap->curr_pos == newpos) ||
-					!(IN_RANGE(newpos, vmap->position.start, vmap->position.stop))) {
-				continue;
+		if (enc->vmap_mode == VIRTMAP_MODE_TOGGLE) {
+			vmap_update(enc, &enc->vmaps[enc->vmap_active]);
+		} else {
+			for (uint v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
+				vmap_update(enc, &enc->vmaps[v]);
 			}
-
-			vmap->curr_pos = (u8)newpos;
-
-			switch (vmap->proto.type) {
-
-				case PROTOCOL_MIDI: {
-					switch (vmap->proto.midi.mode) {
-						case MIDI_MODE_DISABLED: {
-							break;
-						}
-
-						case MIDI_MODE_CC: {
-							bool invert = (vmap->range.lower > vmap->range.upper);
-
-							i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
-																					vmap->position.stop,
-																					vmap->range.lower, vmap->range.upper);
-
-							if (invert) {
-								val = MIDI_CC_MAX - val;
-							}
-
-							if (vmap->curr_val == val) {
-								break;
-							}
-
-							vmap->curr_val = val;
-
-							midi_event_s midi_evt;
-							midi_evt.type						 = MIDI_EVENT_CC;
-							midi_evt.data.cc.channel = vmap->proto.midi.channel;
-							midi_evt.data.cc.control = vmap->proto.midi.cc;
-							midi_evt.data.cc.value	 = val & MIDI_CC_MAX;
-							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
-							break;
-						}
-
-						case MIDI_MODE_CC_14: {
-							bool invert = (vmap->range.lower > vmap->range.upper);
-
-							i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
-																					vmap->position.stop,
-																					vmap->range.lower, vmap->range.upper);
-
-							if (invert) {
-								val = 0x3FFF - val;
-							}
-
-							if (vmap->curr_val == val) {
-								break;
-							}
-
-							vmap->curr_val = val;
-
-							midi_event_s midi_evt;
-							// Send the MSB
-							midi_evt.type						 = MIDI_EVENT_CC;
-							midi_evt.data.cc.channel = vmap->proto.midi.channel;
-							midi_evt.data.cc.control = vmap->proto.midi.cc;
-							midi_evt.data.cc.value	 = (val >> 7) & 0x7F;
-							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
-
-							// Then the LSB
-							midi_evt.data.cc.control = (u8)vmap->proto.midi.cc + 32;
-							midi_evt.data.cc.value	 = val & 0x7F;
-							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
-							break;
-						}
-
-						case MIDI_MODE_REL_CC: {
-							break;
-						}
-						case MIDI_MODE_NOTE: {
-							break;
-						}
-					}
-
-					break;
-				}
-
-				case PROTOCOL_OSC: {
-					break;
-				}
-
-				case PROTOCOL_NONE:
-				default: break;
-			}
-
-			vmap = vmap->next;
-		} while ((enc->virtmap.mode == VIRTMAP_MODE_OVERLAY) && (vmap != NULL));
+		}
 
 		/*
 			At this point the encoder was moved, and we have calculated a new
@@ -312,6 +215,104 @@ static void sw_encoder_update(void) {
 	}
 }
 
+static void vmap_update(mf_encoder_s* enc, virtmap_s* vmap) {
+	i16 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
+	newpos		 = CLAMP(newpos, ENC_MIN, ENC_MAX);
+	newpos		 = CLAMP(newpos, vmap->position.start, vmap->position.stop);
+
+	if ((vmap->curr_pos == newpos) ||
+			!(IN_RANGE(newpos, vmap->position.start, vmap->position.stop))) {
+		return;
+	}
+
+	vmap->curr_pos = (u8)newpos;
+
+	switch (vmap->proto.type) {
+
+		case PROTOCOL_MIDI: {
+			switch (vmap->proto.midi.mode) {
+				case MIDI_MODE_DISABLED: {
+					break;
+				}
+
+				case MIDI_MODE_CC: {
+					bool invert = (vmap->range.lower > vmap->range.upper);
+
+					i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
+																			vmap->position.stop, vmap->range.lower,
+																			vmap->range.upper);
+
+					if (invert) {
+						val = MIDI_CC_MAX - val;
+					}
+
+					if (vmap->curr_val == val) {
+						break;
+					}
+
+					vmap->curr_val = val;
+
+					midi_event_s midi_evt;
+					midi_evt.type						 = MIDI_EVENT_CC;
+					midi_evt.data.cc.channel = vmap->proto.midi.channel;
+					midi_evt.data.cc.control = vmap->proto.midi.cc;
+					midi_evt.data.cc.value	 = val & MIDI_CC_MAX;
+					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+					break;
+				}
+
+				case MIDI_MODE_CC_14: {
+					bool invert = (vmap->range.lower > vmap->range.upper);
+
+					i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
+																			vmap->position.stop, vmap->range.lower,
+																			vmap->range.upper);
+
+					if (invert) {
+						val = 0x3FFF - val;
+					}
+
+					if (vmap->curr_val == val) {
+						break;
+					}
+
+					vmap->curr_val = val;
+
+					midi_event_s midi_evt;
+					// Send the MSB
+					midi_evt.type						 = MIDI_EVENT_CC;
+					midi_evt.data.cc.channel = vmap->proto.midi.channel;
+					midi_evt.data.cc.control = vmap->proto.midi.cc;
+					midi_evt.data.cc.value	 = (val >> 7) & 0x7F;
+					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+
+					// Then the LSB
+					midi_evt.data.cc.control = (u8)vmap->proto.midi.cc + 32;
+					midi_evt.data.cc.value	 = val & 0x7F;
+					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+					break;
+				}
+
+				case MIDI_MODE_REL_CC: {
+					break;
+				}
+				case MIDI_MODE_NOTE: {
+					break;
+				}
+			}
+
+			break;
+		}
+
+		case PROTOCOL_OSC: {
+			break;
+		}
+
+		case PROTOCOL_NONE:
+		default: break;
+	}
+}
+
 static int midi_in_handler(void* evt) {
 	midi_event_s* midi = (midi_event_s*)evt;
 
@@ -319,39 +320,29 @@ static int midi_in_handler(void* evt) {
 		case MIDI_EVENT_CC: {
 			for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
 				for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-					mf_encoder_s* enc	 = &gENCODERS[b][e];
-					virtmap_s*		vmap = enc->virtmap.head;
+					mf_encoder_s* enc = &gENCODERS[b][e];
 
-					while (vmap != NULL) {
-						// Check if the vmap matches the incoming midi
+					for (int v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
+						virtmap_s* vmap = &enc->vmaps[v];
 						if (vmap->proto.type != PROTOCOL_MIDI) {
-							goto NEXT;
+							continue;
 						} else if (vmap->proto.midi.channel != midi->data.cc.channel) {
-							goto NEXT;
+							continue;
 						} else if (vmap->proto.midi.cc != midi->data.cc.control) {
-							goto NEXT;
+							continue;
 						}
 
 						u32 timenow = systime_ms();
 
 						// do not update if the encoder is moving.
 						if (enc->enc_ctx.velocity != 0) {
-							goto NEXT;
+							continue;
 						}
-
-						// else if ((timenow - vmap->last_update) < config.enc_dead_time) {
-						// 	// println_pmem("skipped");
-						// 	goto NEXT;
-						// }
-
 						u16 newpos = (u16)convert_range_i16(
 								midi->data.cc.value, vmap->range.lower, vmap->range.upper,
 								vmap->position.start, vmap->position.stop);
 
 						vmap->curr_pos = newpos;
-
-					NEXT:
-						vmap = vmap->next;
 					}
 				}
 			}

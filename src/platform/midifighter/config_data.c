@@ -15,7 +15,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_MAGIC (0xCAFE)
+#define EE_VERSION (0x0003)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -33,6 +33,7 @@ typedef struct {
 } mf_eeprom_midi_cfg_s;
 
 typedef union {
+	u8									 type;
 	mf_eeprom_midi_cfg_s midi;
 } mf_eeprom_proto_cfg_s;
 
@@ -56,28 +57,21 @@ typedef struct {
 	// Encoder
 	u8 detent				: 1;
 	u8 accel_mode		: 1;
-	u8 vm_mode			: 1;
-
-	// Virtmap 1
-	u8 vm1_proto		: 2;
-
-	// Virtmap 2
-	u8 vm2_proto		: 2;
+	u8 vmap_mode		: 1;
+	u8 vmap_active	: 1;
 
 	// Encoder Switch
-	u8 sw_mode			: 1;
-	u8 sw_proto			: 2;
+	u8 sw_state			: 1;
+	u8 sw_mode;
 
-	u8										vm1_position;
-	u8										vm2_position;
-	u8										sw_state;
-	mf_eeprom_proto_cfg_s vm1_cfg;
-	mf_eeprom_proto_cfg_s vm2_cfg;
+	u8 vmap_pos[MF_NUM_VMAPS_PER_ENC];
+
+	mf_eeprom_proto_cfg_s vmap_cfg[MF_NUM_VMAPS_PER_ENC];
 	mf_eeprom_proto_cfg_s sw_cfg;
 } mf_eeprom_encoder_s;
 
 typedef struct {
-	u16									magic;
+	u16									version;
 	mf_eeprom_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 } mf_eeprom_s;
 
@@ -86,10 +80,8 @@ typedef struct {
 
 int encode_encoder(const mf_encoder_s* src, mf_eeprom_encoder_s* dst);
 int decode_encoder(const mf_eeprom_encoder_s* src, mf_encoder_s* dst);
-int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst,
-										 protocol_type_e type);
-int encode_proto_cfg(const proto_cfg_s* src, mf_eeprom_proto_cfg_s* dst,
-										 protocol_type_e type);
+int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst);
+int encode_proto_cfg(const proto_cfg_s* src, mf_eeprom_proto_cfg_s* dst);
 int init_eeprom(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -126,9 +118,9 @@ EEMEM mf_eeprom_s eeprom_data;
 int mf_cfg_init(void) {
 	// Check if the eeprom is initialised (the first word == 0xCAFE), if not
 	// initialise the eeprom with default values
-	u16 magic = eeprom_read_word(&eeprom_data.magic);
+	u16 version = eeprom_read_word(&eeprom_data.version);
 
-	if (magic != EE_MAGIC) {
+	if (version != EE_VERSION) {
 		init_eeprom();
 	}
 
@@ -187,20 +179,17 @@ int encode_encoder(const mf_encoder_s* src, mf_eeprom_encoder_s* dst) {
 	dst->virtmap_mode = src->display.virtmode;
 	dst->detent				= src->detent;
 	dst->accel_mode		= src->enc_ctx.accel_mode;
-	dst->vm_mode			= src->virtmap.mode;
-	dst->vm1_proto		= src->virtmap.head->proto.type;
-	dst->vm2_proto		= src->virtmap.head->next->proto.type;
+	dst->vmap_mode		= src->vmap_mode;
 	dst->sw_mode			= src->sw_mode;
-	dst->sw_proto			= src->sw_cfg.type;
-	dst->vm1_position = src->virtmap.head->curr_pos;
-	dst->vm2_position = src->virtmap.head->next->curr_pos;
 	dst->sw_state			= src->sw_state;
+	dst->vmap_active	= src->vmap_active;
 
-	encode_proto_cfg(&src->virtmap.head->proto, &dst->vm1_cfg,
-									 src->virtmap.head->proto.type);
-	encode_proto_cfg(&src->virtmap.head->next->proto, &dst->vm2_cfg,
-									 src->virtmap.head->next->proto.type);
-	encode_proto_cfg(&src->sw_cfg, &dst->sw_cfg, src->sw_cfg.type);
+	for (int i = 0; i < MF_NUM_VMAPS_PER_ENC; i++) {
+		dst->vmap_pos[i] = src->vmaps[i].curr_pos;
+		encode_proto_cfg(&src->vmaps[i].proto, &dst->vmap_cfg[i]);
+	}
+
+	encode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);
 
 	return 0;
 }
@@ -209,33 +198,29 @@ int decode_encoder(const mf_eeprom_encoder_s* src, mf_encoder_s* dst) {
 	RETURN_ERR_IF_NULL(src);
 	RETURN_ERR_IF_NULL(dst);
 
-	dst->display.mode										= src->display_mode;
-	dst->display.virtmode								= src->virtmap_mode;
-	dst->detent													= src->detent;
-	dst->enc_ctx.accel_mode							= src->accel_mode;
-	dst->virtmap.mode										= src->vm_mode;
-	dst->virtmap.head->proto.type				= src->vm1_proto;
-	dst->virtmap.head->next->proto.type = src->vm2_proto;
-	dst->sw_mode												= src->sw_mode;
-	dst->sw_cfg.type										= src->sw_proto;
-	dst->virtmap.head->curr_pos					= src->vm1_position;
-	dst->virtmap.head->next->curr_pos		= src->vm2_position;
-	dst->sw_state												= src->sw_state;
+	dst->display.mode				= src->display_mode;
+	dst->display.virtmode		= src->virtmap_mode;
+	dst->detent							= src->detent;
+	dst->enc_ctx.accel_mode = src->accel_mode;
+	dst->vmap_mode					= src->vmap_mode;
+	dst->sw_mode						= src->sw_mode;
+	dst->sw_state						= src->sw_state;
+	dst->vmap_active				= src->vmap_active;
 
-	decode_proto_cfg(&src->vm1_cfg, &dst->virtmap.head->proto, src->vm1_proto);
-	decode_proto_cfg(&src->vm2_cfg, &dst->virtmap.head->next->proto,
-									 src->vm2_proto);
-	decode_proto_cfg(&src->sw_cfg, &dst->sw_cfg, src->sw_proto);
+	for (int i = 0; i < MF_NUM_VMAPS_PER_ENC; i++) {
+		dst->vmaps[i].curr_pos = src->vmap_pos[i];
+		decode_proto_cfg(&src->vmap_cfg[i], &dst->vmaps[i].proto);
+	}
 
+	decode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);
 	return 0;
 }
 
-int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst,
-										 protocol_type_e type) {
+int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst) {
 	RETURN_ERR_IF_NULL(src);
 	RETURN_ERR_IF_NULL(dst);
 
-	switch (type) {
+	switch (src->type) {
 		case PROTOCOL_NONE: memset(dst, 0, sizeof(proto_cfg_s)); break;
 
 		case PROTOCOL_OSC:
@@ -255,12 +240,11 @@ int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst,
 	return 0;
 }
 
-int encode_proto_cfg(const proto_cfg_s* src, mf_eeprom_proto_cfg_s* dst,
-										 protocol_type_e type) {
+int encode_proto_cfg(const proto_cfg_s* src, mf_eeprom_proto_cfg_s* dst) {
 	RETURN_ERR_IF_NULL(src);
 	RETURN_ERR_IF_NULL(dst);
 
-	switch (type) {
+	switch (src->type) {
 		case PROTOCOL_NONE: memset(dst, 0, sizeof(mf_eeprom_proto_cfg_s)); break;
 
 		case PROTOCOL_OSC:
@@ -286,7 +270,7 @@ int init_eeprom(void) {
 	}
 
 	// Write the magic number
-	eeprom_write_word((uint16_t*)0, EE_MAGIC);
+	eeprom_write_word((uint16_t*)0, EE_VERSION);
 
 	// Write the initial state of the system to the eeprom
 	mf_cfg_store();

@@ -24,6 +24,8 @@
       "*.meson": "meson",
       "*.h": "c",
       "*.c": "c",
+      "any": "c",
+      "complex": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
   },

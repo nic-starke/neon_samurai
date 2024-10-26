@@ -7,12 +7,12 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "sys/types.h"
-#include "sys/rgb.h"
+#include "sys/config.h"
 #include "input/quadrature.h"
 #include "input/encoder.h"
 #include "input/switch.h"
 
-#include "sys/config.h"
+#include "platform/midifighter/virtmap.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -32,6 +32,9 @@
 #define MF_NUM_ENC_BANKS						 (3)
 #define MF_NUM_ENC_PER_BANK					 (MF_NUM_ENCODERS)
 #define MF_NUM_VMAPS_PER_ENC				 (2)
+
+#define MF_RGB_WHITE								 (0x32DF) // red = max, blue = 12, green = 22
+#define MF_RGB_MAX_VAL							 (31)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -83,10 +86,10 @@ typedef struct {
 	encoder_s			enc_ctx;
 	quadrature_s* quad_ctx;
 
-	struct {
-		virtmap_s*		 head;
-		virtmap_mode_e mode;
-	} virtmap;
+	// Virtual Mappings
+	virtmap_mode_e vmap_mode;
+	u8						 vmap_active; // Index for the current active vmap
+	virtmap_s			 vmaps[MF_NUM_VMAPS_PER_ENC];
 
 	// Encoder Switch
 	switch_state_e sw_state;
@@ -94,8 +97,8 @@ typedef struct {
 	proto_cfg_s		 sw_cfg;
 
 	/*
-		update_display is (as its name suggests) to determine when to redraw the
-		LEDs for this encoder. This is to prevent the display from being updated
+		update_display is (as its name suggests) used to determine when to redraw
+		the LEDs for this encoder. This is to prevent the display from being updated
 		too frequently, and to allow for a smooth display update.
 		It is effectively a timestamp (in ms) which can then be used to determine
 		if the display should be updated.

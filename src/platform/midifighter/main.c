@@ -18,7 +18,6 @@
 #include "usb/usb.h"
 #include "protocol/midi/midi.h"
 #include "event/event.h"
-#include "virtmap/virtmap.h"
 #include "display/display.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -45,15 +44,13 @@ __attribute__((noreturn)) void main(void) {
 
 	event_init();
 	midi_init();
-	hw_led_init();
 	mf_input_init();
 	systime_start();
-
 	usb_init();
+	mf_cfg_init(); // Must be after after core init and before display init
+	mf_cfg_load(); // Must be after cfg_init
 
-	// Must be called after interrupts are enabled AND all other init functions
-	mf_cfg_init();
-	mf_cfg_load();
+	hw_led_init();
 
 	// Enable system interrupts
 	sei();

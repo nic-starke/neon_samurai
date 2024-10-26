@@ -84,30 +84,8 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	uint max_frames; // max frames to generate (for the correct brightness)
 	encoder_led_s leds = {0};
 
-	virtmap_s* v = enc->virtmap.head;
-	uint			 vmap_positions[MF_NUM_VMAPS_PER_ENC];
-	vmap_positions[0] = v->curr_pos;
-
-	if (vmap_positions[0] <= led_interval) {
-		ind_pwm	 = 0;
-		ind_norm = 0;
-	} else if (vmap_positions[0] == ENC_MAX) {
-		ind_pwm	 = MF_NUM_INDICATOR_LEDS;
-		ind_norm = MF_NUM_INDICATOR_LEDS;
-	} else {
-		ind_pwm	 = ((f32)vmap_positions[0] / led_interval);
-		ind_norm = (unsigned int)roundf(ind_pwm);
-	}
-
-	// virtmap_s* o = v->next;
-	// if (enc->display.virtmode == VIRTMAP_DISPLAY_OVERLAY) {
-	// 	while (o != NULL) {
-	// 		vmap_positions[i] = convert_range(o->curr_value, o->range.lower,
-	// o->range.upper,
-	// o->position.start, o->position.stop);
-	// o = o->next;
-	// 	}
-	// }
+	ind_pwm	 = ((f32)enc->vmaps[enc->vmap_active].curr_pos / led_interval);
+	ind_norm = (unsigned int)roundf(ind_pwm);
 
 	// Generate the LED states based on the display mode
 	switch (enc->display.mode) {
@@ -198,24 +176,6 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 			}
 		}
 
-		if (f < MF_NUM_PWM_FRAMES / 3) {
-			// for (uint i = 1; i < MF_NUM_VMAPS_PER_ENC; i++) {
-			// 	leds.state |=
-			// 			MASK_INDICATORS & (0x8000 >> ((vmap_positions[i] /
-			// led_interval)));
-			// }
-		}
-
-		// leds.rgb_blue = leds.rgb_red = leds.rgb_green = 0;
-		// if ((int)(dis->led_rgb.red - p) > 0) {
-		// 	leds.rgb_red = 1;
-		// }
-		// if ((int)(dis->led_rgb.green - p) > 0) {
-		// 	leds.rgb_green = 1;
-		// }
-		// if ((int)(dis->led_rgb.blue - p) > 0) {
-		// 	leds.rgb_blue = 1;
-		// }
 		gFRAME_BUFFER[f][enc->idx] = ~leds.state;
 	}
 

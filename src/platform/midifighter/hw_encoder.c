@@ -6,14 +6,12 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "sys/error.h"
-#include "sys/rgb.h"
 #include "sys/types.h"
 #include "sys/utility.h"
 #include "hal/avr/xmega/128a4u/gpio.h"
 #include "input/quadrature.h"
 #include "input/switch.h"
 #include "lfo/lfo.h"
-#include "virtmap/virtmap.h"
 
 #include "platform/midifighter/midifighter.h"
 
