@@ -47,13 +47,30 @@ __attribute__((noreturn)) void main(void) {
 	mf_input_init();
 	systime_start();
 	usb_init();
+
+	// Enable system interrupts (required for input and led processing)
+	sei();
+
 	mf_cfg_init(); // Must be after after core init and before display init
-	mf_cfg_load(); // Must be after cfg_init
+
+	// for 200ms after power-up check if reset is pressed
+	uint32_t time	 = systime_ms();
+	bool		 reset = false;
+
+	do {
+		mf_input_update();
+		reset = mf_is_reset_pressed();
+		if (reset)
+			break;
+	} while (systime_ms() - time < 200);
+
+	if (reset) {
+		mf_cfg_reset();
+	} else {
+		mf_cfg_load();
+	}
 
 	hw_led_init();
-
-	// Enable system interrupts
-	sei();
 
 	// println_pmem("Init done");
 

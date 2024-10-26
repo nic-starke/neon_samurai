@@ -15,7 +15,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (u16)(6)
+#define EE_VERSION (u16)(11)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -122,7 +122,7 @@ EEMEM mf_eeprom_s eeprom_data;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int mf_cfg_init(void) {
-	// Check if the eeprom is initialised (the first word == 0xCAFE), if not
+	// Check if the eeprom is initialised (the first word == EE_VERSION), if not
 	// initialise the eeprom with default values
 	u16 version = eeprom_read_word(&eeprom_data.version);
 
@@ -173,6 +173,10 @@ int mf_cfg_update(void) {
 	}
 
 	return 0;
+}
+
+int mf_cfg_reset(void) {
+	return init_eeprom();
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -30,6 +30,7 @@ static void sw_encoder_update(void);
 static void vmap_update(mf_encoder_s* enc, virtmap_s* map);
 static int	midi_in_handler(void* evt);
 static void print_dir(uint enc_idx, int dir);
+static void rgb_init(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -37,19 +38,6 @@ static void print_dir(uint enc_idx, int dir);
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
 mf_encoder_s gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
-
-// PROGMEM static const midifighter_encoder_s default_config = {
-// 		.enabled					= true,
-// 		.detent						= false,
-// 		.encoder_ctx			= {0},
-// 		.hwenc_id					= 0,
-// 		.led_style				= DIS_MODE_SINGLE,
-// 		.led_detent.value = 0,
-// 		.led_rgb.value		= 0,
-// 		.midi.channel			= 0,
-// 		.midi.mode				= MIDI_MODE_CC,
-// 		.midi.data.cc			= 0,
-// };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -63,6 +51,11 @@ void mf_input_init(void) {
 void mf_input_update(void) {
 	hw_encoder_scan();
 	sw_encoder_update();
+}
+
+bool mf_is_reset_pressed(void) {
+	return hw_enc_switch_state(2) == SWITCH_PRESSED &&
+				 hw_enc_switch_state(3) == SWITCH_PRESSED;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -79,42 +72,78 @@ static void sw_encoder_init(void) {
 			enc->quad_ctx					= &gQUAD_ENC[e];
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
-			enc->detent						= true;
 			enc->vmap_mode				= VIRTMAP_MODE_TOGGLE;
 			enc->vmap_active			= 0;
 			enc->sw_mode					= SW_MODE_VMAP_CYCLE;
 			enc->sw_state					= SWITCH_IDLE;
 
+			// Defaults
+			// Row 1 (idx = 0,1,2,3) = pan encoder (detent true) (rgb = light blue)
+			// Row 2 (idx = 4,5,6,7) = filter encoder (detent true) (rgb = turqouise)
+			// Row 3 (idx = 8,9,10,11) = send encoder (detent false) (rgb = navy)
+			// Row 4 (idx = 12,13,14,15) = volume filter encoder (detent false) (rgb =
+			// purple)
+
+			if (enc->idx < 4) {
+				enc->detent = true;
+			} else if (enc->idx < 8) {
+				enc->detent = true;
+			} else if (enc->idx < 12) {
+				enc->detent = false;
+			} else {
+				enc->detent = false;
+			}
+
 			for (uint v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
-				virtmap_s* map = &enc->vmaps[v];
-
-				if (e == 0 && v == 0) {
-					map->position.start = ENC_MIN;
-					map->position.stop	= ENC_MAX;
-					map->range.lower		= MIDI_CC_14B_MIN;
-					map->range.upper		= MIDI_CC_14B_MAX;
-					map->cfg.midi.mode	= MIDI_MODE_CC_14;
-				} else {
-					map->position.start = ENC_MIN;
-					map->position.stop	= ENC_MAX;
-					map->range.lower		= MIDI_CC_MIN;
-					map->range.upper		= MIDI_CC_MAX;
-					map->cfg.midi.mode	= MIDI_MODE_CC;
-				}
-
+				virtmap_s* map				= &enc->vmaps[v];
+				map->position.start		= ENC_MIN;
+				map->position.stop		= ENC_MAX;
+				map->range.lower			= MIDI_CC_MIN;
+				map->range.upper			= MIDI_CC_MAX;
+				map->cfg.midi.mode		= MIDI_MODE_CC;
 				map->cfg.type					= PROTOCOL_MIDI;
 				map->cfg.midi.channel = 0;
 				map->cfg.midi.cc			= cc++;
 
-				map->rgb.red	 = MF_RGB_MAX_VAL;
-				map->rgb.green = MF_RGB_MAX_VAL;
-				map->rgb.blue	 = 0;
+				// Assign RGB based on encoder index
+				if (enc->idx < 4) {
+					map->rgb.red	 = 0x00;
+					map->rgb.green = 0x1F;
+					map->rgb.blue	 = 0x1F;
+				} else if (enc->idx < 8) {
+					map->rgb.red	 = 0x00;
+					map->rgb.green = 0x1F;
+					map->rgb.blue	 = 0x0F;
+				} else if (enc->idx < 12) {
+					map->rgb.red	 = 0x00;
+					map->rgb.green = 0x00;
+					map->rgb.blue	 = 0x1F;
+				} else {
+					map->rgb.red	 = 0x1F;
+					map->rgb.green = 0x00;
+					map->rgb.blue	 = 0x1F;
+				}
 
-				map->rb.red	 = MF_RGB_MAX_VAL;
-				map->rb.blue = 0;
+				map->rgb.red	 = (map->rgb.red + 20) * v % MF_RGB_MAX_VAL;
+				map->rgb.green = (map->rgb.green - 5) * v % MF_RGB_MAX_VAL;
+				map->rgb.blue	 = (map->rgb.blue + 12) * v % MF_RGB_MAX_VAL;
 
 				if (enc->detent) {
 					map->curr_pos = ENC_MID;
+					// Assign RB based on encoder index
+					if (enc->idx < 4) {
+						map->rb.red	 = 0x1F;
+						map->rb.blue = 0x00;
+					} else if (enc->idx < 8) {
+						map->rb.red	 = 0x1F;
+						map->rb.blue = 0x0F;
+					} else if (enc->idx < 12) {
+						map->rb.red	 = 0x00;
+						map->rb.blue = 0x1F;
+					} else {
+						map->rb.red	 = 0x1F;
+						map->rb.blue = 0x1F;
+					}
 				}
 			}
 		}
@@ -370,4 +399,9 @@ static void print_dir(uint enc_idx, int dir) {
 	static const char* const formatstr = "ed[%d][%d]";
 	sprintf(buf, formatstr, enc_idx, dir);
 	println(buf);
+}
+
+static void rgb_init(void) {
+	// Initialise colours for the RGB and Detent LEDs
+	// For the
 }

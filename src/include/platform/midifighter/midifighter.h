@@ -141,6 +141,7 @@ switch_state_e hw_enc_switch_state(u8 idx);
 
 void mf_input_init(void);
 void mf_input_update(void);
+bool mf_is_reset_pressed(void);
 
 int mf_display_init(void);
 int mf_draw_encoder(mf_encoder_s* enc);
@@ -161,5 +162,6 @@ int mf_cfg_init(void);
 int mf_cfg_load(void);
 int mf_cfg_store(void);
 int mf_cfg_update(void);
+int mf_cfg_reset(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
