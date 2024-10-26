@@ -60,8 +60,8 @@ void hw_encoder_scan(void) {
 	u16 swstates = 0;
 	for (size_t i = 0; i < MF_NUM_ENCODER_SWITCHES; i++) {
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 		u8 state = !(bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
+		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
 		swstates |= (state << i);
 	}
 
