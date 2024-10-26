@@ -44,7 +44,7 @@ void mf_led_set_max_brightness(u8 brightness);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // LED frame buffer
-volatile u16 mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
+volatile u16 gFRAME_BUFFER[MF_NUM_PWM_FRAMES][MF_NUM_gENCODERS];
 
 // Frame index (the current frame being transmitted)
 volatile u8 mf_frame = 0;
@@ -54,8 +54,8 @@ volatile u8 mf_frame = 0;
 void hw_led_init(void) {
 
 	// Set all LEDS off
-	memset((u16*)mf_frame_buf, (int)0xFFFF, (size_t)sizeof(mf_frame_buf));
-	// memset(mf_frame_buf, 0x0000, sizeof(mf_frame_buf));
+	memset((u16*)gFRAME_BUFFER, (int)0xFFFF, (size_t)sizeof(gFRAME_BUFFER));
+	// memset(gFRAME_BUFFER, 0x0000, sizeof(gFRAME_BUFFER));
 
 	// Configure GPIO for LED shift registers
 	gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);
@@ -83,7 +83,7 @@ void hw_led_init(void) {
 			.dbuf_mode			 = DMA_DBUFMODE_DISABLED_gc,
 			.int_prio				 = PRIORITY_OFF,
 			.err_prio				 = PRIORITY_OFF,
-			.src_ptr				 = (uptr)&mf_frame_buf[0][0],
+			.src_ptr				 = (uptr)&gFRAME_BUFFER[0][0],
 			.src_addr_mode	 = DMA_CH_SRCDIR_INC_gc,
 			.src_reload_mode = DMA_CH_SRCRELOAD_NONE_gc,
 			.dst_ptr				 = (uptr)&USART_LED.DATA,
@@ -136,7 +136,7 @@ ISR(TCD0_CCB_vect) {
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
 
-		uptr ptr = (uptr)&mf_frame_buf[mf_frame][0];
+		uptr ptr = (uptr)&gFRAME_BUFFER[mf_frame][0];
 
 		if (++mf_frame >= MF_NUM_PWM_FRAMES) {
 			mf_frame = 0;

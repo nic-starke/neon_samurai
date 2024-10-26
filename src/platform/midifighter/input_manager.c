@@ -33,15 +33,11 @@ static void print_dir(uint enc_idx, int dir);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static sys_config_s config = {
-		.enc_dead_time			= DEFAULT_ENC_PLAYDEAD_TIME,
-		.midi_throttle_time = DEFAULT_MIDI_THROTTLE_TIME,
-};
-
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
-mf_encoder_s		 encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
-static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS][MF_NUM_VMAPS_PER_ENC];
+mf_encoder_s		 gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_gENCODERS];
+static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_gENCODERS]
+											[MF_NUM_VMAPS_PER_ENC];
 
 // PROGMEM static const midifighter_encoder_s default_config = {
 // 		.enabled					= true,
@@ -55,8 +51,6 @@ static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS][MF_NUM_VMAPS_PER_ENC];
 // 		.midi.mode				= MIDI_MODE_CC,
 // 		.midi.data.cc			= 0,
 // };
-
-static uint active_bank = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -79,12 +73,12 @@ static void sw_encoder_init(void) {
 	// Initialise encoder devices and virtual parameter mappings
 	midi_cc_e cc = MIDI_CC_MIN;
 	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
-		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-			mf_encoder_s* enc = &encoders[b][e];
+		for (uint e = 0; e < MF_NUM_gENCODERS; e++) {
+			mf_encoder_s* enc = &gENCODERS[b][e];
 
 			encoder_init(&enc->enc_ctx);
 			enc->idx							= (u8)e;
-			enc->quad_ctx					= &mf_enc_quad[e];
+			enc->quad_ctx					= &gQUAD_ENC[e];
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
 			enc->virtmap.mode			= VIRTMAP_MODE_TOGGLE;
@@ -116,19 +110,13 @@ static void sw_encoder_init(void) {
 
 				virtmap_assign(&enc->virtmap.head, map);
 			}
-
-			// Generate an event to update the display...?
-			// io_event_s evt;
-			// evt.type = EVT_IO_ENCODER_ROTATION;
-			// evt.ctx	 = enc;
-			// return event_post(EVENT_CHANNEL_IO, &evt);
 		}
 	}
 }
 
 static void sw_encoder_update(void) {
-	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
-		mf_encoder_s* enc = &encoders[active_bank][i];
+	for (uint i = 0; i < MF_NUM_gENCODERS; i++) {
+		mf_encoder_s* enc = &gENCODERS[gRT.curr_bank][i];
 
 		enc->sw_state = hw_enc_switch_state(enc->idx);
 
@@ -236,9 +224,9 @@ static void sw_encoder_update(void) {
 						case MIDI_MODE_CC: {
 							bool invert = (vmap->range.lower > vmap->range.upper);
 
-							i16 val = convert_range(vmap->curr_pos, vmap->position.start,
-																			vmap->position.stop, vmap->range.lower,
-																			vmap->range.upper);
+							i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
+																					vmap->position.stop,
+																					vmap->range.lower, vmap->range.upper);
 
 							if (invert) {
 								val = MIDI_CC_MAX - val;
@@ -262,9 +250,9 @@ static void sw_encoder_update(void) {
 						case MIDI_MODE_CC_14: {
 							bool invert = (vmap->range.lower > vmap->range.upper);
 
-							i16 val = convert_range(vmap->curr_pos, vmap->position.start,
-																			vmap->position.stop, vmap->range.lower,
-																			vmap->range.upper);
+							i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
+																					vmap->position.stop,
+																					vmap->range.lower, vmap->range.upper);
 
 							if (invert) {
 								val = 0x3FFF - val;
@@ -313,14 +301,16 @@ static void sw_encoder_update(void) {
 			vmap = vmap->next;
 		} while ((enc->virtmap.mode == VIRTMAP_MODE_OVERLAY) && (vmap != NULL));
 
+		/*
+			At this point the encoder was moved, and we have calculated a new
+			position, and values for each of its virtual mappings. Now we need
+			to update the display.
+			The
+		*/
+
 		if (enc->update_display == 0) {
 			enc->update_display = systime_ms();
 		}
-		// mf_draw_encoder(enc);
-		// io_event_s evt;
-		// evt.type = EVT_IO_ENCODER_ROTATION;
-		// evt.ctx	 = enc;
-		// return event_post(EVENT_CHANNEL_IO, &evt);
 	}
 }
 
@@ -330,8 +320,8 @@ static int midi_in_handler(void* evt) {
 	switch (midi->type) {
 		case MIDI_EVENT_CC: {
 			for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
-				for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-					mf_encoder_s* enc	 = &encoders[b][e];
+				for (uint e = 0; e < MF_NUM_gENCODERS; e++) {
+					mf_encoder_s* enc	 = &gENCODERS[b][e];
 					virtmap_s*		vmap = enc->virtmap.head;
 
 					while (vmap != NULL) {
@@ -356,7 +346,7 @@ static int midi_in_handler(void* evt) {
 						// 	goto NEXT;
 						// }
 
-						u16 newpos = (u16)convert_range(
+						u16 newpos = (u16)convert_range_i16(
 								midi->data.cc.value, vmap->range.lower, vmap->range.upper,
 								vmap->position.start, vmap->position.stop);
 

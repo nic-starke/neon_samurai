@@ -12,10 +12,12 @@
 #include "input/encoder.h"
 #include "input/switch.h"
 
+#include "sys/config.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MF_NUM_ENCODERS							 (16)
-#define MF_NUM_ENCODER_SWITCHES			 (MF_NUM_ENCODERS)
+#define MF_NUM_gENCODERS						 (16)
+#define MF_NUM_ENCODER_SWITCHES			 (MF_NUM_gENCODERS)
 #define MF_NUM_SIDE_SWITCHES				 (6)
 #define MF_NUM_LEDS									 (256)
 #define MF_NUM_LEDS_PER_ENCODER			 (16)
@@ -28,13 +30,8 @@
 #define MF_MIN_BRIGHTNESS						 (1)
 
 #define MF_NUM_ENC_BANKS						 (3)
-#define MF_NUM_ENC_PER_BANK					 (MF_NUM_ENCODERS)
+#define MF_NUM_ENC_PER_BANK					 (MF_NUM_gENCODERS)
 #define MF_NUM_VMAPS_PER_ENC				 (2)
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-extern volatile u16 mf_frame_buf[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
-extern quadrature_s mf_enc_quad[MF_NUM_ENCODER_SWITCHES];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -95,10 +92,36 @@ typedef struct {
 	switch_state_e sw_state;
 	switch_mode_e	 sw_mode;
 	proto_cfg_s		 sw_cfg;
-	u32						 update_display;
+
+	/*
+		update_display is (as its name suggests) to determine when to redraw the
+		LEDs for this encoder. This is to prevent the display from being updated
+		too frequently, and to allow for a smooth display update.
+		It is effectively a timestamp (in ms) which can then be used to determine
+		if the display should be updated.
+		Normally the display only needs to be updated if the time delta between
+		the last update and the current time is greater than a certain threshold.
+
+		A value of 0 means the display is up-to-date (and can therefore be skipped
+		by the update routine).
+	*/
+	u32 update_display;
 } mf_encoder_s;
 
-extern mf_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
+/**
+ * @brief Runtime data structure for the midifighter global variables.
+ */
+typedef struct {
+	u8 curr_bank;
+} mf_rt_s;
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+extern volatile u16 gFRAME_BUFFER[MF_NUM_PWM_FRAMES][MF_NUM_gENCODERS];
+extern quadrature_s gQUAD_ENC[MF_NUM_ENCODER_SWITCHES];
+extern mf_encoder_s gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_gENCODERS];
+extern mf_rt_s			gRT;
+extern sys_config_s gCONFIG;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

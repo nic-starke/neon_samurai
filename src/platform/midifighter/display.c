@@ -27,7 +27,6 @@
 #define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
 #define MASK_PWM_INDICATORS		 (0xFBE0)
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef union {
@@ -56,33 +55,22 @@ typedef union {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static const u16 led_interval = ENC_MAX / 11;
-#warning "TODO(ns) Move this to a system-config struct..."
-static u8 max_brightness = MF_MAX_BRIGHTNESS;
+static const u16 led_interval		= ENC_MAX / 11;
+static const u8	 max_brightness = MF_MAX_BRIGHTNESS;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-extern mf_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 
 void display_update(void) {
 
 	u32 time_now = systime_ms();
 
-	// Check every encoder to see if it needs to be updated.
-	// Specifically, if the update_display variable is not 0 then we update
-	// the display. But, we rate limit to avoid too many updates, around 25fps is
-	// good enough. 25fps == 1000 / 25
+	for (uint e = 0; e < MF_NUM_gENCODERS; e++) {
+		mf_encoder_s* enc = &gENCODERS[gRT.curr_bank][e];
 
-	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
-#warning "TODO - get the current bank from the global context?"
-		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
-			mf_encoder_s* enc = &encoders[b][e];
-
-			if (enc->update_display != 0) {
-				if ((time_now - enc->update_display) > (1000 / 25)) {
-					mf_draw_encoder(enc);
-					enc->update_display = 0;
-				}
+		if (enc->update_display != 0) {
+			if ((time_now - enc->update_display) > (1000 / MF_NUM_PWM_FRAMES)) {
+				mf_draw_encoder(enc);
+				enc->update_display = 0;
 			}
 		}
 	}
@@ -178,8 +166,8 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	for (unsigned int f = 0; f < MF_NUM_PWM_FRAMES; ++f) {
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < f) {
-			leds.state								= 0;
-			mf_frame_buf[f][enc->idx] = ~leds.state;
+			leds.state								 = 0;
+			gFRAME_BUFFER[f][enc->idx] = ~leds.state;
 			continue;
 		}
 
@@ -228,7 +216,7 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 		// if ((int)(dis->led_rgb.blue - p) > 0) {
 		// 	leds.rgb_blue = 1;
 		// }
-		mf_frame_buf[f][enc->idx] = ~leds.state;
+		gFRAME_BUFFER[f][enc->idx] = ~leds.state;
 	}
 
 	return 0;
@@ -322,7 +310,7 @@ RIGHT_INDICATORS_MASK;
 		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < p) {
 			leds.state								= 0;
-			mf_frame_buf[p][dev->idx] = ~leds.state;
+			gFRAME_BUFFER[p][dev->idx] = ~leds.state;
 			continue;
 		}
 
@@ -363,7 +351,7 @@ MASK_PWM_INDICATORS);
 		if ((int)(dis->led_rgb.blue - p) > 0) {
 			leds.rgb_blue = 1;
 		}
-		mf_frame_buf[p][dev->idx] = ~leds.state;
+		gFRAME_BUFFER[p][dev->idx] = ~leds.state;
 	}
 }
 
@@ -389,7 +377,7 @@ void mf_debug_encoder_set_indicator(u8 indicator, u8 state) {
 	}
 
 	for (int i = 0; i < MF_NUM_PWM_FRAMES; ++i) {
-		mf_frame_buf[i][debug_encoder] = ~leds.state;
+		gFRAME_BUFFER[i][debug_encoder] = ~leds.state;
 	}
 }
 
@@ -402,7 +390,7 @@ void mf_debug_encoder_set_rgb(bool red, bool green, bool blue) {
 	leds.rgb_green = green;
 
 	for (int i = 0; i < MF_NUM_PWM_FRAMES; ++i) {
-		mf_frame_buf[i][debug_encoder] |= ~leds.state;
+		gFRAME_BUFFER[i][debug_encoder] |= ~leds.state;
 	}
 }
 

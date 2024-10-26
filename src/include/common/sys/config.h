@@ -17,15 +17,12 @@
 
 #define DEFAULT_MIDI_THROTTLE_TIME (10)
 
-#define DEFAULT_BRIGHTNESS				 (UINT8_MAX)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 typedef struct {
 	u8 enc_dead_time;
 	u8 midi_throttle_time;
-	u8 brightness;
 } sys_config_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
