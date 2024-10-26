@@ -44,7 +44,7 @@ void mf_led_set_max_brightness(u8 brightness);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // LED frame buffer
-volatile u16 gFRAME_BUFFER[MF_NUM_PWM_FRAMES][MF_NUM_gENCODERS];
+volatile u16 gFRAME_BUFFER[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 
 // Frame index (the current frame being transmitted)
 volatile u8 mf_frame = 0;

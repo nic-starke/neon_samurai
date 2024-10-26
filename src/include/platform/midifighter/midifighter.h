@@ -16,8 +16,8 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MF_NUM_gENCODERS						 (16)
-#define MF_NUM_ENCODER_SWITCHES			 (MF_NUM_gENCODERS)
+#define MF_NUM_ENCODERS							 (16)
+#define MF_NUM_ENCODER_SWITCHES			 (MF_NUM_ENCODERS)
 #define MF_NUM_SIDE_SWITCHES				 (6)
 #define MF_NUM_LEDS									 (256)
 #define MF_NUM_LEDS_PER_ENCODER			 (16)
@@ -30,7 +30,7 @@
 #define MF_MIN_BRIGHTNESS						 (1)
 
 #define MF_NUM_ENC_BANKS						 (3)
-#define MF_NUM_ENC_PER_BANK					 (MF_NUM_gENCODERS)
+#define MF_NUM_ENC_PER_BANK					 (MF_NUM_ENCODERS)
 #define MF_NUM_VMAPS_PER_ENC				 (2)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -117,9 +117,9 @@ typedef struct {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern volatile u16 gFRAME_BUFFER[MF_NUM_PWM_FRAMES][MF_NUM_gENCODERS];
+extern volatile u16 gFRAME_BUFFER[MF_NUM_PWM_FRAMES][MF_NUM_ENCODERS];
 extern quadrature_s gQUAD_ENC[MF_NUM_ENCODER_SWITCHES];
-extern mf_encoder_s gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_gENCODERS];
+extern mf_encoder_s gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 extern mf_rt_s			gRT;
 extern sys_config_s gCONFIG;
 
@@ -144,5 +144,19 @@ int mf_draw_encoder(mf_encoder_s* enc);
 
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state);
 void mf_debug_encoder_set_rgb(bool red, bool green, bool blue);
+
+/**
+ * @brief Initialise the midifighter configuration data.
+ * This will read/write to the EEPROM.
+ * The function must be called AFTER all other initialisation functions,
+ * to ensure that default configurations will be correctly written
+ * the very first time a user boots the device.
+ *
+ * @return int 0 on success, !0 on failure.
+ */
+int mf_cfg_init(void);
+int mf_cfg_load(void);
+int mf_cfg_store(void);
+int mf_cfg_update(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

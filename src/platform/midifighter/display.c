@@ -64,7 +64,7 @@ void display_update(void) {
 
 	u32 time_now = systime_ms();
 
-	for (uint e = 0; e < MF_NUM_gENCODERS; e++) {
+	for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
 		mf_encoder_s* enc = &gENCODERS[gRT.curr_bank][e];
 
 		if (enc->update_display != 0) {

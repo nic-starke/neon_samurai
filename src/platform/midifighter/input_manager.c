@@ -35,9 +35,8 @@ static void print_dir(uint enc_idx, int dir);
 
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
-mf_encoder_s		 gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_gENCODERS];
-static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_gENCODERS]
-											[MF_NUM_VMAPS_PER_ENC];
+mf_encoder_s		 gENCODERS[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
+static virtmap_s vmaps[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS][MF_NUM_VMAPS_PER_ENC];
 
 // PROGMEM static const midifighter_encoder_s default_config = {
 // 		.enabled					= true,
@@ -58,7 +57,6 @@ void mf_input_init(void) {
 	hw_encoder_init();
 	hw_switch_init();
 	sw_encoder_init();
-
 	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
@@ -73,7 +71,7 @@ static void sw_encoder_init(void) {
 	// Initialise encoder devices and virtual parameter mappings
 	midi_cc_e cc = MIDI_CC_MIN;
 	for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
-		for (uint e = 0; e < MF_NUM_gENCODERS; e++) {
+		for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
 			mf_encoder_s* enc = &gENCODERS[b][e];
 
 			encoder_init(&enc->enc_ctx);
@@ -106,7 +104,7 @@ static void sw_encoder_init(void) {
 
 				map->proto.type					= PROTOCOL_MIDI;
 				map->proto.midi.channel = 0;
-				map->proto.midi.data.cc = cc++;
+				map->proto.midi.cc			= cc++;
 
 				virtmap_assign(&enc->virtmap.head, map);
 			}
@@ -115,7 +113,7 @@ static void sw_encoder_init(void) {
 }
 
 static void sw_encoder_update(void) {
-	for (uint i = 0; i < MF_NUM_gENCODERS; i++) {
+	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
 		mf_encoder_s* enc = &gENCODERS[gRT.curr_bank][i];
 
 		enc->sw_state = hw_enc_switch_state(enc->idx);
@@ -241,7 +239,7 @@ static void sw_encoder_update(void) {
 							midi_event_s midi_evt;
 							midi_evt.type						 = MIDI_EVENT_CC;
 							midi_evt.data.cc.channel = vmap->proto.midi.channel;
-							midi_evt.data.cc.control = vmap->proto.midi.data.cc;
+							midi_evt.data.cc.control = vmap->proto.midi.cc;
 							midi_evt.data.cc.value	 = val & MIDI_CC_MAX;
 							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 							break;
@@ -268,12 +266,12 @@ static void sw_encoder_update(void) {
 							// Send the MSB
 							midi_evt.type						 = MIDI_EVENT_CC;
 							midi_evt.data.cc.channel = vmap->proto.midi.channel;
-							midi_evt.data.cc.control = vmap->proto.midi.data.cc;
+							midi_evt.data.cc.control = vmap->proto.midi.cc;
 							midi_evt.data.cc.value	 = (val >> 7) & 0x7F;
 							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 
 							// Then the LSB
-							midi_evt.data.cc.control = (u8)vmap->proto.midi.data.cc + 32;
+							midi_evt.data.cc.control = (u8)vmap->proto.midi.cc + 32;
 							midi_evt.data.cc.value	 = val & 0x7F;
 							event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 							break;
@@ -320,7 +318,7 @@ static int midi_in_handler(void* evt) {
 	switch (midi->type) {
 		case MIDI_EVENT_CC: {
 			for (uint b = 0; b < MF_NUM_ENC_BANKS; b++) {
-				for (uint e = 0; e < MF_NUM_gENCODERS; e++) {
+				for (uint e = 0; e < MF_NUM_ENCODERS; e++) {
 					mf_encoder_s* enc	 = &gENCODERS[b][e];
 					virtmap_s*		vmap = enc->virtmap.head;
 
@@ -330,7 +328,7 @@ static int midi_in_handler(void* evt) {
 							goto NEXT;
 						} else if (vmap->proto.midi.channel != midi->data.cc.channel) {
 							goto NEXT;
-						} else if (vmap->proto.midi.data.cc != midi->data.cc.control) {
+						} else if (vmap->proto.midi.cc != midi->data.cc.control) {
 							goto NEXT;
 						}
 

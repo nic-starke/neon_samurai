@@ -27,7 +27,8 @@ typedef struct {
 	u8					channel;
 	union {
 		midi_cc_e cc;
-	} data;
+		u8				raw;
+	};
 } midi_cfg_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -27,7 +27,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-quadrature_s gQUAD_ENC[MF_NUM_gENCODERS];
+quadrature_s gQUAD_ENC[MF_NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -47,7 +47,7 @@ void hw_encoder_init(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
-	for (uint i = 0; i < MF_NUM_gENCODERS; i++) {
+	for (uint i = 0; i < MF_NUM_ENCODERS; i++) {
 		gQUAD_ENC[i].dir = 0;
 		gQUAD_ENC[i].rot = 0;
 	}
@@ -72,7 +72,7 @@ void hw_encoder_scan(void) {
 
 	// Clock the 32 bits for the 2x16 quadrature encoder signals, and update
 	// encoder state.
-	for (int i = 0; i < MF_NUM_gENCODERS; ++i) {
+	for (int i = 0; i < MF_NUM_ENCODERS; ++i) {
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
 		u8 ch_a = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
 		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);

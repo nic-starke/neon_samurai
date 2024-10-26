@@ -51,6 +51,10 @@ __attribute__((noreturn)) void main(void) {
 
 	usb_init();
 
+	// Must be called after interrupts are enabled AND all other init functions
+	mf_cfg_init();
+	mf_cfg_load();
+
 	// Enable system interrupts
 	sei();
 
@@ -62,6 +66,7 @@ __attribute__((noreturn)) void main(void) {
 		display_update();
 		midi_update();
 		usb_update();
+		mf_cfg_update();
 	}
 }
 
