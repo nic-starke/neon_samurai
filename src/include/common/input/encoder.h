@@ -24,9 +24,16 @@
 typedef struct {
 	i16 velocity;		// Current rotational velocity
 	u8	accel_mode; // Acceleration mode
-	u8	accel_tick; // Acceleration tick constant (1 tick per ms)
+	i8	accel_tick; // Acceleration tick constant
 	i8	direction;	// Current direction
 } encoder_s;
+
+// typedef struct {
+//     int16_t value;
+//     int8_t accel;
+//     int8_t last_direction;
+//     uint8_t consistent_turns;
+// } encoder_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

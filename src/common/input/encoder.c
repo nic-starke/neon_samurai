@@ -9,61 +9,84 @@
 #include "input/encoder.h"
 #include "event/event.h"
 #include "event/io.h"
+#include <stdint.h>
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define VEL_INC 1
+#define ACCEL_MAX				4
+#define ACCEL_THRESHOLD 1
+#define DECEL_RATE			8
+#define ACCEL_DIVISOR		8
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Acceleration constants
-static i16 accel_curve[] = {VEL_INC,			VEL_INC * 5,	VEL_INC * 15,
-														VEL_INC * 30, VEL_INC * 60, VEL_INC * 100,
-														VEL_INC * 200};
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int encoder_init(encoder_s* enc) {
 	assert(enc);
-	enc->accel_mode = 0;
-	enc->accel_tick = 0;
 	enc->velocity		= 0;
+	enc->accel_tick = 0;
+	enc->direction	= 0;
 	return 0;
 }
 
-void encoder_update(encoder_s* enc, int direction) {
-	if (enc->accel_mode == 0) {
-		if (direction == 0) {
+void encoder_update(encoder_s* enc, int new_direction) {
+	if (new_direction == 0) {
+		// No movement, aggressively reduce acceleration and velocity
+		if (enc->accel_tick > 0) {
+			enc->accel_tick -= DECEL_RATE;
+		} else if (enc->accel_tick < 0) {
+			enc->accel_tick += DECEL_RATE;
+		}
+
+		// Gradually decrease velocity more aggressively to prevent "jumping"
+		if (enc->velocity > 0) {
+			enc->velocity -= DECEL_RATE * 2; // Decelerate faster when no input
+		} else if (enc->velocity < 0) {
+			enc->velocity +=
+					DECEL_RATE * 2; // Faster deceleration in the opposite direction
+		}
+
+		// Ensure velocity reaches zero eventually
+		if (abs(enc->velocity) < DECEL_RATE * 2) {
 			enc->velocity = 0;
-			return;
 		}
 
-		enc->direction = (i8)direction;
-		enc->velocity	 = 5 * direction;
-		// enc->velocity = ENC_MAX_VELOCITY * direction;
 	} else {
+		// Directional consistency: reset acceleration if direction changes
+		if (new_direction != enc->direction) {
+			enc->accel_tick = 0; // Reset acceleration when changing direction
+		}
 
-		// if (direction == 0) {
-		// 	enc->velocity = enc->velocity - (enc->velocity / 4);
-		// }
-
-		if (direction == enc->direction) {
-			if (enc->accel_tick < (COUNTOF(accel_curve) - 1)) {
-				enc->accel_tick++;
-			}
-		} else {
-			if (enc->accel_tick > 0) {
-				enc->accel_tick--;
+		// Gradually accelerate in the same direction
+		if (new_direction == enc->direction) {
+			if (enc->accel_tick < ACCEL_MAX && new_direction > 0) {
+				enc->accel_tick += (ACCEL_MAX - enc->accel_tick) / 2; // Smooth accel
+			} else if (enc->accel_tick > -ACCEL_MAX && new_direction < 0) {
+				enc->accel_tick += (-ACCEL_MAX - enc->accel_tick) / 2; // Smooth decel
 			}
 		}
-		enc->velocity =
-				(accel_curve[enc->accel_tick] * enc->accel_tick * direction);
 
-		enc->direction = (i8)direction;
+		// Calculate movement, adding acceleration
+		int16_t movement = new_direction;
+		if (enc->accel_tick > ACCEL_THRESHOLD ||
+				enc->accel_tick < -ACCEL_THRESHOLD) {
+			movement += (enc->accel_tick - ACCEL_THRESHOLD);
+		}
+
+		// Update velocity, but cap the maximum velocity
+		enc->velocity += movement;
+
+		// Cap the velocity to prevent it from jumping to extreme values
+		if (enc->velocity > ACCEL_MAX) {
+			enc->velocity = ACCEL_MAX;
+		} else if (enc->velocity < -ACCEL_MAX) {
+			enc->velocity = -ACCEL_MAX;
+		}
+
+		// Save the current direction
+		enc->direction = new_direction;
 	}
 }
 
