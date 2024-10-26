@@ -34,7 +34,7 @@
 #define MF_NUM_VMAPS_PER_ENC				 (2)
 
 #define MF_RGB_WHITE								 (0x32DF) // red = max, blue = 12, green = 22
-#define MF_RGB_MAX_VAL							 (31)
+#define MF_RGB_MAX_VAL							 (MF_NUM_PWM_FRAMES)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

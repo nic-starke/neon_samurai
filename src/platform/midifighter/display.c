@@ -137,7 +137,6 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 	// indicator LED #6 at the 12 o'clock position must be turned off.
 	if (enc->detent && (ind_norm == 6)) {
 		leds.indicator_6 = 0;
-		leds.detent_blue = 1;
 	}
 
 	// Handle PWM for RGB colours, MULTI_PWM mode, and global max brightness
@@ -176,6 +175,39 @@ int mf_draw_encoder(mf_encoder_s* enc) {
 			}
 		}
 
+		// Handle RGB LEDs
+		virtmap_s* vmap = &enc->vmaps[enc->vmap_active];
+
+		leds.rgb_blue		 = 0;
+		leds.rgb_red		 = 0;
+		leds.rgb_green	 = 0;
+		leds.detent_blue = 0;
+		leds.detent_red	 = 0;
+
+		if (vmap->rgb.red > f) {
+			leds.rgb_red = 1;
+		}
+
+		if (vmap->rgb.green > f) {
+			leds.rgb_green = 1;
+		}
+
+		if (vmap->rgb.blue > f) {
+			leds.rgb_blue = 1;
+		}
+
+		if (enc->detent) {
+			if (vmap->rb.red > f) {
+				leds.detent_red = 1;
+			}
+
+			if (vmap->rb.blue > f) {
+				leds.detent_blue = 1;
+			}
+		}
+
+		// Write the LED state to the frame buffer
+		// As 0 = LED on, 1 = LED off we invert all the states before writing
 		gFRAME_BUFFER[f][enc->idx] = ~leds.state;
 	}
 

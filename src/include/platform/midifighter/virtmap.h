@@ -9,6 +9,7 @@
 
 #include "sys/types.h"
 #include "protocol/protocol.h"
+#include "platform/midifighter/rgb.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -82,7 +83,10 @@ typedef struct virtmap_s {
 
 	u8					curr_pos;
 	i16					curr_val;
-	proto_cfg_s proto;
+	proto_cfg_s cfg;
+
+	rgb_8_s rgb;
+	rb_8_s	rb;
 } virtmap_s;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

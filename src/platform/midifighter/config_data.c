@@ -15,7 +15,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (0x0003)
+#define EE_VERSION (u16)(6)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -51,23 +51,29 @@ typedef struct {
 
 typedef struct {
 	// General
-	u8 display_mode : 2;
-	u8 virtmap_mode : 1;
+	u8 display_mode								 : 2;
+	u8 virtmap_mode								 : 1;
 
 	// Encoder
-	u8 detent				: 1;
-	u8 accel_mode		: 1;
-	u8 vmap_mode		: 1;
-	u8 vmap_active	: 1;
+	u8 detent											 : 1;
+	u8 accel_mode									 : 1;
+	u8 vmap_mode									 : 1;
+	u8 vmap_active								 : 1;
 
 	// Encoder Switch
-	u8 sw_state			: 1;
-	u8 sw_mode;
-
-	u8 vmap_pos[MF_NUM_VMAPS_PER_ENC];
-
-	mf_eeprom_proto_cfg_s vmap_cfg[MF_NUM_VMAPS_PER_ENC];
+	u8										sw_state : 1;
+	u8										sw_mode;
 	mf_eeprom_proto_cfg_s sw_cfg;
+
+	struct {
+		mf_eeprom_proto_cfg_s cfg;
+		u8										pos;
+		u8										rgb_r;
+		u8										rgb_g;
+		u8										rgb_b;
+		u8										rb_r;
+		u8										rb_b;
+	} vmap[MF_NUM_VMAPS_PER_ENC];
 } mf_eeprom_encoder_s;
 
 typedef struct {
@@ -185,8 +191,13 @@ int encode_encoder(const mf_encoder_s* src, mf_eeprom_encoder_s* dst) {
 	dst->vmap_active	= src->vmap_active;
 
 	for (int i = 0; i < MF_NUM_VMAPS_PER_ENC; i++) {
-		dst->vmap_pos[i] = src->vmaps[i].curr_pos;
-		encode_proto_cfg(&src->vmaps[i].proto, &dst->vmap_cfg[i]);
+		dst->vmap[i].pos	 = src->vmaps[i].curr_pos;
+		dst->vmap[i].rgb_r = src->vmaps[i].rgb.red;
+		dst->vmap[i].rgb_g = src->vmaps[i].rgb.green;
+		dst->vmap[i].rgb_b = src->vmaps[i].rgb.blue;
+		dst->vmap[i].rb_r	 = src->vmaps[i].rb.red;
+		dst->vmap[i].rb_b	 = src->vmaps[i].rb.blue;
+		encode_proto_cfg(&src->vmaps[i].cfg, &dst->vmap[i].cfg);
 	}
 
 	encode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);
@@ -208,8 +219,13 @@ int decode_encoder(const mf_eeprom_encoder_s* src, mf_encoder_s* dst) {
 	dst->vmap_active				= src->vmap_active;
 
 	for (int i = 0; i < MF_NUM_VMAPS_PER_ENC; i++) {
-		dst->vmaps[i].curr_pos = src->vmap_pos[i];
-		decode_proto_cfg(&src->vmap_cfg[i], &dst->vmaps[i].proto);
+		dst->vmaps[i].curr_pos	= src->vmap[i].pos;
+		dst->vmaps[i].rgb.red		= src->vmap[i].rgb_r;
+		dst->vmaps[i].rgb.green = src->vmap[i].rgb_g;
+		dst->vmaps[i].rgb.blue	= src->vmap[i].rgb_b;
+		dst->vmaps[i].rb.red		= src->vmap[i].rb_r;
+		dst->vmaps[i].rb.blue		= src->vmap[i].rb_b;
+		decode_proto_cfg(&src->vmap[i].cfg, &dst->vmaps[i].cfg);
 	}
 
 	decode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);

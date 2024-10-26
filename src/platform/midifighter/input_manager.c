@@ -79,7 +79,7 @@ static void sw_encoder_init(void) {
 			enc->quad_ctx					= &gQUAD_ENC[e];
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
-			enc->detent						= false;
+			enc->detent						= true;
 			enc->vmap_mode				= VIRTMAP_MODE_TOGGLE;
 			enc->vmap_active			= 0;
 			enc->sw_mode					= SW_MODE_VMAP_CYCLE;
@@ -89,22 +89,33 @@ static void sw_encoder_init(void) {
 				virtmap_s* map = &enc->vmaps[v];
 
 				if (e == 0 && v == 0) {
-					map->position.start	 = ENC_MIN;
-					map->position.stop	 = ENC_MAX;
-					map->range.lower		 = MIDI_CC_14B_MIN;
-					map->range.upper		 = MIDI_CC_14B_MAX;
-					map->proto.midi.mode = MIDI_MODE_CC_14;
+					map->position.start = ENC_MIN;
+					map->position.stop	= ENC_MAX;
+					map->range.lower		= MIDI_CC_14B_MIN;
+					map->range.upper		= MIDI_CC_14B_MAX;
+					map->cfg.midi.mode	= MIDI_MODE_CC_14;
 				} else {
-					map->position.start	 = ENC_MIN;
-					map->position.stop	 = ENC_MAX;
-					map->range.lower		 = MIDI_CC_MIN;
-					map->range.upper		 = MIDI_CC_MAX;
-					map->proto.midi.mode = MIDI_MODE_CC;
+					map->position.start = ENC_MIN;
+					map->position.stop	= ENC_MAX;
+					map->range.lower		= MIDI_CC_MIN;
+					map->range.upper		= MIDI_CC_MAX;
+					map->cfg.midi.mode	= MIDI_MODE_CC;
 				}
 
-				map->proto.type					= PROTOCOL_MIDI;
-				map->proto.midi.channel = 0;
-				map->proto.midi.cc			= cc++;
+				map->cfg.type					= PROTOCOL_MIDI;
+				map->cfg.midi.channel = 0;
+				map->cfg.midi.cc			= cc++;
+
+				map->rgb.red	 = MF_RGB_MAX_VAL;
+				map->rgb.green = MF_RGB_MAX_VAL;
+				map->rgb.blue	 = 0;
+
+				map->rb.red	 = MF_RGB_MAX_VAL;
+				map->rb.blue = 0;
+
+				if (enc->detent) {
+					map->curr_pos = ENC_MID;
+				}
 			}
 		}
 	}
@@ -227,10 +238,10 @@ static void vmap_update(mf_encoder_s* enc, virtmap_s* vmap) {
 
 	vmap->curr_pos = (u8)newpos;
 
-	switch (vmap->proto.type) {
+	switch (vmap->cfg.type) {
 
 		case PROTOCOL_MIDI: {
-			switch (vmap->proto.midi.mode) {
+			switch (vmap->cfg.midi.mode) {
 				case MIDI_MODE_DISABLED: {
 					break;
 				}
@@ -254,8 +265,8 @@ static void vmap_update(mf_encoder_s* enc, virtmap_s* vmap) {
 
 					midi_event_s midi_evt;
 					midi_evt.type						 = MIDI_EVENT_CC;
-					midi_evt.data.cc.channel = vmap->proto.midi.channel;
-					midi_evt.data.cc.control = vmap->proto.midi.cc;
+					midi_evt.data.cc.channel = vmap->cfg.midi.channel;
+					midi_evt.data.cc.control = vmap->cfg.midi.cc;
 					midi_evt.data.cc.value	 = val & MIDI_CC_MAX;
 					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 					break;
@@ -281,13 +292,13 @@ static void vmap_update(mf_encoder_s* enc, virtmap_s* vmap) {
 					midi_event_s midi_evt;
 					// Send the MSB
 					midi_evt.type						 = MIDI_EVENT_CC;
-					midi_evt.data.cc.channel = vmap->proto.midi.channel;
-					midi_evt.data.cc.control = vmap->proto.midi.cc;
+					midi_evt.data.cc.channel = vmap->cfg.midi.channel;
+					midi_evt.data.cc.control = vmap->cfg.midi.cc;
 					midi_evt.data.cc.value	 = (val >> 7) & 0x7F;
 					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 
 					// Then the LSB
-					midi_evt.data.cc.control = (u8)vmap->proto.midi.cc + 32;
+					midi_evt.data.cc.control = (u8)vmap->cfg.midi.cc + 32;
 					midi_evt.data.cc.value	 = val & 0x7F;
 					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
 					break;
@@ -324,11 +335,11 @@ static int midi_in_handler(void* evt) {
 
 					for (int v = 0; v < MF_NUM_VMAPS_PER_ENC; v++) {
 						virtmap_s* vmap = &enc->vmaps[v];
-						if (vmap->proto.type != PROTOCOL_MIDI) {
+						if (vmap->cfg.type != PROTOCOL_MIDI) {
 							continue;
-						} else if (vmap->proto.midi.channel != midi->data.cc.channel) {
+						} else if (vmap->cfg.midi.channel != midi->data.cc.channel) {
 							continue;
-						} else if (vmap->proto.midi.cc != midi->data.cc.control) {
+						} else if (vmap->cfg.midi.cc != midi->data.cc.control) {
 							continue;
 						}
 
