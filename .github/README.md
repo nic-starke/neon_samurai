@@ -41,13 +41,13 @@ KEY:
 | Configurable Channels        |     ✅      |
 | Acceleration                 |     ✅      |
 | Firmware Recovery (DJTT)     |     ✅      |
-| 14-bit CC/NRPN               |      ⏲      |
+| 14-bit CC/NRPN               |     ✅      |
 | LFOs                         |      ⏲      |
 | Virtual Banks                |      ⏲      |
 | HID - Mouse/Keyboard         |      ⏲      |
 | Standalone Configuration     |      ⏲      |
 | Improved Button/Switch Modes |      ⏲      |
-| Hyper Knobs                  |      ⏲      |
+| Hyper Knobs                  |     ✅      |
 | Open Sound Control (OSC)     |      ⏲      |
 | Traktor Sequencer            | Not planned |
 | Midi 2.0                     | Not planned |
@@ -102,15 +102,7 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 
 #### Setting up the build system
 
-- In a terminal after you have checked out:
-
-```shell
-meson subprojects checkout
-meson subprojects update
-meson subprojects packagefiles --apply
-```
-
-- Run the user task `Generate`
+- Run the user task `CMake Configure`
 - Run the default build task.
 
 #### udev Rules for AVR Programmers
