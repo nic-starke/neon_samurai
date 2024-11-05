@@ -6,6 +6,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "platform/midifighter/midifighter.h"
+#include "platform/midifighter/sysex.h"
 
 #include "hal/avr/xmega/128a4u/init.h"
 
@@ -45,6 +46,7 @@ __attribute__((noreturn)) void main(void) {
 	event_init();
 	midi_init();
 	mf_input_init();
+	mf_sysex_init();
 	systime_start();
 	usb_init();
 

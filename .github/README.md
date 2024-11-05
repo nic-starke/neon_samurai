@@ -42,6 +42,7 @@ KEY:
 | Acceleration                 |     ✅      |
 | Firmware Recovery (DJTT)     |     ✅      |
 | 14-bit CC/NRPN               |     ✅      |
+| Sysex-based Configuration    |     ✅      |
 | LFOs                         |      ⏲      |
 | Virtual Banks                |      ⏲      |
 | HID - Mouse/Keyboard         |      ⏲      |

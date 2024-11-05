@@ -75,8 +75,8 @@ typedef struct event_ch_handler {
  */
 typedef struct {
 	u8*									queue;			// Statically allocated queue buffer
-	uint								queue_size; // The size of the array (number of messages)
-	uint								data_size; // Size of data for a single event (for memcpy)
+	const uint					queue_size; // The size of the array (number of messages)
+	const uint					data_size; // Size of data for a single event (for memcpy)
 	event_ch_handler_s* handlers;	 // Link list of handlers
 	bool onehandler; // Set true if handlers is a single handler for all events
 	uint head;			 // (private)

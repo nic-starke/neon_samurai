@@ -85,6 +85,7 @@ enum {
 	ERR_NO_MEM					= -5,
 	ERR_DUPLICATE				= -6,
 	ERR_NOT_IMPLEMENTED = -7,
+	ERR_BAD_MSG					= -8,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -8,7 +8,10 @@
 
 #include "sys/types.h"
 
+#include "protocol/midi/midi_types.h"
 #include "protocol/midi/midi_cc.h"
+#include "protocol/midi/midi_sysex_nrt.h"
+#include "protocol/midi/midi_sysex_rt.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
