@@ -11,6 +11,8 @@
 
 #include "sys/error.h"
 #include "sys/time.h"
+#include "common/event/event.h"
+#include "common/event/sys.h"
 #include "platform/midifighter/midifighter.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -78,6 +80,7 @@ typedef struct {
 
 typedef struct {
 	u16									version;
+	u8                  reset_pending; // Flag to indicate pending config reset
 	mf_eeprom_encoder_s encoders[MF_NUM_ENC_BANKS][MF_NUM_ENCODERS];
 } mf_eeprom_s;
 
@@ -121,16 +124,17 @@ EEMEM mf_eeprom_s eeprom_data;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int mf_cfg_init(void) {
+int mf_cfg_init(bool reset_cfg) {
 	// Check if the eeprom is initialised (the first word == EE_VERSION), if not
 	// initialise the eeprom with default values
 	u16 version = eeprom_read_word(&eeprom_data.version);
+	u8 reset_flag = eeprom_read_byte(&eeprom_data.reset_pending);
 
-	if (version != EE_VERSION) {
-		init_eeprom();
+	if (reset_flag == 1 || reset_cfg == 1 || version != EE_VERSION) {
+		return init_eeprom(); // This will also clear the reset_pending flag
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int mf_cfg_load(void) {
@@ -144,7 +148,7 @@ int mf_cfg_load(void) {
 		}
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int mf_cfg_store(void) {
@@ -159,7 +163,7 @@ int mf_cfg_store(void) {
 		}
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int mf_cfg_update(void) {
@@ -172,11 +176,14 @@ int mf_cfg_update(void) {
 		last_update = time_now;
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int mf_cfg_reset(void) {
-	return init_eeprom();
+	// Set the reset pending flag in EEPROM. The actual data reset happens on next boot.
+	eeprom_update_byte(&eeprom_data.reset_pending, 1);
+	hal_system_reset(); // This function does not return
+	return SUCCESS;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -206,7 +213,7 @@ int encode_encoder(const mf_encoder_s* src, mf_eeprom_encoder_s* dst) {
 
 	encode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);
 
-	return 0;
+	return SUCCESS;
 }
 
 int decode_encoder(const mf_eeprom_encoder_s* src, mf_encoder_s* dst) {
@@ -233,7 +240,7 @@ int decode_encoder(const mf_eeprom_encoder_s* src, mf_encoder_s* dst) {
 	}
 
 	decode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);
-	return 0;
+	return SUCCESS;
 }
 
 int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst) {
@@ -257,7 +264,7 @@ int decode_proto_cfg(const mf_eeprom_proto_cfg_s* src, proto_cfg_s* dst) {
 		default: return ERR_UNSUPPORTED;
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int encode_proto_cfg(const proto_cfg_s* src, mf_eeprom_proto_cfg_s* dst) {
@@ -280,7 +287,7 @@ int encode_proto_cfg(const proto_cfg_s* src, mf_eeprom_proto_cfg_s* dst) {
 		default: return ERR_UNSUPPORTED;
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int init_eeprom(void) {
@@ -290,10 +297,16 @@ int init_eeprom(void) {
 	}
 
 	// Write the magic number
-	eeprom_write_word((uint16_t*)0, EE_VERSION);
+	eeprom_write_word(&eeprom_data.version, EE_VERSION);
+
+	// Clear the reset pending flag
+	eeprom_write_byte(&eeprom_data.reset_pending, 0); // Use write_byte as EEPROM is already erased to 0xFF
 
 	// Write the initial state of the system to the eeprom
-	mf_cfg_store();
+	int ret = mf_cfg_store();
 
-	return 0;
+	// Send EVT_SYS_RES_CFG_RESET event
+	sys_event_s evt = { .type = EVT_SYS_RES_CFG_RESET, .data.ret = ret };
+	event_post(EVENT_CHANNEL_SYS, &evt);
+	return ret;
 }

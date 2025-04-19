@@ -11,6 +11,7 @@
 #include "platform/midifighter/midifighter.h"
 
 #include "input/encoder.h"
+#include "common/display/display.h"
 
 #include "event/event.h"
 #include "event/io.h"

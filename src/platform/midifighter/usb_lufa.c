@@ -17,6 +17,7 @@
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Drivers/USB/Class/Common/MIDIClassCommon.h"
 #include "LUFA/Drivers/USB/Class/Device/MIDIClassDevice.h"
+#include "LUFA/Drivers/USB/Class/Device/CDCClassDevice.h" // Add CDC include
 #include "platform/midifighter/LUFAConfig.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -34,6 +35,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 extern USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device;
+#ifdef VSER_ENABLE
+extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
+#endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -110,7 +114,7 @@ PROGMEM static const USB_Descriptor_String_t desc_str_ser =
 #pragma GCC diagnostic pop
 
 #ifdef VSER_ENABLE
-static USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
+USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
 		.Config =
 				{
 						.ControlInterfaceNumber = 0,
@@ -466,7 +470,7 @@ int usb_update(void) {
 #ifdef VSER_ENABLE
 	// Throw away unused received bytes from host
 	if (vser_active) {
-		while (CDC_Device_ReceiveByte(&lufa_usb_cdc_device) == true) {}
+		// while (CDC_Device_ReceiveByte(&lufa_usb_cdc_device) == true) {}
 		CDC_Device_USBTask(&lufa_usb_cdc_device);
 	}
 
@@ -605,6 +609,11 @@ void EVENT_CDC_Device_ControLineStateChanged(
 	*/
 	vser_active = (CDCInterfaceInfo->State.ControlLineStates.HostToDevice &
 								 CDC_CONTROL_LINE_OUT_DTR) != 0;
+}
+
+// Function to check if the virtual serial port is active (DTR asserted)
+bool usb_cdc_is_active(void) {
+	return vser_active;
 }
 
 void println_progmem(const char* const str) {

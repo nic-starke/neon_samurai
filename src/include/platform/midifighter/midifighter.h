@@ -6,6 +6,7 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+#include "hal/avr/xmega/128a4u/sys.h"
 #include "sys/types.h"
 #include "sys/config.h"
 #include "input/quadrature.h"
@@ -158,7 +159,7 @@ void mf_debug_encoder_set_rgb(bool red, bool green, bool blue);
  *
  * @return int 0 on success, !0 on failure.
  */
-int mf_cfg_init(void);
+int mf_cfg_init(bool reset_cfg);
 int mf_cfg_load(void);
 int mf_cfg_store(void);
 int mf_cfg_update(void);

@@ -34,8 +34,12 @@ typedef enum {
 
 typedef struct {
 	u8		type;
-	void* data;
-} event_sys_s;
+	union {
+		void* ptr;
+		return_code_e ret;
+	} data;
+} sys_event_s;
+
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

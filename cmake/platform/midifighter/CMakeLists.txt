@@ -119,6 +119,9 @@ set_target_properties(neosam PROPERTIES
     SUFFIX ".elf"
 )
 
+# Add VSER_ENABLE to the defines
+add_compile_definitions(neosam PRIVATE VSER_ENABLE)
+
 # Add post build commands for AVR-based platforms
 # See toolchain.cmake
 add_avr_post_build_commands(neosam)

@@ -16,4 +16,7 @@
 int usb_init(void);
 int usb_update(void);
 
+// Function to check if the virtual serial port is active (DTR asserted)
+bool usb_cdc_is_active(void);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

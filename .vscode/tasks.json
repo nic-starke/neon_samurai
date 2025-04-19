@@ -127,8 +127,8 @@
 			"args": [
 				"-v",
 				"-c",
-				"avrispmkII",
-				// "jtag3pdi",
+				 "jtag3pdi", // Changed programmer to jtag3pdi
+				// "avrispmkII",
 				"-p",
 				"x128a4u",
 				"-P",

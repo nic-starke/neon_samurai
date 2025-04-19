@@ -20,6 +20,7 @@
 #include "protocol/midi/midi.h"
 #include "event/event.h"
 #include "display/display.h"
+#include "common/console/console.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -49,32 +50,32 @@ __attribute__((noreturn)) void main(void) {
 	mf_sysex_init();
 	systime_start();
 	usb_init();
+#ifdef VSER_ENABLE
+	console_init();
+#endif
 
 	// Enable system interrupts (required for input and led processing)
 	sei();
 
-	mf_cfg_init(); // Must be after after core init and before display init
-
-	// for 200ms after power-up check if reset is pressed
+	// Check if the user requested a reset
 	uint32_t time	 = systime_ms();
 	bool		 reset = false;
-
 	do {
-		mf_input_update();
+		mf_input_update(); // Need to update input to read button state
 		reset = mf_is_reset_pressed();
 		if (reset)
 			break;
 	} while (systime_ms() - time < 200);
 
-	if (reset) {
-		mf_cfg_reset();
-	} else {
-		mf_cfg_load();
-	}
+	// Initialize config
+	mf_cfg_init(reset);
+
+	// Load configuration - either defaults if reset occurred, or existing from EEPROM
+	mf_cfg_load();
 
 	hw_led_init();
 
-	// println_pmem("Init done");
+	println_pmem("Init done");
 
 	while (1) {
 		mf_input_update();
@@ -83,6 +84,9 @@ __attribute__((noreturn)) void main(void) {
 		midi_update();
 		usb_update();
 		mf_cfg_update();
+#ifdef VSER_ENABLE
+		console_update(); // Update the console module in the main loop
+#endif
 	}
 }
 
