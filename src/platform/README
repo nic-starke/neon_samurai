@@ -1,7 +1,0 @@
-# /platform
-
-The /platform directory contains the various implementations of NEON_SAMURAI.
-
-A platform can be thought of as "a device that can run the NEON_SAMURAI application", this could be a desktop-pc running Linux, or the Midifighter Twister midi controller hardware.
-
-This abstraction allows NEON_SAMURAI to run on a variety of devices, which is especially useful during development when we want to quickly iterate and test new code on a PC.

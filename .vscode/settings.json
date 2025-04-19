@@ -14,7 +14,8 @@
       "stdio.h": "c",
       "types.h": "c",
       "midifighter.h": "c",
-      "event.h": "c"
+      "event.h": "c",
+      "common.h": "c"
     },
     
 

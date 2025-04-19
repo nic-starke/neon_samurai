@@ -4,10 +4,9 @@
     },
     "configurations": [
         {
-            "name": "Midifighter",
+            "name": "MAIN",
             "customConfigurationVariables": {
-                "cross_file": "avr/xmega/128a4u.cross",
-                "platform": "midifighter"
+                "cross_file": "avr/xmega/128a4u.cross"
             },
             "defines": [
                 "ARCH=ARCH_XMEGA",
@@ -18,16 +17,7 @@
             ],
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
-            "compileCommands": "${workspaceFolder}/build/midifighter/compile_commands.json"
-        },
-        {
-            "name": "Linux",
-            "defines": [],
-            "intelliSenseMode": "${default}",
-            "compilerArgs": [],
-            "customConfigurationVariables": {
-                "platform": "linux"
-            }
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4

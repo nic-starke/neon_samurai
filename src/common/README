@@ -1,4 +1,0 @@
-# /common
-
-The /common directory contains the common/shared source code for the project.
-All platforms/targets use this source code.

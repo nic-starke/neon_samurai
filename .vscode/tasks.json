@@ -10,12 +10,6 @@
 			"args": "cross_file",
 		},
 		{
-			"id": "platform",
-			"type": "command",
-			"command": "cpptools.activeConfigCustomVariable",
-			"args": "platform",
-		},
-		{
 			"id": "build_type",
 			"type": "pickString",
 			"description": "Select the build type",
@@ -38,9 +32,8 @@
 				"-G",
 				"Ninja",
 				"-B",
-				"${config:app.build_dir}/${input:platform}",
-				"-DPLATFORM=${input:platform}",
-				"--toolchain=${workspaceFolder}/cmake/platform/${input:platform}/toolchain.cmake",
+				"${config:app.build_dir}/",
+				"--toolchain=${workspaceFolder}/cmake/toolchain.cmake",
 				"-DCMAKE_BUILD_TYPE=${input:build_type}",
 			],
 			"problemMatcher": []
@@ -54,12 +47,11 @@
 			},
 			"command" : "cmake",
 			"options": {
-				// "cwd": "${config:app.build_dir}/${input:platform}",
 				"env": {}
 			},
 			"args": [
 				"--build",
-				"${config:app.build_dir}/${input:platform}",
+				"${config:app.build_dir}",
 				"--target",
 				"clean"
 			]
@@ -77,11 +69,10 @@
 			],
 			"command" : "cmake",
 			"options": {
-				// "cwd": "${config:app.build_dir}/${input:platform}",
 			},
 			"args": [
 				"--build",
-				"${config:app.build_dir}/${input:platform}",
+				"${config:app.build_dir}",
 			],
 			"presentation": {
 				"echo": true,
