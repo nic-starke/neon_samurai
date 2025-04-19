@@ -103,6 +103,8 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 
 #### Setting up the build system
 
+
+- Select cpp configuration `midifighter`
 - Run the user task `CMake Configure`
 - Run the default build task.
 

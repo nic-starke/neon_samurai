@@ -1,14 +1,8 @@
 {
-    "files.eol": "\n",
-    "files.associations": {
-        "*.h": "c",
-        "compare": "c",
-        "type_traits": "c"
+    // Custom settings for the "myExtension" extension
+    "app": {
+      "build_dir":"${workspaceFolder}/build"
     },
-    "mesonbuild.configureOnOpen": false,
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-    "C_Cpp.intelliSenseEngineFallback": "enabled",
-    "cmake.sourceDirectory": "/home/nic/workspace/personal/neon_samurai",
+    
+
 }
