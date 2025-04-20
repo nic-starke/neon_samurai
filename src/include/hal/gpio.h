@@ -8,21 +8,21 @@
 
 #include <avr/io.h>
 
-#include "sys/types.h"
+#include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum gpio_dir {
 	GPIO_INPUT,
 	GPIO_OUTPUT
-} gpio_dir_e;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void gpio_mode(PORT_t* port, u8 pin, PORT_OPC_t mode);
-void gpio_dir(PORT_t* port, u8 pin, gpio_dir_e dir);
+void gpio_dir(PORT_t* port, u8 pin, enum gpio_dir dir);
 void gpio_set(PORT_t* port, u8 pin, u8 state);
 u8	 gpio_get(PORT_t* port, u8 pin);
 

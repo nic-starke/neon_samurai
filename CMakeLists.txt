@@ -12,6 +12,9 @@ set(CMAKE_GENERATOR "Ninja")
 include(FetchContent)
 include(ExternalProject)
 
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Project Definition / Settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -24,6 +27,72 @@ project(NEON_SAMURAI
 
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# AVR MCU Settings
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# XMega128a4u Chip - define MCU settings here since they're used in compiler flags
+set(MCU                 atxmega128a4u)
+set(F_CPU               32000000)
+set(F_USB               48000000)
+set(MCU_ARCH            ARCH_XMEGA)
+set(MCU_DEFINE          ATXMEGA128A4U)
+set(USR_BOARD           USER_BOARD)
+
+# Compiler defines for the MCU
+add_definitions(
+    -D${MCU_DEFINE}
+    -DF_USB=${F_USB}
+    -DF_CPU=${F_CPU}
+    -DARCH=${MCU_ARCH}
+    -DBOARD=${USR_BOARD}
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Compiler Flags - Common to all build types
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# Common compiler flags
+set(AVR_COMMON_FLAGS "-mmcu=${MCU} -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -funsigned-char -funsigned-bitfields")
+
+# Common warning flags
+set(AVR_WARNING_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wformat=2 -Wformat-truncation -Wundef -Wno-attributes")
+
+# Common linker flags (same for all build types)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections -Wl,-Map=${CMAKE_BINARY_DIR}/output.map -mmcu=${MCU}")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Compiler Flags - Debug build type
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+set(CMAKE_C_FLAGS_DEBUG "${AVR_COMMON_FLAGS} ${AVR_WARNING_FLAGS} -Og -g3 -ggdb -gdwarf-4")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+set(CMAKE_ASM_FLAGS_DEBUG "-mmcu=${MCU} -g")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Compiler Flags - Release build type
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+set(CMAKE_C_FLAGS_RELEASE "${AVR_COMMON_FLAGS} ${AVR_WARNING_FLAGS} -Os -flto -fuse-linker-plugin -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+set(CMAKE_ASM_FLAGS_RELEASE "-mmcu=${MCU}")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Compiler Flags - RelWithDebInfo build type
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${AVR_COMMON_FLAGS} ${AVR_WARNING_FLAGS} -Os -g -ggdb -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_ASM_FLAGS_RELWITHDEBINFO "-mmcu=${MCU} -g")
+
+# Debug message to show which compiler flags are being used
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  message(STATUS "Using Debug compiler flags: ${CMAKE_C_FLAGS_DEBUG}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  message(STATUS "Using Release compiler flags: ${CMAKE_C_FLAGS_RELEASE}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  message(STATUS "Using RelWithDebInfo compiler flags: ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+else()
+  message(WARNING "Unknown build type: ${CMAKE_BUILD_TYPE}")
+endif()
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # CMake includes for helper functions/utilities
@@ -124,21 +193,25 @@ set_target_properties(neosam PROPERTIES
 )
 
 target_sources(neosam PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/main.c
+    ${CMAKE_SOURCE_DIR}/src/config/config.c
     ${CMAKE_SOURCE_DIR}/src/console/console.c
-    ${CMAKE_SOURCE_DIR}/src/core/config_data.c
-    ${CMAKE_SOURCE_DIR}/src/core/display.c
-    ${CMAKE_SOURCE_DIR}/src/core/hw_encoder.c
-    ${CMAKE_SOURCE_DIR}/src/core/hw_led.c
-    ${CMAKE_SOURCE_DIR}/src/core/hw_switch.c
-    ${CMAKE_SOURCE_DIR}/src/core/input_manager.c
-    ${CMAKE_SOURCE_DIR}/src/core/main.c
-    ${CMAKE_SOURCE_DIR}/src/core/midi_lufa.c
-    ${CMAKE_SOURCE_DIR}/src/core/sysex.c
-    ${CMAKE_SOURCE_DIR}/src/core/systime.c
-    ${CMAKE_SOURCE_DIR}/src/core/usb_lufa.c
+    ${CMAKE_SOURCE_DIR}/src/encoder/encoder.c
+    ${CMAKE_SOURCE_DIR}/src/encoder/hardware.c
+    ${CMAKE_SOURCE_DIR}/src/encoder/quadrature.c
     ${CMAKE_SOURCE_DIR}/src/event/event.c
-    ${CMAKE_SOURCE_DIR}/src/event/io.c
-    ${CMAKE_SOURCE_DIR}/src/event/sys.c
+    ${CMAKE_SOURCE_DIR}/src/io/hw_switch.c
+    ${CMAKE_SOURCE_DIR}/src/io/input_manager.c
+    ${CMAKE_SOURCE_DIR}/src/io/io.c
+    ${CMAKE_SOURCE_DIR}/src/io/switch.c
+    ${CMAKE_SOURCE_DIR}/src/led/hw_led.c
+    ${CMAKE_SOURCE_DIR}/src/led/led.c
+    ${CMAKE_SOURCE_DIR}/src/lfo/lfo.c
+    ${CMAKE_SOURCE_DIR}/src/midi/midi_lufa.c
+    ${CMAKE_SOURCE_DIR}/src/midi/sysex.c
+    ${CMAKE_SOURCE_DIR}/src/system/sys.c
+    ${CMAKE_SOURCE_DIR}/src/system/systime.c
+    ${CMAKE_SOURCE_DIR}/src/usb/usb_lufa.c
     ${CMAKE_SOURCE_DIR}/src/hal/boot.c
     ${CMAKE_SOURCE_DIR}/src/hal/dma.c
     ${CMAKE_SOURCE_DIR}/src/hal/gpio.c
@@ -146,15 +219,11 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/hal/sys.c
     ${CMAKE_SOURCE_DIR}/src/hal/timer.c
     ${CMAKE_SOURCE_DIR}/src/hal/usart.c
-    ${CMAKE_SOURCE_DIR}/src/input/encoder.c
-    ${CMAKE_SOURCE_DIR}/src/input/quadrature.c
-    ${CMAKE_SOURCE_DIR}/src/input/switch.c
-    ${CMAKE_SOURCE_DIR}/src/lfo/lfo.c
 )
 
 target_include_directories(neosam PRIVATE
 	${CMAKE_SOURCE_DIR}/src/include/
-	${CMAKE_SOURCE_DIR}/src/include/LUFA
+	${CMAKE_SOURCE_DIR}/src/include/usb/
 )
 
 set_target_properties(neosam PROPERTIES
@@ -186,34 +255,6 @@ add_compile_definitions(neosam PRIVATE VSER_ENABLE)
 # Add post build commands for AVR-based platforms
 # See toolchain.cmake
 add_avr_post_build_commands(neosam)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# Build Types
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-# # Set compiler flags based on the build type
-# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-#     set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
-# elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-#     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g3")
-#     set(CMAKE_C_FLAGS_RELEASE "-O3 -g3")
-# elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-#     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g3")
-#     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g3")
-# elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-#     set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
-#     set(CMAKE_C_FLAGS_MINSIZEREL "-Os")
-# else()
-#     message(WARNING "Unknown build type: ${CMAKE_BUILD_TYPE}")
-# endif()
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# Other
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Output Message

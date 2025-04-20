@@ -6,30 +6,30 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
-#include "input/quadrature.h"
-#include "input/switch.h"
+#include "system/types.h"
+#include "io/quadrature.h"
+#include "io/switch.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern event_channel_s io_event_ch;
+extern struct event_channel io_event_ch;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum events_io {
 	EVT_IO_ENCODER_ROTATION,
 	EVT_IO_ENCODER_SWITCH,
 	EVT_IO_BUTTON,
 
 	EVT_IO_NB,
-} events_io_e;
+};
 
-typedef struct {
+struct io_event {
 	u8		type;
 	void* ctx;
-} io_event_s;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

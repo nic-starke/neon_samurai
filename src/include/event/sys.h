@@ -6,17 +6,17 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
+#include "system/types.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern event_channel_s sys_event_ch;
+extern struct event_channel sys_event_ch;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum events_core {
 	EVT_SYS_REQ_CFG_RESET,
 	EVT_SYS_RES_CFG_RESET,
 
@@ -30,15 +30,15 @@ typedef enum {
 	EVT_SYS_MENU_STOPPING,
 
 	EVT_SYS_NB,
-} events_core_e;
+};
 
-typedef struct {
+struct sys_event {
 	u8		type;
 	union {
 		void* ptr;
-		return_code_e ret;
+		enum return_code ret;
 	} data;
-} sys_event_s;
+};
 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

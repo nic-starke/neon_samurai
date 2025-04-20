@@ -7,28 +7,28 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
+#include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum waveform {
 	WAVEFORM_SINE,
 	WAVEFORM_SAW,
 	WAVEFORM_SQUARE,
 
 	WAVEFORM_NB,
-} waveform_e;
+};
 
-typedef struct {
+struct lfo {
 	i16				 frequency;
 	i16				 amplitude;
 	i16				 phase;
 	i16				 sampleRate;
-	waveform_e waveform;
-} lfo_s;
+	enum waveform waveform;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-i16 lfo_update(lfo_s* lfo);
+i16 lfo_update(struct lfo* lfo);

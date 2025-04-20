@@ -8,8 +8,8 @@
 #include "console/console.h"
 #include "hal/sys.h"
 #include "usb/usb.h"
-#include "event/event.h" // Add event header
-#include "event/sys.h"   // Add sys event header
+#include "event/event.h"
+#include "event/sys.h"
 
 #include <LUFA/Drivers/USB/Class/Device/CDCClassDevice.h>
 #include <avr/pgmspace.h>
@@ -36,12 +36,12 @@ extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Enum defining command identifiers (conceptual, not directly used for indexing here)
-typedef enum {
+enum console_command_id {
 	CMD_RESET,
 	CMD_HELP,
 	// Add new command IDs here
 	CMD_COUNT // Keep this last for array sizing if needed elsewhere
-} console_command_id_e;
+};
 
 // Function pointer type for command handlers
 typedef void (*command_handler_t)(const char* args);
@@ -90,7 +90,7 @@ static const console_command_t commands[] PROGMEM = {
 static const uint8_t num_commands = sizeof(commands) / sizeof(commands[0]);
 
 // Event handler structure for system events
-static event_ch_handler_s console_sys_evt_handler_def = {
+static struct event_ch_handler console_sys_evt_handler_def = {
 	.handler = &console_sys_event_handler,
 	.next = NULL,
 	.priority = 1,
@@ -277,14 +277,14 @@ static void handle_help(const char* args __attribute__((unused))) {
 // New command handler for config reset
 static void handle_config_reset(const char* args __attribute__((unused))) {
 	console_puts_p(PSTR("Performing factory reset...\r\n"));
-	sys_event_s evt = { .type = EVT_SYS_REQ_CFG_RESET, .data = NULL };
+	struct sys_event evt = { .type = EVT_SYS_REQ_CFG_RESET, .data = NULL };
 	event_post(EVENT_CHANNEL_SYS, &evt);
 }
 
 // System event handler for console
 static int console_sys_event_handler(void* event) {
 	assert(event);
-	sys_event_s* e = (sys_event_s*)event;
+	struct sys_event* e = (struct sys_event*)event;
 
 	switch (e->type) {
 		case EVT_SYS_RES_CFG_RESET:

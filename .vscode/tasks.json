@@ -16,7 +16,8 @@
 			"default": "Release",
 			"options": [
 				"Debug",
-				"Release"
+				"Release",
+				"RelWithDebInfo"
 			]
 		}
 	],
@@ -35,6 +36,21 @@
 				"${config:app.build_dir}/",
 				"--toolchain=${workspaceFolder}/cmake/toolchain.cmake",
 				"-DCMAKE_BUILD_TYPE=${input:build_type}",
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "CMake Configure RelWithDebInfo",
+			"detail": "Configures the build system for Release with Debug Symbols",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-G",
+				"Ninja",
+				"-B",
+				"${config:app.build_dir}/",
+				"--toolchain=${workspaceFolder}/cmake/toolchain.cmake",
+				"-DCMAKE_BUILD_TYPE=RelWithDebInfo",
 			],
 			"problemMatcher": []
 		},
@@ -86,24 +102,58 @@
 			},
 			"problemMatcher": ["$gcc"]
 		},
-		// {
-		// 	"label": "Size",
-		// 	"detail": "Displays size (mem usage) of binary",
-		// 	"type": "shell",
-		// 	"group": {
-		// 		"kind": "build"
-		// 	},
-		// 	"linux": {
-		// 		"command": "ninja"
-		// 	},
-		// 	"options": {
-		// 		"cwd": "${config:app.build_dir}",
-		// 		"env": {}
-		// 	},
-		// 	"args": [
-		// 		"BinSize"
-		// 	]
-		// },
+		{
+			"label": "Build RelWithDebInfo",
+			"detail": "Builds the project with Release optimization and Debug symbols",
+			"type": "shell",
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": [
+				"CMake Configure RelWithDebInfo",
+				"Clean"
+			],
+			"command": "cmake",
+			"args": [
+				"--build",
+				"${config:app.build_dir}",
+			],
+			"presentation": {
+				"echo": true,
+				"showReuseMessage": false,
+				"reveal": "always",
+				"panel": "dedicated",
+				"focus": true,
+				"clear": true
+			},
+			"problemMatcher": ["$gcc"]
+		},
+		{
+			"label": "Launch Bloom",
+			"detail": "Launches the bloom avr-gdb server",
+			"type": "shell",
+			"command": "bloom",
+			"presentation": {
+				"reveal": "silent",
+				"panel": "dedicated"
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"pattern": [
+					{
+						"kind": "file",
+						"regexp": "^(.*)$",
+						"file": 1,
+						"message": 2
+					}
+				],
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Waiting for connection from GDB...",
+					"endsPattern": "Shutdown signal received"
+				}
+			}
+		},
 		{
 			"label": "Flash Board",
 			"detail": "Programs the board with a built binary",
@@ -125,8 +175,74 @@
 				"-P",
 				"usb",
 				"-U",
-				"flash:w:\"${config:app.build_dir}/${input:platform}/neosam.hex\":a"
+				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
 			]
+		},
+		{
+			"label": "Flash Board (RelWithDebInfo)",
+			"detail": "Programs the board with a release build that includes debug symbols",
+			"type": "shell",
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "Build RelWithDebInfo",
+			"linux": {
+				"command": "avrdude"
+			},
+			"args": [
+				"-v",
+				"-c",
+				"jtag3pdi",
+				"-p",
+				"x128a4u",
+				"-P",
+				"usb",
+				"-U",
+				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
+			]
+		},
+		{
+			"label": "Start Bloom",
+			"detail": "Launches bloom for debugging",
+			"type": "shell",
+			"command": "bloom",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"showReuseMessage": false,
+				"clear": true
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"pattern": [
+					{
+						"regexp": ".",
+						"file": 1,
+						"location": 2,
+						"message": 3
+					}
+				],
+				"background": {
+					"activeOnStart": false,
+					"beginsPattern": "Waiting for GDB RSP connection",
+					"endsPattern": "GDB RSP client disconnected"
+				}
+			}
+		},
+		{
+			"label": "Stop Bloom",
+			"detail": "Terminates Bloom debug server",
+			"type": "shell",
+			"command": "pkill",
+			"args": [
+				"-f",
+				"bloom"
+			],
+			"presentation": {
+				"reveal": "silent",
+				"panel": "dedicated"
+			},
+			"problemMatcher": []
 		}
 	],
 }

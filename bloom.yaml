@@ -1,0 +1,21 @@
+# Bloom debugger configuration for Neon Samurai project
+# XMEGA128A4U via JTAGICE3
+
+environments:
+  default:
+    tool:
+      name: jtagice3
+      
+    target:
+      name: atxmega128a4u
+      physical_interface: pdi
+      hardware_breakpoints: true
+      
+    server:
+      name: avr_gdb_rsp
+      ip_address: 127.0.0.1
+      port: 1442
+      range_stepping: true
+
+insight:
+  activate_on_startup: false

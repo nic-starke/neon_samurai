@@ -1,0 +1,87 @@
+{
+    "insight": {
+        "bottomPanelState": {
+            "open": false,
+            "size": 231
+        },
+        "leftPanelState": {
+            "open": false,
+            "size": 300
+        },
+        "mainWindowSize": {
+            "height": 842,
+            "width": 1658
+        },
+        "memoryInspectionPaneStatesByKey": {
+            "data.internal_ram": {
+                "activated": false,
+                "attached": true
+            },
+            "eeprom.internal_eeprom": {
+                "activated": true,
+                "attached": true
+            },
+            "prog.internal_program_memory": {
+                "activated": false,
+                "attached": true
+            }
+        },
+        "memoryInspectionSettingsByKey": {
+            "data.internal_ram": {
+                "excludedRegions": [
+                ],
+                "focusedRegions": [
+                ],
+                "hexViewerSettings": {
+                    "addressLabelType": "absolute",
+                    "displayAnnotations": true,
+                    "displayAsciiValues": false,
+                    "groupStackMemory": true,
+                    "highlightFocusedMemory": true,
+                    "highlightHoveredRowAndCol": true
+                },
+                "refreshOnActivation": false,
+                "refreshOnTargetStop": false
+            },
+            "eeprom.internal_eeprom": {
+                "excludedRegions": [
+                ],
+                "focusedRegions": [
+                ],
+                "hexViewerSettings": {
+                    "addressLabelType": "absolute",
+                    "displayAnnotations": true,
+                    "displayAsciiValues": false,
+                    "groupStackMemory": false,
+                    "highlightFocusedMemory": true,
+                    "highlightHoveredRowAndCol": true
+                },
+                "refreshOnActivation": false,
+                "refreshOnTargetStop": false
+            },
+            "prog.internal_program_memory": {
+                "excludedRegions": [
+                ],
+                "focusedRegions": [
+                ],
+                "hexViewerSettings": {
+                    "addressLabelType": "absolute",
+                    "displayAnnotations": true,
+                    "displayAsciiValues": false,
+                    "groupStackMemory": false,
+                    "highlightFocusedMemory": true,
+                    "highlightHoveredRowAndCol": true
+                },
+                "refreshOnActivation": false,
+                "refreshOnTargetStop": false
+            }
+        },
+        "refreshGpioOnTargetStopped": false,
+        "refreshRegistersOnTargetStopped": false,
+        "registersPaneState": {
+            "activated": true,
+            "attached": true
+        },
+        "selectedVariantKey": "atxmega128a4u_an"
+    }
+}

@@ -11,25 +11,25 @@
 
 #include "hal/timer.h"
 
-#include "sys/types.h"
-#include "sys/error.h"
+#include "system/types.h"
+#include "system/error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static u8						get_bitmask(timer_peripheral_e periph);
-static register8_t* get_power_reg(timer_peripheral_e periph);
+static u8						get_bitmask(enum timer_peripheral periph);
+static register8_t* get_power_reg(enum timer_peripheral periph);
 
 static int pwm_get_params(u16 freq, TC_CLKSEL_t* clk, u16* per);
 
-static void cc_buffer_set(timer_config_s* cfg, u16 val);
+static void cc_buffer_set(struct timer_config* cfg, u16 val);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int timer_init(timer_config_s* cfg) {
+int timer_init(struct timer_config* cfg) {
 	assert(cfg);
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -83,11 +83,11 @@ int timer_init(timer_config_s* cfg) {
 	return 0;
 }
 
-u16 timer_getval(timer_config_s* cfg) {
+u16 timer_getval(struct timer_config* cfg) {
 	return cfg->timer->CNT;
 }
 
-void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
+void timer_ch_isr_enable(struct timer_config* cfg, enum isr_priority priority) {
 	assert(cfg);
 
 	const u8 shift = (u8)cfg->channel << 1;
@@ -96,25 +96,25 @@ void timer_ch_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
 			(u8)(cfg->timer->INTCTRLB & ~mask) | (u8)(priority << shift);
 }
 
-void timer_ch_isr_disable(timer_config_s* cfg) {
+void timer_ch_isr_disable(struct timer_config* cfg) {
 	assert(cfg);
 	const u8 shift = (u8)cfg->channel << 2;
 	const u8 mask	 = (TC0_CCAINTLVL_gm) << shift;
 	cfg->timer->INTCTRLB &= ~mask;
 }
 
-void timer_ovr_isr_enable(timer_config_s* cfg, isr_priority_e priority) {
+void timer_ovr_isr_enable(struct timer_config* cfg, enum isr_priority priority) {
 	assert(cfg);
 	cfg->timer->INTCTRLA =
 			(cfg->timer->INTCTRLA & (u8)~TC0_OVFINTLVL_gm) | (u8)priority;
 }
 
-void timer_ovr_isr_disable(timer_config_s* cfg) {
+void timer_ovr_isr_disable(struct timer_config* cfg) {
 	assert(cfg);
 	cfg->timer->INTCTRLA &= (u8)~TC0_OVFINTLVL_gm;
 }
 
-void timer_pwm_set_duty(timer_config_s* cfg, u8 duty) {
+void timer_pwm_set_duty(struct timer_config* cfg, u8 duty) {
 	assert(cfg);
 
 	if (duty > 100) {
@@ -127,12 +127,12 @@ void timer_pwm_set_duty(timer_config_s* cfg, u8 duty) {
 }
 
 #warning "TODO"
-void timer_pwm_stop(timer_config_s* cfg) {
+void timer_pwm_stop(struct timer_config* cfg) {
 	(void)cfg;
 }
 
 #warning "TODO"
-void timer_pwm_start(timer_config_s* cfg) {
+void timer_pwm_start(struct timer_config* cfg) {
 	(void)cfg;
 }
 
@@ -174,7 +174,7 @@ void timer_get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
 }
 #pragma GCC diagnostic pop
 
-static u8 get_bitmask(timer_peripheral_e periph) {
+static u8 get_bitmask(enum timer_peripheral periph) {
 	switch (periph) {
 		case TIMER_TCE0:
 		case TIMER_TCC0:
@@ -194,7 +194,7 @@ static u8 get_bitmask(timer_peripheral_e periph) {
 	return 0;
 }
 
-static register8_t* get_power_reg(timer_peripheral_e periph) {
+static register8_t* get_power_reg(enum timer_peripheral periph) {
 	switch (periph) {
 		case TIMER_TCC0:
 		case TIMER_TCC1:
@@ -254,7 +254,7 @@ static int pwm_get_params(u16 freq, TC_CLKSEL_t* clk, u16* per) {
 	return 0;
 }
 
-static void cc_buffer_set(timer_config_s* cfg, u16 val) {
+static void cc_buffer_set(struct timer_config* cfg, u16 val) {
 	assert(cfg);
 
 	switch (cfg->channel) {

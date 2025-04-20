@@ -24,64 +24,13 @@ set(CMAKE_RANLIB        avr-ranlib CACHE INTERNAL "")
 set(CMAKE_SIZE          avr-size CACHE INTERNAL "")
 set(CMAKE_STRIP         avr-strip CACHE INTERNAL "")
 
-# XMega128a4u Chip
-set(F_CPU               32000000)
-set(F_USB               48000000)
-set(MCU                 atxmega128a4u)
-set(MCU_ARCH            ARCH_XMEGA)
-set(MCU_DEFINE          ATXMEGA128A4U)
-set(USR_BOARD           USER_BOARD)
-
-# Compiler defines
-add_definitions(
-    -D${MCU_DEFINE}
-    -DF_USB=${F_USB}
-    -DF_CPU=${F_CPU}
-    -DARCH=${MCU_ARCH}
-    -DBOARD=${USR_BOARD}
-)
-
-# Define compiler flags in a list variable
-# Using "set" instead of add_compile_options as the latter seems to
-# break compilation of the cmake test program
-set(CMAKE_C_FLAGS_LIST
-    "-I${AVR_LIBC_PATH}"
-    "-mmcu=${MCU}"
-    "-fdata-sections"
-    "-ffunction-sections"
-    "-Wl,--gc-sections"
-    # "-Wl,--print-gc-sections"
-    "-Wl,--print-memory-usage"
-    "-Wl,--relax"
-
-)
-
-# Convert list to a single string with space-separated elements
-string(REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS_LIST}")
-
-# C Flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE INTERNAL "")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG} -O0 -g3 -DDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE} -Ofast -DNDEBUG")
-
-# C++ Flags
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-exceptions")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+# Note: MCU definitions have been moved to the root CMakeLists.txt
+# to ensure they're available when setting compiler flags
 
 # Custom command function
 function(add_avr_post_build_commands target)
-    # Get the runtime output directory of the target
-    # get_target_property(TARGET_OUTPUT_DIR ${target} RUNTIME_OUTPUT_DIRECTORY)
-
-    # If the RUNTIME_OUTPUT_DIRECTORY is not set, fall back to CMAKE_RUNTIME_OUTPUT_DIRECTORY
-    # if(NOT TARGET_OUTPUT_DIR)
-    #     set(TARGET_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    # endif()
-
     # Use CMAKE_BINARY_DIR directly as it's more reliable
     set(OUTPUT_DIR ${CMAKE_BINARY_DIR})
-
 
     # Generate the EEPROM file
     add_custom_command(
@@ -117,5 +66,4 @@ function(add_avr_post_build_commands target)
             COMMENT " =========== EEPROM file size  =========== "
         )
     endif()
-
 endfunction()

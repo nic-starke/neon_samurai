@@ -8,7 +8,7 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
-#include "sys/types.h"
+#include "system/types.h"
 #include "hal/usart.h"
 #include "hal/gpio.h"
 
@@ -23,13 +23,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static u8		get_mask(USART_t* usart);
-static void configure_io(USART_t* usart, spi_mode_e mode);
+static void configure_io(USART_t* usart, enum spi_mode mode);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // SPI Master only
-void usart_module_init(USART_t* usart, const usart_config_s* config) {
+void usart_module_init(USART_t* usart, const struct usart_config* config) {
 	assert(usart);
 	assert(config);
 
@@ -110,7 +110,7 @@ static u8 get_mask(USART_t* usart) {
 	return 0;
 }
 
-static void configure_io(USART_t* usart, spi_mode_e mode) {
+static void configure_io(USART_t* usart, enum spi_mode mode) {
 	// Default pins are  SCK = 1, RX = 2, TX = 3
 	// Remapped pins are SCK = 5, RX = 6, TX = 7
 

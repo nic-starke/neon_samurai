@@ -6,7 +6,7 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
+#include "system/types.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -15,19 +15,19 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern event_channel_s midi_in_event_ch;
-extern event_channel_s midi_out_event_ch;
+extern struct event_channel midi_in_event_ch;
+extern struct event_channel midi_out_event_ch;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum midi_event {
 	MIDI_EVENT_CC,
 	MIDI_EVENT_SYSEX,
 
 	MIDI_EVENT_NB,
-} midi_event_e;
+};
 
-typedef enum {
+enum midi_sysex_type {
 	SYSEX_TYPE_1BYTE,
 	SYSEX_TYPE_END_1BYTE = SYSEX_TYPE_1BYTE,
 	SYSEX_TYPE_2BYTE,
@@ -40,7 +40,7 @@ typedef enum {
 
 	SYSEX_TYPE_INVALID = 0xFF,
 
-} midi_sysex_type_e;
+};
 
 typedef struct __attribute__((packed)) {
 	u8 channel;
@@ -49,7 +49,7 @@ typedef struct __attribute__((packed)) {
 } midi_cc_event_s;
 
 typedef struct __attribute__((packed)) {
-	u8 type; // midi_sysex_type_e
+	u8 type; // enum midi_sysex_type
 	u8 data[3];
 } midi_sysex_in_event_s;
 

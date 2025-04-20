@@ -6,9 +6,9 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
-#include "sys/utility.h"
-#include "sys/error.h"
+#include "system/types.h"
+#include "system/utility.h"
+#include "system/error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -20,7 +20,7 @@
  * @param h Pointer to handler function.
  */
 #define EVT_HANDLER(p, n, h)                                                   \
-	static event_ch_handler_s n = {                                              \
+	static struct event_ch_handler n = {                                              \
 			.priority = p,                                                           \
 			.handler	= h,                                                           \
 			.next			= NULL,                                                        \
@@ -29,14 +29,14 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum event_ch {
 	EVENT_CHANNEL_SYS,			// Reserved for system events
 	EVENT_CHANNEL_IO,				// IO events
 	EVENT_CHANNEL_MIDI_IN,	// MIDI events (rx)
 	EVENT_CHANNEL_MIDI_OUT, // MIDI events (tx)
 
 	EVENT_CHANNEL_NB,
-} event_ch_e;
+};
 
 /**
  * @brief
@@ -50,11 +50,11 @@ typedef enum {
  * be posted with the event_post_rt() function - this will block
  * and call each handler in turn immediately.
  */
-typedef struct event_ch_handler {
+struct event_ch_handler {
 	u8 priority;
 	int (*handler)(void* event);
 	struct event_ch_handler* next;
-} event_ch_handler_s;
+};
 
 /**
  * @brief Event channel structure.
@@ -73,14 +73,14 @@ typedef struct event_ch_handler {
  * The head parameter is the index of the next event to be handled.
  * It is private and should not be modified by the user.
  */
-typedef struct {
+struct event_channel {
 	u8*									queue;			// Statically allocated queue buffer
 	const uint					queue_size; // The size of the array (number of messages)
 	const uint					data_size; // Size of data for a single event (for memcpy)
-	event_ch_handler_s* handlers;	 // Link list of handlers
+	struct event_ch_handler* handlers;	 // Link list of handlers
 	bool onehandler; // Set true if handlers is a single handler for all events
 	uint head;			 // (private)
-} event_channel_s;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -105,7 +105,7 @@ int event_update(void);
 /**
  * @brief Registers a new event channel.
  * @warning The event channel must have an associated enum
- * assigned - see event_ch_e.
+ * assigned - see enum event_ch.
  *
  * @param ch The enum for the event channel.
  * @param def Pointer to the channel definition.
@@ -115,7 +115,7 @@ int event_update(void);
  * @retval ERR_BAD_PARAM if channel definition is incorrect.
  * @retval 0 on success.
  */
-int event_channel_register(event_ch_e ch, event_channel_s* def);
+int event_channel_register(enum event_ch ch, struct event_channel* def);
 
 /**
  * @brief Processes all events for a single channel.
@@ -125,7 +125,7 @@ int event_channel_register(event_ch_e ch, event_channel_s* def);
  * @param ch Enum of the event channel.
  * @return int General error code.
  */
-int event_channel_process(event_ch_e ch);
+int event_channel_process(enum event_ch ch);
 
 /**
  * @brief Subscribe (assign) a new event handler to an existing event channel.
@@ -137,7 +137,7 @@ int event_channel_process(event_ch_e ch);
  * @retval ERR_UNSUPPORTED cannot assign a new handler to this event channel.
  * @retval 0 on success.
  */
-int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler);
+int event_channel_subscribe(enum event_ch ch, struct event_ch_handler* new_handler);
 
 /**
  * @brief Unsubscribe an event handler from an existing event channel.
@@ -147,7 +147,7 @@ int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler);
  * @return int General error code.
  * @retval 0 on success.
  */
-int event_channel_unsubscribe(event_ch_e ch, event_ch_handler_s* h);
+int event_channel_unsubscribe(enum event_ch ch, struct event_ch_handler* h);
 
 /**
  * @brief Post an event to an event queue.
@@ -163,7 +163,7 @@ int event_channel_unsubscribe(event_ch_e ch, event_ch_handler_s* h);
  * @retval ERR_NO_MEM queue is full - cannot add a new event.
  * @retval 0 on success.
  */
-int event_post(event_ch_e ch, void* event);
+int event_post(enum event_ch ch, void* event);
 
 /**
  * @brief Process an event immediately (real-time)
@@ -173,6 +173,6 @@ int event_post(event_ch_e ch, void* event);
  * @return int General error code.
  * @retval 0 on success.
  */
-int event_post_rt(event_ch_e ch, void* event);
+int event_post_rt(enum event_ch ch, void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

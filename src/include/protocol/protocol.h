@@ -7,28 +7,28 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "protocol/midi/midi.h"
+#include "midi/midi.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef enum {
+enum protocol_type {
 	PROTOCOL_NONE,
 
 	PROTOCOL_MIDI,
 	PROTOCOL_OSC,
 
 	PROTOCOL_NB,
-} protocol_type_e;
+};
 
-typedef struct {
-	protocol_type_e type;
+struct proto_cfg {
+	enum protocol_type type;
 
 	union {
-		midi_cfg_s midi;
+		struct midi_cfg midi;
 		// osc...
 	};
-} proto_cfg_s;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

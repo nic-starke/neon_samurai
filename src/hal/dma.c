@@ -11,8 +11,8 @@
 
 #include "hal/dma.h"
 
-#include "sys/types.h"
-#include "sys/error.h"
+#include "system/types.h"
+#include "system/error.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -30,7 +30,7 @@ void dma_peripheral_init(void) {
 	}
 }
 
-int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg) {
+int dma_channel_init(DMA_CH_t* ch, struct dma_channel_cfg* cfg) {
 	if (ch == NULL || cfg == NULL) {
 		return ERR_NULL_PTR;
 	}

@@ -7,27 +7,27 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
-#include "sys/types.h"
+#include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-typedef struct {
+struct dma_channel_cfg {
 	u8									repeat_count; // 1 for single shot mode, 0 = infinite
 	u16									block_size;		// bytes per block
 	DMA_CH_BURSTLEN_t		burst_len;
 	DMA_CH_TRIGSRC_t		trig_source;
 	DMA_DBUFMODE_t			dbuf_mode;
-	isr_priority_e			int_prio;
-	isr_priority_e			err_prio;
+	enum isr_priority			int_prio;
+	enum isr_priority			err_prio;
 	uptr								src_ptr;
 	DMA_CH_SRCDIR_t			src_addr_mode;
 	DMA_CH_SRCRELOAD_t	src_reload_mode;
 	uptr								dst_ptr;
 	DMA_CH_DESTDIR_t		dst_addr_mode;
 	DMA_CH_DESTRELOAD_t dst_reload_mode;
-} dma_channel_cfg_s;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -47,6 +47,6 @@ void dma_peripheral_init(void);
  *
  * @warning Disables interrupts during configuration.
  */
-int dma_channel_init(DMA_CH_t* ch, dma_channel_cfg_s* cfg);
+int dma_channel_init(DMA_CH_t* ch, struct dma_channel_cfg* cfg);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

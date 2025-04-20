@@ -7,13 +7,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/io.h>
-#include "sys/types.h"
+#include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// typedef enum {
+// enum uart_module {
 //   UART_MODULE_C0,
 //   UART_MODULE_C1,
 //   UART_MODULE_D0,
@@ -21,22 +21,22 @@
 //   UART_MODULE_E0,
 
 //   UART_MODULE_NB,
-// } uart_module_e;
+// };
 
-typedef enum {
+enum spi_mode {
 	SPI_MODE_CLK_LO_PHA_LO,
 	SPI_MODE_CLK_LO_PHA_HI,
 	SPI_MODE_CLK_HI_PHA_LO,
 	SPI_MODE_CLK_HI_PHA_HI,
 
 	SPI_MODE_NB,
-} spi_mode_e;
+};
 
-typedef struct {
-	spi_mode_e mode;
+struct usart_config {
+	enum spi_mode mode;
 	u32				 baudrate;
-	endian_e	 endian;
-} usart_config_s;
+	enum endian	 endian;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -58,7 +58,7 @@ typedef struct {
  *
  * @param config A pointer to a USART config.
  */
-void usart_module_init(USART_t* usart, const usart_config_s* config);
+void usart_module_init(USART_t* usart, const struct usart_config* config);
 
 // Enable or disable USART module transmission.
 void usart_set_tx(USART_t* usart, bool enable);

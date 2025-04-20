@@ -15,7 +15,11 @@
       "types.h": "c",
       "midifighter.h": "c",
       "event.h": "c",
-      "common.h": "c"
+      "common.h": "c",
+      "hardware.h": "c",
+      "console.h": "c",
+      "midi_sysex_rt.h": "c",
+      "led.h": "c"
     },
     
 

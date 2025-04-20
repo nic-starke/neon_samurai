@@ -7,8 +7,8 @@
 
 #include <string.h>
 
-#include "sys/types.h"
-#include "sys/error.h"
+#include "system/types.h"
+#include "system/error.h"
 
 #include "event/event.h"
 #include "event/sys.h"
@@ -22,7 +22,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Data structure for general event handling
-static event_channel_s* channels[EVENT_CHANNEL_NB] = {0};
+static struct event_channel* channels[EVENT_CHANNEL_NB] = {0};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -47,7 +47,7 @@ int event_update(void) {
 	return 0;
 }
 
-int event_channel_register(event_ch_e ch, event_channel_s* def) {
+int event_channel_register(enum event_ch ch, struct event_channel* def) {
 	assert(def);
 	assert(ch < EVENT_CHANNEL_NB);
 
@@ -67,8 +67,8 @@ int event_channel_register(event_ch_e ch, event_channel_s* def) {
 	return 0;
 }
 
-int event_channel_process(event_ch_e ch) {
-	event_channel_s* channel = channels[ch];
+int event_channel_process(enum event_ch ch) {
+	struct event_channel* channel = channels[ch];
 
 	// Check if the channel is registered
 	assert(channel);
@@ -78,7 +78,7 @@ int event_channel_process(event_ch_e ch) {
 		void* event = &channel->queue[i * channel->data_size];
 
 		// Call the event handlers
-		event_ch_handler_s* handler = channel->handlers;
+		struct event_ch_handler* handler = channel->handlers;
 
 		while (handler) {
 			handler->handler(event);
@@ -91,11 +91,11 @@ int event_channel_process(event_ch_e ch) {
 	return 0;
 }
 
-int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler) {
+int event_channel_subscribe(enum event_ch ch, struct event_ch_handler* new_handler) {
 	assert(new_handler);
 	assert(ch < EVENT_CHANNEL_NB);
 
-	event_channel_s* channel = channels[ch];
+	struct event_channel* channel = channels[ch];
 	assert(channel);
 
 	// If the channel is configured for only one subscriber
@@ -104,7 +104,7 @@ int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler) {
 		return ERR_UNSUPPORTED;
 	}
 
-	event_ch_handler_s* curr = channel->handlers;
+	struct event_ch_handler* curr = channel->handlers;
 
 	// If the list is empty, add the handler to the start
 	if (curr == NULL) {
@@ -146,18 +146,18 @@ int event_channel_subscribe(event_ch_e ch, event_ch_handler_s* new_handler) {
 	return ERR_UNSUPPORTED;
 }
 
-int event_channel_unsubscribe(event_ch_e ch, event_ch_handler_s* h) {
+int event_channel_unsubscribe(enum event_ch ch, struct event_ch_handler* h) {
 	assert(h);
 	assert(ch < EVENT_CHANNEL_NB);
 
-	event_channel_s* channel = channels[ch];
+	struct event_channel* channel = channels[ch];
 	assert(channel);
 
 	if (channel->onehandler) {
 		return ERR_UNSUPPORTED;
 	}
 
-	event_ch_handler_s* curr = channel->handlers;
+	struct event_ch_handler* curr = channel->handlers;
 
 	// If there are no more handlers then return
 	if (curr == NULL) {
@@ -182,11 +182,11 @@ int event_channel_unsubscribe(event_ch_e ch, event_ch_handler_s* h) {
 	return ERR_UNSUPPORTED;
 }
 
-int event_post(event_ch_e ch, void* event) {
+int event_post(enum event_ch ch, void* event) {
 	assert(event);
 	assert(ch < EVENT_CHANNEL_NB);
 
-	event_channel_s* channel = channels[ch];
+	struct event_channel* channel = channels[ch];
 	assert(channel);
 
 	// Check there is space in the channel event queue
@@ -202,15 +202,15 @@ int event_post(event_ch_e ch, void* event) {
 	return 0;
 }
 
-int event_post_rt(event_ch_e ch, void* event) {
+int event_post_rt(enum event_ch ch, void* event) {
 	assert(event);
 	assert(ch < EVENT_CHANNEL_NB);
 
-	event_channel_s* channel = channels[ch];
+	struct event_channel* channel = channels[ch];
 	assert(channel);
 
 	// Call the event handlers directly
-	event_ch_handler_s* handler = channel->handlers;
+	struct event_ch_handler* handler = channel->handlers;
 
 	while (handler) {
 		handler->handler(event);

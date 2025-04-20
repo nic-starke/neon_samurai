@@ -7,12 +7,12 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "sys/types.h"
+#include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-typedef enum {
+enum menu_action {
 	MENU_ACTION_PARENT,
 	MENU_ACTION_PREVIOUS,
 	MENU_ACTION_NEXT,
@@ -20,30 +20,30 @@ typedef enum {
 	MENU_ACTION_SAVE,
 
 	MENU_ACTION_NB
-} menu_action_e;
+};
 
 typedef void(transition_f)(void* ctx);
 typedef void(display_f)(void* ctx);
 
-typedef struct menu_page_s {
-	struct menu_page_s* parent;
-	struct menu_page_s* child;
+struct menu_page {
+	struct struct menu_page* parent;
+	struct struct menu_page* child;
 	display_f*					update_display;
 	transition_f*				on_enter;
 	transition_f*				on_next;
 	transition_f*				on_prev;
-} menu_page_s;
+};
 
-typedef struct {
-	struct menu_page_s* entry;
+struct menu {
+	struct struct menu_page* entry;
 	transition_f*				on_start;
 	transition_f*				on_exit;
 	transition_f*				on_save;
-} menu_s;
+};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int menu_start(menu_s* menu);
+int menu_start(struct menu* menu);
 int menu_stop(void);
-int menu_update(menu_page_s* page);
-int menu_process_action(menu_action_e action);
+int menu_update(struct menu_page* page);
+int menu_process_action(enum menu_action action);
