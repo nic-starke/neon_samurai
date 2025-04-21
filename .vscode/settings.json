@@ -8,6 +8,7 @@
       "sys.h": "c",
       "console.h": "c",
       "common.h": "c",
-      "signature.h": "c"
+      "signature.h": "c",
+      "utility.h": "c"
     },
 }

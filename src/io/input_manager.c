@@ -232,7 +232,11 @@ static void sw_encoder_update(void) {
 		}
 
 		int dir = quadrature_direction(enc->quad_ctx);
-		encoder_update(&enc->enc_ctx, dir);
+		bool moved = encoder_update(&enc->enc_ctx, dir);
+
+		if (!moved) {
+			continue;
+		}
 
 		if (enc->vmap_mode == VIRTMAP_MODE_TOGGLE) {
 			vmap_update(enc, &enc->vmaps[enc->vmap_active]);

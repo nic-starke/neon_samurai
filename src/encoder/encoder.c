@@ -40,13 +40,13 @@ int encoder_init(struct encoder* enc) {
 	enc->accel_mode = 0;
 
 	// Initialize time-based acceleration state
-	enc->last_update_time		= systime_ms();
-	enc->accel_factor				= 1;
+	enc->last_update_time = systime_ms();
+	enc->accel_factor			= 1;
 
 	return 0;
 }
 
-void encoder_update(struct encoder* enc, int new_direction) {
+bool encoder_update(struct encoder* enc, int new_direction) {
 	assert(enc);
 
 	u32 current_time = systime_ms();
@@ -55,14 +55,12 @@ void encoder_update(struct encoder* enc, int new_direction) {
 	if (new_direction == 0) {
 		enc->velocity			= 0;
 		enc->direction		= 0;
-		enc->accel_factor = 1; // Reset factor when stopped
-		// Note: last_update_time is NOT updated here, so delta on restart measures
-		// idle time
-		return;
+		enc->accel_factor = 1;
+		return false; // No change
 	}
 
-	u32 time_delta					= current_time - enc->last_update_time;
-	enc->last_update_time		= current_time;
+	u32 time_delta				= current_time - enc->last_update_time;
+	enc->last_update_time = current_time;
 
 	// Determine the base acceleration factor based on time delta
 	u16 current_accel_factor = 1; // Default factor
@@ -110,6 +108,7 @@ void encoder_update(struct encoder* enc, int new_direction) {
 	// snprintf(buffer, sizeof(buffer), "v:%d f:%u t:%lu d:%d\r\n", enc->velocity,
 	// 				 enc->accel_factor, time_delta, enc->direction);
 	// console_puts(buffer);
+	return true; // Encoder moved
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

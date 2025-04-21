@@ -48,5 +48,6 @@ int encoder_init(struct encoder* enc);
  *
  * @param enc Pointer to encoder device.
  * @param direction Current direction of encoder (-1, 0, +1)
+ * @return 1 if display needs to be updated
  */
-void encoder_update(struct encoder* enc, int direction);
+bool encoder_update(struct encoder* enc, int direction);

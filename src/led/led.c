@@ -16,11 +16,12 @@
 #include "event/midi.h"
 
 #include "system/time.h"
+#include "system/utility.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define MASK_INDICATORS				 (0xFFE0)
-#define LEFT_INDICATORS_MASK	 (0xF800)
+#define LEFT_INDICATORS_MASK	 (0xF800) // 1111
 #define RIGHT_INDICATORS_MASK	 (0x03E0)
 #define CLEAR_LEFT_INDICATORS	 (0x03FF) // Mask to clear mid and left-side leds
 #define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
@@ -54,8 +55,9 @@ typedef union {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// static const u16 led_interval		= ENC_MAX / 11; // Not directly used in integer logic
-static const u8	 max_brightness = MAX_BRIGHTNESS;
+// static const u16 led_interval		= ENC_MAX / 11; // Not directly used in
+// integer logic
+static const u8 max_brightness = MAX_BRIGHTNESS;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -66,11 +68,12 @@ void display_update(void) {
 	for (uint e = 0; e < NUM_ENCODERS; e++) {
 		struct mf_encoder* enc = &gENCODERS[gRT.curr_bank][e];
 
-		if (enc->update_display != 0) {
-			if ((time_now - enc->update_display) > (1000 / NUM_PWM_FRAMES)) {
-				mf_draw_encoder(enc);
-				enc->update_display = 0;
-			}
+		/* This routine is called every 1ms, and the display is updated every
+		 * 1000 / NUM_PWM_FRAMES == 31.25ms */
+		if (enc->update_display != 0 &&
+				(time_now - enc->update_display) > (1000 / NUM_PWM_FRAMES)) {
+			mf_draw_encoder(enc);
+			enc->update_display = 0;
 		}
 	}
 }
@@ -78,81 +81,50 @@ void display_update(void) {
 int mf_draw_encoder(struct mf_encoder* enc) {
 	assert(enc);
 
-	// Integer-based calculations
-	u16 curr_pos = enc->vmaps[enc->vmap_active].curr_pos;
+	u8 current_pos			 = enc->vmaps[enc->vmap_active].curr_pos;
+	u8 current_led_index = 0;
 
-	// Calculate ind_norm (rounded index, 1-11)
-	// Equivalent to roundf(curr_pos * 11.0f / ENC_MAX) mapped to 1-11
-	u16 num_norm			= curr_pos * 11 + ENC_MAX / 2;
-	u16 ind_norm_calc = num_norm / ENC_MAX;
-	u16 ind_norm			= (ind_norm_calc < 1) ? 1 : ind_norm_calc; // Clamp lower bound to 1
-	ind_norm					= (ind_norm > 11) ? 11 : ind_norm;		 // Clamp upper bound to 11
+	volatile struct mf_encoder enc_copy = *enc;
+	volatile u8 c_led_pos = current_pos;
+	volatile u8 c_led_idx = current_led_index;
+	if (current_pos == ENC_MAX) {
+		current_led_index = NUM_INDICATOR_LEDS;
+	} else if (current_pos != 0) {
+		current_led_index = (current_pos * NUM_INDICATOR_LEDS) / ENC_MAX;
+	}
 
-	// Calculate ind_floor (floor index, 0-10)
-	// Equivalent to floorf(curr_pos * 11.0f / ENC_MAX)
-	u16 ind_floor_calc = (curr_pos * 11) / ENC_MAX;
-	u16 ind_floor			 = (ind_floor_calc > 10) ? 10 : ind_floor_calc; // Clamp upper bound to 10
-
-	// Calculate max_frames for PWM based on fractional part
-	// Equivalent to (ind_pwm - floorf(ind_pwm)) * NUM_PWM_FRAMES
-	u16 remainder	 = (curr_pos * 11) % ENC_MAX;
-	u16 max_frames = (remainder * NUM_PWM_FRAMES) / ENC_MAX;
+	u16 remainder	 = (current_pos * NUM_INDICATOR_LEDS) % ENC_MAX;
+	u8	max_frames = (remainder * NUM_PWM_FRAMES) / ENC_MAX;
 
 	encoder_led_s leds = {0};
 
-	// Generate the LED states based on the display mode
 	switch (enc->display.mode) {
-		case DIS_MODE_SINGLE: {
-			// Set the corresponding bit for the indicator led
-			leds.state = MASK_INDICATORS & (0x8000 >> (ind_norm - 1));
+		case DIS_MODE_SINGLE:
+			leds.state = MASK_INDICATORS & (0x8000 >> (current_led_index - 1));
 			break;
-		}
-
-		case DIS_MODE_MULTI: {
-			if (enc->detent) {
-				if (ind_norm < 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
-				} else if (ind_norm > 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 5)) & RIGHT_INDICATORS_MASK;
-				}
-			} else {
-				// Default mode - set the indicator leds upto "led_index"
-				leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
-			}
-			break;
-		}
-
+		case DIS_MODE_MULTI:
 		case DIS_MODE_MULTI_PWM: {
 			if (enc->detent) {
-				if (ind_norm < 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 1)) & LEFT_INDICATORS_MASK;
-				} else if (ind_norm > 6) {
-					leds.state |=
-							(LEFT_INDICATORS_MASK >> (ind_norm - 5)) & RIGHT_INDICATORS_MASK;
+				if (current_led_index < 6) {
+					leds.state |= (LEFT_INDICATORS_MASK >> (current_led_index - 1)) &
+												LEFT_INDICATORS_MASK;
+				} else if (current_led_index > 6) {
+					leds.state |= (LEFT_INDICATORS_MASK >> (current_led_index - 5)) &
+												RIGHT_INDICATORS_MASK;
 				}
 			} else {
-				// Default mode - set the indicator leds upto "led_index"
-				leds.state = MASK_INDICATORS & ~(0xFFFF >> ind_norm);
+				leds.state = MASK_INDICATORS & ~(0xFFFF >> current_led_index);
 			}
 			break;
 		}
-
-		case DIS_MODE_NB:
 		default: return ERR_BAD_PARAM;
 	}
 
-	// When detent mode is enabled the detent LEDs must be displayed, and
-	// indicator LED #6 at the 12 o'clock position must be turned off.
-	if (enc->detent && (ind_norm == 6)) {
+	if (enc->detent && (current_led_index == 6)) {
 		leds.indicator_6 = 0;
 	}
 
-	// Handle PWM for RGB colours, MULTI_PWM mode, and global max brightness
 	for (unsigned int f = 0; f < NUM_PWM_FRAMES; ++f) {
-		// When the brightness is below 100% then begin to dim the LEDs.
 		if (max_brightness < f) {
 			leds.state								 = 0;
 			gFRAME_BUFFER[f][enc->idx] = ~leds.state;
@@ -160,50 +132,23 @@ int mf_draw_encoder(struct mf_encoder* enc) {
 		}
 
 		if (enc->display.mode == DIS_MODE_MULTI_PWM) {
-			// Determine the LED index (0-10) for PWM based on mode
-			u16 pwm_shift_index;
-			if (enc->detent) {
-				if (ind_norm < 6) {
-					// Affect LED before the current group (moving away from center)
-					pwm_shift_index = (ind_floor > 0) ? (ind_floor - 1) : 0;
-				} else { // ind_norm >= 6
-					// Affect LED at the current position (moving away from center or at center)
-					pwm_shift_index = ind_floor;
-				}
-			} else { // Non-detent
-				// Affect LED at the current position
-				pwm_shift_index = ind_floor;
+			u8 pwm_shift_index = current_led_index;
+
+			if (enc->detent && current_led_index < 6) {
+				pwm_shift_index = (current_led_index > 0) ? (current_led_index - 1) : 0;
 			}
-			// Clamp index just in case (should be 0-10 from ind_floor calculation)
-			pwm_shift_index = (pwm_shift_index > 10) ? 10 : pwm_shift_index;
 
-			u16 pwm_mask = (0x8000 >> pwm_shift_index) & MASK_PWM_INDICATORS;
+			u16	 pwm_mask = (0x8000 >> pwm_shift_index) & MASK_PWM_INDICATORS;
+			bool brighten = (f < max_frames);
 
-			if (enc->detent) {
-				if (ind_norm < 6) {
-					// Dim the LED *before* the fully lit ones
-					if (f < max_frames) {
-						leds.state &= ~pwm_mask; // Turn OFF for partial brightness
-					} else {
-						leds.state |= pwm_mask; // Turn ON fully
-					}
-				} else if (ind_norm > 6) {
-					// Brighten the LED *at* the fractional position
-					if (f < max_frames) {
-						leds.state |= pwm_mask; // Turn ON for partial brightness
-					} else {
-						leds.state &= ~pwm_mask; // Turn OFF (already covered by base state?)
-												 // Let's ensure it's off if not in PWM phase
-					}
-				}
-				// else ind_norm == 6, no PWM for center detent position in this logic block
-			} else { // Non-detent
-				// Brighten the LED *at* the fractional position
-				if (f < max_frames) {
-					leds.state |= pwm_mask; // Turn ON for partial brightness
-				} else {
-					leds.state &= ~pwm_mask; // Turn OFF otherwise
-				}
+			if (enc->detent && current_led_index < 6) {
+				brighten = !brighten;
+			}
+
+			if (brighten) {
+				leds.state |= pwm_mask;
+			} else {
+				leds.state &= ~pwm_mask;
 			}
 		}
 
