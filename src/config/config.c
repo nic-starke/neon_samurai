@@ -58,18 +58,15 @@ struct eeprom_encoder {
 
 	// Encoder
 	u8 detent											 : 1;
-	u8 accel_mode									 : 1;
 	u8 vmap_mode									 : 1;
 	u8 vmap_active								 : 1;
 
 	// Encoder Switch
-	u8										sw_state : 1;
 	u8										sw_mode;
 	eeprom_proto_cfg_s sw_cfg;
 
 	struct {
 		eeprom_proto_cfg_s cfg;
-		u8										pos;
 		u8										rgb_r;
 		u8										rgb_g;
 		u8										rgb_b;
@@ -189,20 +186,14 @@ int mf_cfg_reset(void) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int encode_encoder(const struct mf_encoder* src, struct eeprom_encoder* dst) {
-	RETURN_ERR_IF_NULL(src);
-	RETURN_ERR_IF_NULL(dst);
-
 	dst->display_mode = src->display.mode;
 	dst->virtmap_mode = src->display.virtmode;
 	dst->detent				= src->detent;
-	dst->accel_mode		= src->enc_ctx.accel_mode;
 	dst->vmap_mode		= src->vmap_mode;
 	dst->sw_mode			= src->sw_mode;
-	dst->sw_state			= src->sw_state;
 	dst->vmap_active	= src->vmap_active;
 
 	for (int i = 0; i < NUM_VMAPS_PER_ENC; i++) {
-		dst->vmap[i].pos	 = src->vmaps[i].curr_pos;
 		dst->vmap[i].rgb_r = src->vmaps[i].rgb.red;
 		dst->vmap[i].rgb_g = src->vmaps[i].rgb.green;
 		dst->vmap[i].rgb_b = src->vmaps[i].rgb.blue;
@@ -217,20 +208,14 @@ static int encode_encoder(const struct mf_encoder* src, struct eeprom_encoder* d
 }
 
 static int decode_encoder(const struct eeprom_encoder* src, struct mf_encoder* dst) {
-	RETURN_ERR_IF_NULL(src);
-	RETURN_ERR_IF_NULL(dst);
-
 	dst->display.mode				= src->display_mode;
 	dst->display.virtmode		= src->virtmap_mode;
 	dst->detent							= src->detent;
-	dst->enc_ctx.accel_mode = src->accel_mode;
 	dst->vmap_mode					= src->vmap_mode;
 	dst->sw_mode						= src->sw_mode;
-	dst->sw_state						= src->sw_state;
 	dst->vmap_active				= src->vmap_active;
 
 	for (int i = 0; i < NUM_VMAPS_PER_ENC; i++) {
-		dst->vmaps[i].curr_pos	= src->vmap[i].pos;
 		dst->vmaps[i].rgb.red		= src->vmap[i].rgb_r;
 		dst->vmaps[i].rgb.green = src->vmap[i].rgb_g;
 		dst->vmaps[i].rgb.blue	= src->vmap[i].rgb_b;
@@ -244,9 +229,6 @@ static int decode_encoder(const struct eeprom_encoder* src, struct mf_encoder* d
 }
 
 static int decode_proto_cfg(const eeprom_proto_cfg_s* src, struct proto_cfg* dst) {
-	RETURN_ERR_IF_NULL(src);
-	RETURN_ERR_IF_NULL(dst);
-
 	switch (src->type) {
 		case PROTOCOL_NONE: memset(dst, 0, sizeof(struct proto_cfg)); break;
 
@@ -268,9 +250,6 @@ static int decode_proto_cfg(const eeprom_proto_cfg_s* src, struct proto_cfg* dst
 }
 
 static int encode_proto_cfg(const struct proto_cfg* src, eeprom_proto_cfg_s* dst) {
-	RETURN_ERR_IF_NULL(src);
-	RETURN_ERR_IF_NULL(dst);
-
 	switch (src->type) {
 		case PROTOCOL_NONE: memset(dst, 0, sizeof(eeprom_proto_cfg_s)); break;
 
