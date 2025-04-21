@@ -5,22 +5,23 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/hardware.h"
-#include "midi/sysex.h"
-
-#include "hal/init.h"
 
 #include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
-#include "system/time.h"
-#include "system/print.h"
-#include "usb/usb.h"
-#include "midi/midi.h"
-#include "event/event.h"
-#include "led/led.h"
+
 #include "console/console.h"
+#include "event/event.h"
+#include "hal/init.h"
+#include "led/led.h"
+#include "midi/midi.h"
+#include "midi/sysex.h"
+#include "system/hardware.h"
+#include "system/print.h"
+#include "system/rng.h"
+#include "system/time.h"
+#include "usb/usb.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -44,6 +45,7 @@ struct sys_config gCONFIG = {
 __attribute__((noreturn)) void main(void) {
 	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
 
+	rng_init();
 	event_init();
 	midi_init();
 	mf_input_init();

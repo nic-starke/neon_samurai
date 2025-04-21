@@ -59,6 +59,12 @@ static uint8_t tempsense1;
  */
 void adc_init(adc_reference_t reference, adc_resolution_t resolution,
 							adc_prescaler_t prescaler) {
+								static bool initialized = false;
+
+	if (initialized) {
+		/* ADC already initialized, no need to reconfigure */
+		return;
+	}
 	/* Disable the ADC before configuring */
 	ADCA.CTRLA &= (uint8_t)(~(uint8_t)ADC_ENABLE_bm);
 

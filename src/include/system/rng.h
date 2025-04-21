@@ -17,4 +17,11 @@
 /**
  * @brief Initialises the random number generator
  */
-void rng_seed(void);
+void rng_init(void);
+
+/**
+ * @brief Returns the current seed used by the random number generator
+ *
+ * @return The current seed
+ */
+uint32_t rng_get_seed(void);
