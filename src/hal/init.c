@@ -12,6 +12,7 @@
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
 
+#include "hal/adc.h"
 #include "hal/dma.h"
 #include "hal/init.h"
 
@@ -40,6 +41,10 @@ void avr_xmega128a4u_init(void) {
 
 	// Initialise peripherals
 	dma_peripheral_init();
+
+	// Initialise the ADC
+	adc_init(ADC_REF_INT1V, ADC_RES_12BIT, ADC_PRESCALER_DIV64);
+	adc_channel_config_internal(ADC_CH0, ADC_CH_MUXINT_TEMP);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

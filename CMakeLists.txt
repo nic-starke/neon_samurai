@@ -209,9 +209,11 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/lfo/lfo.c
     ${CMAKE_SOURCE_DIR}/src/midi/midi_lufa.c
     ${CMAKE_SOURCE_DIR}/src/midi/sysex.c
+    ${CMAKE_SOURCE_DIR}/src/system/rng.c
     ${CMAKE_SOURCE_DIR}/src/system/sys.c
     ${CMAKE_SOURCE_DIR}/src/system/systime.c
     ${CMAKE_SOURCE_DIR}/src/usb/usb_lufa.c
+    ${CMAKE_SOURCE_DIR}/src/hal/adc.c
     ${CMAKE_SOURCE_DIR}/src/hal/boot.c
     ${CMAKE_SOURCE_DIR}/src/hal/dma.c
     ${CMAKE_SOURCE_DIR}/src/hal/gpio.c

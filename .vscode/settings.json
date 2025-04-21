@@ -3,4 +3,11 @@
     "app": {
       "build_dir":"${workspaceFolder}/build"
     },
+    "files.associations": {
+      "*.meson": "meson",
+      "sys.h": "c",
+      "console.h": "c",
+      "common.h": "c",
+      "signature.h": "c"
+    },
 }

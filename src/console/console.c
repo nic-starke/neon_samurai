@@ -8,6 +8,7 @@
 #include "console/console.h"
 #include "hal/sys.h"
 #include "hal/signature.h"
+#include "hal/adc.h" // Add ADC header for temperature reading
 #include "usb/usb.h"
 #include "event/event.h"
 #include "event/sys.h"
@@ -62,6 +63,7 @@ static void handle_reset(const char* args);
 static void handle_help(const char* args);
 static void handle_config_reset(const char* args);
 static void handle_signature(const char* args);
+static void handle_temperature(const char* args); // New temperature command handler
 
 static int console_sys_event_handler(void* event);
 
@@ -88,11 +90,15 @@ static const char config_reset_command_help[] PROGMEM = "Performs reset to facto
 static const char signature_command_name[] PROGMEM = "signature";
 static const char signature_command_help[] PROGMEM = "Displays the production signature row values";
 
+static const char temperature_command_name[] PROGMEM = "temp";
+static const char temperature_command_help[] PROGMEM = "Reads and displays the internal temperature in Celsius";
+
 static const console_command_t commands[] PROGMEM = {
 	{ .name = help_command_name,  .handler = handle_help,  .help_text = help_command_help },
 	{ .name = reset_command_name, .handler = handle_reset, .help_text = reset_command_help },
 	{ .name = config_reset_command_name, .handler = handle_config_reset, .help_text = config_reset_command_help },
 	{ .name = signature_command_name, .handler = handle_signature, .help_text = signature_command_help },
+	{ .name = temperature_command_name, .handler = handle_temperature, .help_text = temperature_command_help },
 };
 
 static const uint8_t num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -435,4 +441,33 @@ static int console_sys_event_handler(void* event) {
 			break;
 	}
 	return 0; // Indicate event handled (or ignored)
+}
+
+/**
+ * @brief Command handler for reading and displaying the internal temperature
+ *
+ * This function initializes the ADC with appropriate settings for temperature
+ * reading, reads the internal temperature sensor, and displays the value in
+ * degrees Celsius with decimal precision.
+ *
+ * @param args Command arguments (unused)
+ */
+static void handle_temperature(const char* args __attribute__((unused))) {
+    char buffer[CONSOLE_LINE_BUFFER_SIZE];
+
+    // Initialize ADC for temperature reading with 1V internal reference
+    adc_init(ADC_REF_INT1V, ADC_RES_12BIT, ADC_PRESCALER_DIV256);
+
+    // Read temperature from internal sensor with floating point precision
+    float temperature = adc_read_temperature_float();
+
+    // Format and display the temperature
+    // Convert float to integer parts for printing (e.g., 23.5 -> 23 and 5)
+    int16_t temp_int = (int16_t)temperature;
+    int16_t temp_frac = (int16_t)((temperature - temp_int) * 10);
+    if (temp_frac < 0) temp_frac = -temp_frac; // Ensure fraction is positive
+
+    console_puts_p(PSTR("Reading internal temperature...\r\n"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("Temperature: %d.%d°C\r\n"), temp_int, temp_frac);
+    console_puts(buffer);
 }
