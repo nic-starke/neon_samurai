@@ -216,6 +216,7 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/hal/dma.c
     ${CMAKE_SOURCE_DIR}/src/hal/gpio.c
     ${CMAKE_SOURCE_DIR}/src/hal/init.c
+    ${CMAKE_SOURCE_DIR}/src/hal/signature.c
     ${CMAKE_SOURCE_DIR}/src/hal/sys.c
     ${CMAKE_SOURCE_DIR}/src/hal/timer.c
     ${CMAKE_SOURCE_DIR}/src/hal/usart.c

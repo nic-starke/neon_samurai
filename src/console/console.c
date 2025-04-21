@@ -7,6 +7,7 @@
 
 #include "console/console.h"
 #include "hal/sys.h"
+#include "hal/signature.h"
 #include "usb/usb.h"
 #include "event/event.h"
 #include "event/sys.h"
@@ -60,8 +61,11 @@ static void process_line(const char* line);
 static void handle_reset(const char* args);
 static void handle_help(const char* args);
 static void handle_config_reset(const char* args);
+static void handle_signature(const char* args);
 
 static int console_sys_event_handler(void* event);
+
+void console_print_signature_row(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -81,10 +85,14 @@ static const char help_command_help[] PROGMEM = "Shows this help message";
 static const char config_reset_command_name[] PROGMEM = "reset_cfg";
 static const char config_reset_command_help[] PROGMEM = "Performs reset to factory defaults";
 
+static const char signature_command_name[] PROGMEM = "signature";
+static const char signature_command_help[] PROGMEM = "Displays the production signature row values";
+
 static const console_command_t commands[] PROGMEM = {
 	{ .name = help_command_name,  .handler = handle_help,  .help_text = help_command_help },
 	{ .name = reset_command_name, .handler = handle_reset, .help_text = reset_command_help },
 	{ .name = config_reset_command_name, .handler = handle_config_reset, .help_text = config_reset_command_help },
+	{ .name = signature_command_name, .handler = handle_signature, .help_text = signature_command_help },
 };
 
 static const uint8_t num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -279,6 +287,131 @@ static void handle_config_reset(const char* args __attribute__((unused))) {
 	console_puts_p(PSTR("Performing factory reset...\r\n"));
 	struct sys_event evt = { .type = EVT_SYS_REQ_CFG_RESET, .data = NULL };
 	event_post(EVENT_CHANNEL_SYS, &evt);
+}
+
+// New command handler for signature row display
+static void handle_signature(const char* args __attribute__((unused))) {
+    console_puts_p(PSTR("Reading production signature row...\r\n"));
+    console_print_signature_row();
+}
+
+/**
+ * @brief Prints the production signature row values to the console.
+ *
+ * This function reads all non-reserved fields from the production signature row
+ * and prints their names and values to the console.
+ */
+void console_print_signature_row(void) {
+    NVM_PROD_SIGNATURES_t sig_data;
+    char buffer[CONSOLE_LINE_BUFFER_SIZE];
+
+    // Read the entire signature row
+    signature_read(&sig_data);
+
+    console_puts_p(PSTR("=== Production Signature Row ===\r\n"));
+
+    // Define all format strings in PROGMEM
+    static const char PROGMEM rcosc2m_fmt[] = "RCOSC2M:    0x%02X\r\n";
+    static const char PROGMEM rcosc2ma_fmt[] = "RCOSC2MA:   0x%02X\r\n";
+    static const char PROGMEM rcosc32k_fmt[] = "RCOSC32K:   0x%02X\r\n";
+    static const char PROGMEM rcosc32m_fmt[] = "RCOSC32M:   0x%02X\r\n";
+    static const char PROGMEM rcosc32ma_fmt[] = "RCOSC32MA:  0x%02X\r\n";
+    static const char PROGMEM lot_number_fmt[] = "%c%c%c%c%c%c\r\n";
+    static const char PROGMEM wafer_num_fmt[] = "Wafer Num:  %d\r\n";
+    static const char PROGMEM coords_fmt[] = "Coords:     X=%u, Y=%u\r\n";
+    static const char PROGMEM usbcal0_fmt[] = "USBCAL0:    0x%02X\r\n";
+    static const char PROGMEM usbcal1_fmt[] = "USBCAL1:    0x%02X\r\n";
+    static const char PROGMEM usbrcosc_fmt[] = "USBRCOSC:   0x%02X\r\n";
+    static const char PROGMEM usbrcosca_fmt[] = "USBRCOSCA:  0x%02X\r\n";
+    static const char PROGMEM adcacal0_fmt[] = "ADCACAL0:   0x%02X\r\n";
+    static const char PROGMEM adcacal1_fmt[] = "ADCACAL1:   0x%02X\r\n";
+    static const char PROGMEM adcbcal0_fmt[] = "ADCBCAL0:   0x%02X\r\n";
+    static const char PROGMEM adcbcal1_fmt[] = "ADCBCAL1:   0x%02X\r\n";
+    static const char PROGMEM tempsense0_fmt[] = "TEMPSENSE0: 0x%02X\r\n";
+    static const char PROGMEM tempsense1_fmt[] = "TEMPSENSE1: 0x%02X\r\n";
+    static const char PROGMEM daca0offcal_fmt[] = "DACA0OFFCAL:  0x%02X\r\n";
+    static const char PROGMEM daca0gaincal_fmt[] = "DACA0GAINCAL: 0x%02X\r\n";
+    static const char PROGMEM dacb0offcal_fmt[] = "DACB0OFFCAL:  0x%02X\r\n";
+    static const char PROGMEM dacb0gaincal_fmt[] = "DACB0GAINCAL: 0x%02X\r\n";
+    static const char PROGMEM daca1offcal_fmt[] = "DACA1OFFCAL:  0x%02X\r\n";
+    static const char PROGMEM daca1gaincal_fmt[] = "DACA1GAINCAL: 0x%02X\r\n";
+    static const char PROGMEM dacb1offcal_fmt[] = "DACB1OFFCAL:  0x%02X\r\n";
+    static const char PROGMEM dacb1gaincal_fmt[] = "DACB1GAINCAL: 0x%02X\r\n";
+
+    // Print oscillator calibration values
+    snprintf_P(buffer, sizeof(buffer), rcosc2m_fmt, sig_data.RCOSC2M);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), rcosc2ma_fmt, sig_data.RCOSC2MA);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), rcosc32k_fmt, sig_data.RCOSC32K);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), rcosc32m_fmt, sig_data.RCOSC32M);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), rcosc32ma_fmt, sig_data.RCOSC32MA);
+    console_puts(buffer);
+
+    // Print lot number (as ASCII characters)
+    console_puts_p(PSTR("Lot Number: "));
+    snprintf_P(buffer, sizeof(buffer), lot_number_fmt,
+             sig_data.LOTNUM0, sig_data.LOTNUM1, sig_data.LOTNUM2,
+             sig_data.LOTNUM3, sig_data.LOTNUM4, sig_data.LOTNUM5);
+    console_puts(buffer);
+
+    // Print wafer information
+    snprintf_P(buffer, sizeof(buffer), wafer_num_fmt, sig_data.WAFNUM);
+    console_puts(buffer);
+
+    // Print coordinates
+    uint16_t coord_x = (sig_data.COORDX1 << 8) | sig_data.COORDX0;
+    uint16_t coord_y = (sig_data.COORDY1 << 8) | sig_data.COORDY0;
+    snprintf_P(buffer, sizeof(buffer), coords_fmt, coord_x, coord_y);
+    console_puts(buffer);
+
+    // Print USB calibration
+    snprintf_P(buffer, sizeof(buffer), usbcal0_fmt, sig_data.USBCAL0);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), usbcal1_fmt, sig_data.USBCAL1);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), usbrcosc_fmt, sig_data.USBRCOSC);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), usbrcosca_fmt, sig_data.USBRCOSCA);
+    console_puts(buffer);
+
+    // Print ADC calibration values
+    snprintf_P(buffer, sizeof(buffer), adcacal0_fmt, sig_data.ADCACAL0);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), adcacal1_fmt, sig_data.ADCACAL1);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), adcbcal0_fmt, sig_data.ADCBCAL0);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), adcbcal1_fmt, sig_data.ADCBCAL1);
+    console_puts(buffer);
+
+    // Print temperature sensor calibration
+    snprintf_P(buffer, sizeof(buffer), tempsense0_fmt, sig_data.TEMPSENSE0);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), tempsense1_fmt, sig_data.TEMPSENSE1);
+    console_puts(buffer);
+
+    // Print DAC calibration values
+    snprintf_P(buffer, sizeof(buffer), daca0offcal_fmt, sig_data.DACA0OFFCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), daca0gaincal_fmt, sig_data.DACA0GAINCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), dacb0offcal_fmt, sig_data.DACB0OFFCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), dacb0gaincal_fmt, sig_data.DACB0GAINCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), daca1offcal_fmt, sig_data.DACA1OFFCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), daca1gaincal_fmt, sig_data.DACA1GAINCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), dacb1offcal_fmt, sig_data.DACB1OFFCAL);
+    console_puts(buffer);
+    snprintf_P(buffer, sizeof(buffer), dacb1gaincal_fmt, sig_data.DACB1GAINCAL);
+    console_puts(buffer);
+
+    console_puts_p(PSTR("==============================\r\n"));
 }
 
 // System event handler for console

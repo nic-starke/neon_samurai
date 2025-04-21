@@ -47,6 +47,14 @@ void console_puts(const char* str);
  */
 void console_puts_p(const char* str_p);
 
+/**
+ * @brief Prints the production signature row values to the console.
+ *
+ * This function reads each non-reserved field from the production signature row
+ * and prints its name and value to the console.
+ */
+void console_print_signature_row(void);
+
 #ifdef __cplusplus
 }
 #endif

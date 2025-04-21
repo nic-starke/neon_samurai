@@ -3,24 +3,4 @@
     "app": {
       "build_dir":"${workspaceFolder}/build"
     },
-    "files.associations": {
-      "*.meson": "meson",
-      "sys.h": "c",
-      "interrupt.h": "c",
-      "atomic.h": "c",
-      "wdt.h": "c",
-      "usb.h": "c",
-      "cdcclassdevice.h": "c",
-      "stdio.h": "c",
-      "types.h": "c",
-      "midifighter.h": "c",
-      "event.h": "c",
-      "common.h": "c",
-      "hardware.h": "c",
-      "console.h": "c",
-      "midi_sysex_rt.h": "c",
-      "led.h": "c"
-    },
-    
-
 }
