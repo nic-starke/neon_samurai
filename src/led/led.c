@@ -61,6 +61,15 @@ static const u8 max_brightness = MAX_BRIGHTNESS;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+int display_init(void) {
+	// Request a display update for every encoder
+	for (uint e = 0; e < NUM_ENCODERS; e++) {
+		struct mf_encoder* enc = &gENCODERS[gRT.curr_bank][e];
+
+		enc->update_display = 1;
+	}
+}
+
 void display_update(void) {
 
 	u32 time_now = systime_ms();

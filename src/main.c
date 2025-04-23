@@ -48,6 +48,7 @@ __attribute__((noreturn)) void main(void) {
 	rng_init();
 	event_init();
 	midi_init();
+	display_init();
 	mf_input_init();
 	mf_sysex_init();
 	systime_start();
