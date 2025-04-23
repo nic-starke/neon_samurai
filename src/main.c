@@ -49,7 +49,7 @@ __attribute__((noreturn)) void main(void) {
 	event_init();
 	midi_init();
 	display_init();
-	mf_input_init();
+	input_init();
 	mf_sysex_init();
 	systime_start();
 	usb_init();
@@ -64,8 +64,8 @@ __attribute__((noreturn)) void main(void) {
 	uint32_t time	 = systime_ms();
 	bool		 reset = false;
 	do {
-		mf_input_update(); // Need to update input to read button state
-		reset = mf_is_reset_pressed();
+		input_update(); // Need to update input to read button state
+		reset = is_reset_pressed();
 		if (reset)
 			break;
 	} while (systime_ms() - time < 200);
@@ -81,7 +81,7 @@ __attribute__((noreturn)) void main(void) {
 	println_pmem("Init done");
 
 	while (1) {
-		mf_input_update();
+		input_update();
 		event_update();
 		display_update();
 		midi_update();

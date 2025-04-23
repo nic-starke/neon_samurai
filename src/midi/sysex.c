@@ -72,14 +72,14 @@ static const enum stream_state sysex_next_state[SYSEX_TYPE_NB] = {
 
 // clang-format off
 static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_DETENT, struct mf_encoder, detent),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_DISPLAY_MODE, struct mf_encoder, display.mode),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_VMAP_DISPLAY_MODE, struct mf_encoder, display.virtmode),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_VMAP_MODE, struct mf_encoder, vmap_mode),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE, struct mf_encoder, vmap_active),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_SWITCH_STATE, struct mf_encoder, sw_state),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_SWITCH_MODE, struct mf_encoder, sw_mode),
-	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_SWITCH_PROTO, struct mf_encoder, sw_cfg),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_DETENT, struct encoder, detent),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_DISPLAY_MODE, struct encoder, display.mode),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_VMAP_DISPLAY_MODE, struct encoder, display.virtmode),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_VMAP_MODE, struct encoder, vmap_mode),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE, struct encoder, vmap_active),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_SWITCH_STATE, struct encoder, sw_state),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_SWITCH_MODE, struct encoder, sw_mode),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_SWITCH_PROTO, struct encoder, sw_cfg),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_RANGE, struct virtmap, range),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_POSITION, struct virtmap, position),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_RGB, struct virtmap, rgb),
@@ -189,7 +189,7 @@ static int midi_in_handler(void* evt) {
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_PROTO: {
 			u8						bank		= msg->param.enc.bank_idx;
 			u8						enc			= msg->param.enc.enc_idx;
-			struct mf_encoder* encoder = &gENCODERS[bank][enc];
+			struct encoder* encoder = &gENCODERS[bank][enc];
 			void*					param =
 					(void*)((u8*)encoder + sysex_data_info[msg->param_enum].offset);
 			memcpy(param, (const void*)&msg->param.enc.data,

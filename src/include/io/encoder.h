@@ -19,7 +19,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-struct encoder {
+struct encoder_movement {
 	i16 velocity;      // Current rotational velocity
 	u8  accel_mode;    // Acceleration mode (Currently unused, placeholder)
 	i8  direction;     // Current direction (-1, 0, 1)
@@ -35,7 +35,7 @@ struct encoder {
  * @param enc Pointer to encoder device.
  * @return 0 on success, !0 on failure.
  */
-int encoder_init(struct encoder* enc);
+int encoder_movement_init(struct encoder_movement* enc);
 
 /**
  * @brief Perform an update of an encoder.
@@ -50,4 +50,4 @@ int encoder_init(struct encoder* enc);
  * @param direction Current direction of encoder (-1, 0, +1)
  * @return 1 if display needs to be updated
  */
-bool encoder_update(struct encoder* enc, int direction);
+bool encoder_movement_update(struct encoder_movement* enc, int direction);

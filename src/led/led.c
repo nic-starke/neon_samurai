@@ -64,7 +64,7 @@ static const u8 max_brightness = MAX_BRIGHTNESS;
 int display_init(void) {
 	// Request a display update for every encoder
 	for (uint e = 0; e < NUM_ENCODERS; e++) {
-		struct mf_encoder* enc = &gENCODERS[gRT.curr_bank][e];
+		struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 
 		enc->update_display = 1;
 	}
@@ -75,7 +75,7 @@ void display_update(void) {
 	u32 time_now = systime_ms();
 
 	for (uint e = 0; e < NUM_ENCODERS; e++) {
-		struct mf_encoder* enc = &gENCODERS[gRT.curr_bank][e];
+		struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 
 		/* This routine is called every 1ms, and the display is updated every
 		 * 1000 / NUM_PWM_FRAMES == 31.25ms */
@@ -87,13 +87,13 @@ void display_update(void) {
 	}
 }
 
-int mf_draw_encoder(struct mf_encoder* enc) {
+int mf_draw_encoder(struct encoder* enc) {
 	assert(enc);
 
 	u8 current_pos			 = enc->vmaps[enc->vmap_active].curr_pos;
 	u8 current_led_index = 0;
 
-	volatile struct mf_encoder enc_copy = *enc;
+	volatile struct encoder enc_copy = *enc;
 	volatile u8 c_led_pos = current_pos;
 	volatile u8 c_led_idx = current_led_index;
 	if (current_pos == ENC_MAX) {

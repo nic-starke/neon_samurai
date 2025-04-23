@@ -72,7 +72,7 @@ enum switch_mode {
 	SW_MODE_MIDI,
 };
 
-struct mf_encoder {
+struct encoder {
 	// Hardware index (0 to 15)
 	u8 idx;
 
@@ -84,7 +84,7 @@ struct mf_encoder {
 
 	// Encoder
 	bool					detent;
-	struct encoder			enc_ctx;
+	struct encoder_movement			enc_ctx;
 	struct quadrature* quad_ctx;
 
 	// Virtual Mappings
@@ -123,7 +123,7 @@ struct mf_rt {
 
 extern volatile u16 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
 extern struct quadrature gQUAD_ENC[NUM_ENCODER_SWITCHES];
-extern struct mf_encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+extern struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
 extern struct mf_rt			gRT;
 extern struct sys_config gCONFIG;
 
@@ -140,12 +140,12 @@ void					 hw_switch_init(void);
 void					 hw_switch_update(void);
 enum switch_state hw_enc_switch_state(u8 idx);
 
-void mf_input_init(void);
-void mf_input_update(void);
-bool mf_is_reset_pressed(void);
+void input_init(void);
+void input_update(void);
+bool is_reset_pressed(void);
 
 int mf_display_init(void);
-int mf_draw_encoder(struct mf_encoder* enc);
+int mf_draw_encoder(struct encoder* enc);
 
 void mf_debug_encoder_set_indicator(u8 indicator, u8 state);
 void mf_debug_encoder_set_rgb(bool red, bool green, bool blue);

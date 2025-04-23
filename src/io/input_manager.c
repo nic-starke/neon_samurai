@@ -27,7 +27,7 @@
 
 static void sw_encoder_init(void);
 static void sw_encoder_update(void);
-static void vmap_update(struct mf_encoder* enc, struct virtmap* map);
+static void vmap_update(struct encoder* enc, struct virtmap* map);
 static int	midi_in_handler(void* evt);
 static void print_dir(uint enc_idx, int dir);
 static void rgb_init(void);
@@ -37,23 +37,23 @@ static void rgb_init(void);
 
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
-struct mf_encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void mf_input_init(void) {
+void input_init(void) {
 	hw_encoder_init();
 	hw_switch_init();
 	sw_encoder_init();
 	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
-void mf_input_update(void) {
+void input_update(void) {
 	hw_encoder_scan();
 	sw_encoder_update();
 }
 
-bool mf_is_reset_pressed(void) {
+bool is_reset_pressed(void) {
 	return hw_enc_switch_state(2) == SWITCH_PRESSED &&
 				 hw_enc_switch_state(3) == SWITCH_PRESSED;
 }
@@ -65,9 +65,9 @@ static void sw_encoder_init(void) {
 	enum midi_cc cc = MIDI_CC_MIN;
 	for (uint b = 0; b < NUM_ENC_BANKS; b++) {
 		for (uint e = 0; e < NUM_ENCODERS; e++) {
-			struct mf_encoder* enc = &gENCODERS[b][e];
+			struct encoder* enc = &gENCODERS[b][e];
 
-			encoder_init(&enc->enc_ctx);
+			encoder_movement_init(&enc->enc_ctx);
 			enc->idx							= (u8)e;
 			enc->quad_ctx					= &gQUAD_ENC[e];
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
@@ -152,7 +152,7 @@ static void sw_encoder_init(void) {
 
 static void sw_encoder_update(void) {
 	for (uint i = 0; i < NUM_ENCODERS; i++) {
-		struct mf_encoder* enc = &gENCODERS[gRT.curr_bank][i];
+		struct encoder* enc = &gENCODERS[gRT.curr_bank][i];
 
 		enc->sw_state = hw_enc_switch_state(enc->idx);
 
@@ -232,7 +232,7 @@ static void sw_encoder_update(void) {
 		}
 
 		int dir = quadrature_direction(enc->quad_ctx);
-		bool moved = encoder_update(&enc->enc_ctx, dir);
+		bool moved = encoder_movement_update(&enc->enc_ctx, dir);
 
 		if (!moved) {
 			continue;
@@ -259,7 +259,7 @@ static void sw_encoder_update(void) {
 	}
 }
 
-static void vmap_update(struct mf_encoder* enc, struct virtmap* vmap) {
+static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 	i16 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
 	newpos		 = CLAMP(newpos, ENC_MIN, ENC_MAX);
 	newpos		 = CLAMP(newpos, vmap->position.start, vmap->position.stop);
@@ -364,7 +364,7 @@ static int midi_in_handler(void* evt) {
 		case MIDI_EVENT_CC: {
 			for (uint b = 0; b < NUM_ENC_BANKS; b++) {
 				for (uint e = 0; e < NUM_ENCODERS; e++) {
-					struct mf_encoder* enc = &gENCODERS[b][e];
+					struct encoder* enc = &gENCODERS[b][e];
 
 					for (int v = 0; v < NUM_VMAPS_PER_ENC; v++) {
 						struct virtmap* vmap = &enc->vmaps[v];

@@ -33,7 +33,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-int encoder_init(struct encoder* enc) {
+int encoder_movement_init(struct encoder_movement* enc) {
 	assert(enc);
 	enc->velocity		= 0;
 	enc->direction	= 0;
@@ -46,7 +46,7 @@ int encoder_init(struct encoder* enc) {
 	return 0;
 }
 
-bool encoder_update(struct encoder* enc, int new_direction) {
+bool encoder_movement_update(struct encoder_movement* enc, int new_direction) {
 	assert(enc);
 
 	u32 current_time = systime_ms();

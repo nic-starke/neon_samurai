@@ -84,8 +84,8 @@ struct eeprom {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int encode_encoder(const struct mf_encoder* src, struct eeprom_encoder* dst);
-static int decode_encoder(const struct eeprom_encoder* src, struct mf_encoder* dst);
+static int encode_encoder(const struct encoder* src, struct eeprom_encoder* dst);
+static int decode_encoder(const struct eeprom_encoder* src, struct encoder* dst);
 static int decode_proto_cfg(const eeprom_proto_cfg_s* src, struct proto_cfg* dst);
 static int encode_proto_cfg(const struct proto_cfg* src, eeprom_proto_cfg_s* dst);
 static int init_eeprom(void);
@@ -185,7 +185,7 @@ int mf_cfg_reset(void) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int encode_encoder(const struct mf_encoder* src, struct eeprom_encoder* dst) {
+static int encode_encoder(const struct encoder* src, struct eeprom_encoder* dst) {
 	dst->display_mode = src->display.mode;
 	dst->virtmap_mode = src->display.virtmode;
 	dst->detent				= src->detent;
@@ -207,7 +207,7 @@ static int encode_encoder(const struct mf_encoder* src, struct eeprom_encoder* d
 	return SUCCESS;
 }
 
-static int decode_encoder(const struct eeprom_encoder* src, struct mf_encoder* dst) {
+static int decode_encoder(const struct eeprom_encoder* src, struct encoder* dst) {
 	dst->display.mode				= src->display_mode;
 	dst->display.virtmode		= src->virtmap_mode;
 	dst->detent							= src->detent;
