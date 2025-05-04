@@ -35,7 +35,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 extern USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device;
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
 #endif
 
@@ -77,7 +77,7 @@ struct usb_descriptor {
 	USB_Descriptor_Endpoint_t	 HID_In_Endpoint;
 #endif
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	// Virtual Serial
 	// CDC Control Interface
 	USB_Descriptor_Interface_Association_t CDC_Interface_Association;
@@ -113,7 +113,7 @@ PROGMEM static const USB_Descriptor_String_t desc_str_ser =
 
 #pragma GCC diagnostic pop
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device = {
 		.Config =
 				{
@@ -144,7 +144,7 @@ PROGMEM static const USB_Descriptor_Device_t desc_device = {
 		.Header = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
 		.USBSpecification = VERSION_BCD(1, 1, 0),
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 		.Class		= USB_CSCP_IADDeviceClass,
 		.SubClass = USB_CSCP_IADDeviceSubclass,
 		.Protocol = USB_CSCP_IADDeviceProtocol,
@@ -371,7 +371,7 @@ PROGMEM static const struct usb_descriptor desc_cfg = {
 #error "No descriptor configuration yet - woops!"
 #endif
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 		.CDC_Interface_Association =
 				{
 						.Header = {.Size = sizeof(USB_Descriptor_Interface_Association_t),
@@ -467,7 +467,7 @@ int usb_update(void) {
 	// host.)
 	MIDI_Device_USBTask(&lufa_usb_midi_device);
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	// Throw away unused received bytes from host
 	if (vser_active) {
 		// while (CDC_Device_ReceiveByte(&lufa_usb_cdc_device) == true) {}
@@ -581,7 +581,7 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
 			(SHARED_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, SHARED_EPSIZE, 1);
 #endif
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	CDC_Device_ConfigureEndpoints(&lufa_usb_cdc_device);
 #endif
 }
@@ -593,12 +593,12 @@ void EVENT_USB_Device_ControlRequest(void) {
 #error "Need to handle HID class requests here"
 #endif
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	CDC_Device_ProcessControlRequest(&lufa_usb_cdc_device);
 #endif
 }
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 void EVENT_CDC_Device_ControLineStateChanged(
 		USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo) {
 	/* You can get changes to the virtual CDC lines in this callback; a common

@@ -112,7 +112,7 @@ int midi_update(void) {
 				e.type		= MIDI_EVENT_CC;
 				e.data.cc = cc;
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 #warning "Clib printf functions use lots of memory."
 				// char										 buf[64];
 				// static const char* const formatstr = "CH: %u, CC: %u, VAL:

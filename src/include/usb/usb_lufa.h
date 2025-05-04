@@ -25,7 +25,7 @@
 
 enum usb_interface {
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	CCI_INTERFACE,
 	CDI_INTERFACE,
 #endif
@@ -57,7 +57,7 @@ enum usb_endpoint {
 	HID_EPNUM,
 #endif
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	CDC_NOTIFICATION_EPNUM,
 	CDC_IN_EPNUM,
 	CDC_OUT_EPNUM,

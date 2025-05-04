@@ -252,8 +252,8 @@ target_sources(neosam PRIVATE ${LUFA_SOURCES})
 # NEON SAMURAI Source Files
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# Add VSER_ENABLE to the defines
-add_compile_definitions(neosam PRIVATE VSER_ENABLE)
+# Add ENABLE_CONSOLE to the defines
+add_compile_definitions(neosam PRIVATE ENABLE_CONSOLE)
 
 # Add post build commands for AVR-based platforms
 # See toolchain.cmake

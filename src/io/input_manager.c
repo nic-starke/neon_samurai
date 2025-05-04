@@ -70,7 +70,7 @@ static void sw_encoder_init(void) {
 			encoder_movement_init(&enc->enc_ctx);
 			enc->idx							= (u8)e;
 			enc->quad_ctx					= &gQUAD_ENC[e];
-			// enc->display.mode			= DIS_MODE_MULTI;
+			enc->display.mode			= DIS_MODE_MULTI_PWM;
 			enc->display.virtmode = VIRTMAP_DISPLAY_OVERLAY;
 			enc->vmap_mode				= VIRTMAP_MODE_TOGGLE;
 			enc->vmap_active			= 0;
@@ -84,19 +84,19 @@ static void sw_encoder_init(void) {
 			// Row 4 (idx = 12,13,14,15) = volume filter encoder (detent false) (rgb =
 			// purple)
 
-			if (enc->idx < 4) {
+			if (enc->idx < 8) {
 				enc->detent = true;
-				enc->display.mode = DIS_MODE_MULTI_PWM;
-			} else if (enc->idx < 8) {
-				enc->detent = true;
-				enc->display.mode = DIS_MODE_MULTI;
-			} else if (enc->idx < 12) {
-				enc->detent = false;
-				enc->display.mode = DIS_MODE_MULTI_PWM;
-			} else {
-				enc->detent = false;
-				enc->display.mode = DIS_MODE_MULTI;
 			}
+			// } else if (enc->idx < 8) {
+			// 	enc->detent = true;
+			// 	enc->display.mode = DIS_MODE_MULTI_PWM;
+			// } else if (enc->idx < 12) {
+			// 	enc->detent = false;
+			// 	enc->display.mode = DIS_MODE_SINGLE;
+			// } else {
+			// 	enc->detent = false;
+			// 	enc->display.mode = DIS_MODE_MULTI;
+			// }
 
 			for (uint v = 0; v < NUM_VMAPS_PER_ENC; v++) {
 				struct virtmap* map				= &enc->vmaps[v];

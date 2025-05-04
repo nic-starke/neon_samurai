@@ -16,7 +16,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 #define println_pmem(s) (println_progmem(PSTR(s)))
 void println_progmem(const char* const str);
 void println(const char* const str);

@@ -130,7 +130,7 @@ int mf_draw_encoder(struct encoder* enc) {
 							(LEFT_INDICATORS_MASK >> (led_index - 5)) & RIGHT_INDICATORS_MASK;
 				}
 			} else {
-				leds.state = MASK_INDICATORS & ~(0xFFFF >> (led_index - 1));
+				leds.state = MASK_INDICATORS & ~(0x7FFF >> (led_index - 1));
 			}
 			break;
 		}

@@ -22,18 +22,11 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define CONSOLE_LINE_BUFFER_SIZE 64
 #define CONSOLE_PROMPT					 PSTR("> ")
-// Helper macro to define commands in PROGMEM
-#define DEFINE_COMMAND(name_str, handler_func, help_str)                       \
-	(console_command_t) {                                                        \
-		.name = PSTR(name_str), .handler = handler_func,                           \
-		.help_text = PSTR(help_str)                                                \
-	}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 // Need the LUFA CDC device info structure
 extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
 #endif
@@ -145,7 +138,7 @@ void console_init(void) {
 }
 
 void console_update(void) {
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	if (!usb_cdc_is_active()) {
 		needs_prompt = true; // Reset prompt state if disconnected
 		return;
@@ -195,11 +188,11 @@ void console_update(void) {
 		// Flush output buffer periodically or after specific actions
 		CDC_Device_Flush(&lufa_usb_cdc_device);
 	}
-#endif // VSER_ENABLE
+#endif // ENABLE_CONSOLE
 }
 
 void console_putc(char c) {
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	if (usb_cdc_is_active()) {
 		CDC_Device_SendByte(&lufa_usb_cdc_device, c);
 		// Consider flushing here or let console_update handle it
@@ -208,7 +201,7 @@ void console_putc(char c) {
 }
 
 void console_puts(const char* str) {
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	if (usb_cdc_is_active()) {
 		CDC_Device_SendString(&lufa_usb_cdc_device, str);
 		CDC_Device_Flush(&lufa_usb_cdc_device); // Flush after sending a string
@@ -217,13 +210,16 @@ void console_puts(const char* str) {
 }
 
 void console_puts_p(const char* str_p) {
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	if (usb_cdc_is_active()) {
 		CDC_Device_SendString_P(&lufa_usb_cdc_device, str_p);
 		CDC_Device_Flush(&lufa_usb_cdc_device); // Flush after sending a string
 	}
 #endif
 }
+
+#include <stdio.h>
+#include <stdint.h>
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

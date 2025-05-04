@@ -53,7 +53,7 @@ __attribute__((noreturn)) void main(void) {
 	mf_sysex_init();
 	systime_start();
 	usb_init();
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 	console_init();
 #endif
 
@@ -87,7 +87,7 @@ __attribute__((noreturn)) void main(void) {
 		midi_update();
 		usb_update();
 		cfg_update();
-#ifdef VSER_ENABLE
+#ifdef ENABLE_CONSOLE
 		console_update(); // Update the console module in the main loop
 #endif
 	}
