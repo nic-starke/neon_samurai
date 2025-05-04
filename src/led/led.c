@@ -4,57 +4,110 @@
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Further optimized re-implementation of mf_draw_encoder using LUTs. */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <math.h>
 #include <float.h>
+#include <assert.h>
 
-#include "system/hardware.h"
 #include "io/encoder.h"
 #include "led/led.h"
-#include "event/event.h"
-#include "event/io.h"
-#include "event/midi.h"
+#include "system/config.h"
+#include "system/error.h"
+#include "system/hardware.h"
 #include "system/time.h"
 #include "system/utility.h"
-#include "console/console.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define MASK_INDICATORS				 (0xFFE0)
-#define LEFT_INDICATORS_MASK	 (0xF800) // Indicators 1-5
-#define RIGHT_INDICATORS_MASK	 (0x03E0) // Indicators 7-11
-#define CLEAR_LEFT_INDICATORS	 (0x03FF) // Mask to clear mid and left-side leds
-#define CLEAR_RIGHT_INDICATORS (0xF80F) // Mask to clear mid and right-side leds
+// Ensure these match the hardware bit layout assumed by encoder_led_s
+#define RGB_RED_BIT				(3)
+#define RGB_GREEN_BIT			(4)
+#define RGB_BLUE_BIT			(2)
+#define DETENT_RED_BIT		(1)
+#define DETENT_BLUE_BIT		(0)
+
+#define INDICATOR_MASK(n) (0x8000 >> ((n) - 1)) // Mask for indicator n (1-11)
+#define CENTER_INDICATOR	(6)
+#define CENTER_INDICATOR_MASK INDICATOR_MASK(CENTER_INDICATOR) // Explicit mask for center
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+// Original union structure (used implicitly for bit positions)
 typedef union {
 	struct {
-		u16 detent_blue	 : 1;
-		u16 detent_red	 : 1;
-		u16 rgb_blue		 : 1;
-		u16 rgb_red			 : 1;
-		u16 rgb_green		 : 1;
-		u16 indicator_11 : 1; // Bit 10
-		u16 indicator_10 : 1; // Bit 9
-		u16 indicator_9	 : 1; // Bit 8
-		u16 indicator_8	 : 1; // Bit 7
-		u16 indicator_7	 : 1; // Bit 6
-		u16 indicator_6	 : 1; // Bit 5 - Center Detent Indicator
-		u16 indicator_5	 : 1; // Bit 4
-		u16 indicator_4	 : 1; // Bit 3
-		u16 indicator_3	 : 1; // Bit 2
-		u16 indicator_2	 : 1; // Bit 1
-		u16 indicator_1	 : 1; // Bit 0 - MSB relative to indicators (0x8000 base
-													// mask)
+		u16 detent_blue	 : 1; // Bit 0
+		u16 detent_red	 : 1; // Bit 1
+		u16 rgb_blue		 : 1; // Bit 2
+		u16 rgb_red			 : 1; // Bit 3
+		u16 rgb_green		 : 1; // Bit 4
+		u16 indicator_11 : 1; // Bit 5
+		u16 indicator_10 : 1; // Bit 6
+		u16 indicator_9	 : 1; // Bit 7
+		u16 indicator_8	 : 1; // Bit 8
+		u16 indicator_7	 : 1; // Bit 9
+		u16 indicator_6	 : 1; // Bit 10 - Center Detent Indicator
+		u16 indicator_5	 : 1; // Bit 11
+		u16 indicator_4	 : 1; // Bit 12
+		u16 indicator_3	 : 1; // Bit 13
+		u16 indicator_2	 : 1; // Bit 14
+		u16 indicator_1	 : 1; // Bit 15
 	};
 	u16 state;
 } encoder_led_s;
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~ Precomputed Lookup Tables (LUTs) ~~~~~~~~~~~~~~~~~~~ */
+
+// LUT for individual indicator masks (index 0 unused)
+static const u16 INDICATOR_MASKS[NUM_INDICATOR_LEDS + 1] = {
+		0, // Index 0 unused
+		INDICATOR_MASK(1),
+		INDICATOR_MASK(2),
+		INDICATOR_MASK(3),
+		INDICATOR_MASK(4),
+		INDICATOR_MASK(5),
+		INDICATOR_MASK(6),
+		INDICATOR_MASK(7),
+		INDICATOR_MASK(8),
+		INDICATOR_MASK(9),
+		INDICATOR_MASK(10),
+		INDICATOR_MASK(11),
+};
+
+// LUT for standard bar graph patterns (index 0 = off, 1-11 = LEDs 1..index ON)
+static const u16 BAR_GRAPH_MASKS[NUM_INDICATOR_LEDS + 1] = {
+		0x0000, // 0 LEDs
+		0x8000, // 1
+		0xC000, // 1-2
+		0xE000, // 1-3
+		0xF000, // 1-4
+		0xF800, // 1-5
+		0xFC00, // 1-6
+		0xFE00, // 1-7
+		0xFF00, // 1-8
+		0xFF80, // 1-9
+		0xFFC0, // 1-10
+		0xFFE0	// 1-11
+};
+
+// LUT for center-out detent patterns (index 0 = off, 1-5=idx..5, 6=off,
+// 7-11=7..idx)
+static const u16 CENTER_OUT_MASKS[NUM_INDICATOR_LEDS + 1] = {
+		0x0000, // 0 LEDs (or invalid index)
+		0xF800, // 1-5 (Index 1)
+		0x7800, // 2-5 (Index 2)
+		0x3800, // 3-5 (Index 3)
+		0x1800, // 4-5 (Index 4)
+		0x0800, // 5   (Index 5)
+		0x0000, // Center OFF (Index 6)
+		0x0200, // 7   (Index 7)
+		0x0300, // 7-8 (Index 8)
+		0x0380, // 7-9 (Index 9)
+		0x03C0, // 7-10 (Index 10)
+		0x03E0	// 7-11 (Index 11)
+};
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int display_init(void) {
@@ -82,151 +135,134 @@ void display_update(void) {
 	}
 }
 
+/**
+ * @brief Draws the LED state for a given encoder. Highly optimized using LUTs.
+ * @param enc Pointer to the encoder structure.
+ * @return 0 on success, error code otherwise.
+ */
 int mf_draw_encoder(struct encoder* enc) {
-	assert(enc);
+	assert(enc != NULL);
+	assert(enc->idx < NUM_ENCODERS);
+	assert(NUM_INDICATOR_LEDS == 11); // LUTs assume this size
 
-	u8 current_pos = enc->vmaps[enc->vmap_active].curr_pos;
-	u8 led_index	 = 0;
-	u8 pwm_brightness =
-			0; // Calculated brightness for the leading LED (0=dim, 31=max)
+	// --- 1. Fetch frequently used data ---
+	struct virtmap*					vmap				= &enc->vmaps[enc->vmap_active];
+	const u8								current_pos = vmap->curr_pos;
+	const enum display_mode mode				= enc->display.mode;
+	const bool							is_detent		= enc->detent;
+	const u8								enc_idx			= enc->idx;
 
-	// Calculate which indicator LED corresponds to the current encoder position
-	if (current_pos == ENC_MAX) {
-		led_index = NUM_INDICATOR_LEDS; // 11
-	} else if (current_pos > 0) {
-		// Map 1..ENC_MAX to 1..NUM_INDICATOR_LEDS using integer ceiling division
-		led_index = ((u32)current_pos * NUM_INDICATOR_LEDS + ENC_MAX - 1) / ENC_MAX;
-	} else {				 // current_pos == 0
-		led_index = 1; // Map position 0 to LED 1
-	}
-	// Clamp index to valid range [1, 11]
-	if (led_index > NUM_INDICATOR_LEDS)
-		led_index = NUM_INDICATOR_LEDS;
-	if (led_index < 1)
+	// --- 2. Calculate leading LED index ---
+	// Map encoder position (0..ENC_MAX) -> LED index (1..NUM_INDICATOR_LEDS)
+	u8 led_index;
+	if (current_pos == 0) {
 		led_index = 1;
+	} else if (current_pos >= ENC_MAX) {
+		led_index = NUM_INDICATOR_LEDS;
+	} else {
+		// Ceiling division: ((pos * NUM_LEDS) + MAX - 1) / MAX
+		led_index = ((u32)current_pos * NUM_INDICATOR_LEDS + ENC_MAX - 1) / ENC_MAX;
+		// Clamp (should be redundant if calculation is correct for pos in
+		// [1..MAX-1])
+		if (led_index < 1)
+			led_index = 1;
+		if (led_index > NUM_INDICATOR_LEDS)
+			led_index = NUM_INDICATOR_LEDS;
+	}
 
-	encoder_led_s leds = {0}; // Holds the base LED state for the entire PWM cycle
+	// --- 3. Determine Base Indicator Pattern & PWM Setup ---
+	u16	 base_indicator_state			= 0;
+	u8	 pwm_brightness						= 0;
+	u16	 led_pwm_mask							= 0; // Mask for the single LED being PWM'd
+	u8	 effective_pwm_brightness = 0; // Brightness threshold for dimming check
+	bool apply_pwm_dimming				= false; // Flag to enable dimming check in loop
 
-	// Calculate Base LED State Pattern and PWM Brightness
-	switch (enc->display.mode) {
-		case DIS_MODE_SINGLE: {
-			// Turn on only the single LED corresponding to led_index
-			if (led_index >= 1 && led_index <= NUM_INDICATOR_LEDS) {
-				leds.state = (0x8000 >> (led_index - 1));
-			}
-			break; // Exit switch
-		}
+	switch (mode) {
+		case DIS_MODE_SINGLE:
+			base_indicator_state = INDICATOR_MASKS[led_index];
+			break;
 
-			// Fallthrough intended: MULTI_PWM calculates brightness then uses MULTI
-			// logic for base pattern
-		case DIS_MODE_MULTI_PWM: {
-			// Calculate desired brightness (0-31, Dim->Bright) for the leading LED
+		case DIS_MODE_MULTI_PWM:
+			// Calculate PWM brightness (0 to NUM_PWM_FRAMES-1)
 			if (current_pos == ENC_MAX) {
-				pwm_brightness = NUM_PWM_FRAMES - 1; // Max brightness at max position
-			} else if (current_pos == 0) {
-				pwm_brightness = 0; // Min brightness (off/dimmest) at position 0
-			} else {
-				// Calculate fractional position (0-255) within the current LED's range
-				// using 8.8 fixed point
+				pwm_brightness = NUM_PWM_FRAMES - 1;
+			} else if (current_pos > 0) {
 				u32 scaled_pos =
 						((u32)current_pos * NUM_INDICATOR_LEDS * 256) / ENC_MAX;
-				u16 base_pos_for_led = (led_index > 0) ? ((led_index - 1) * 256) : 0;
+				u16 base_pos_for_led = (led_index - 1) * 256;
 				u16 pos_in_led			 = (scaled_pos >= base_pos_for_led)
 																	 ? (scaled_pos - base_pos_for_led)
 																	 : 0;
-
-				// Scale fractional position (0-255) to brightness (0-31)
-				pwm_brightness = (pos_in_led * NUM_PWM_FRAMES) >> 8;
-				if (pwm_brightness >= NUM_PWM_FRAMES) { // Clamp to max
+				pwm_brightness			 = (pos_in_led * NUM_PWM_FRAMES) >> 8;
+				if (pwm_brightness >= NUM_PWM_FRAMES) {
 					pwm_brightness = NUM_PWM_FRAMES - 1;
 				}
 			}
-		} // fallthrough
+			// else: pwm_brightness = 0 for current_pos == 0
 
-		case DIS_MODE_MULTI: {
-			// Calculate base indicator pattern (which LEDs are fully ON)
-			if (enc->detent) {
-				// Center-out pattern from middle (LED 6)
-				if (led_index < 6) { // Light LEDs index..5
-					for (int i = led_index; i <= 5; ++i) {
-						if (i >= 1)
-							leds.state |= (0x8000 >> (i - 1));
-					}
-				} else if (led_index > 6) { // Light LEDs 7..index
-					for (int i = 7; i <= led_index; ++i) {
-						if (i <= NUM_INDICATOR_LEDS)
-							leds.state |= (0x8000 >> (i - 1));
-					}
-				}
-			} else { // Non-detent bar graph: Light LEDs 1..index
-				for (int i = 1; i <= led_index; ++i) {
-					if (i <= NUM_INDICATOR_LEDS)
-						leds.state |= (0x8000 >> (i - 1));
-				}
+			// Setup for PWM dimming in the loop
+			led_pwm_mask						 = INDICATOR_MASKS[led_index];
+			effective_pwm_brightness = pwm_brightness;
+			apply_pwm_dimming				 = true; // Enable the dimming check
+
+			// Apply brightness inversion quirk for detent mode, left side
+			if (is_detent && led_index < CENTER_INDICATOR) {
+				effective_pwm_brightness = (NUM_PWM_FRAMES - 1) - pwm_brightness;
 			}
-			break; // Break for MULTI modes
-		}
+			// fallthrough
+
+		case DIS_MODE_MULTI:
+			// Lookup base pattern from LUT
+			base_indicator_state =
+					is_detent ? CENTER_OUT_MASKS[led_index] : BAR_GRAPH_MASKS[led_index];
+			break;
+
 		default: return ERR_BAD_PARAM;
 	}
 
-	// Ensure center LED (indicator 6) is always off in detent mode
-	if (enc->detent) {
-		leds.indicator_6 = 0;
+	if (is_detent) {
+		base_indicator_state &= ~CENTER_INDICATOR_MASK;
 	}
 
-	// Generate states for each PWM frame and store in buffer
+	// --- 4. Pre-fetch BCM Brightness Values ---
+	const u8 rgb_r = vmap->rgb.red;
+	const u8 rgb_g = vmap->rgb.green;
+	const u8 rgb_b = vmap->rgb.blue;
+	const u8 det_r = is_detent ? vmap->rb.red : 0;
+	const u8 det_b = is_detent ? vmap->rb.blue : 0;
+
+	// --- 5. Generate PWM/BCM frames ---
 	for (unsigned int f = 0; f < NUM_PWM_FRAMES; ++f) {
-		encoder_led_s frame_leds =
-				leds; // Start with the calculated base pattern for this frame
+		// Start with the base indicator pattern for this frame
+		u16 current_indicator_state = base_indicator_state;
 
-		// Apply PWM dimming to the leading indicator LED if in MULTI_PWM mode
-		if (enc->display.mode == DIS_MODE_MULTI_PWM) {
-			if (led_index >= 1 && led_index <= NUM_INDICATOR_LEDS) {
-				u16 index_mask =
-						(0x8000 >> (led_index - 1)); // Mask for the specific LED
-
-				// Invert calculated brightness only for detent mode, left side (<6)
-				// This corrects the perceived brightness profile for this specific
-				// case.
-				u8 effective_pwm_brightness = pwm_brightness;
-				if (enc->detent && led_index < 6) {
-					effective_pwm_brightness = (NUM_PWM_FRAMES - 1) - pwm_brightness;
-				}
-
-				// Dimming Logic: Turn OFF the leading LED if the current frame 'f'
-				// is at or beyond the desired brightness level (number of ON frames).
-				if (f >= effective_pwm_brightness) {
-					frame_leds.state &=
-							~index_mask; // Clear the bit (turn LED off for this frame)
-				}
-			}
+		// Apply PWM dimming if needed (turn OFF leading LED if frame >= brightness)
+		if (apply_pwm_dimming && (f >= effective_pwm_brightness)) {
+			current_indicator_state &= ~led_pwm_mask;
 		}
 
-		// Apply Binary Code Modulation (BCM) for RGB and Detent LEDs
-		frame_leds.rgb_blue		 = 0;
-		frame_leds.rgb_red		 = 0;
-		frame_leds.rgb_green	 = 0;
-		frame_leds.detent_blue = 0;
-		frame_leds.detent_red	 = 0;
-		struct virtmap* vmap	 = &enc->vmaps[enc->vmap_active];
-		// Turn LED ON for this frame if its brightness value > current frame index
-		if (vmap->rgb.red > f)
-			frame_leds.rgb_red = 1;
-		if (vmap->rgb.green > f)
-			frame_leds.rgb_green = 1;
-		if (vmap->rgb.blue > f)
-			frame_leds.rgb_blue = 1;
-		if (enc->detent) {
-			if (vmap->rb.red > f)
-				frame_leds.detent_red = 1;
-			if (vmap->rb.blue > f)
-				frame_leds.detent_blue = 1;
-		}
+		// Calculate BCM bits for this frame (directly build the lower part of the
+		// state)
+		u16 current_bcm_bits = 0;
+		if (rgb_r > f)
+			current_bcm_bits |= (1 << RGB_RED_BIT);
+		if (rgb_g > f)
+			current_bcm_bits |= (1 << RGB_GREEN_BIT);
+		if (rgb_b > f)
+			current_bcm_bits |= (1 << RGB_BLUE_BIT);
+		// Detent BCM bits are only added if is_detent is true (det_r/det_b are 0
+		// otherwise)
+		if (det_r > f)
+			current_bcm_bits |= (1 << DETENT_RED_BIT);
+		if (det_b > f)
+			current_bcm_bits |= (1 << DETENT_BLUE_BIT);
 
-		// Write the final LED state to the frame buffer
-		// Hardware requires inverted state (0 = LED ON, 1 = LED OFF)
-		gFRAME_BUFFER[f][enc->idx] = ~frame_leds.state;
+		// Combine indicator state and BCM bits
+		u16 final_state = current_indicator_state | current_bcm_bits;
+
+		// --- 6. Write to Frame Buffer (Inverted) ---
+		gFRAME_BUFFER[f][enc_idx] = ~final_state;
 	}
 
-	return 0;
+	return 0; // Success
 }
