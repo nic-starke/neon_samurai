@@ -28,7 +28,7 @@
 #define NUM_PWM_FRAMES						(32)
 
 #define MAX_BRIGHTNESS						(NUM_PWM_FRAMES)
-#define MIN_BRIGHTNESS						(1)
+#define MIN_BRIGHTNESS						(0)
 
 #define NUM_ENC_BANKS							(3)
 #define NUM_ENC_PER_BANK					(NUM_ENCODERS)

@@ -117,20 +117,6 @@ void hw_led_init(void) {
 	TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer!
 }
 
-void mf_led_set_max_brightness(u8 brightness) {
-	if (brightness > MAX_BRIGHTNESS) {
-		brightness = MAX_BRIGHTNESS;
-	}
-
-	// Post an event to the event queue
-	// core_event_s evt = {
-	// 		.id									 =
-	// EVT_CORE_CORE_CORE_MAX_BRIGHTNESS, 		.data.max_brightness =
-	// brightness,
-	// };
-	// event_post(&evt);
-}
-
 ISR(TCD0_CCB_vect) {
 	ATOMIC_BLOCK(ATOMIC_FORCEON) {
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
