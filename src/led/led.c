@@ -125,10 +125,8 @@ void display_update(void) {
 	for (uint e = 0; e < NUM_ENCODERS; e++) {
 		struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 
-		/* This routine is called every 1ms, and the display is updated every
-		 * 1000 / NUM_PWM_FRAMES == 31.25ms */
 		if (enc->update_display != 0 &&
-				(time_now - enc->update_display) > (1000 / NUM_PWM_FRAMES)) {
+				(time_now - enc->update_display) > (500 / NUM_PWM_FRAMES)) {
 			mf_draw_encoder(enc);
 			enc->update_display = 0;
 		}
