@@ -34,8 +34,8 @@ enum spi_mode {
 
 struct usart_config {
 	enum spi_mode mode;
-	u32				 baudrate;
-	enum endian	 endian;
+	u32						baudrate;
+	enum endian		endian;
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

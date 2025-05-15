@@ -24,7 +24,7 @@ __attribute__((noreturn)) void hal_system_reset(void) {
 
 	// Ensure WDT is disabled before changing configuration
 	// This requires Configuration Change Protection (CCP)
-	CCP = CCP_IOREG_gc;
+	CCP			 = CCP_IOREG_gc;
 	WDT.CTRL = 0x00; // Disable WDT
 
 	// Wait for synchronization if necessary (usually very short)
@@ -35,7 +35,7 @@ __attribute__((noreturn)) void hal_system_reset(void) {
 	// WDT_PER_8CLK_gc is the shortest, but might be too fast. Let's use 8ms.
 	// WDT_ENABLE_bm enables the WDT
 	// WDT_CEN_bm allows changing the WDT settings
-	CCP = CCP_IOREG_gc;
+	CCP			 = CCP_IOREG_gc;
 	WDT.CTRL = WDT_PER_8CLK_gc | WDT_ENABLE_bm | WDT_CEN_bm;
 
 	// Wait indefinitely for the WDT to reset the MCU

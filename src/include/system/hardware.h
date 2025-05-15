@@ -78,24 +78,24 @@ struct encoder {
 
 	// Display Configuration
 	struct {
-		enum display_mode				 mode;
+		enum display_mode					mode;
 		enum virtmap_display_mode virtmode;
 	} display;
 
 	// Encoder
-	bool					detent;
-	struct encoder_movement			enc_ctx;
-	struct quadrature* quad_ctx;
+	bool										detent;
+	struct encoder_movement enc_ctx;
+	struct quadrature*			quad_ctx;
 
 	// Virtual Mappings
 	enum virtmap_mode vmap_mode;
-	u8						 vmap_active; // Index for the current active vmap
-	struct virtmap			 vmaps[NUM_VMAPS_PER_ENC];
+	u8								vmap_active; // Index for the current active vmap
+	struct virtmap		vmaps[NUM_VMAPS_PER_ENC];
 
 	// Encoder Switch
 	enum switch_state sw_state;
-	enum switch_mode	 sw_mode;
-	struct proto_cfg		 sw_cfg;
+	enum switch_mode	sw_mode;
+	struct proto_cfg	sw_cfg;
 
 	/*
 		update_display is (as its name suggests) used to determine when to redraw
@@ -121,10 +121,10 @@ struct mf_rt {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern volatile u16 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
+extern volatile u16			 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
 extern struct quadrature gQUAD_ENC[NUM_ENCODER_SWITCHES];
-extern struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
-extern struct mf_rt			gRT;
+extern struct encoder		 gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+extern struct mf_rt			 gRT;
 extern struct sys_config gCONFIG;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -136,8 +136,8 @@ void hw_led_init(void);
 void hw_encoder_init(void);
 void hw_encoder_scan(void);
 
-void					 hw_switch_init(void);
-void					 hw_switch_update(void);
+void							hw_switch_init(void);
+void							hw_switch_update(void);
 enum switch_state hw_enc_switch_state(u8 idx);
 
 void input_init(void);

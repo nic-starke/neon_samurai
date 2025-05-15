@@ -33,13 +33,12 @@ enum events_core {
 };
 
 struct sys_event {
-	u8		type;
+	u8 type;
 	union {
-		void* ptr;
+		void*						 ptr;
 		enum return_code ret;
 	} data;
 };
-
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */

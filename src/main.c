@@ -5,11 +5,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
 #include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Platform/XMEGA/ClockManagement.h"
-
 
 #include "console/console.h"
 #include "event/event.h"
@@ -73,7 +71,8 @@ __attribute__((noreturn)) void main(void) {
 	// Initialize config
 	cfg_init(reset);
 
-	// Load configuration - either defaults if reset occurred, or existing from EEPROM
+	// Load configuration - either defaults if reset occurred, or existing from
+	// EEPROM
 	cfg_load();
 
 	hw_led_init();

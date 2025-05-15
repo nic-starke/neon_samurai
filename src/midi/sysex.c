@@ -34,7 +34,7 @@ enum stream_state {
 };
 
 struct sysex_type_streamer_def {
-	u8						 len_data;
+	u8								len_data;
 	enum stream_state next_state;
 };
 
@@ -93,8 +93,8 @@ static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
 
 static enum stream_state stream_state = STREAM_IDLE;
 // Buffer to stream incoming sysex, +2 for start and end sysex bytes
-static u8							buffer[MF_SYSEX_MAX_PKT_SIZE + 2];
-static u8							buffer_idx = 0;
+static u8								 buffer[MF_SYSEX_MAX_PKT_SIZE + 2];
+static u8								 buffer_idx = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -187,10 +187,10 @@ static int midi_in_handler(void* evt) {
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_STATE:
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_MODE:
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_PROTO: {
-			u8						bank		= msg->param.enc.bank_idx;
-			u8						enc			= msg->param.enc.enc_idx;
+			u8							bank		= msg->param.enc.bank_idx;
+			u8							enc			= msg->param.enc.enc_idx;
 			struct encoder* encoder = &gENCODERS[bank][enc];
-			void*					param =
+			void*						param =
 					(void*)((u8*)encoder + sysex_data_info[msg->param_enum].offset);
 			memcpy(param, (const void*)&msg->param.enc.data,
 						 sysex_data_info[msg->param_enum].len);
@@ -202,11 +202,11 @@ static int midi_in_handler(void* evt) {
 		case MF_SYSEX_PARAM_VMAP_RGB:
 		case MF_SYSEX_PARAM_VMAP_RB:
 		case MF_SYSEX_PARAM_VMAP_PROTO: {
-			u8				 bank_idx = msg->param.vmap.bank_idx;
-			u8				 enc_idx	= msg->param.vmap.enc_idx;
-			u8				 vmap_idx = msg->param.vmap.vmap_idx;
-			struct virtmap* vmap			= &gENCODERS[bank_idx][enc_idx].vmaps[vmap_idx];
-			void*			 param =
+			u8							bank_idx = msg->param.vmap.bank_idx;
+			u8							enc_idx	 = msg->param.vmap.enc_idx;
+			u8							vmap_idx = msg->param.vmap.vmap_idx;
+			struct virtmap* vmap		 = &gENCODERS[bank_idx][enc_idx].vmaps[vmap_idx];
+			void*						param =
 					(void*)((u8*)vmap + sysex_data_info[msg->param_enum].offset);
 			memcpy(param, (const void*)&msg->param.vmap.data,
 						 sysex_data_info[msg->param_enum].len);

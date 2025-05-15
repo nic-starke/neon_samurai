@@ -85,21 +85,21 @@ static void sw_encoder_init(void) {
 			// purple)
 
 			if (enc->idx < 4) {
-				enc->detent = true;
+				enc->detent				= true;
 				enc->display.mode = DIS_MODE_SINGLE;
 			} else if (enc->idx < 8) {
-				enc->detent = true;
+				enc->detent				= true;
 				enc->display.mode = DIS_MODE_MULTI_PWM;
 			} else if (enc->idx < 12) {
-				enc->detent = false;
+				enc->detent				= false;
 				enc->display.mode = DIS_MODE_SINGLE;
 			} else {
-				enc->detent = false;
+				enc->detent				= false;
 				enc->display.mode = DIS_MODE_MULTI;
 			}
 
 			for (uint v = 0; v < NUM_VMAPS_PER_ENC; v++) {
-				struct virtmap* map				= &enc->vmaps[v];
+				struct virtmap* map		= &enc->vmaps[v];
 				map->position.start		= ENC_MIN;
 				map->position.stop		= ENC_MAX;
 				map->range.lower			= MIDI_CC_MIN;
@@ -109,29 +109,37 @@ static void sw_encoder_init(void) {
 				map->cfg.midi.channel = 0;
 				map->cfg.midi.cc			= cc++;
 
-				// Assign RGB based on encoder index
+				// Set initial HSV values based on encoder index
+				// This will create a nice color gradient across encoders
 				if (enc->idx < 4) {
-					map->rgb.red	 = 0x00;
-					map->rgb.green = 0x1F;
-					map->rgb.blue	 = 0x1F;
+					// Row 1: Cyan hue
+					map->hsv.hue				= 512; // Cyan
+					map->hsv.saturation = 255;
+					map->hsv.value			= 255;
 				} else if (enc->idx < 8) {
-					map->rgb.red	 = 0x00;
-					map->rgb.green = 0x1F;
-					map->rgb.blue	 = 0x0F;
+					// Row 2: Green hue
+					map->hsv.hue				= 384; // Green
+					map->hsv.saturation = 255;
+					map->hsv.value			= 255;
 				} else if (enc->idx < 12) {
-					map->rgb.red	 = 0x00;
-					map->rgb.green = 0x00;
-					map->rgb.blue	 = 0x1F;
+					// Row 3: Blue hue
+					map->hsv.hue				= 768; // Blue
+					map->hsv.saturation = 255;
+					map->hsv.value			= 255;
 				} else {
-					map->rgb.red	 = 0x1F;
-					map->rgb.green = 0x00;
-					map->rgb.blue	 = 0x1F;
+					// Row 4: Purple hue
+					map->hsv.hue				= 1024; // Purple
+					map->hsv.saturation = 255;
+					map->hsv.value			= 255;
 				}
 
-				map->rgb.red	 = (map->rgb.red + 20) * v % RGB_MAX_VAL;
-				map->rgb.green = (map->rgb.green - 5) * v % RGB_MAX_VAL;
-				map->rgb.blue	 = (map->rgb.blue + 12) * v % RGB_MAX_VAL;
+				// Vary the hue slightly based on the vmap index
+				map->hsv.hue = (map->hsv.hue + v * 128) % 1536;
 
+				// Update RGB values from HSV values
+				color_update_vmap_rgb(map);
+
+				// Assign RB (red/blue detent LEDs) based on encoder index
 				if (enc->detent) {
 					map->curr_pos = ENC_MID;
 					// Assign RB based on encoder index
@@ -139,8 +147,8 @@ static void sw_encoder_init(void) {
 						map->rb.red	 = 0x1F;
 						map->rb.blue = 0x00;
 					} else if (enc->idx < 8) {
-						map->rb.red	 = 0x1F;
-						map->rb.blue = 0x0F;
+						map->rb.red	 = 0x0F;
+						map->rb.blue = 0x1F;
 					} else if (enc->idx < 12) {
 						map->rb.red	 = 0x00;
 						map->rb.blue = 0x1F;
@@ -235,7 +243,7 @@ static void sw_encoder_update(void) {
 			enc->sw_state = SWITCH_IDLE;
 		}
 
-		int dir = quadrature_direction(enc->quad_ctx);
+		int	 dir	 = quadrature_direction(enc->quad_ctx);
 		bool moved = encoder_movement_update(&enc->enc_ctx, dir);
 
 		if (!moved) {

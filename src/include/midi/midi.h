@@ -27,10 +27,10 @@ enum midi_mode {
 
 struct midi_cfg {
 	enum midi_mode mode;
-	u8					channel;
+	u8						 channel;
 	union {
 		enum midi_cc cc;
-		u8				raw;
+		u8					 raw;
 	};
 };
 

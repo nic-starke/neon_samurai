@@ -48,16 +48,15 @@ struct pwm_config {
 };
 
 struct timer_config {
-	volatile TC0_t*		 timer;
+	volatile TC0_t*				timer;
 	enum timer_peripheral periph;
-	enum timer_channel		 channel;
-	u32								 freq; // Timer frequency (Hz)
+	enum timer_channel		channel;
+	u32										freq; // Timer frequency (Hz)
 
 	enum timer_mode mode;
 	union {
 		struct pwm_config pwm;
 	};
-
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

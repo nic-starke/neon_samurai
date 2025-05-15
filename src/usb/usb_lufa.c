@@ -451,7 +451,7 @@ PROGMEM static const struct usb_descriptor desc_cfg = {
 };
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
-static bool						 vser_active = false;
+static bool vser_active = false;
 #pragma GCC diagnostic pop
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

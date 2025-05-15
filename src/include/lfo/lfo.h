@@ -22,10 +22,10 @@ enum waveform {
 };
 
 struct lfo {
-	i16				 frequency;
-	i16				 amplitude;
-	i16				 phase;
-	i16				 sampleRate;
+	i16						frequency;
+	i16						amplitude;
+	i16						phase;
+	i16						sampleRate;
 	enum waveform waveform;
 };
 

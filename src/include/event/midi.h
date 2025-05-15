@@ -39,7 +39,6 @@ enum midi_sysex_type {
 	SYSEX_TYPE_NB,
 
 	SYSEX_TYPE_INVALID = 0xFF,
-
 };
 
 typedef struct __attribute__((packed)) {

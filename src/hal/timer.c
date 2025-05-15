@@ -103,7 +103,8 @@ void timer_ch_isr_disable(struct timer_config* cfg) {
 	cfg->timer->INTCTRLB &= ~mask;
 }
 
-void timer_ovr_isr_enable(struct timer_config* cfg, enum isr_priority priority) {
+void timer_ovr_isr_enable(struct timer_config* cfg,
+													enum isr_priority		 priority) {
 	assert(cfg);
 	cfg->timer->INTCTRLA =
 			(cfg->timer->INTCTRLA & (u8)~TC0_OVFINTLVL_gm) | (u8)priority;

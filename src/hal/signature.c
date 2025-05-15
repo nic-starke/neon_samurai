@@ -37,7 +37,8 @@ void signature_read(NVM_PROD_SIGNATURES_t* prod_sig) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /**
- * @brief Reads a single byte from the production signature row (calibration row).
+ * @brief Reads a single byte from the production signature row (calibration
+ * row).
  *
  * @param address The byte offset within the production signature row (0-63).
  * @return uint8_t The byte read from the specified address.
@@ -57,10 +58,10 @@ static uint8_t nvm_read_prod_sig_byte(uint16_t address) {
 	// Use inline assembly to perform the Load Program Memory (LPM) instruction.
 	// The Z-pointer register (R31:R30) must point to the address (byte offset)
 	// within the signature row to be read.
-	__asm__ __volatile__ (
-		"lpm %0, Z\n"
-		: "=r" (byte_value)  // Output: store result in byte_value register
-		: "z" (address)      // Input: load 'address' into Z-pointer (R31:R30)
+	__asm__ __volatile__(
+			"lpm %0, Z\n"
+			: "=r"(byte_value) // Output: store result in byte_value register
+			: "z"(address)		 // Input: load 'address' into Z-pointer (R31:R30)
 	);
 
 	// After the LPM instruction, it's good practice to clear the NVM command.

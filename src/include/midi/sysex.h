@@ -67,11 +67,11 @@ typedef struct __attribute__((packed)) {
 	u8 bank_idx;
 	u8 enc_idx;
 	union {
-		u8										 detent;
-		enum display_mode				 display_mode;
+		u8												detent;
+		enum display_mode					display_mode;
 		enum virtmap_display_mode vmap_display_mode;
-		enum virtmap_mode				 vmap_mode;
-		u8										 vmap_active;
+		enum virtmap_mode					vmap_mode;
+		u8												vmap_active;
 	} data;
 } mf_sysex_encoder_param_s;
 

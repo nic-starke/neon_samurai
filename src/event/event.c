@@ -91,7 +91,8 @@ int event_channel_process(enum event_ch ch) {
 	return 0;
 }
 
-int event_channel_subscribe(enum event_ch ch, struct event_ch_handler* new_handler) {
+int event_channel_subscribe(enum event_ch						 ch,
+														struct event_ch_handler* new_handler) {
 	assert(new_handler);
 	assert(ch < EVENT_CHANNEL_NB);
 

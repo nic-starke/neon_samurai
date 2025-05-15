@@ -31,11 +31,10 @@ struct eeprom_midi_cfg {
 		u8 cc;
 		u8 raw;
 	};
-
 };
 
 typedef union {
-	u8									 type;
+	u8										 type;
 	struct eeprom_midi_cfg midi;
 } eeprom_proto_cfg_s;
 
@@ -53,41 +52,48 @@ struct eeprom_virtmap_cfg {
 
 struct eeprom_encoder {
 	// General
-	u8 display_mode								 : 2;
-	u8 virtmap_mode								 : 1;
+	u8 display_mode : 2;
+	u8 virtmap_mode : 1;
 
 	// Encoder
-	u8 detent											 : 1;
-	u8 vmap_mode									 : 1;
-	u8 vmap_active								 : 1;
+	u8 detent				: 1;
+	u8 vmap_mode		: 1;
+	u8 vmap_active	: 1;
 
 	// Encoder Switch
-	u8										sw_mode;
+	u8								 sw_mode;
 	eeprom_proto_cfg_s sw_cfg;
 
 	struct {
 		eeprom_proto_cfg_s cfg;
-		u8										rgb_r;
-		u8										rgb_g;
-		u8										rgb_b;
-		u8										rb_r;
-		u8										rb_b;
+		u8								 rgb_r;
+		u8								 rgb_g;
+		u8								 rgb_b;
+		uint16_t					 hsv_h; // Hue (0-1535)
+		u8								 hsv_s; // Saturation (0-255)
+		u8								 hsv_v; // Value (0-255)
+		u8								 rb_r;
+		u8								 rb_b;
 	} vmap[NUM_VMAPS_PER_ENC];
 };
 
 struct eeprom {
-	u16									version;
-	u8                  reset_pending; // Flag to indicate pending config reset
+	u16										version;
+	u8										reset_pending; // Flag to indicate pending config reset
 	struct eeprom_encoder encoders[NUM_ENC_BANKS][NUM_ENCODERS];
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int encode_encoder(const struct encoder* src, struct eeprom_encoder* dst);
-static int decode_encoder(const struct eeprom_encoder* src, struct encoder* dst);
-static int decode_proto_cfg(const eeprom_proto_cfg_s* src, struct proto_cfg* dst);
-static int encode_proto_cfg(const struct proto_cfg* src, eeprom_proto_cfg_s* dst);
+static int encode_encoder(const struct encoder*	 src,
+													struct eeprom_encoder* dst);
+static int decode_encoder(const struct eeprom_encoder* src,
+													struct encoder*							 dst);
+static int decode_proto_cfg(const eeprom_proto_cfg_s* src,
+														struct proto_cfg*					dst);
+static int encode_proto_cfg(const struct proto_cfg* src,
+														eeprom_proto_cfg_s*			dst);
 static int init_eeprom(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -124,8 +130,8 @@ EEMEM struct eeprom eeprom_data;
 int cfg_init(bool reset_cfg) {
 	// Check if the eeprom is initialised (the first word == EE_VERSION), if not
 	// initialise the eeprom with default values
-	u16 version = eeprom_read_word(&eeprom_data.version);
-	u8 reset_flag = eeprom_read_byte(&eeprom_data.reset_pending);
+	u16 version		 = eeprom_read_word(&eeprom_data.version);
+	u8	reset_flag = eeprom_read_byte(&eeprom_data.reset_pending);
 
 	if (reset_flag == 1 || reset_cfg == 1 || version != EE_VERSION) {
 		return init_eeprom(); // This will also clear the reset_pending flag
@@ -177,7 +183,8 @@ int cfg_update(void) {
 }
 
 int mf_cfg_reset(void) {
-	// Set the reset pending flag in EEPROM. The actual data reset happens on next boot.
+	// Set the reset pending flag in EEPROM. The actual data reset happens on next
+	// boot.
 	eeprom_update_byte(&eeprom_data.reset_pending, 1);
 	hal_system_reset(); // This function does not return
 	return SUCCESS;
@@ -185,7 +192,8 @@ int mf_cfg_reset(void) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int encode_encoder(const struct encoder* src, struct eeprom_encoder* dst) {
+static int encode_encoder(const struct encoder*	 src,
+													struct eeprom_encoder* dst) {
 	dst->display_mode = src->display.mode;
 	dst->virtmap_mode = src->display.virtmode;
 	dst->detent				= src->detent;
@@ -194,11 +202,18 @@ static int encode_encoder(const struct encoder* src, struct eeprom_encoder* dst)
 	dst->vmap_active	= src->vmap_active;
 
 	for (int i = 0; i < NUM_VMAPS_PER_ENC; i++) {
+		// Save RGB and HSV color values
 		dst->vmap[i].rgb_r = src->vmaps[i].rgb.red;
 		dst->vmap[i].rgb_g = src->vmaps[i].rgb.green;
 		dst->vmap[i].rgb_b = src->vmaps[i].rgb.blue;
-		dst->vmap[i].rb_r	 = src->vmaps[i].rb.red;
-		dst->vmap[i].rb_b	 = src->vmaps[i].rb.blue;
+
+		// Add saving of HSV values
+		dst->vmap[i].hsv_h = src->vmaps[i].hsv.hue;
+		dst->vmap[i].hsv_s = src->vmaps[i].hsv.saturation;
+		dst->vmap[i].hsv_v = src->vmaps[i].hsv.value;
+
+		dst->vmap[i].rb_r = src->vmaps[i].rb.red;
+		dst->vmap[i].rb_b = src->vmaps[i].rb.blue;
 		encode_proto_cfg(&src->vmaps[i].cfg, &dst->vmap[i].cfg);
 	}
 
@@ -207,20 +222,31 @@ static int encode_encoder(const struct encoder* src, struct eeprom_encoder* dst)
 	return SUCCESS;
 }
 
-static int decode_encoder(const struct eeprom_encoder* src, struct encoder* dst) {
-	dst->display.mode				= src->display_mode;
-	dst->display.virtmode		= src->virtmap_mode;
-	dst->detent							= src->detent;
-	dst->vmap_mode					= src->vmap_mode;
-	dst->sw_mode						= src->sw_mode;
-	dst->vmap_active				= src->vmap_active;
+static int decode_encoder(const struct eeprom_encoder* src,
+													struct encoder*							 dst) {
+	dst->display.mode			= src->display_mode;
+	dst->display.virtmode = src->virtmap_mode;
+	dst->detent						= src->detent;
+	dst->vmap_mode				= src->vmap_mode;
+	dst->sw_mode					= src->sw_mode;
+	dst->vmap_active			= src->vmap_active;
 
 	for (int i = 0; i < NUM_VMAPS_PER_ENC; i++) {
+		// Load RGB values
 		dst->vmaps[i].rgb.red		= src->vmap[i].rgb_r;
 		dst->vmaps[i].rgb.green = src->vmap[i].rgb_g;
 		dst->vmaps[i].rgb.blue	= src->vmap[i].rgb_b;
-		dst->vmaps[i].rb.red		= src->vmap[i].rb_r;
-		dst->vmaps[i].rb.blue		= src->vmap[i].rb_b;
+
+		// Load HSV values
+		dst->vmaps[i].hsv.hue				 = src->vmap[i].hsv_h;
+		dst->vmaps[i].hsv.saturation = src->vmap[i].hsv_s;
+		dst->vmaps[i].hsv.value			 = src->vmap[i].hsv_v;
+
+		// Update RGB values from HSV values to ensure consistency
+		color_update_vmap_rgb(&dst->vmaps[i]);
+
+		dst->vmaps[i].rb.red	= src->vmap[i].rb_r;
+		dst->vmaps[i].rb.blue = src->vmap[i].rb_b;
 		decode_proto_cfg(&src->vmap[i].cfg, &dst->vmaps[i].cfg);
 	}
 
@@ -228,7 +254,8 @@ static int decode_encoder(const struct eeprom_encoder* src, struct encoder* dst)
 	return SUCCESS;
 }
 
-static int decode_proto_cfg(const eeprom_proto_cfg_s* src, struct proto_cfg* dst) {
+static int decode_proto_cfg(const eeprom_proto_cfg_s* src,
+														struct proto_cfg*					dst) {
 	switch (src->type) {
 		case PROTOCOL_NONE: memset(dst, 0, sizeof(struct proto_cfg)); break;
 
@@ -249,7 +276,8 @@ static int decode_proto_cfg(const eeprom_proto_cfg_s* src, struct proto_cfg* dst
 	return SUCCESS;
 }
 
-static int encode_proto_cfg(const struct proto_cfg* src, eeprom_proto_cfg_s* dst) {
+static int encode_proto_cfg(const struct proto_cfg* src,
+														eeprom_proto_cfg_s*			dst) {
 	switch (src->type) {
 		case PROTOCOL_NONE: memset(dst, 0, sizeof(eeprom_proto_cfg_s)); break;
 
@@ -279,13 +307,14 @@ static int init_eeprom(void) {
 	eeprom_write_word(&eeprom_data.version, EE_VERSION);
 
 	// Clear the reset pending flag
-	eeprom_write_byte(&eeprom_data.reset_pending, 0); // Use write_byte as EEPROM is already erased to 0xFF
+	eeprom_write_byte(&eeprom_data.reset_pending,
+										0); // Use write_byte as EEPROM is already erased to 0xFF
 
 	// Write the initial state of the system to the eeprom
 	int ret = cfg_store();
 
 	// Send EVT_SYS_RES_CFG_RESET event
-	struct sys_event evt = { .type = EVT_SYS_RES_CFG_RESET, .data.ret = ret };
+	struct sys_event evt = {.type = EVT_SYS_RES_CFG_RESET, .data.ret = ret};
 	event_post(EVENT_CHANNEL_SYS, &evt);
 	return ret;
 }

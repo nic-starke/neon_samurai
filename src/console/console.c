@@ -6,13 +6,15 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "console/console.h"
-#include "hal/sys.h"
-#include "hal/signature.h"
-#include "hal/adc.h" // Add ADC header for temperature reading
-#include "usb/usb.h"
 #include "event/event.h"
 #include "event/sys.h"
+#include "hal/adc.h" // Add ADC header for temperature reading
+#include "hal/signature.h"
+#include "hal/sys.h"
+#include "led/color.h"	// Add color header for HSV functions
 #include "system/rng.h" // Add RNG header for accessing seed value
+#include "system/hardware.h"
+#include "usb/usb.h"
 
 #include <LUFA/Drivers/USB/Class/Device/CDCClassDevice.h>
 #include <avr/pgmspace.h>
@@ -22,7 +24,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define CONSOLE_PROMPT					 PSTR("> ")
+#define CONSOLE_PROMPT PSTR("> ")
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -63,6 +65,10 @@ static void handle_config_reset(const char* args);
 static void handle_signature(const char* args);
 static void handle_temperature(const char* args);
 static void handle_rng_seed(const char* args); // New RNG seed command handler
+static void handle_set_vmap_hsv(const char* args);
+static void handle_set_vmap_rgb_linear(const char* args);
+static void handle_set_vmap_rgb_bcm(const char* args);
+static void handle_print_gamma_lut(const char* args);
 
 static int console_sys_event_handler(void* event);
 
@@ -97,6 +103,26 @@ static const char rng_seed_command_name[] PROGMEM = "rngseed";
 static const char rng_seed_command_help[] PROGMEM =
 		"Displays the current random number generator seed value";
 
+// New command definitions for HSV color system
+static const char set_vmap_hsv_name[] PROGMEM = "set_vmap_hsv";
+static const char set_vmap_hsv_help[] PROGMEM =
+		"Sets HSV values for vmap: <bank> <enc> <vmap_idx> <H (0-1535)> <S "
+		"(0-255)> <V (0-255)>";
+
+static const char set_vmap_rgb_linear_name[] PROGMEM = "set_vmap_rgb_linear";
+static const char set_vmap_rgb_linear_help[] PROGMEM =
+		"Sets linear RGB values: <bank> <enc> <vmap_idx> <R (0-255)> <G (0-255)> "
+		"<B (0-255)>";
+
+static const char set_vmap_rgb_bcm_name[] PROGMEM = "set_vmap_rgb_bcm";
+static const char set_vmap_rgb_bcm_help[] PROGMEM =
+		"Sets BCM RGB values directly: <bank> <enc> <vmap_idx> <R (0-31)> <G "
+		"(0-31)> <B (0-31)>";
+
+static const char print_gamma_lut_name[] PROGMEM = "print_gamma_lut";
+static const char print_gamma_lut_help[] PROGMEM =
+		"Prints gamma lookup table: <r|g|b>";
+
 static const console_command_t commands[] PROGMEM = {
 		{.name			= help_command_name,
 		 .handler		= handle_help,
@@ -116,6 +142,18 @@ static const console_command_t commands[] PROGMEM = {
 		{.name			= rng_seed_command_name,
 		 .handler		= handle_rng_seed,
 		 .help_text = rng_seed_command_help},
+		{.name			= set_vmap_hsv_name,
+		 .handler		= handle_set_vmap_hsv,
+		 .help_text = set_vmap_hsv_help},
+		{.name			= set_vmap_rgb_linear_name,
+		 .handler		= handle_set_vmap_rgb_linear,
+		 .help_text = set_vmap_rgb_linear_help},
+		{.name			= set_vmap_rgb_bcm_name,
+		 .handler		= handle_set_vmap_rgb_bcm,
+		 .help_text = set_vmap_rgb_bcm_help},
+		{.name			= print_gamma_lut_name,
+		 .handler		= handle_print_gamma_lut,
+		 .help_text = print_gamma_lut_help},
 };
 
 static const uint8_t num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -508,13 +546,115 @@ static void handle_temperature(const char* args __attribute__((unused))) {
  * @param args Command arguments (unused)
  */
 static void handle_rng_seed(const char* args __attribute__((unused))) {
-    char buffer[CONSOLE_LINE_BUFFER_SIZE];
+	char buffer[CONSOLE_LINE_BUFFER_SIZE];
 
-    // Get the current RNG seed value
-    uint32_t seed = rng_get_seed();
+	// Get the current RNG seed value
+	uint32_t seed = rng_get_seed();
 
-    // Display the seed value in both hexadecimal and decimal formats
-    console_puts_p(PSTR("Random Number Generator Seed:\r\n"));
-    snprintf_P(buffer, sizeof(buffer), PSTR("  0x%08lX (%lu)\r\n"), seed, seed);
-    console_puts(buffer);
+	// Display the seed value in both hexadecimal and decimal formats
+	console_puts_p(PSTR("Random Number Generator Seed:\r\n"));
+	snprintf_P(buffer, sizeof(buffer), PSTR("  0x%08lX (%lu)\r\n"), seed, seed);
+	console_puts(buffer);
+}
+
+/**
+ * @brief Command handler for setting HSV values for vmap
+ *
+ * This function sets the HSV values for a specified vmap index.
+ *
+ * @param args Command arguments in the format: <bank> <enc> <vmap_idx> <H
+ * (0-1535)> <S (0-255)> <V (0-255)>
+ */
+static void handle_set_vmap_hsv(const char* args) {
+	uint8_t	 bank, enc, vmap_idx;
+	uint16_t h;
+	uint8_t	 s, v;
+
+	int parsed = sscanf(args, "%hhu %hhu %hhu %hu %hhu %hhu", &bank, &enc,
+											&vmap_idx, &h, &s, &v);
+
+	if (parsed != 6) {
+		console_puts_p(PSTR("Usage: set_vmap_hsv <bank> <enc> <vmap_idx> <hue "
+												"0-1535> <sat 0-255> <val 0-255>\r\n"));
+		return;
+	}
+
+	// Validate input ranges
+	if (bank >= NUM_ENC_BANKS || enc >= NUM_ENCODERS ||
+			vmap_idx >= NUM_VMAPS_PER_ENC) {
+		console_puts_p(PSTR("Invalid bank, encoder, or vmap index\r\n"));
+		return;
+	}
+
+	// Set HSV values and update RGB
+	color_set_vmap_hsv(bank, enc, vmap_idx, h, s, v);
+
+	console_puts_p(PSTR("HSV color set\r\n"));
+}
+
+static void handle_set_vmap_rgb_linear(const char* args) {
+	uint8_t bank, enc, vmap_idx;
+	uint8_t r, g, b;
+
+	int parsed = sscanf(args, "%hhu %hhu %hhu %hhu %hhu %hhu", &bank, &enc,
+											&vmap_idx, &r, &g, &b);
+
+	if (parsed != 6) {
+		console_puts_p(PSTR("Usage: set_vmap_rgb_linear <bank> <enc> <vmap_idx> <r "
+												"0-255> <g 0-255> <b 0-255>\r\n"));
+		return;
+	}
+
+	// Validate input ranges
+	if (bank >= NUM_ENC_BANKS || enc >= NUM_ENCODERS ||
+			vmap_idx >= NUM_VMAPS_PER_ENC) {
+		console_puts_p(PSTR("Invalid bank, encoder, or vmap index\r\n"));
+		return;
+	}
+
+	// Call the by_index version of the function that takes bank/encoder indices
+	color_set_vmap_rgb_linear_by_index(bank, enc, vmap_idx, r, g, b);
+
+	console_puts_p(PSTR("Linear RGB color set with gamma correction\r\n"));
+}
+
+static void handle_set_vmap_rgb_bcm(const char* args) {
+	uint8_t bank, enc, vmap_idx;
+	uint8_t r, g, b;
+
+	int parsed = sscanf(args, "%hhu %hhu %hhu %hhu %hhu %hhu", &bank, &enc,
+											&vmap_idx, &r, &g, &b);
+
+	if (parsed != 6) {
+		console_puts_p(PSTR("Usage: set_vmap_rgb_bcm <bank> <enc> <vmap_idx> <r "
+												"0-31> <g 0-31> <b 0-31>\r\n"));
+		return;
+	}
+
+	// Validate input ranges
+	if (bank >= NUM_ENC_BANKS || enc >= NUM_ENCODERS ||
+			vmap_idx >= NUM_VMAPS_PER_ENC) {
+		console_puts_p(PSTR("Invalid bank, encoder, or vmap index\r\n"));
+		return;
+	}
+
+	// Call the by_index version of the function that takes bank/encoder indices
+	color_set_vmap_rgb_bcm_by_index(bank, enc, vmap_idx, r, g, b);
+
+	console_puts_p(PSTR("BCM RGB color set directly\r\n"));
+}
+
+static void handle_print_gamma_lut(const char* args) {
+	if (!args || !*args) {
+		console_puts_p(PSTR("Usage: print_gamma_lut <r|g|b>\r\n"));
+		return;
+	}
+
+	char channel = args[0];
+	if (channel != 'r' && channel != 'g' && channel != 'b') {
+		console_puts_p(PSTR("Invalid channel. Use 'r', 'g', or 'b'\r\n"));
+		return;
+	}
+
+	color_print_gamma_lut(channel);
 }

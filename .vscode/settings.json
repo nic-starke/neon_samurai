@@ -9,6 +9,8 @@
       "console.h": "c",
       "common.h": "c",
       "signature.h": "c",
-      "utility.h": "c"
+      "utility.h": "c",
+      "cdcclassdevice.h": "c",
+      "hardware.h": "c"
     },
 }

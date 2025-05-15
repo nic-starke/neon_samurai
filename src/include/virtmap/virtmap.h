@@ -10,6 +10,7 @@
 #include "system/types.h"
 #include "protocol/protocol.h"
 #include "led/rgb.h"
+#include "led/color.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -81,12 +82,15 @@ struct virtmap {
 		u8 stop;
 	} position;
 
-	u8					curr_pos;
-	i16					curr_val;
+	u8							 curr_pos;
+	i16							 curr_val;
 	struct proto_cfg cfg;
 
+	// Color properties
+	struct hsv_color hsv; // HSV color values for RGB LEDs
+
 	struct rgb_8 rgb;
-	struct rb_8	rb;
+	struct rb_8	 rb;
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

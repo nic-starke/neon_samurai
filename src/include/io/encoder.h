@@ -11,20 +11,20 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define ENC_MAX					 (UINT8_MAX)	 // Maximum encoder value
-#define ENC_MIN					 (0)					 // Minimum encoder value
-#define ENC_MID					 (ENC_MAX / 2) // Mid position encoder value
-#define ENC_RANGE				 (u8)(ENC_MAX - ENC_MIN)
+#define ENC_MAX		(UINT8_MAX)		// Maximum encoder value
+#define ENC_MIN		(0)						// Minimum encoder value
+#define ENC_MID		(ENC_MAX / 2) // Mid position encoder value
+#define ENC_RANGE (u8)(ENC_MAX - ENC_MIN)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 struct encoder_movement {
-	i16 velocity;      // Current rotational velocity
-	u8  accel_mode;    // Acceleration mode (Currently unused, placeholder)
-	i8  direction;     // Current direction (-1, 0, 1)
+	i16 velocity;					// Current rotational velocity
+	u8	accel_mode;				// Acceleration mode (Currently unused, placeholder)
+	i8	direction;				// Current direction (-1, 0, 1)
 	u32 last_update_time; // Last time the encoder was updated
-	u16 accel_factor; 	// Acceleration factor (1-7)
+	u16 accel_factor;			// Acceleration factor (1-7)
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

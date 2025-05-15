@@ -20,7 +20,7 @@
  * @param h Pointer to handler function.
  */
 #define EVT_HANDLER(p, n, h)                                                   \
-	static struct event_ch_handler n = {                                              \
+	static struct event_ch_handler n = {                                         \
 			.priority = p,                                                           \
 			.handler	= h,                                                           \
 			.next			= NULL,                                                        \
@@ -74,10 +74,10 @@ struct event_ch_handler {
  * It is private and should not be modified by the user.
  */
 struct event_channel {
-	u8*									queue;			// Statically allocated queue buffer
-	const uint					queue_size; // The size of the array (number of messages)
-	const uint					data_size; // Size of data for a single event (for memcpy)
-	struct event_ch_handler* handlers;	 // Link list of handlers
+	u8*				 queue;			 // Statically allocated queue buffer
+	const uint queue_size; // The size of the array (number of messages)
+	const uint data_size;	 // Size of data for a single event (for memcpy)
+	struct event_ch_handler* handlers; // Link list of handlers
 	bool onehandler; // Set true if handlers is a single handler for all events
 	uint head;			 // (private)
 };
@@ -137,7 +137,8 @@ int event_channel_process(enum event_ch ch);
  * @retval ERR_UNSUPPORTED cannot assign a new handler to this event channel.
  * @retval 0 on success.
  */
-int event_channel_subscribe(enum event_ch ch, struct event_ch_handler* new_handler);
+int event_channel_subscribe(enum event_ch						 ch,
+														struct event_ch_handler* new_handler);
 
 /**
  * @brief Unsubscribe an event handler from an existing event channel.

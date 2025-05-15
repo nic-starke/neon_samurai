@@ -59,7 +59,7 @@ static uint8_t tempsense1;
  */
 void adc_init(adc_reference_t reference, adc_resolution_t resolution,
 							adc_prescaler_t prescaler) {
-								static bool initialized = false;
+	static bool initialized = false;
 
 	if (initialized) {
 		/* ADC already initialized, no need to reconfigure */
@@ -231,30 +231,30 @@ uint16_t adc_get_sample(adc_channel_t ch) {
  * @return float The temperature in degrees Celsius with decimal precision
  */
 float adc_read_temperature_float(void) {
-    uint16_t adc_value;
-    float temperature;
-    NVM_PROD_SIGNATURES_t sig_data;
+	uint16_t							adc_value;
+	float									temperature;
+	NVM_PROD_SIGNATURES_t sig_data;
 
-    /* Read calibration values from signature row */
-    signature_read(&sig_data);
+	/* Read calibration values from signature row */
+	signature_read(&sig_data);
 
-    /* Configure channel 0 for temperature measurement */
-    adc_channel_config_internal(ADC_CH0, ADC_CH_MUXINT_TEMP);
+	/* Configure channel 0 for temperature measurement */
+	adc_channel_config_internal(ADC_CH0, ADC_CH_MUXINT_TEMP);
 
-    /* Get ADC reading */
-    adc_value = adc_get_sample(ADC_CH0);
+	/* Get ADC reading */
+	adc_value = adc_get_sample(ADC_CH0);
 
-    /*
-     * Calculate temperature using calibration values from signature row.
-     * Formula from XMEGA datasheet:
-     * Temperature = ((ADC reading - TEMPSENSE0) * TEMPSENSE1) / 256 + 25°C
-     */
+	/*
+	 * Calculate temperature using calibration values from signature row.
+	 * Formula from XMEGA datasheet:
+	 * Temperature = ((ADC reading - TEMPSENSE0) * TEMPSENSE1) / 256 + 25°C
+	 */
 
-    /* Using floating point for more precision */
-    temperature = ((float)adc_value - (float)sig_data.TEMPSENSE0);
-    temperature = (temperature * (float)sig_data.TEMPSENSE1) / 256.0f + 25.0f;
+	/* Using floating point for more precision */
+	temperature = ((float)adc_value - (float)sig_data.TEMPSENSE0);
+	temperature = (temperature * (float)sig_data.TEMPSENSE1) / 256.0f + 25.0f;
 
-    return temperature;
+	return temperature;
 }
 
 /**
@@ -270,9 +270,9 @@ float adc_read_temperature_float(void) {
  * @return int16_t The temperature in degrees Celsius (can be negative)
  */
 int16_t adc_read_temperature(void) {
-    /* Call the floating point version and round to integer */
-    float temp = adc_read_temperature_float();
-    return (int16_t)(temp + 0.5f); /* Round to nearest integer */
+	/* Call the floating point version and round to integer */
+	float temp = adc_read_temperature_float();
+	return (int16_t)(temp + 0.5f); /* Round to nearest integer */
 }
 
 /**

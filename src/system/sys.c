@@ -53,7 +53,8 @@ static int event_handler(void* event) {
 
 		case EVT_SYS_REQ_CFG_RESET: {
 			// Post the response event FIRST
-			struct sys_event res_evt = { .type = EVT_SYS_RES_CFG_RESET, .data.ret = true };
+			struct sys_event res_evt = {.type			= EVT_SYS_RES_CFG_RESET,
+																	.data.ret = true};
 			event_post(EVENT_CHANNEL_SYS, &res_evt);
 
 			// Set the reset flag in EEPROM

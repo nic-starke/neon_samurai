@@ -25,9 +25,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int							 midi_out_handler(void* event);
+static int									midi_out_handler(void* event);
 static enum midi_sysex_type midi_sysex_type(u8 evt);
-static int							 lufa_transmit(u8* data, u8 len);
+static int									lufa_transmit(u8* data, u8 len);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
