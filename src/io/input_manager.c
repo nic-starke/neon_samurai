@@ -78,11 +78,10 @@ static void sw_encoder_init(void) {
 			enc->sw_state					= SWITCH_IDLE;
 
 			// Defaults
-			// Row 1 (idx = 0,1,2,3) = pan encoder (detent true) (rgb = light blue)
-			// Row 2 (idx = 4,5,6,7) = filter encoder (detent true) (rgb = turqouise)
-			// Row 3 (idx = 8,9,10,11) = send encoder (detent false) (rgb = navy)
-			// Row 4 (idx = 12,13,14,15) = volume filter encoder (detent false) (rgb =
-			// purple)
+			// Row 1 (idx = 0,1,2,3) = pan encoder (detent true)
+			// Row 2 (idx = 4,5,6,7) = filter encoder (detent true)
+			// Row 3 (idx = 8,9,10,11) = send encoder (detent false)
+			// Row 4 (idx = 12,13,14,15) = volume filter encoder (detent false)
 
 			if (enc->idx < 4) {
 				enc->detent				= true;
@@ -111,30 +110,14 @@ static void sw_encoder_init(void) {
 
 				// Set initial HSV values based on encoder index
 				// This will create a nice color gradient across encoders
-				if (enc->idx < 4) {
-					// Row 1: Cyan hue
-					map->hsv.hue				= 512; // Cyan
-					map->hsv.saturation = 255;
-					map->hsv.value			= 255;
-				} else if (enc->idx < 8) {
-					// Row 2: Green hue
-					map->hsv.hue				= 384; // Green
-					map->hsv.saturation = 255;
-					map->hsv.value			= 255;
-				} else if (enc->idx < 12) {
-					// Row 3: Blue hue
-					map->hsv.hue				= 768; // Blue
-					map->hsv.saturation = 255;
-					map->hsv.value			= 255;
-				} else {
-					// Row 4: Purple hue
-					map->hsv.hue				= 1024; // Purple
-					map->hsv.saturation = 255;
-					map->hsv.value			= 255;
-				}
+				// The hue value range is 0-1536 (0-360 degrees in 16-bit)
+				// The value 0 = red, and 1536 = red again
 
-				// Vary the hue slightly based on the vmap index
-				map->hsv.hue = (map->hsv.hue + v * 128) % 1536;
+
+				// Set the hue based on the encoder index
+				map->hsv.hue = (u16)(enc->idx * 96);
+				map->hsv.saturation = 255;
+				map->hsv.value			= 255;
 
 				// Update RGB values from HSV values
 				color_update_vmap_rgb(map);
