@@ -20,11 +20,6 @@
 #include "system/types.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// HSV hue step definitions
-#define HSV_HUE_STEPS                                                          \
-	1536 // 0-1535 range for finer control (maps to 0-360 degrees)
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 extern const uint8_t gamma_corrected_lut_red[256];

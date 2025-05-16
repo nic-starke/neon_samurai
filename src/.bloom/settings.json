@@ -1,0 +1,10 @@
+{
+    "insight": {
+        "memoryInspectionPaneStatesByKey": {
+        },
+        "memoryInspectionSettingsByKey": {
+        },
+        "refreshGpioOnTargetStopped": false,
+        "refreshRegistersOnTargetStopped": false
+    }
+}

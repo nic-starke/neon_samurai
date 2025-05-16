@@ -86,6 +86,8 @@ enum return_code {
 	ERR_DUPLICATE				= -6,
 	ERR_NOT_IMPLEMENTED = -7,
 	ERR_BAD_MSG					= -8,
+	ERR_NO_ANIMATION		= -9,
+	ERR_ANIMATION_BUSY		= -10,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

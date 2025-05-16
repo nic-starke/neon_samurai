@@ -11,6 +11,7 @@
 
 #include "console/console.h"
 #include "event/event.h"
+#include "event/animation.h"
 #include "hal/init.h"
 #include "led/led.h"
 #include "midi/midi.h"
@@ -46,6 +47,7 @@ __attribute__((noreturn)) void main(void) {
 	rng_init();
 	event_init();
 	midi_init();
+	animation_init(); // Initialize the animation system
 	display_init();
 	input_init();
 	mf_sysex_init();

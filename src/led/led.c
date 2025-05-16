@@ -18,15 +18,9 @@
 #include "system/hardware.h"
 #include "system/time.h"
 #include "system/utility.h"
+#include "event/animation.h"  // Include animation header
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Ensure these match the hardware bit layout assumed by encoder_led_s
-#define RGB_RED_BIT				(3)
-#define RGB_GREEN_BIT			(4)
-#define RGB_BLUE_BIT			(2)
-#define DETENT_RED_BIT		(1)
-#define DETENT_BLUE_BIT		(0)
 
 #define INDICATOR_MASK(n) (0x8000 >> ((n) - 1)) // Mask for indicator n (1-11)
 #define CENTER_INDICATOR	(6)
@@ -113,7 +107,7 @@ static const u16 CENTER_OUT_MASKS[NUM_INDICATOR_LEDS + 1] = {
 
 int display_init(void) {
 	// Request a display update for every encoder
-	for (uint e = 0; e < NUM_ENCODERS; e++) {
+	for (int e = 0; e < NUM_ENCODERS; e++) {
 		struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 		enc->update_display = 1;
 	}
@@ -123,7 +117,20 @@ int display_init(void) {
 void display_update(void) {
 	u32 time_now = systime_ms();
 
-	for (uint e = 0; e < NUM_ENCODERS; e++) {
+	// Check if an animation is active and has priority
+	if (animation_is_active()) {
+		// Update animation state (frame transitions, timing)
+		animation_update();
+
+		// Draw animation frame for each encoder
+		for (int e = 0; e < NUM_ENCODERS; e++) {
+			animation_draw_encoder(e);
+		}
+		return;
+	}
+
+	// Normal display update when no animation is active
+	for (int e = 0; e < NUM_ENCODERS; e++) {
 		struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 
 		if (enc->update_display != 0 &&

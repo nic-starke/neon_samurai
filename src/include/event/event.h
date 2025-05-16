@@ -34,6 +34,7 @@ enum event_ch {
 	EVENT_CHANNEL_IO,				// IO events
 	EVENT_CHANNEL_MIDI_IN,	// MIDI events (rx)
 	EVENT_CHANNEL_MIDI_OUT, // MIDI events (tx)
+	EVENT_CHANNEL_ANIMATION, // Animation events
 
 	EVENT_CHANNEL_NB,
 };

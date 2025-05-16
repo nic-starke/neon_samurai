@@ -68,19 +68,12 @@ void hw_switch_update(void) {
 enum switch_state hw_side_switch_state(u8 idx) {
 	assert(idx < NUM_SIDE_SWITCHES);
 
-	char msg[32];
 	if (switchx8_was_pressed(&switch_ctx, idx)) {
-		// print a message to the console
-		snprintf(msg, sizeof(msg), "Side switch %d pressed\n", idx);
-		console_puts(msg);
-		return SWITCH_PRESSED;
+			return SWITCH_PRESSED;
 	} else if (switchx8_was_released(&switch_ctx, idx)) {
-		// print a message to the console
-		snprintf(msg, sizeof(msg), "Side switch %d released\n", idx);
-		console_puts(msg);
-		return SWITCH_RELEASED;
+			return SWITCH_RELEASED;
 	} else {
-		return SWITCH_IDLE;
+			return SWITCH_IDLE;
 	}
 }
 

@@ -22,12 +22,12 @@
 
 void gpio_mode(PORT_t* port, u8 pin, PORT_OPC_t mode) {
 	assert(port);
+	assert(pin < 8);
 
-	// Get pointer to pin register
-	volatile u8* ctrl = (&port->PIN0CTRL + PIN_MASK(pin));
+	volatile u8* ctrl = &port->PIN0CTRL + pin;
 
-	*ctrl &= (u8)~PORT_ISC_gm; // Clear the mode
-	*ctrl |= (u8)mode;				 // Set the mode
+	*ctrl &= (u8)~PORT_OPC_gm; // Clear all OPC bits
+	*ctrl |= (u8)mode;         // Set the new mode
 }
 
 void gpio_dir(PORT_t* port, u8 pin, enum gpio_dir dir) {

@@ -17,6 +17,7 @@
 #include "event/io.h"
 #include "event/midi.h"
 #include "event/sys.h"
+#include "event/animation.h" // Add animation event header
 
 #include "system/hardware.h"
 
@@ -31,8 +32,6 @@ static void sw_side_switch_init(void);
 static void sw_side_switch_update(void);
 static void vmap_update(struct encoder* enc, struct virtmap* map);
 static int	midi_in_handler(void* evt);
-static void print_dir(uint enc_idx, int dir);
-static void rgb_init(void);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -398,27 +397,15 @@ static int midi_in_handler(void* evt) {
 
 static void sw_side_switch_init(void) {
 	// Initialize side switches with their default modes
-	// L1 (index 0): Cycle all encoder vmaps
-	gSIDE_SWITCHES[0].mode	= SIDE_SW_MODE_BANK_NEXT;
-	gSIDE_SWITCHES[0].state = SWITCH_IDLE;
-
-	// R1 (index 3): Hold to temporarily change all encoder vmaps
-	gSIDE_SWITCHES[3].mode	= SIDE_SW_MODE_BANK_PREV;
-	gSIDE_SWITCHES[3].state = SWITCH_IDLE;
-
-	// L2 (index 1): Decrease bank
+	// 0 is bottom left, increasing in clockwise direction
 	gSIDE_SWITCHES[1].mode	= SIDE_SW_MODE_BANK_PREV;
-	gSIDE_SWITCHES[1].state = SWITCH_IDLE;
-
-	// R2 (index 4): Increase bank
 	gSIDE_SWITCHES[4].mode	= SIDE_SW_MODE_BANK_NEXT;
-	gSIDE_SWITCHES[4].state = SWITCH_IDLE;
 
-	// L3 and R3 (index 2, 5): Reserved for future use
-	gSIDE_SWITCHES[2].mode	= SIDE_SW_MODE_NONE;
-	gSIDE_SWITCHES[2].state = SWITCH_IDLE;
+	gSIDE_SWITCHES[2].mode	= SIDE_SW_MODE_ALL_VMAP_CYCLE;
+	gSIDE_SWITCHES[3].mode	= SIDE_SW_MODE_ALL_VMAP_HOLD;
+
+	gSIDE_SWITCHES[0].mode	= SIDE_SW_MODE_NONE;
 	gSIDE_SWITCHES[5].mode	= SIDE_SW_MODE_NONE;
-	gSIDE_SWITCHES[5].state = SWITCH_IDLE;
 }
 
 static void sw_side_switch_update(void) {
@@ -453,29 +440,43 @@ static void sw_side_switch_update(void) {
 					}
 					break;
 
-				case SIDE_SW_MODE_BANK_PREV:
+				case SIDE_SW_MODE_BANK_PREV: {
 					// Decrease bank index with wrapping
 					if (gRT.curr_bank > 0) {
 						gRT.curr_bank--;
 					} else {
 						gRT.curr_bank = NUM_ENC_BANKS - 1;
 					}
+					// Emit animation event for bank change
+					struct animation_event anim_evt;
+					anim_evt.type = ANIM_EVT_BANK_CHANGE;
+					anim_evt.data.bank_change.prev_bank = (gRT.curr_bank + 1) % NUM_ENC_BANKS;
+					anim_evt.data.bank_change.new_bank = gRT.curr_bank;
+					event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
 					// Update all encoders for the new bank
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 						mf_draw_encoder(enc);
 					}
 					break;
+				}
 
-				case SIDE_SW_MODE_BANK_NEXT:
+				case SIDE_SW_MODE_BANK_NEXT: {
 					// Increase bank index with wrapping
 					gRT.curr_bank = (gRT.curr_bank + 1) % NUM_ENC_BANKS;
+					// Emit animation event for bank change
+					struct animation_event anim_evt;
+					anim_evt.type = ANIM_EVT_BANK_CHANGE;
+					anim_evt.data.bank_change.prev_bank = (gRT.curr_bank - 1 + NUM_ENC_BANKS) % NUM_ENC_BANKS;
+					anim_evt.data.bank_change.new_bank = gRT.curr_bank;
+					event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
 					// Update all encoders for the new bank
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 						mf_draw_encoder(enc);
 					}
 					break;
+				}
 
 				case SIDE_SW_MODE_RESERVED:
 					// Reserved for future use
