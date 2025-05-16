@@ -157,6 +157,7 @@ int mf_draw_encoder(struct encoder* enc) {
 	const enum display_mode mode				= enc->display.mode;
 	const bool							is_detent		= enc->detent;
 	const u8								enc_idx			= enc->idx;
+	const bool             is_at_mid   = (current_pos == ENC_MID);
 
 	// --- 2. Calculate leading LED index ---
 	// Map encoder position (0..ENC_MAX) -> LED index (1..NUM_INDICATOR_LEDS)
@@ -226,16 +227,33 @@ int mf_draw_encoder(struct encoder* enc) {
 		default: return ERR_BAD_PARAM;
 	}
 
+	// Adjust center indicator behavior for detent mode
 	if (is_detent) {
-		base_indicator_state &= ~CENTER_INDICATOR_MASK;
+		if (!is_at_mid) {
+			// Detent mode, not at middle: Center LED should be ON.
+			base_indicator_state |= CENTER_INDICATOR_MASK;
+
+			// If in PWM mode and the current LED being PWM'd *is* the center LED,
+			// prevent it from being dimmed by the PWM logic.
+			if (mode == DIS_MODE_MULTI_PWM && led_index == CENTER_INDICATOR) {
+				led_pwm_mask = 0; // Don't target center LED for PWM dimming
+				apply_pwm_dimming = false; // Disable PWM dimming for this case
+			}
+		} else {
+			// Detent mode, at middle: Center LED should be OFF to show detent RB LEDs.
+			base_indicator_state &= ~CENTER_INDICATOR_MASK;
+		}
 	}
 
 	// --- 4. Pre-fetch BCM Brightness Values ---
+	// RGB colors are independent of detent status
 	const u8 rgb_r = vmap->rgb.red;
 	const u8 rgb_g = vmap->rgb.green;
 	const u8 rgb_b = vmap->rgb.blue;
-	const u8 det_r = is_detent ? vmap->rb.red : 0;
-	const u8 det_b = is_detent ? vmap->rb.blue : 0;
+
+	// Only show detent RB LEDs when at middle position
+	const u8 det_r = (is_detent && is_at_mid) ? vmap->rb.red : 0;
+	const u8 det_b = (is_detent && is_at_mid) ? vmap->rb.blue : 0;
 
 	// --- 5. Generate PWM/BCM frames ---
 	for (unsigned int f = 0; f < NUM_PWM_FRAMES; ++f) {
@@ -247,17 +265,18 @@ int mf_draw_encoder(struct encoder* enc) {
 			current_indicator_state &= ~led_pwm_mask;
 		}
 
-		// Calculate BCM bits for this frame (directly build the lower part of the
-		// state)
+		// Calculate BCM bits for this frame (directly build the lower part of the state)
 		u16 current_bcm_bits = 0;
+
+		// Set RGB bits based on PWM frame - these are unaffected by detent status
 		if (rgb_r > f)
 			current_bcm_bits |= (1 << RGB_RED_BIT);
 		if (rgb_g > f)
 			current_bcm_bits |= (1 << RGB_GREEN_BIT);
 		if (rgb_b > f)
 			current_bcm_bits |= (1 << RGB_BLUE_BIT);
-		// Detent BCM bits are only added if is_detent is true (det_r/det_b are 0
-		// otherwise)
+
+		// Detent RB bits are only added if is_detent is true AND position is at middle
 		if (det_r > f)
 			current_bcm_bits |= (1 << DETENT_RED_BIT);
 		if (det_b > f)
