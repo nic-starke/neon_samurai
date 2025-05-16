@@ -27,6 +27,8 @@
 
 static void sw_encoder_init(void);
 static void sw_encoder_update(void);
+static void sw_side_switch_init(void);
+static void sw_side_switch_update(void);
 static void vmap_update(struct encoder* enc, struct virtmap* map);
 static int	midi_in_handler(void* evt);
 static void print_dir(uint enc_idx, int dir);
@@ -37,7 +39,8 @@ static void rgb_init(void);
 
 EVT_HANDLER(1, evt_midi, midi_in_handler);
 
-struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+struct encoder		 gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+struct side_switch gSIDE_SWITCHES[NUM_SIDE_SWITCHES];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -45,12 +48,15 @@ void input_init(void) {
 	hw_encoder_init();
 	hw_switch_init();
 	sw_encoder_init();
+	sw_side_switch_init();
 	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
 void input_update(void) {
 	hw_encoder_scan();
+	hw_switch_update();
 	sw_encoder_update();
+	sw_side_switch_update();
 }
 
 bool is_reset_pressed(void) {
@@ -113,9 +119,8 @@ static void sw_encoder_init(void) {
 				// The hue value range is 0-1536 (0-360 degrees in 16-bit)
 				// The value 0 = red, and 1536 = red again
 
-
 				// Set the hue based on the encoder index
-				map->hsv.hue = (u16)(enc->idx * 96);
+				map->hsv.hue				= (u16)(enc->idx * 96);
 				map->hsv.saturation = 255;
 				map->hsv.value			= 255;
 
@@ -389,4 +394,108 @@ static int midi_in_handler(void* evt) {
 	}
 
 	return 0;
+}
+
+static void sw_side_switch_init(void) {
+	// Initialize side switches with their default modes
+	// L1 (index 0): Cycle all encoder vmaps
+	gSIDE_SWITCHES[0].mode	= SIDE_SW_MODE_BANK_NEXT;
+	gSIDE_SWITCHES[0].state = SWITCH_IDLE;
+
+	// R1 (index 3): Hold to temporarily change all encoder vmaps
+	gSIDE_SWITCHES[3].mode	= SIDE_SW_MODE_BANK_PREV;
+	gSIDE_SWITCHES[3].state = SWITCH_IDLE;
+
+	// L2 (index 1): Decrease bank
+	gSIDE_SWITCHES[1].mode	= SIDE_SW_MODE_BANK_PREV;
+	gSIDE_SWITCHES[1].state = SWITCH_IDLE;
+
+	// R2 (index 4): Increase bank
+	gSIDE_SWITCHES[4].mode	= SIDE_SW_MODE_BANK_NEXT;
+	gSIDE_SWITCHES[4].state = SWITCH_IDLE;
+
+	// L3 and R3 (index 2, 5): Reserved for future use
+	gSIDE_SWITCHES[2].mode	= SIDE_SW_MODE_NONE;
+	gSIDE_SWITCHES[2].state = SWITCH_IDLE;
+	gSIDE_SWITCHES[5].mode	= SIDE_SW_MODE_NONE;
+	gSIDE_SWITCHES[5].state = SWITCH_IDLE;
+}
+
+static void sw_side_switch_update(void) {
+	// For each side switch, handle actions according to its mode and current
+	// state
+	for (u8 i = 0; i < NUM_SIDE_SWITCHES; i++) {
+
+		enum switch_state state = hw_side_switch_state(i);
+
+		if (state == SWITCH_PRESSED) {
+			switch (gSIDE_SWITCHES[i].mode) {
+				case SIDE_SW_MODE_NONE:
+					// Do nothing
+					break;
+
+				case SIDE_SW_MODE_ALL_VMAP_CYCLE:
+					// Cycle vmaps on all encoders
+					for (u8 e = 0; e < NUM_ENCODERS; e++) {
+						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
+						enc->vmap_active		= (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC;
+						mf_draw_encoder(enc);
+					}
+					break;
+
+				case SIDE_SW_MODE_ALL_VMAP_HOLD:
+					// Store current vmap for each encoder to restore later
+					for (u8 e = 0; e < NUM_ENCODERS; e++) {
+						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
+						gSIDE_SWITCHES[i].prev_vmap_active[e] = enc->vmap_active;
+						enc->vmap_active = (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC;
+						mf_draw_encoder(enc);
+					}
+					break;
+
+				case SIDE_SW_MODE_BANK_PREV:
+					// Decrease bank index with wrapping
+					if (gRT.curr_bank > 0) {
+						gRT.curr_bank--;
+					} else {
+						gRT.curr_bank = NUM_ENC_BANKS - 1;
+					}
+					// Update all encoders for the new bank
+					for (u8 e = 0; e < NUM_ENCODERS; e++) {
+						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
+						mf_draw_encoder(enc);
+					}
+					break;
+
+				case SIDE_SW_MODE_BANK_NEXT:
+					// Increase bank index with wrapping
+					gRT.curr_bank = (gRT.curr_bank + 1) % NUM_ENC_BANKS;
+					// Update all encoders for the new bank
+					for (u8 e = 0; e < NUM_ENCODERS; e++) {
+						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
+						mf_draw_encoder(enc);
+					}
+					break;
+
+				case SIDE_SW_MODE_RESERVED:
+					// Reserved for future use
+					break;
+			}
+		} else if (state == SWITCH_RELEASED) {
+			switch (gSIDE_SWITCHES[i].mode) {
+				case SIDE_SW_MODE_ALL_VMAP_HOLD:
+					// Restore original vmap for each encoder
+					for (u8 e = 0; e < NUM_ENCODERS; e++) {
+						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
+						enc->vmap_active		= gSIDE_SWITCHES[i].prev_vmap_active[e];
+						mf_draw_encoder(enc);
+					}
+					break;
+
+				default:
+					// Most switch modes don't need action on release
+					break;
+			}
+		}
+	}
 }

@@ -35,11 +35,19 @@ u8 switch_x8_states(struct switch_x8_ctx* ctx) {
 	return (ctx->current);
 }
 
-inline bool switch_was_pressed(struct switch_x16_ctx* ctx, u8 index) {
+inline bool switchx16_was_pressed(struct switch_x16_ctx* ctx, u8 index) {
 	return (ctx->raw & ctx->current) & (1u << index);
 }
 
-inline bool switch_was_released(struct switch_x16_ctx* ctx, u8 index) {
+inline bool switchx16_was_released(struct switch_x16_ctx* ctx, u8 index) {
+	return (ctx->raw & ~ctx->current) & (1u << index);
+}
+
+inline bool switchx8_was_pressed(struct switch_x8_ctx* ctx, u8 index) {
+	return (ctx->raw & ctx->current) & (1u << index);
+}
+
+inline bool switchx8_was_released(struct switch_x8_ctx* ctx, u8 index) {
 	return (ctx->raw & ~ctx->current) & (1u << index);
 }
 
@@ -81,6 +89,8 @@ void switch_x8_update(struct switch_x8_ctx* ctx, u8 gpio_state) {
 
 	// Increment index and wrap if index == SWITCH_DEBOUNCE_SAMPLES
 	ctx->index = (u8)(ctx->index + 1) % SWITCH_DEBOUNCE_SAMPLES;
+
+	switch_x8_debounce(ctx);
 }
 
 void switch_x16_update(struct switch_x16_ctx* ctx, u16 gpio_state) {

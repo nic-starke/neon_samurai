@@ -47,6 +47,26 @@ enum display_mode {
 	DIS_MODE_NB,
 };
 
+enum side_switch_mode {
+	// Do nothing
+	SIDE_SW_MODE_NONE,
+
+	// Cycle through vmaps on all encoders on press
+	SIDE_SW_MODE_ALL_VMAP_CYCLE,
+
+	// Temporarily change vmaps on all encoders while held
+	SIDE_SW_MODE_ALL_VMAP_HOLD,
+
+	// Bank switching (decrease)
+	SIDE_SW_MODE_BANK_PREV,
+
+	// Bank switching (increase)
+	SIDE_SW_MODE_BANK_NEXT,
+
+	// Reserved for future functionality
+	SIDE_SW_MODE_RESERVED,
+};
+
 enum switch_mode {
 	SW_MODE_NONE,
 
@@ -112,6 +132,17 @@ struct encoder {
 	u32 update_display;
 };
 
+struct side_switch {
+	// Mode of operation for this switch
+	enum side_switch_mode mode;
+
+	// Current state of the switch
+	enum switch_state state;
+
+	// Previous vmap_active values for ALL encoders (used for SIDE_SW_MODE_ALL_VMAP_HOLD)
+	u8 prev_vmap_active[NUM_ENCODERS];
+};
+
 /**
  * @brief Runtime data structure for the midifighter global variables.
  */
@@ -124,6 +155,7 @@ struct mf_rt {
 extern volatile u16			 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
 extern struct quadrature gQUAD_ENC[NUM_ENCODER_SWITCHES];
 extern struct encoder		 gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+extern struct side_switch gSIDE_SWITCHES[NUM_SIDE_SWITCHES];
 extern struct mf_rt			 gRT;
 extern struct sys_config gCONFIG;
 
@@ -139,6 +171,7 @@ void hw_encoder_scan(void);
 void							hw_switch_init(void);
 void							hw_switch_update(void);
 enum switch_state hw_enc_switch_state(u8 idx);
+enum switch_state hw_side_switch_state(u8 idx);
 
 void input_init(void);
 void input_update(void);

@@ -88,11 +88,11 @@ void hw_encoder_scan(void) {
 enum switch_state hw_enc_switch_state(u8 idx) {
 	assert(idx < NUM_ENCODER_SWITCHES);
 
-	if (switch_was_pressed(&switch_ctx, idx)) {
+	if (switchx16_was_pressed(&switch_ctx, idx)) {
 		return SWITCH_PRESSED;
 	}
 
-	if (switch_was_released(&switch_ctx, idx)) {
+	if (switchx16_was_released(&switch_ctx, idx)) {
 		return SWITCH_RELEASED;
 	}
 

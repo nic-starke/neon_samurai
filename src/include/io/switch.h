@@ -31,7 +31,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define SWITCH_DEBOUNCE_SAMPLES (10)
+#define SWITCH_DEBOUNCE_SAMPLES (100)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -64,8 +64,10 @@ struct switch_x16_ctx {
 enum switch_state switch_x16_state(struct switch_x16_ctx* ctx, u8 index);
 enum switch_state switch_x8_state(struct switch_x8_ctx* ctx, u8 index);
 
-bool switch_was_pressed(struct switch_x16_ctx*, u8 index);
-bool switch_was_released(struct switch_x16_ctx*, u8 index);
+bool switchx16_was_pressed(struct switch_x16_ctx*, u8 index);
+bool switchx16_was_released(struct switch_x16_ctx*, u8 index);
+bool switchx8_was_pressed(struct switch_x8_ctx*, u8 index);
+bool switchx8_was_released(struct switch_x8_ctx*, u8 index);
 
 // Get the state of all switches as a bitfield
 u16 switch_x16_states(struct switch_x16_ctx* ctx);
