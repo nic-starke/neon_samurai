@@ -11,6 +11,9 @@
       "signature.h": "c",
       "utility.h": "c",
       "cdcclassdevice.h": "c",
-      "hardware.h": "c"
+      "hardware.h": "c",
+      "error.h": "c",
+      "types.h": "c",
+      "animation.h": "c"
     },
 }

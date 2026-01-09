@@ -230,6 +230,25 @@ void console_puts_p(const char* str_p) {
 #endif
 }
 
+void console_put_float_val(float value) {
+#ifdef ENABLE_CONSOLE
+    char buffer[32]; // Buffer for float string
+    int int_part = (int)value;
+    int frac_part = (int)((value - (float)int_part) * 100.0f); // Get 2 decimal places
+
+    if (frac_part < 0) { // Ensure fractional part is positive
+        frac_part = -frac_part;
+    }
+    // Handle negative numbers like -0.xx correctly
+    if (value < 0.0f && int_part == 0) {
+         snprintf_P(buffer, sizeof(buffer), PSTR("-%d.%02d"), int_part, frac_part);
+    } else {
+         snprintf_P(buffer, sizeof(buffer), PSTR("%d.%02d"), int_part, frac_part);
+    }
+    console_puts(buffer);
+#endif
+}
+
 #include <stdio.h>
 #include <stdint.h>
 

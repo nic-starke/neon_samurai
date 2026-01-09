@@ -7,7 +7,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/types.h"
-#include "event/io.h"
 
 #include "io/quadrature.h"
 

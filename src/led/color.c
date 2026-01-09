@@ -30,8 +30,6 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Gamma brightness lookup table <https://victornpb.github.io/gamma-table-generator>

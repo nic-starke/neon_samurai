@@ -63,6 +63,12 @@ enum side_switch_mode {
 	// Bank switching (increase)
 	SIDE_SW_MODE_BANK_NEXT,
 
+	// MIDI Learn functionality
+	SIDE_SW_MODE_MIDI_LEARN,
+
+	// LFO menu control
+	SIDE_SW_MODE_LFO_MENU_CONTROL,
+
 	// Reserved for future functionality
 	SIDE_SW_MODE_RESERVED,
 };
@@ -172,10 +178,12 @@ void							hw_switch_init(void);
 void							hw_switch_update(void);
 enum switch_state hw_enc_switch_state(u8 idx);
 enum switch_state hw_side_switch_state(u8 idx);
+bool							hw_side_switch_is_held(u8 idx);
 
 void input_init(void);
 void input_update(void);
 bool is_reset_pressed(void);
+
 
 int mf_display_init(void);
 int mf_draw_encoder(struct encoder* enc);

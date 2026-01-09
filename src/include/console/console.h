@@ -74,6 +74,13 @@ void console_puts_p(const char* str_p);
 #define console_put_float(value) console_put_value(PSTR("%.2f\r\n"), value)
 
 /**
+ * @brief Prints a floating point value without newline to the console.
+ *
+ * @param value The floating point value to print.
+ */
+void console_put_float_val(float value);
+
+/**
  * @brief Prints a hexadecimal value to the console.
  *
  * @param value The hexadecimal value to print.

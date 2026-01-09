@@ -11,8 +11,8 @@
 
 #include "console/console.h"
 #include "event/event.h"
-#include "event/animation.h"
 #include "hal/init.h"
+#include "led/animation.h"
 #include "led/led.h"
 #include "midi/midi.h"
 #include "midi/sysex.h"
@@ -21,6 +21,7 @@
 #include "system/rng.h"
 #include "system/time.h"
 #include "usb/usb.h"
+#include "lfo/lfo.h" // Add LFO header
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -51,6 +52,7 @@ __attribute__((noreturn)) void main(void) {
 	display_init();
 	input_init();
 	mf_sysex_init();
+	lfo_init();  // Initialize the LFO system
 	systime_start();
 	usb_init();
 #ifdef ENABLE_CONSOLE
@@ -86,10 +88,11 @@ __attribute__((noreturn)) void main(void) {
 		event_update();
 		display_update();
 		midi_update();
+		lfo_update();
 		usb_update();
 		cfg_update();
 #ifdef ENABLE_CONSOLE
-		console_update(); // Update the console module in the main loop
+		console_update();
 #endif
 	}
 }

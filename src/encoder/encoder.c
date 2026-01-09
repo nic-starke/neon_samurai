@@ -6,13 +6,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #include <stdio.h>
-#include "console/console.h"
-#include "io/encoder.h"
-#include "event/event.h"
-#include "event/io.h"
-#include "system/time.h" // Include for systime_ms
 #include <stdint.h>
-#include <assert.h> // Include for assert
+#include <assert.h>
+
+#include "console/console.h"
+#include "event/event.h"
+#include "io/encoder.h"
+#include "system/time.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -103,11 +103,6 @@ bool encoder_movement_update(struct encoder_movement* enc, int new_direction) {
 		enc->velocity = -ENC_MAX_VELOCITY;
 	}
 
-	// // Debug output
-	// static char buffer[40];
-	// snprintf(buffer, sizeof(buffer), "v:%d f:%u t:%lu d:%d\r\n", enc->velocity,
-	// 				 enc->accel_factor, time_delta, enc->direction);
-	// console_puts(buffer);
 	return true; // Encoder moved
 }
 

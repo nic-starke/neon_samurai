@@ -6,16 +6,14 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/pgmspace.h>
-#include "event/event.h"
-#include "event/sys.h"
 #include "console/console.h"
+#include "event/event.h"
+#include "event/general.h"
+#include "event/sys.h"
+#include "hal/sys.h"
 #include "system/hardware.h"
-#include "hal/sys.h" // Include header for sys_reset
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#define SYS_EVENT_QUEUE_SIZE 8
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -24,7 +22,8 @@ static int event_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static struct sys_event sys_event_queue[8];
+static struct sys_event sys_event_queue[SYS_EVENT_QUEUE_SIZE];
+static struct gen_event gen_event_queue[GEN_EVENT_QUEUE_SIZE];
 
 static struct event_ch_handler sys_event_handler = {
 		.handler	= &event_handler,
@@ -34,10 +33,18 @@ static struct event_ch_handler sys_event_handler = {
 
 struct event_channel sys_event_ch = {
 		.queue			= (u8*)sys_event_queue,
-		.queue_size = SYS_EVENT_QUEUE_SIZE,
+		.queue_size = sizeof(sys_event_queue) / sizeof(struct sys_event),
 		.data_size	= sizeof(struct sys_event),
 		.handlers		= &sys_event_handler,
 		.onehandler = true,
+};
+
+struct event_channel gen_event_ch = {
+		.queue			= (u8*)gen_event_queue,
+		.queue_size = sizeof(gen_event_queue) / sizeof(struct gen_event),
+		.data_size	= sizeof(struct gen_event),
+		.handlers		= NULL,
+		.onehandler = false,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

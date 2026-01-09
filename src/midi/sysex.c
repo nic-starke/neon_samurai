@@ -100,6 +100,7 @@ static u8								 buffer_idx = 0;
 
 int mf_sysex_init(void) {
 	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+	return 0; // Add return value
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

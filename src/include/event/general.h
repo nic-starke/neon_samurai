@@ -1,28 +1,43 @@
 #pragma once
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/*                  Copyright (c) (2021 - 2024) Nicolaus Starke               */
+/*                  Copyright (c) (2021 - 2025) Nicolaus Starke               */
 /*                  https://github.com/nic-starke/neon_samurai                */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "system/types.h"
+#include "event.h"
+
+extern struct event_channel gen_event_ch;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-/* Amount of time (ms) that an encoder will ignore external events
-	after it has recently moved */
-#define DEFAULT_ENC_PLAYDEAD_TIME	 (80)
+#define GEN_EVENT_QUEUE_SIZE 8
 
-#define DEFAULT_MIDI_THROTTLE_TIME (20)
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-struct sys_config {
-	u8 enc_dead_time;
-	u8 midi_throttle_time;
+enum events_general {
+	EVT_GEN_BANK_CHANGE,
+	EVT_GEN_MIDI_LEARN_START,
+	EVT_GEN_MIDI_LEARN_SUCCESS,
+	EVT_GEN_MIDI_LEARN_CANCEL,
+
+	EVT_GEN_NB,
 };
 
+struct gen_event {
+	enum events_general type;
+	union {
+		struct {
+			u8 prev_bank;
+			u8 new_bank;
+		} bank_change;
+		struct {
+			u8 encoder_idx;
+		} midi_learn;
+	};
+};
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

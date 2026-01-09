@@ -12,7 +12,6 @@
 
 #include "event/event.h"
 #include "event/sys.h"
-#include "event/io.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -31,7 +30,7 @@ int event_init(void) {
 	int ret = event_channel_register(EVENT_CHANNEL_SYS, &sys_event_ch);
 	RETURN_ON_ERR(ret);
 
-	ret = event_channel_register(EVENT_CHANNEL_IO, &io_event_ch);
+	ret = event_channel_register(EVENT_CHANNEL_GEN, &gen_event_ch);
 	RETURN_ON_ERR(ret);
 
 	return 0;

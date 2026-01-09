@@ -77,4 +77,9 @@ enum switch_state hw_side_switch_state(u8 idx) {
 	}
 }
 
+bool hw_side_switch_is_held(u8 idx) {
+	assert(idx < NUM_SIDE_SWITCHES);
+	return (switch_x8_state(&switch_ctx, idx) != 0);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
