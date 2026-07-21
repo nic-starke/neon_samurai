@@ -17,7 +17,7 @@
  * @brief Function called before main(), can be used as a trampoline to jump
  * execution to user defined address (such as the bootloader).
  */
-void bootloader_check(void) __attribute__((used, naked, section(".init3")));
+void bootloader_check(void) __attribute__((used));
 
 /**
  * @brief Restarts the AVR and enters the bootloader.
