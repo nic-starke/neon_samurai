@@ -10,6 +10,7 @@
 #include "event/sys.h"
 #include "hal/adc.h" // Add ADC header for temperature reading
 #include "hal/signature.h"
+#include "hal/boot.h"
 #include "hal/sys.h"
 #include "led/color.h"	// Add color header for HSV functions
 #include "system/rng.h" // Add RNG header for accessing seed value
@@ -60,6 +61,7 @@ typedef struct {
 static void process_line(const char* line);
 
 static void handle_reset(const char* args);
+static void handle_bootloader(const char* args);
 static void handle_help(const char* args);
 static void handle_config_reset(const char* args);
 static void handle_signature(const char* args);
@@ -81,6 +83,10 @@ static bool		 needs_prompt			 = true;
 static const char reset_command_name[] PROGMEM = "reset";
 static const char reset_command_help[] PROGMEM = "Resets the device";
 
+
+static const char bootloader_command_name[] PROGMEM = "bootloader";
+static const char bootloader_command_help[] PROGMEM =
+		"Reboot into DFU bootloader";
 static const char help_command_name[] PROGMEM = "help";
 static const char help_command_help[] PROGMEM = "Shows this help message";
 
@@ -116,6 +122,9 @@ static const console_command_t commands[] PROGMEM = {
 		{.name			= config_reset_command_name,
 		 .handler		= handle_config_reset,
 		 .help_text = config_reset_command_help},
+		{.name			= bootloader_command_name,
+		 .handler		= handle_bootloader,
+		 .help_text = bootloader_command_help},
 		{.name			= signature_command_name,
 		 .handler		= handle_signature,
 		 .help_text = signature_command_help},
@@ -302,6 +311,12 @@ static void handle_reset(const char* args __attribute__((unused))) {
 	// Short delay to allow message to be sent before reset
 	for (volatile uint32_t i = 0; i < 50000; ++i) {}
 	hal_system_reset(); // This function does not return
+}
+
+static void handle_bootloader(const char* args __attribute__((unused))) {
+	console_puts_p(PSTR("Entering DFU bootloader...\r\n"));
+	for (volatile uint32_t i = 0; i < 50000; ++i) {}
+	bootloader_start();
 }
 
 static void handle_help(const char* args __attribute__((unused))) {

@@ -218,6 +218,7 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/usb/usb_lufa.c
     ${CMAKE_SOURCE_DIR}/src/hal/adc.c
     ${CMAKE_SOURCE_DIR}/src/hal/boot.c
+    ${CMAKE_SOURCE_DIR}/src/hal/boot_init.c
     ${CMAKE_SOURCE_DIR}/src/hal/dma.c
     ${CMAKE_SOURCE_DIR}/src/hal/gpio.c
     ${CMAKE_SOURCE_DIR}/src/hal/init.c
@@ -225,6 +226,16 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/hal/sys.c
     ${CMAKE_SOURCE_DIR}/src/hal/timer.c
     ${CMAKE_SOURCE_DIR}/src/hal/usart.c
+)
+
+# boot.c and boot_init.c must NOT use LTO - the .init3 section attribute on
+# bootloader_check() is discarded by LTO, preventing it from running before
+# main(). The boot_init.c file contains a top-level asm directive that places
+# a call to bootloader_check() in .init3.
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/src/hal/boot.c
+    ${CMAKE_SOURCE_DIR}/src/hal/boot_init.c
+    PROPERTIES COMPILE_OPTIONS "-fno-lto"
 )
 
 target_include_directories(neosam PRIVATE
@@ -235,6 +246,11 @@ target_include_directories(neosam PRIVATE
 set_target_properties(neosam PROPERTIES
     OUTPUT_NAME "neosam"
     SUFFIX ".elf"
+)
+
+# Force linker to keep bootloader_check (in .init3) - LTO would otherwise discard it
+target_link_options(neosam PRIVATE
+    "LINKER:-u,bootloader_check"
 )
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
