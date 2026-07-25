@@ -12,6 +12,7 @@
 #include "console/console.h"
 #include "event/event.h"
 #include "event/animation.h"
+#include "hal/boot.h"
 #include "hal/init.h"
 #include "led/led.h"
 #include "midi/midi.h"
@@ -60,15 +61,22 @@ __attribute__((noreturn)) void main(void) {
 	// Enable system interrupts (required for input and led processing)
 	sei();
 
-	// Check if the user requested a reset
-	uint32_t time	 = systime_ms();
-	bool		 reset = false;
+	// Check if the user requested a reset, or is holding the four corner
+	// encoders to request bootloader entry.
+	uint32_t time			 = systime_ms();
+	bool		 reset			 = false;
+	bool		 bootloader = false;
 	do {
 		input_update(); // Need to update input to read button state
-		reset = is_reset_pressed();
-		if (reset)
+		reset			 = is_reset_pressed();
+		bootloader = is_bootloader_gesture_pressed();
+		if (reset || bootloader)
 			break;
 	} while (systime_ms() - time < 200);
+
+	if (bootloader) {
+		bootloader_start(); // Does not return - resets into DFU bootloader
+	}
 
 	// Initialize config
 	cfg_init(reset);

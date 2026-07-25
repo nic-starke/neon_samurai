@@ -176,6 +176,7 @@ enum switch_state hw_side_switch_state(u8 idx);
 void input_init(void);
 void input_update(void);
 bool is_reset_pressed(void);
+bool is_bootloader_gesture_pressed(void);
 
 int mf_display_init(void);
 int mf_draw_encoder(struct encoder* enc);

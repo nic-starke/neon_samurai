@@ -63,6 +63,22 @@ bool is_reset_pressed(void) {
 				 hw_enc_switch_state(3) == SWITCH_PRESSED;
 }
 
+// Corner indices in the 4x4 encoder grid (row-major, idx = row * 4 + col).
+// NOTE: this mapping is inferred from the row layout documented in
+// sw_encoder_init() below and has not been verified against physical
+// hardware - confirm on a real device before relying on it.
+#define ENC_IDX_TOP_LEFT	 (0)
+#define ENC_IDX_TOP_RIGHT	 (3)
+#define ENC_IDX_BOT_LEFT	 (12)
+#define ENC_IDX_BOT_RIGHT	 (15)
+
+bool is_bootloader_gesture_pressed(void) {
+	return hw_enc_switch_state(ENC_IDX_TOP_LEFT) == SWITCH_PRESSED &&
+				 hw_enc_switch_state(ENC_IDX_TOP_RIGHT) == SWITCH_PRESSED &&
+				 hw_enc_switch_state(ENC_IDX_BOT_LEFT) == SWITCH_PRESSED &&
+				 hw_enc_switch_state(ENC_IDX_BOT_RIGHT) == SWITCH_PRESSED;
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static void sw_encoder_init(void) {
