@@ -13,11 +13,15 @@ If the user does not like the new firmware, they can simply program the MFT with
 
 ### Accessing the Bootloader
 
-Press and hold in the four corner encoder switches, while holding them down plug in the USB cable. Wait for the MFT to boot - it should quickly reset into the bootloader mode. This is the same on the NEON_SAMURAI firmware.
+> **Warning:** Do not flash NEON_SAMURAI firmware unless you have a PDI programmer/debugger (e.g. a JTAGICE3, or similar) and are willing to open the device and reflash it directly, or have verified one of the software recovery paths below works on your unit first. If neither software path works, the only way back into the bootloader is hardware reprogramming via the PDI header inside the device.
+
+On the official MFT firmware, holding the four corner encoder switches while plugging in the USB cable resets the device into bootloader mode. NEON_SAMURAI implements the same gesture, but the mapping from physical corner to encoder index has not yet been verified against real hardware - see [issue #29](https://github.com/nic-starke/neon_samurai/issues/29). If it does not work on your unit, use the console command below instead.
+
+NEON_SAMURAI also provides a `bootloader` console command that calls into the bootloader on demand - this does not depend on the corner gesture and is the more reliable option if your console connection is working.
 
 > **The encoders will be lit up in a checkerboard pattern when the bootloader is active.**
 
-Alternatively, run the MidiFighter Utility, on the top bar click on **Tools > MidiFighter > Enter Bootloader Mode**.
+Alternatively, on the official MFT firmware, run the MidiFighter Utility, on the top bar click on **Tools > MidiFighter > Enter Bootloader Mode**. This tool is not compatible with NEON_SAMURAI.
 
 ### Bootloader Memory Location
 
