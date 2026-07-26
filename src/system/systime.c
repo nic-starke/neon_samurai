@@ -7,9 +7,9 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 
 #include "system/time.h"
-#include "system/print.h"
 #include "hal/timer.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -44,7 +44,23 @@ void systime_start(void) {
 }
 
 u32 systime_ms(void) {
-	return thetime;
+	/*
+		thetime is 32-bit and this is an 8-bit machine, so the read compiles to
+		four byte loads. TCE0_OVF_vect fires at 1 kHz and can land between any two
+		of them, producing a torn value - e.g. 0x00FF read as 0x01FF just after a
+		carry.
+
+		This matters more than it looks: this is the timebase for the display
+		throttle, animation frames, encoder acceleration, the config autosave and
+		the 200 ms bootloader-entry window in main().
+	*/
+	u32 t;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		t = thetime;
+	}
+
+	return t;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -56,5 +56,6 @@ function(add_unit_test name)
 endfunction()
 
 add_unit_test(test_sysex)
+add_unit_test(test_quadrature)
 
 message(STATUS "Host unit tests configured (ASan + UBSan enabled)")

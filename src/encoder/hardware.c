@@ -45,9 +45,10 @@ void hw_encoder_init(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
+	// State 0 is QUAD_AT_REST, matching the encoder's mechanical rest position.
 	for (uint i = 0; i < NUM_ENCODERS; i++) {
-		gQUAD_ENC[i].dir = 0;
-		gQUAD_ENC[i].rot = 0;
+		gQUAD_ENC[i].dir	 = 0;
+		gQUAD_ENC[i].state = 0; // QUAD_AT_REST
 	}
 }
 
