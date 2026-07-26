@@ -48,6 +48,10 @@ struct sysex_item_data_info {
 
 static int midi_in_handler(void* evt);
 
+static u8							 sysex_param_index_len(u8 param_enum);
+static struct encoder* encoder_from_indices(u8 bank, u8 enc);
+static struct virtmap* virtmap_from_indices(u8 bank, u8 enc, u8 vmap);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -99,7 +103,7 @@ static u8								 buffer_idx = 0;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int mf_sysex_init(void) {
-	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+	return event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -118,7 +122,11 @@ static int midi_in_handler(void* evt) {
 	// Get the number of bytes in the sysex packet
 	u8 len = sysex_data_len[midi->data.sysex_in.type];
 
-	if (buffer_idx + len > MF_SYSEX_MAX_PKT_SIZE) {
+	// Bound against the real capacity of the streaming buffer. This used to
+	// compare against MF_SYSEX_MAX_PKT_SIZE, which excludes the F0/F7 framing
+	// bytes the buffer also holds, so the largest legal message could never be
+	// received.
+	if ((uint)buffer_idx + len > sizeof(buffer)) {
 		ret = ERR_NO_MEM;
 		goto cleanup;
 	}
@@ -135,48 +143,80 @@ static int midi_in_handler(void* evt) {
 		return 0;
 	}
 
-	// If streaming is complete then we have a message in the buffer to process.
-	const mf_sysex_msg_s* msg = (mf_sysex_msg_s*)&buffer[1];
+	/*
+		Streaming is complete, so there is a message in the buffer to process.
 
-	// Validate that the received data conforms
-	// Check if the number of bytes received is too small
-	if (buffer_idx < MF_SYSEX_MIN_PKT_SIZE) {
+		Validation order matters here and is deliberate: every check below is
+		ordered so that nothing is dereferenced or used as an index before it has
+		been bounds-checked. The previous version read
+		sysex_data_info[msg->param_enum] roughly 25 lines before checking that
+		param_enum was in range, and indexed gENCODERS with wire-supplied bank and
+		encoder values that were never checked at all.
+	*/
+
+	// The smallest valid frame is F0 + header + F7. Check this before treating
+	// the buffer as a message at all.
+	if (buffer_idx < (MF_SYSEX_MIN_PKT_SIZE + 2)) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Check the expected length based on the parameter enum data length
-	u8 expected_len =
-			MF_SYSEX_MIN_PKT_SIZE + sysex_data_info[msg->param_enum].len;
-
-	switch (msg->param_enum) {}
-
-	// Check if sysex start and end bytes are correct
+	// Check sysex start and end framing bytes.
 	if (buffer[0] != MIDI_STATUS_SYSTEM_EXCLUSIVE ||
 			buffer[buffer_idx - 1] != MIDI_STATUS_END_OF_EXCLUSIVE) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Validate the manufacturer ID is correct (SAM)
-	if (msg->mf_id[0] != MIDI_MFR_ID_1 && msg->mf_id[1] != MIDI_MFR_ID_2 &&
+	const mf_sysex_msg_s* msg = (const mf_sysex_msg_s*)&buffer[1];
+
+	/*
+		Validate the manufacturer ID (SAM).
+
+		This previously used && between the three byte comparisons, so a message
+		was only rejected when all three bytes were wrong - any sysex sharing a
+		single byte with "SAM" was accepted and processed.
+	*/
+	if (msg->mf_id[0] != MIDI_MFR_ID_1 || msg->mf_id[1] != MIDI_MFR_ID_2 ||
 			msg->mf_id[2] != MIDI_MFR_ID_3) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Check the command is valid
+	// Check the command is valid.
 	if (msg->cmd != MF_SYSEX_GET && msg->cmd != MF_SYSEX_SET &&
 			msg->cmd != MF_SYSEX_STOP) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Check the parameter is valid
+	// Check the parameter is in range BEFORE it is used to index sysex_data_info.
 	if (msg->param_enum >= MF_SYSEX_PARAM_NB) {
 		ret = ERR_BAD_PARAM;
 		goto cleanup;
 	}
+
+	/*
+		Now that param_enum is known good, check that the frame is exactly as long
+		as this parameter requires: F0 + header + index prefix + payload + F7.
+		This is the length validation the unused `expected_len` variable was
+		reaching for.
+	*/
+	const u8 idx_len			= sysex_param_index_len(msg->param_enum);
+	const u8 expected_len = (u8)(1 + MF_SYSEX_MIN_PKT_SIZE + idx_len +
+															 sysex_data_info[msg->param_enum].len + 1);
+
+	if (buffer_idx != expected_len) {
+		ret = ERR_BAD_MSG;
+		goto cleanup;
+	}
+
+	/*
+		Resolved location of the addressed parameter. For SET this is the
+		destination; for GET it is the source read back into the response.
+	*/
+	u8*			 param		 = NULL;
+	const u8 param_len = sysex_data_info[msg->param_enum].len;
 
 	switch (msg->param_enum) {
 		case MF_SYSEX_PARAM_ENCODER_DETENT:
@@ -187,13 +227,21 @@ static int midi_in_handler(void* evt) {
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_STATE:
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_MODE:
 		case MF_SYSEX_PARAM_ENCODER_SWITCH_PROTO: {
-			u8							bank		= msg->param.enc.bank_idx;
-			u8							enc			= msg->param.enc.enc_idx;
-			struct encoder* encoder = &gENCODERS[bank][enc];
-			void*						param =
-					(void*)((u8*)encoder + sysex_data_info[msg->param_enum].offset);
-			memcpy(param, (const void*)&msg->param.enc.data,
-						 sysex_data_info[msg->param_enum].len);
+			struct encoder* encoder =
+					encoder_from_indices(msg->param.enc.bank_idx, msg->param.enc.enc_idx);
+
+			if (encoder == NULL) {
+				ret = ERR_BAD_PARAM;
+				goto cleanup;
+			}
+
+			param = (u8*)encoder + sysex_data_info[msg->param_enum].offset;
+
+			// GET must not modify device state. The write used to run for both
+			// commands, so reading a parameter overwrote it.
+			if (msg->cmd == MF_SYSEX_SET) {
+				memcpy(param, &msg->param.enc.data, param_len);
+			}
 			break;
 		}
 
@@ -202,14 +250,21 @@ static int midi_in_handler(void* evt) {
 		case MF_SYSEX_PARAM_VMAP_RGB:
 		case MF_SYSEX_PARAM_VMAP_RB:
 		case MF_SYSEX_PARAM_VMAP_PROTO: {
-			u8							bank_idx = msg->param.vmap.bank_idx;
-			u8							enc_idx	 = msg->param.vmap.enc_idx;
-			u8							vmap_idx = msg->param.vmap.vmap_idx;
-			struct virtmap* vmap		 = &gENCODERS[bank_idx][enc_idx].vmaps[vmap_idx];
-			void*						param =
-					(void*)((u8*)vmap + sysex_data_info[msg->param_enum].offset);
-			memcpy(param, (const void*)&msg->param.vmap.data,
-						 sysex_data_info[msg->param_enum].len);
+			struct virtmap* vmap =
+					virtmap_from_indices(msg->param.vmap.bank_idx,
+															 msg->param.vmap.enc_idx,
+															 msg->param.vmap.vmap_idx);
+
+			if (vmap == NULL) {
+				ret = ERR_BAD_PARAM;
+				goto cleanup;
+			}
+
+			param = (u8*)vmap + sysex_data_info[msg->param_enum].offset;
+
+			if (msg->cmd == MF_SYSEX_SET) {
+				memcpy(param, &msg->param.vmap.data, param_len);
+			}
 			break;
 		}
 
@@ -232,32 +287,52 @@ static int midi_in_handler(void* evt) {
 
 	switch (msg->cmd) {
 		case MF_SYSEX_GET: {
-			midi_event_s reply = {
-					.type = MIDI_EVENT_SYSEX,
-					.data.sysex_out =
-							{
-									.cmd			= MF_SYSEX_GET_RESPONSE,
-									.param		= msg->param_enum,
-									.data_len = 1,
-									.data			= ret,
-							},
-			};
+			/*
+				Return the parameter itself. This previously echoed `ret` - a status
+				code - so a GET never actually reported the value it was asked for.
+
+				Payload bytes must stay 7-bit clean to remain valid inside a sysex
+				frame, so each byte is masked. Parameters whose values can exceed 127
+				are not currently representable and will need a split-nibble encoding;
+				none of the presently defined parameters do.
+			*/
+			midi_event_s reply = {0};
+			reply.type									 = MIDI_EVENT_SYSEX;
+			reply.data.sysex_out.cmd		 = MF_SYSEX_GET_RESPONSE;
+			reply.data.sysex_out.param	 = msg->param_enum;
+
+			u8 n = param_len;
+
+			if (n > MIDI_SYSEX_OUT_DATA_LEN_MAX) {
+				n = MIDI_SYSEX_OUT_DATA_LEN_MAX;
+			}
+
+			if (param != NULL) {
+				for (u8 i = 0; i < n; i++) {
+					reply.data.sysex_out.data[i] = param[i] & 0x7F;
+				}
+				reply.data.sysex_out.data_len = n;
+			}
+
 			event_post(EVENT_CHANNEL_MIDI_OUT, &reply);
 			break;
 		}
 
 		case MF_SYSEX_SET: {
-			midi_event_s reply = {
-					.type = MIDI_EVENT_SYSEX,
-					.data.sysex_out =
-							{
-									.cmd			= MF_SYSEX_SET_RESPONSE,
-									.param		= msg->param_enum,
-									.data_len = 1,
-									.data			= ret,
-							},
-			};
+			midi_event_s reply = {0};
+			reply.type										= MIDI_EVENT_SYSEX;
+			reply.data.sysex_out.cmd			= MF_SYSEX_SET_RESPONSE;
+			reply.data.sysex_out.param		= msg->param_enum;
+			reply.data.sysex_out.data_len = 1;
+			reply.data.sysex_out.data[0]	= (u8)(ret == SUCCESS ? 0 : 1);
 			event_post(EVENT_CHANNEL_MIDI_OUT, &reply);
+			break;
+		}
+
+		case MF_SYSEX_STOP: {
+			// Accepted by the validation above, so it must be handled here. It
+			// previously fell through to the default and always returned an error.
+			// No streaming operation exists to stop yet; acknowledge and reset.
 			break;
 		}
 
@@ -272,4 +347,57 @@ cleanup:
 	memset(buffer, 0, sizeof(buffer));
 	stream_state = STREAM_IDLE;
 	return ret;
+}
+
+/**
+ * @brief Number of index bytes that precede the payload for a parameter.
+ *
+ * Encoder parameters are addressed by (bank, encoder); vmap parameters by
+ * (bank, encoder, vmap). The remaining parameters carry no index prefix.
+ */
+static u8 sysex_param_index_len(u8 param_enum) {
+	switch (param_enum) {
+		case MF_SYSEX_PARAM_ENCODER_DETENT:
+		case MF_SYSEX_PARAM_ENCODER_DISPLAY_MODE:
+		case MF_SYSEX_PARAM_ENCODER_VMAP_DISPLAY_MODE:
+		case MF_SYSEX_PARAM_ENCODER_VMAP_MODE:
+		case MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE:
+		case MF_SYSEX_PARAM_ENCODER_SWITCH_STATE:
+		case MF_SYSEX_PARAM_ENCODER_SWITCH_MODE:
+		case MF_SYSEX_PARAM_ENCODER_SWITCH_PROTO: return 2;
+
+		case MF_SYSEX_PARAM_VMAP_RANGE:
+		case MF_SYSEX_PARAM_VMAP_POSITION:
+		case MF_SYSEX_PARAM_VMAP_RGB:
+		case MF_SYSEX_PARAM_VMAP_RB:
+		case MF_SYSEX_PARAM_VMAP_PROTO: return 3;
+
+		default: return 0;
+	}
+}
+
+/**
+ * @brief Resolve a bank/encoder pair received over the wire.
+ * @return Pointer to the encoder, or NULL if either index is out of range.
+ */
+static struct encoder* encoder_from_indices(u8 bank, u8 enc) {
+	if (bank >= NUM_ENC_BANKS || enc >= NUM_ENCODERS) {
+		return NULL;
+	}
+
+	return &gENCODERS[bank][enc];
+}
+
+/**
+ * @brief Resolve a bank/encoder/vmap triple received over the wire.
+ * @return Pointer to the virtmap, or NULL if any index is out of range.
+ */
+static struct virtmap* virtmap_from_indices(u8 bank, u8 enc, u8 vmap) {
+	struct encoder* encoder = encoder_from_indices(bank, enc);
+
+	if (encoder == NULL || vmap >= NUM_VMAPS_PER_ENC) {
+		return NULL;
+	}
+
+	return &encoder->vmaps[vmap];
 }
