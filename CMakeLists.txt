@@ -10,7 +10,6 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_GENERATOR "Ninja")
 
 include(FetchContent)
-include(ExternalProject)
 
 # Share the FetchContent source checkout (e.g. LUFA) across all build-type
 # directories (build/Debug, build/Release, ...) instead of re-cloning it once
@@ -39,15 +38,28 @@ file(CREATE_LINK
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Project Definition / Settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Default to RelWithDebInfo when no build type is given. Every compiler flag
+# below lives in a per-build-type variable, so an empty CMAKE_BUILD_TYPE would
+# otherwise produce a build with no -mmcu, no optimisation and no warnings.
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo)
+endif()
+
+# C only. There are no C++ or standalone assembly sources - enabling those
+# languages just forces an avr-g++ probe on every configure. The one piece of
+# assembly in the project is a top-level asm() block inside src/hal/boot_init.c,
+# which the C compiler handles.
 project(NEON_SAMURAI
   VERSION 1.1.0
   DESCRIPTION "An alternative firmware for the DJ Tech Tools Midifighter Twister"
   HOMEPAGE_URL "https://github.com/nic-starke/neon_samurai"
-  LANGUAGES C CXX ASM
+  LANGUAGES C
 )
 
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_EXTENSIONS ON) # -std=gnu11; avr-libc headers rely on GNU extensions
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # AVR MCU Settings
@@ -73,14 +85,38 @@ add_definitions(
 # Compiler Flags - Common to all build types
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# Common compiler flags
+# Compiler and warning flags are set explicitly here rather than being probed
+# with check_c_compiler_flag(). The probe links a test binary without -mmcu, so
+# it fails for this target and the flag is silently dropped - but only on some
+# machines, which previously meant two developers building identical source got
+# different warning sets AND different language modes (-std=c11 vs -std=gnu11).
+# Everything the build uses is listed below, unconditionally, so the result is
+# identical everywhere.
+#
+# -fpack-struct     : AVR8 has no alignment requirements; keeps EEPROM and USB
+#                     descriptor layouts byte-exact. ABI-affecting - do not
+#                     remove without re-checking struct sizes in config.c.
+# -fshort-enums     : load-bearing. src/midi/sysex.c derives wire-format sizes
+#                     from sizeof() of enum members; without this the sysex
+#                     protocol silently changes layout.
 set(AVR_COMMON_FLAGS "-mmcu=${MCU} -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -funsigned-char -funsigned-bitfields")
 
-# Common warning flags
-set(AVR_WARNING_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wformat=2 -Wformat-truncation -Wundef -Wno-attributes")
+# Warning set. Kept deliberately achievable: every flag here is clean or nearly
+# clean on the current tree, so new warnings mean new problems.
+# Aspirational additions, each of which currently produces a large number of
+# findings and should be enabled one at a time as the code is cleaned up:
+#   -Wconversion -Wsign-conversion -Wshadow -Wcast-align=strict -Wpedantic
+#   -Wredundant-decls -Wmissing-declarations -Wdouble-promotion
+set(AVR_WARNING_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wformat=2 -Wformat-truncation -Wundef -Wno-attributes -Wnull-dereference -Wlogical-op -Wduplicated-cond -Wshift-overflow=2 -Wpointer-arith -Wwrite-strings -Werror-implicit-function-declaration")
 
-# Common linker flags (same for all build types)
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections -Wl,-Map=${CMAKE_BINARY_DIR}/output.map -mmcu=${MCU}")
+# Common linker flags (same for all build types).
+# Deliberately NOT used here, and why:
+#   -fuse-ld=mold  mold has no AVR backend; passed the compiler-only probe and
+#                  was a silent no-op that would hard-fail on a stricter driver.
+#   -Wl,--build-id emitted a 36-byte ALLOC note into the program region that
+#                  avr-readelf reports as malformed. Pure flash cost.
+#   -Wl,-z,defs    meaningless for a statically linked bare-metal image.
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections -Wl,-Map=${CMAKE_BINARY_DIR}/output.map -mmcu=${MCU} -Wl,--relax")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Compiler Flags - Debug build type
@@ -118,26 +154,41 @@ endif()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # CMake includes for helper functions/utilities
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-include(${CMAKE_SOURCE_DIR}/cmake/utils/linker/AddExecutableWithLinkerScriptDep.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/DefaultCCompilerSettings.cmake)
+# Note - two includes were removed here:
+#
+#   cmake/utils/linker/AddExecutableWithLinkerScriptDep.cmake
+#     Globally overrode the builtin add_executable() to attach LINK_DEPENDS from
+#     a LINKER_SCRIPT_DEPENDENCIES variable that this project never sets, so it
+#     shadowed a core command to do nothing.
+#
+#   cmake/DefaultCCompilerSettings.cmake
+#     Applied ~46 flags through check_c_compiler_flag(). The probe links without
+#     -mmcu and so fails for this target, making the effective flag set depend on
+#     the host toolchain rather than on this file. Flags are now explicit above.
+#
+# Neither is used, so cmake/utils is no longer required to configure. The
+# submodule is still checked in - it carries clang-tidy/cppcheck/unity modules
+# that are worth adopting later.
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Dependencies
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # LUFA USB Library
+# Pinned to an explicit commit. A branch name here made the firmware depend on
+# whatever that branch happened to point at when you configured, which is not a
+# reproducible build. Bump this SHA deliberately.
+# GIT_SHALLOW is incompatible with fetching an arbitrary SHA, so it is omitted.
 FetchContent_Declare(
 	LUFA
 	GIT_REPOSITORY https://github.com/nic-starke/lufa.git
-	GIT_TAG master
-	GIT_SHALLOW true
+	GIT_TAG 0200c233f30774935822ddb2b963a7ae0675edd9
 )
 
+# MakeAvailable already populates; the FetchContent_Populate() block that used
+# to follow could never execute and the single-argument form is deprecated as
+# of CMake 3.30.
 FetchContent_MakeAvailable(LUFA)
-FetchContent_GetProperties(LUFA)
-if(NOT lufa_POPULATED)
-	FetchContent_Populate(LUFA)
-endif()
 
 # message(STATUS "LUFA source directory: ${lufa_SOURCE_DIR}")
 
@@ -292,8 +343,12 @@ target_sources(neosam PRIVATE ${LUFA_SOURCES})
 # NEON SAMURAI Source Files
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# Add ENABLE_CONSOLE to the defines
-add_compile_definitions(neosam PRIVATE ENABLE_CONSOLE)
+# Add ENABLE_CONSOLE to the defines.
+# NOTE: this was previously add_compile_definitions(neosam PRIVATE ENABLE_CONSOLE).
+# That command is directory-scoped and takes no target or scope argument, so
+# CMake treated "neosam" and "PRIVATE" as macro names and the build defined
+# -Dneosam -DPRIVATE for every translation unit, LUFA included.
+target_compile_definitions(neosam PRIVATE ENABLE_CONSOLE)
 
 # Add post build commands for AVR-based platforms
 # See toolchain.cmake
