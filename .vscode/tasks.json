@@ -117,7 +117,20 @@
 				"clear": true,
 				"close": false
 			},
-			"problemMatcher": ["$gcc"]
+			"problemMatcher": [
+				{
+					"owner": "cpp",
+					"fileLocation": ["absolute"],
+					"pattern": {
+						"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+						"file": 1,
+						"line": 2,
+						"column": 3,
+						"severity": 4,
+						"message": 5
+					}
+				}
+			]
 		},
 		{
 			"label": "Build Debug",
@@ -143,7 +156,20 @@
 				"focus": true,
 				"clear": true
 			},
-			"problemMatcher": ["$gcc"]
+			"problemMatcher": [
+				{
+					"owner": "cpp",
+					"fileLocation": ["absolute"],
+					"pattern": {
+						"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+						"file": 1,
+						"line": 2,
+						"column": 3,
+						"severity": 4,
+						"message": 5
+					}
+				}
+			]
 		},
 		{
 			"label": "Build RelWithDebInfo",
@@ -169,7 +195,20 @@
 				"focus": true,
 				"clear": true
 			},
-			"problemMatcher": ["$gcc"]
+			"problemMatcher": [
+				{
+					"owner": "cpp",
+					"fileLocation": ["absolute"],
+					"pattern": {
+						"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+						"file": 1,
+						"line": 2,
+						"column": 3,
+						"severity": 4,
+						"message": 5
+					}
+				}
+			]
 		},
 		{
 			"label": "Flash Board",
