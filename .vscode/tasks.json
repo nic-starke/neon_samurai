@@ -25,6 +25,75 @@
 
 	"tasks": [
 		{
+			"label": "Test: Configure",
+			"detail": "Configures the host-side unit tests (separate from the AVR build)",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-S", "${workspaceFolder}/tests",
+				"-B", "${config:app.build_dir}/tests",
+				"-G", "Ninja"
+			],
+			"presentation": {
+				"echo": true,
+				"showReuseMessage": false,
+				"reveal": "silent",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Test",
+			"detail": "Builds and runs the host unit tests (ASan + UBSan)",
+			"type": "shell",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"dependsOn": [
+				"Test: Configure"
+			],
+			"dependsOrder": "sequence",
+			"command": "cmake",
+			"args": [
+				"--build", "${config:app.build_dir}/tests",
+				"--target", "test_all"
+			],
+			"presentation": {
+				"echo": true,
+				"showReuseMessage": false,
+				"reveal": "always",
+				"panel": "dedicated",
+				"focus": true,
+				"clear": true
+			},
+			"problemMatcher": [
+				{
+					"owner": "cpp",
+					"fileLocation": ["absolute"],
+					"pattern": {
+						"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+						"file": 1,
+						"line": 2,
+						"column": 3,
+						"severity": 4,
+						"message": 5
+					}
+				},
+				{
+					"owner": "unit-tests",
+					"fileLocation": ["absolute"],
+					"pattern": {
+						"regexp": "^\\s+FAIL (.*):(\\d+): (.*)$",
+						"file": 1,
+						"line": 2,
+						"message": 3
+					}
+				}
+			]
+		},
+		{
 			"label": "CMake Configure",
 			"detail": "Generates the build-system ready for compilation",
 			"type": "shell",

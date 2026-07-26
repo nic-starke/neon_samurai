@@ -48,14 +48,29 @@ target_link_options(test_support PUBLIC ${SAN_FLAGS})
 # Test executables
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+set(ALL_TESTS "")
+
 function(add_unit_test name)
   add_executable(${name} ${name}.c)
   target_link_libraries(${name} PRIVATE test_support)
   target_include_directories(${name} PRIVATE ${SRC_DIR})
   add_test(NAME ${name} COMMAND ${name})
+  set(ALL_TESTS ${ALL_TESTS} ${name} PARENT_SCOPE)
 endfunction()
 
 add_unit_test(test_sysex)
 add_unit_test(test_quadrature)
+
+# Build everything, then run it. `cmake --build . --target test_all` is a single
+# command that fails the build on a failing test, which is what both the VS Code
+# task and CI want. CMake's built-in `test` target only runs ctest and will
+# happily test stale binaries.
+add_custom_target(test_all
+  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+  DEPENDS ${ALL_TESTS}
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMENT "Running host unit tests"
+  USES_TERMINAL
+)
 
 message(STATUS "Host unit tests configured (ASan + UBSan enabled)")

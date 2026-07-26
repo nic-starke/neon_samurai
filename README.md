@@ -81,6 +81,26 @@ cmake --build build/Release
 `Debug` and `RelWithDebInfo` build types are also supported - see
 `.vscode/tasks.json` for the full set of configure/build/flash tasks.
 
+## Testing
+
+```sh
+scripts/test.sh
+```
+
+Unit tests build for the **host**, not for AVR, so they need no hardware and run
+anywhere with a C compiler. They cover the pure-logic modules - the sysex
+parser, the quadrature decoder - against fakes for the hardware they would
+otherwise touch, and always run under AddressSanitizer and UndefinedBehaviour
+Sanitizer.
+
+Because they target the host, they are a separate CMake project under `tests/`
+rather than a subdirectory of the firmware build, which is configured with the
+AVR toolchain file. In VS Code, run the **Test** task (`Ctrl+Shift+P` -> "Run
+Test Task").
+
+See [tests/README.md](tests/README.md) for what is covered and how to add a
+suite.
+
 ## Flashing
 
 ```sh
