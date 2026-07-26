@@ -8,41 +8,34 @@
     }
   ],
   "configurations": [
-    // {
-    //   "name": "Launch(gdb)",
-    //   "type": "by-gdb",
-    //   "request": "launch",
-    //   "program": "${workspaceFolder}/build/neosam.elf",
-    //   "stopAtEntry": true,
-    //   "cwd": "${workspaceRoot}",
-    //   "debuggerPath": "gdb",
-    //   "debuggerArgs": [],
-    //   // "preLaunchTask": "Start Bloom",
-    //   // "postDebugTask": "Stop Bloom",
-    //   "remote": {
-    //     "enabled": true,
-    //     "host": "localhost",
-    //     "address": "localhost:1442",
-    //     "port": 1442
-    //   },
-    // },
     {
       "type": "gdb",
       "request": "attach",
-      "name": "Attach to gdbserver",
-      "executable": "${workspaceFolder}/build/neosam.elf",
+      "name": "Debug (Debug build + Bloom + attach)",
+      "executable": "${workspaceFolder}/build/Debug/neosam.elf",
       "target": ":1442",
       "remote": true,
       "cwd": "${workspaceRoot}",
       "valuesFormatting": "parseText",
-      // "stopAtEntry": true,
-      // "internalConsoleOptions": "openOnSessionStart",
-      // "printCalls": true,
-      // "gdbpath": "avr-gdb",
-      "preLaunchTask": "Build RelWithDebInfo",
-      "debugger_args": [
-        // "set mi-async"
+      "preLaunchTask": "Debug: Build (Debug) & Start Bloom",
+      "postDebugTask": "Stop Bloom",
+      "autorun": [
+        "load",
+        "tb main",
+        "monitor reset",
       ],
+    },
+    {
+      "type": "gdb",
+      "request": "attach",
+      "name": "Debug (RelWithDebInfo build + Bloom + attach)",
+      "executable": "${workspaceFolder}/build/RelWithDebInfo/neosam.elf",
+      "target": ":1442",
+      "remote": true,
+      "cwd": "${workspaceRoot}",
+      "valuesFormatting": "parseText",
+      "preLaunchTask": "Debug: Build (RelWithDebInfo) & Start Bloom",
+      "postDebugTask": "Stop Bloom",
       "autorun": [
         "load",
         "tb main",

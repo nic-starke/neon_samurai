@@ -1,0 +1,12 @@
+CompileFlags:
+  Add:
+    # clangd's bundled Clang doesn't know avr-gcc's freestanding target
+    # semantics: main() legitimately returns void/noreturn on AVR firmware,
+    # there is no libc entry point requiring int main(). GCC honours
+    # -Wno-main (see AVR_WARNING_FLAGS in CMakeLists.txt); Clang's equivalent
+    # diagnostic group is -Wmain, silenced below.
+    - "-Wno-main"
+
+Diagnostics:
+  Suppress:
+    - main_returns_nonint

@@ -1,6 +1,8 @@
-avrdude -v -c jtag3pdi -p x128a4u -P usb -U flash:w:"build/neosam.hex":a
+BUILD_TYPE="${1:-RelWithDebInfo}"
 
-# avrdude -v -u -c jtag3pdi -p x128a4u -P usb -U eeprom:w:"build/neosam.eep"
+avrdude -v -c jtag3pdi -p x128a4u -P usb -U flash:w:"build/${BUILD_TYPE}/neosam.hex":a
+
+# avrdude -v -u -c jtag3pdi -p x128a4u -P usb -U eeprom:w:"build/${BUILD_TYPE}/neosam.eep"
 
 # if using dfu-programmer
 #sudo dfu-programmer atxmega128a4u:1,8 flash ./builddir/neosam.hex

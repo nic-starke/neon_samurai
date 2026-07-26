@@ -1,5 +1,6 @@
 build
 builddir
+compile_commands.json
 logs
 old
 documentation

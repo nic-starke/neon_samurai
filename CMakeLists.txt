@@ -12,8 +12,29 @@ set(CMAKE_GENERATOR "Ninja")
 include(FetchContent)
 include(ExternalProject)
 
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+# Share the FetchContent source checkout (e.g. LUFA) across all build-type
+# directories (build/Debug, build/Release, ...) instead of re-cloning it once
+# per build type. Each build type still compiles its own object files from
+# this shared source.
+set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/build/_deps" CACHE PATH "" FORCE)
+
+# LTO breaks reliable single-stepping/breakpoints in Debug builds, so only
+# enable it for optimized build types.
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# clangd only looks for compile_commands.json at a fixed conventional
+# location (workspace root, or "build/"), and has no notion of our separate
+# build/<Type> directories. Re-point a top-level symlink at whichever build
+# type was configured most recently, so clangd always sees current flags
+# regardless of which build type you're actively working with.
+file(CREATE_LINK
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json"
+    SYMBOLIC
+)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Project Definition / Settings

@@ -1,7 +1,7 @@
 {
 	"version": "2.0.0",
-	
-	
+
+
 	"inputs": [
 		{
 			"id": "cross_file",
@@ -33,9 +33,24 @@
 				"-G",
 				"Ninja",
 				"-B",
-				"${config:app.build_dir}/",
+				"${config:app.build_dir}/${input:build_type}",
 				"--toolchain=${workspaceFolder}/cmake/toolchain.cmake",
 				"-DCMAKE_BUILD_TYPE=${input:build_type}",
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "CMake Configure Debug",
+			"detail": "Configures the build system for Debug (no LTO, full symbols)",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-G",
+				"Ninja",
+				"-B",
+				"${config:app.build_dir}/Debug",
+				"--toolchain=${workspaceFolder}/cmake/toolchain.cmake",
+				"-DCMAKE_BUILD_TYPE=Debug",
 			],
 			"problemMatcher": []
 		},
@@ -48,7 +63,7 @@
 				"-G",
 				"Ninja",
 				"-B",
-				"${config:app.build_dir}/",
+				"${config:app.build_dir}/RelWithDebInfo",
 				"--toolchain=${workspaceFolder}/cmake/toolchain.cmake",
 				"-DCMAKE_BUILD_TYPE=RelWithDebInfo",
 			],
@@ -56,7 +71,7 @@
 		},
 		{
 			"label": "Clean",
-			"detail": "Clean the build folder",
+			"detail": "Clean the build folder for the selected build type",
 			"type": "shell",
 			"group": {
 				"kind": "build"
@@ -67,28 +82,30 @@
 			},
 			"args": [
 				"--build",
-				"${config:app.build_dir}",
+				"${config:app.build_dir}/${input:build_type}",
 				"--target",
 				"clean"
 			]
 		},
 		{
 			"label": "Build (clean)",
-			"detail": "Builds the project, cleans first",
+			"detail": "Builds the project for the selected build type, cleans first",
 			"type": "shell",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"dependsOn": [
+				"CMake Configure",
 				"Clean"
 			],
+			"dependsOrder": "sequence",
 			"command" : "cmake",
 			"options": {
 			},
 			"args": [
 				"--build",
-				"${config:app.build_dir}",
+				"${config:app.build_dir}/${input:build_type}",
 			],
 			"presentation": {
 				"echo": true,
@@ -103,20 +120,20 @@
 			"problemMatcher": ["$gcc"]
 		},
 		{
-			"label": "Build RelWithDebInfo",
-			"detail": "Builds the project with Release optimization and Debug symbols",
+			"label": "Build Debug",
+			"detail": "Builds the project with no optimization and full debug symbols",
 			"type": "shell",
 			"group": {
 				"kind": "build"
 			},
 			"dependsOn": [
-				"CMake Configure RelWithDebInfo",
-				"Clean"
+				"CMake Configure Debug"
 			],
+			"dependsOrder": "sequence",
 			"command": "cmake",
 			"args": [
 				"--build",
-				"${config:app.build_dir}",
+				"${config:app.build_dir}/Debug",
 			],
 			"presentation": {
 				"echo": true,
@@ -129,34 +146,34 @@
 			"problemMatcher": ["$gcc"]
 		},
 		{
-			"label": "Launch Bloom",
-			"detail": "Launches the bloom avr-gdb server",
+			"label": "Build RelWithDebInfo",
+			"detail": "Builds the project with Release optimization and Debug symbols",
 			"type": "shell",
-			"command": "bloom",
-			"presentation": {
-				"reveal": "silent",
-				"panel": "dedicated"
+			"group": {
+				"kind": "build"
 			},
-			"isBackground": true,
-			"problemMatcher": {
-				"pattern": [
-					{
-						"kind": "file",
-						"regexp": "^(.*)$",
-						"file": 1,
-						"message": 2
-					}
-				],
-				"background": {
-					"activeOnStart": true,
-					"beginsPattern": "Waiting for connection from GDB...",
-					"endsPattern": "Shutdown signal received"
-				}
-			}
+			"dependsOn": [
+				"CMake Configure RelWithDebInfo"
+			],
+			"dependsOrder": "sequence",
+			"command": "cmake",
+			"args": [
+				"--build",
+				"${config:app.build_dir}/RelWithDebInfo",
+			],
+			"presentation": {
+				"echo": true,
+				"showReuseMessage": false,
+				"reveal": "always",
+				"panel": "dedicated",
+				"focus": true,
+				"clear": true
+			},
+			"problemMatcher": ["$gcc"]
 		},
 		{
 			"label": "Flash Board",
-			"detail": "Programs the board with a built binary",
+			"detail": "Programs the board with the selected build type",
 			"type": "shell",
 			"group": {
 				"kind": "build"
@@ -175,7 +192,7 @@
 				"-P",
 				"usb",
 				"-U",
-				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
+				"flash:w:\"${config:app.build_dir}/${input:build_type}/neosam.hex\":a"
 			]
 		},
 		{
@@ -198,7 +215,7 @@
 				"-P",
 				"usb",
 				"-U",
-				"flash:w:\"${config:app.build_dir}/neosam.hex\":a"
+				"flash:w:\"${config:app.build_dir}/RelWithDebInfo/neosam.hex\":a"
 			]
 		},
 		{
@@ -223,9 +240,9 @@
 					}
 				],
 				"background": {
-					"activeOnStart": false,
-					"beginsPattern": "Waiting for GDB RSP connection",
-					"endsPattern": "GDB RSP client disconnected"
+					"activeOnStart": true,
+					"beginsPattern": "Starting TargetController",
+					"endsPattern": "Waiting for GDB RSP connection"
 				}
 			}
 		},
@@ -242,6 +259,26 @@
 				"reveal": "silent",
 				"panel": "dedicated"
 			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Debug: Build (Debug) & Start Bloom",
+			"detail": "Builds the Debug build type and starts Bloom, ready for GDB to attach",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"Build Debug",
+				"Start Bloom"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "Debug: Build (RelWithDebInfo) & Start Bloom",
+			"detail": "Builds the RelWithDebInfo build type and starts Bloom, ready for GDB to attach",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"Build RelWithDebInfo",
+				"Start Bloom"
+			],
 			"problemMatcher": []
 		}
 	],
