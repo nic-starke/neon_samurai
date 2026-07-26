@@ -17,7 +17,7 @@
             ],
             "intelliSenseMode": "${default}",
             "compilerArgs": [],
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/RelWithDebInfo/compile_commands.json"
         }
     ],
     "version": 4
