@@ -7,7 +7,7 @@ set(default_cc_flags
 	-ffunction-sections               # Place each function in its own section (ELF Only)
 	-fdata-sections                   # Place each data in its own section (ELF Only)
 	-fdiagnostics-show-option         # Show the corresponding warning option for each diagnostic
-	-fdiagnostics-color=always			   # Use colors in diagnostics
+	-fdiagnostics-color=auto			   # Use colors in diagnostics when writing to a terminal (auto-disables when piped, e.g. into VSCode's task problem matcher)
 
 # Warnings
 	-Wall                             # Enable all common compiler warnings
