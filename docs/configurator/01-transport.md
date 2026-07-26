@@ -1,7 +1,7 @@
 # 01 — Transport
 
 How the browser reaches the device. This is the first decision because it
-constrains the protocol, the telemetry rate the 3D twin can run at, and which
+constrains the protocol, the telemetry rate the device view can run at, and which
 browsers the editor works in at all.
 
 ## Requirements
@@ -9,7 +9,7 @@ browsers the editor works in at all.
 | | |
 | --- | --- |
 | Config traffic | ~960 parameters, bursty. A full read must complete in well under a second. |
-| Telemetry | 16 encoder positions + 16 switch states + optionally 208 LED values, at 30–60 Hz, to drive the twin. |
+| Telemetry | 16 encoder positions + 16 switch states + optionally 208 LED values, at 30–60 Hz, to drive the device view. |
 | Coexistence | The user's DAW is usually running. The editor must not steal the device from it. |
 | Payload | 8-bit clean. Colour is `u16` hue + `u8` sat/val; ranges are signed. |
 | Reach | Works on the machines the users actually have, without a driver install. |
@@ -163,12 +163,18 @@ diagnosable when it goes wrong.
 | WebHID | ✅ | ❌ | ❌ |
 | WebUSB | ✅ | ❌ | ❌ |
 | Web Serial | ✅ | ❌ | ❌ |
-| WebGL2 / WebGPU (for the twin) | ✅ | ✅ | ✅ |
+| SVG (the device view) | ✅ | ✅ | ✅ |
 
-Practical read: **Chromium is the target**, Firefox gets a degraded-but-working
-SysEx path, Safari gets a read-only demo with the simulator and a "download the
-app" prompt. Say this plainly on the landing page rather than letting Safari
-users hit a wall.
+Practical read: **Chromium is the target** for talking to hardware, Firefox gets
+a degraded-but-working SysEx path, and Safari cannot connect at all.
+
+But note the last row. Because the device view is SVG rather than WebGL
+([04](04-device-view-2d.md)), the *entire interface* renders everywhere — so
+Safari and Firefox users get the full editor running against the simulator, not
+a broken page. That turns the public demo from a Chromium-only curiosity into
+something anyone can open, and turns the Safari story from "unsupported" into
+"explore it here, connect with Chrome or the desktop app". Say this plainly on
+the landing page rather than letting anyone hit a wall.
 
 ## Sources
 

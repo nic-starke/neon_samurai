@@ -1,8 +1,8 @@
 # neosam-configurator — plan
 
 A browser-based editor for NEON_SAMURAI: configure, save profiles, monitor,
-debug, and flash firmware, with a real-time 3D twin of the Midi Fighter Twister
-at the centre of the UI.
+debug, and flash firmware, with a real-time stylised 2D view of the Midi Fighter
+Twister at the centre of the UI.
 
 This directory is the design record. Nothing here is built yet.
 
@@ -11,7 +11,7 @@ This directory is the design record. Nothing here is built yet.
 | [01-transport.md](01-transport.md) | How the browser talks to the device. Options, trade-offs, recommendation. |
 | [02-protocol.md](02-protocol.md) | NSP — the reusable framed protocol that replaces the current SysEx scheme. |
 | [03-editor-ux.md](03-editor-ux.md) | Information architecture, interaction model, visual language. |
-| [04-device-twin-3d.md](04-device-twin-3d.md) | Building and driving the 3D model. |
+| [04-device-view-2d.md](04-device-view-2d.md) | Building and driving the stylised device view. |
 | [05-firmware-update.md](05-firmware-update.md) | In-browser DFU, and why it is the hardest part. |
 | [06-roadmap.md](06-roadmap.md) | Phasing, milestones, what to build first. |
 
@@ -42,15 +42,15 @@ canonical selection drives one inspector. Monitors (MIDI, protocol, console,
 scope) are first-class, not an afterthought. Profiles are plain JSON files you
 can diff and commit.
 
-**3D twin.** Do **not** ship an AI-generated mesh. The device needs 16
-independently rotating knobs and 208 individually addressable emissive elements;
-that requires named, rigged parts, which a single-image generator does not give
-you. Author the geometry **parametrically** — it is a 150×150×25 mm box with a
-4×4 grid of revolved knobs — and use AI image-to-3D and photogrammetry as
-*reference* for proportions and surface detail. Then drive it from the same state
-store the 2D panels use, so the twin is a pure render of device state rather than
-a separate application. [04](04-device-twin-3d.md) has the part taxonomy and the
-render pipeline.
+**Device view.** A **stylised 2D schematic** in SVG — a precision instrument
+diagram rather than a picture of the device — driven by the same state store the
+panels use. All 208 emitters and 16 knobs are modelled and live. The reason this
+beats a photoreal 3D twin is not cost: **a schematic can annotate and a render
+cannot**. The same drawing can show the LEDs *and* the virtmap range, the MIDI
+assignment, conflicts, and the diff against the saved profile — which is what a
+configuration editor actually needs. It also collapses two views into one, makes
+accessibility free rather than a compromise, and works in every browser.
+[04](04-device-view-2d.md) has the anatomy, the render approach and the overlays.
 
 **Firmware update.** Entering the bootloader is easy; talking to it from a
 browser is not. The DJTT bootloader is Atmel's DFU variant, which has no WCID
@@ -98,9 +98,11 @@ These change the shape of the work. Everything else I can call myself.
 2. **Windows DFU.** Are you willing to ship a small native helper for firmware
    flashing on Windows, or should the editor hand Windows users a Zadig
    walkthrough and stay pure-web? ([05](05-firmware-update.md) costs both.)
-3. **Do you have the hardware to photograph?** If yes, a 40–60 photo
-   photogrammetry pass gives a far better reference than anything generated from
-   web images, and changes how I'd sequence [04](04-device-twin-3d.md).
+3. **Art direction for the device view.** [04](04-device-view-2d.md) proposes a
+   flat top-down technical-diagram look, near-monochrome so the LED colours are
+   the only saturated thing on screen. The main alternative is a warmer,
+   more literal illustration of the hardware. I'd want to see one screen mocked
+   both ways before committing — say the word and I'll build both.
 4. **Repo layout.** In-repo (`configurator/` alongside the firmware, one version
    number, one CI) or a separate repo? I'd default to in-repo — the protocol
    schema has to be shared, and keeping it in one place is what stops drift.

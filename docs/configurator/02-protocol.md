@@ -49,7 +49,7 @@ supports, or what its config schema looks like. The editor cannot version-negoti
 cannot warn about mismatches, and cannot degrade gracefully.
 
 **6. No telemetry.** Nothing streams encoder positions, switch states or LED
-values. The 3D twin has nothing to render from.
+values. The device view has nothing to render from.
 
 **7. The manufacturer ID is not ours to use.** The header uses `0x53 0x41 0x4D` —
 "SAM" in ASCII (`MIDI_MFR_ID_1..3` in `src/include/midi/midi_types.h`). But a
@@ -191,8 +191,10 @@ NSP_SUBSCRIBE { u32 streams; u16 interval_ms; }
 | `MIDI` | echo of MIDI the device sent/received | on change |
 
 Encoder + switch at 60 Hz is ~2 KB/s. Adding LED at 30 Hz is ~3 KB/s. Both fit
-comfortably inside HID's ~64 KB/s and are the reason the twin can be genuinely
-real-time. Over the SysEx fallback, drop LED to on-change and encoder to 30 Hz.
+comfortably inside HID's ~64 KB/s and are the reason the device view can be
+genuinely real-time. Over the SysEx fallback, drop LED to on-change and encoder
+to 30 Hz — which the SVG view tolerates better than a 3D scene would have, since
+there is no camera motion to make the lower rate obvious.
 
 The device must rate-limit itself and drop rather than queue — a stalled editor
 must never back up the firmware's event loop.

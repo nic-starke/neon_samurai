@@ -13,9 +13,12 @@ Two things gate everything else and should be proven first:
    whole plan falls back to SysEx and the telemetry budget shrinks — better to
    know in week one than month three.
 
-The 3D twin, despite being the headline, is deliberately *not* first. It depends
-on telemetry, which depends on the protocol. Building it against mock data first
-would mean building it twice.
+The device view arrives in two stages. Because it is hand-authored SVG with no
+asset pipeline in front of it ([04](04-device-view-2d.md)), the drawing itself
+can land early — in phase 2, rendering configuration state. It becomes *live* in
+phase 4 when telemetry exists. This is a direct benefit of dropping the 3D plan:
+the hero view is no longer gated behind a modelling pipeline, so the editor looks
+like itself from the first usable build.
 
 ---
 
@@ -58,7 +61,7 @@ fall back to Web Serial over the existing CDC interface
 **Goal:** it replaces the stock utility.
 
 - App shell: status bar, left rail, centre, inspector, monitor drawer
-- 2D grid view and table view (3D comes later)
+- Device view (SVG structure, all 208 emitters wired to config state) and table view
 - Schema-driven inspector
 - Live-edit model, dirty state, explicit `STORE`
 - Undo/redo, conflict detection
@@ -74,24 +77,20 @@ reachable here, and the table view does bulk editing the stock utility cannot.
 - Diff view: profile vs. device, per-field resolution
 - **Stock Midi Fighter Utility preset importer**
 
-## Phase 4 — Telemetry + the 3D twin
+## Phase 4 — Telemetry: the device view goes live
 
 **Goal:** the headline feature.
 
 - Firmware: `SUBSCRIBE`, encoder/switch/LED event streams with self-rate-limiting
 - Gamma LUT + HSV→RGB export to TS via codegen
-  ([04 § Colour fidelity](04-device-twin-3d.md#colour-fidelity))
-- Parametric geometry script → glTF build step
-- r3f scene, instanced emitters, per-instance colour buffers
-- Materials, bloom, HDRI, contact shadows
-- Interaction: pick, drag-to-turn, hover-identify, camera presets
+  ([04 § Colour fidelity](04-device-view-2d.md#colour-fidelity))
+- The rAF update loop: telemetry → direct ref writes, React kept out of the path
+- Light pass: halos, `mix-blend-mode: screen` additive blending, motion
+- Overlays: assignment, conflicts, virtmap range, diff-against-profile
+- Interaction: drag-to-turn, hover-identify, multi-select
 
-Ship after the blockout ([04 § Scope control](04-device-twin-3d.md#scope-control));
-materials and detail land incrementally.
-
-*Prerequisite worth starting early:* the photogrammetry capture, if you have the
-hardware. It is independent of all the software work and can happen in parallel
-from day one.
+**Done when:** turning a physical encoder moves the on-screen knob and lights the
+on-screen ring, with colours that match the hardware next to it.
 
 ## Phase 5 — Firmware update
 
@@ -113,7 +112,8 @@ from day one.
 
 ## Parallelisable
 
-- Photogrammetry / geometry authoring — independent of everything, start now
+- Device-view art direction and the SVG artwork — independent of everything,
+  start now; it only needs the hardware's proportions
 - Visual design system — independent of the protocol
 - The simulator — unblocks all UI work before firmware is ready
 
@@ -122,15 +122,18 @@ from day one.
 ```
 Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3
                 │            │
-                └──► Phase 4 (telemetry) ──► 3D twin
+                │            └──► device view (static)
+                │                        │
+                └──► Phase 4 (telemetry) ─┴──► device view (live)
                              │
                              └──► Phase 5
-   geometry authoring ───────┘
+   SVG artwork ──────────────┘
 ```
 
 ## What I would cut under pressure
 
-In order: Phase 6 depth, the profile diff view, the stock-preset importer, the
-3D materials pass (blockout still ships), Windows DFU. What I would not cut: the
-protocol codegen and its shared test vectors — the drift they prevent is the
-thing that would otherwise quietly consume the project.
+In order: Phase 6 depth, the isometric hero variant, SVG/PNG export, the
+stock-preset importer, the device view's light pass (the plain structure still
+ships and is still live), Windows DFU. What I would not cut: the protocol
+codegen and its shared test vectors — the drift they prevent is the thing that
+would otherwise quietly consume the project.

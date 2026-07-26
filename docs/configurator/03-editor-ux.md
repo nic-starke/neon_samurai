@@ -38,9 +38,9 @@ Windows/macOS-only binary, a grid of dropdowns with no visual feedback, a modal
    a dirty indicator next to it.
 2. **The device is the source of truth.** On connect, `SNAPSHOT_GET` and render
    what is actually there. Never assume; never silently overwrite.
-3. **One selection, one inspector.** Selecting encoder 7 in the 3D view, the 2D
-   grid, or the table is the same selection. The right pane always shows
-   everything about the current selection and nothing else.
+3. **One selection, one inspector.** Selecting encoder 7 in the device view or
+   the table is the same selection. The right pane always shows everything about
+   the current selection and nothing else.
 4. **Progressive disclosure.** Basic / Advanced / Expert. Basic is MIDI mode,
    channel, CC, colour. Expert exposes virtmap ranges and positions, dead time,
    acceleration, display modes.
@@ -64,9 +64,9 @@ Windows/macOS-only binary, a grid of dropdowns with no visual feedback, a modal
 │  ▸ Bank 1  │                                                │                │
 │  ▾ Bank 2  │            ┌──────────────────────┐            │  Encoder 07    │
 │    enc 00  │            │                      │            │  ───────────   │
-│    enc 01  │            │     3D  /  2D  /  ▤  │            │  Detent    ▢   │
+│    enc 01  │            │   Device  /  Table   │            │  Detent    ▢   │
 │    ...     │            │                      │            │  Display  Multi│
-│  ▸ Bank 3  │            │   the device twin    │            │                │
+│  ▸ Bank 3  │            │  the device view     │            │                │
 │  ▸ Side    │            │                      │            │  ▾ Virtmap A   │
 │            │            │                      │            │   Mode    CC14 │
 │  PROFILES  │            └──────────────────────┘            │   Ch      1    │
@@ -84,18 +84,17 @@ Windows/macOS-only binary, a grid of dropdowns with no visual feedback, a modal
 and the profile library. Doubles as a search target: type to filter, "ch 3" finds
 every control on channel 3.
 
-**Centre** — three interchangeable views over the same selection:
+**Centre** — two interchangeable views over the same selection:
 
-- **3D** ([04](04-device-twin-3d.md)) — the hero view. Live LEDs, live knob
-  rotation, click to select, drag a knob to drive it.
-- **2D grid** — a flat 4×4 of encoder tiles. Each tile shows colour, MIDI
-  assignment, value arc, and a live-activity flash. Faster than 3D for bulk
-  editing, and the accessible fallback.
+- **Device** ([04](04-device-view-2d.md)) — the hero view. A stylised SVG
+  schematic of the Twister with live LEDs and live knob rotation. Click to
+  select, drag a knob to drive it. Switchable overlays put assignment,
+  conflicts, virtmap range or the diff-against-profile onto the same drawing.
 - **Table** — every parameter of every encoder in the bank as a spreadsheet.
   Multi-cell select, paste a column, sort by CC to spot collisions. This is the
   view power users will live in and almost no editor in this category ships.
 
-Split-view lets you keep 3D and table side by side.
+Split-view lets you keep both side by side.
 
 **Right** — the inspector, driven entirely off the generated schema so a new
 firmware field appears as a control automatically, with its declared range and
@@ -120,13 +119,13 @@ unit already enforced.
   identify.
 - **Colour picking** in HSV, because that is what the hardware stores. Show the
   gamma-corrected result, not the raw value — see
-  [04 § Colour fidelity](04-device-twin-3d.md#colour-fidelity).
+  [04 § Colour fidelity](04-device-view-2d.md#colour-fidelity).
 - **Conflict detection.** Two controls on the same channel + CC gets a warning
   badge in the tree, on the tile, and in the table. Cheap, and it is the mistake
   everyone makes.
 - **Bulk ops** as first-class: select all 16, "assign CC ascending from 16",
   "spread hue across selection", "copy bank 1 to bank 3".
-- **Drag a knob in the 3D/2D view** to send a value — lets you test a mapping in
+- **Drag a knob in the device view** to send a value — lets you test a mapping in
   your DAW without touching the hardware.
 
 ## Profiles
@@ -164,16 +163,17 @@ Take the cue from the project's name and logo without becoming a novelty.
 - Type: one geometric sans for UI, a mono for hex/monitors. Tabular numerals
   everywhere a value updates live, so nothing jitters.
 - Motion: fast and functional. 120–160 ms transitions, and none at all on
-  live-updating values. Respect `prefers-reduced-motion`, including reducing the
-  3D view's idle camera drift to nothing.
+  live-updating positions. Respect `prefers-reduced-motion` — under it, LED
+  transitions become instant rather than eased.
 - Density: closer to a DAW than to a marketing site. Compact rows, small
   controls, no giant hero spacing.
 
 ## Accessibility
 
-The 3D view is a *presentation* of state, never the only route to it. Everything
-reachable in 3D is reachable in the 2D grid and the table, both of which are
-plain DOM, focusable, and screen-reader labelled. Colour is never the sole
+Choosing SVG over a canvas or a 3D scene means the device view is plain DOM:
+every encoder is focusable, arrow-key navigable and screen-reader labelled
+without a parallel accessibility tree. The table view remains the route for
+anyone who wants a linear, textual presentation. Colour is never the sole
 carrier of meaning — conflict badges have icons, MIDI monitor rows have text
 channel labels. Target WCAG AA contrast for chrome (the LED colours themselves
 are data and exempt, but their *labels* are not).
@@ -185,7 +185,7 @@ are data and exempt, but their *labels* are not).
 | Build | Vite + TypeScript | fast, static output, deploys to GitHub Pages |
 | UI | React + Tailwind + Radix primitives | Radix gives correct a11y semantics free |
 | State | Zustand | one store, transport/telemetry/config slices; cheap subscriptions matter at 60 Hz |
-| 3D | react-three-fiber + drei + postprocessing | [04](04-device-twin-3d.md) |
+| Device view | hand-authored SVG + a rAF loop writing refs | no dependency; [04](04-device-view-2d.md) |
 | Validation | Zod, generated from the NSP schema | one source of truth for ranges |
 | Test | Vitest + Playwright | plus the shared `vectors.json` from [02](02-protocol.md) |
 | Package | static site; Tauri shell later | [01 § E](01-transport.md) |
