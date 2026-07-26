@@ -17,3 +17,5 @@ Before using this software you must read and accept the license.
 ## [User Manual](wiki/UserManual.md)
 
 ## [Technical](wiki/Technical.md)
+
+## [Bootloader Recovery](wiki/BootloaderRecovery.md)

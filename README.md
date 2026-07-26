@@ -1,14 +1,16 @@
 <div align="center">
   <h1>NEON_SAMURAI</h1>
 
-  <img src="./logo.png" alt="NEON_SAMURAI" style="max-width: 500px; max-height: 200;">
+  <img src="./.github/logo.png" alt="NEON_SAMURAI" style="max-width: 500px; max-height: 200;">
 
 <i>An alternative firmware for the Midifighter Twister</i>
 
   <h4 align="center">
     <a href="#introduction">Introduction</a> -
     <a href="#features">Features</a> -
-    <a href="#download">Download</a> -
+    <a href="#before-you-flash">Before You Flash</a> -
+    <a href="#building">Building</a> -
+    <a href="#flashing">Flashing</a> -
     <a href="#wiki">Wiki</a> -
     <a href="#contributing">Contributing</a>
   </h4>
@@ -36,36 +38,58 @@ KEY:
 - ⏲ Feature planned, not complete yet.
 - Not planned.
 
-| Feature                      |   Status    |
+| Feature                      |    Status   |
 | ---------------------------- | :---------: |
 | Configurable Channels        |     ✅      |
 | Acceleration                 |     ✅      |
 | Firmware Recovery (DJTT)     |     ✅      |
 | 14-bit CC/NRPN               |     ✅      |
 | Sysex-based Configuration    |     ✅      |
-| LFOs                         |      ⏲      |
-| Virtual Banks                |      ⏲      |
-| HID - Mouse/Keyboard         |      ⏲      |
-| Standalone Configuration     |      ⏲      |
-| Improved Button/Switch Modes |      ⏲      |
+| LFOs                         |     ⏲       |
+| Virtual Banks                |     ⏲       |
+| HID - Mouse/Keyboard         |     ⏲       |
+| Standalone Configuration     |     ⏲       |
+| Improved Button/Switch Modes |     ⏲       |
 | Hyper Knobs                  |     ✅      |
-| Open Sound Control (OSC)     |      ⏲      |
+| Open Sound Control (OSC)     |     ⏲       |
 | Traktor Sequencer            | Not planned |
 | Midi 2.0                     | Not planned |
+
+## Before You Flash
+
+> **Warning:** Make sure your device has a working recovery path before
+> flashing custom firmware. NEON_SAMURAI can enter the bootloader via the
+> four-corner encoder gesture or the `bootloader` console command, but both
+> depend on the ATxmega's boot section already containing a working DFU
+> bootloader. If that section is blank neither path works and the device requires a PDI
+> programmer (e.g. a JTAGICE3) to recover. See
+> [wiki/BootloaderRecovery.md](wiki/BootloaderRecovery.md) if you hit this.
+
+<i>Using this firmware will void your warranty, the software is provided "as is", without warranty of any kind. Please refer to the license.</i>
 
 ## Download
 
 Currently there are no releases available - "watch" the project for notification of future releases.
 
-<i> Using this firmware will void your warranty, the software is provided "as is", without warranty of any kind. Please refer to the license.</i>
+## Building
 
-### Releases
+```sh
+cmake -G Ninja -B build/Release -S . --toolchain=cmake/toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+cmake --build build/Release
+```
 
-Coming soon.
+`Debug` and `RelWithDebInfo` build types are also supported - see
+`.vscode/tasks.json` for the full set of configure/build/flash tasks.
 
-### Installation
+## Flashing
 
-Coming soon.
+```sh
+scripts/flash.sh [Debug|Release|RelWithDebInfo]
+```
+
+Defaults to `RelWithDebInfo`. This only writes the application section -
+see [wiki/BootloaderRecovery.md](wiki/BootloaderRecovery.md) for flashing
+the bootloader itself, which is a separate, one-time operation per device.
 
 ### Configuring
 
@@ -73,7 +97,12 @@ Coming soon.
 
 ## Wiki
 
-Coming soon.
+- [Wiki index](docs/index.md)
+- [Features](wiki/Features.md)
+- [Installation Guide](wiki/InstallationGuide.md)
+- [User Manual](wiki/UserManual.md)
+- [Technical](wiki/Technical.md)
+- [Bootloader Recovery](wiki/BootloaderRecovery.md)
 
 ## Contributing
 
@@ -87,13 +116,15 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 
 #### Dependencies
 
-- avr-gcc (v14)
+- avr-gcc
 - avr-libc
 - python3
 - meson
 - cmake
 - ninja
 - avrdude (for programming flash)
+- [bloom](https://bloom.oscillate.io) (for hardware debugging via JTAGICE3/PDI)
+- dfu-programmer (for flashing over USB DFU once a bootloader is present - `dfu-util` does not work with Atmel's DFU variant)
 - pre-commit (for githooks)
 
 #### Setting up pre-commit
@@ -103,14 +134,13 @@ Contributions to make **neosam** even better are welcomed. If you'd like to get 
 
 #### Setting up the build system
 
-
 - Select cpp configuration `midifighter`
 - Run the user task `CMake Configure`
 - Run the default build task.
 
 #### udev Rules for AVR Programmers
 
-/etc/udev/rules.d/50-avr-isp.rules
+`/etc/udev/rules.d/50-avr-isp.rules`
 
 ```bash
 SUBSYSTEM!="usb", ACTION!="add", GOTO="avrisp_end"
@@ -127,12 +157,24 @@ ATTR{idVendor}=="03eb", ATTR{idProduct}=="2141", MODE="660", GROUP="dialout"
 ATTR{idVendor}=="03eb", ATTR{idProduct}=="2140", MODE="660", GROUP="dialout"
 ```
 
+If you install [bloom](https://bloom.oscillate.io) via its AUR package, it
+installs its own broader udev rule set (covering more debug probes, and the
+Atmel DFU bootloader itself) - the rules above are only needed if you're
+not using Bloom.
+
 ### Contributors
 
 <a href="https://github.com/nic-starke"><img src="https://avatars.githubusercontent.com/u/10380155?v=4" title="nic-starke" width="75" height="75"></a>
+<a href="https://github.com/deepc0py"><img src="https://avatars.githubusercontent.com/u/17808066?v=4" title="deepc0py" width="75" height="75"></a>
+
+
 
 ### Sponsors
 
 ## Analytics
 
 ![Alt](https://repobeats.axiom.co/api/embed/349b4dffd3819c8746b8d91e4de04beaabb05ebe.svg "Repobeats analytics image")
+
+## License
+
+SPDX-License-Identifier: MIT
