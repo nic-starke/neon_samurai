@@ -319,6 +319,31 @@
 				"Start Bloom"
 			],
 			"problemMatcher": []
+		},
+		{
+			"label": "Test: Robot Framework (hardware)",
+			"detail": "Runs the sysex protocol test suite against a connected device (see tests/robot/README.md). Skips the manual-reset persistence tests.",
+			"type": "shell",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"command": "tests/robot/.venv/bin/python3",
+			"args": [
+				"-m",
+				"robot",
+				"--outputdir",
+				"tests/robot/results",
+				"--exclude",
+				"manual-reset",
+				"tests/robot/suites/sysex_protocol.robot"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": []
 		}
 	],
 }

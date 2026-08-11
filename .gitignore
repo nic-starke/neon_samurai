@@ -7,3 +7,8 @@ documentation
 .VSCodeCounter
 plan
 .~lock*
+
+# Robot Framework test venv and run artifacts (tests/robot/)
+tests/robot/.venv
+tests/robot/results
+__pycache__
