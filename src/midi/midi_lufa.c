@@ -10,6 +10,7 @@
 #include "system/print.h"
 #include "event/midi.h"
 #include "midi/midi.h"
+#include "midi/sysex.h"
 #include "usb/usb_lufa.h"
 
 #include "LUFA/Common/Common.h"
@@ -191,8 +192,19 @@ static int midi_out_handler(void* event) {
 			tx_buf[3] = sysex->param;
 			lufa_transmit(tx_buf, sizeof(tx_buf));
 
-			// Send data_len, followed by the data bytes themselves, then the
-			// F7 terminator - up to 3 payload bytes (tx_buf[1..3]) per
+			// Pack the raw 8-bit data payload into 7-bit wire form (see
+			// sysex_pack7() in sysex.c) - sysex data bytes must be <= 0x7F,
+			// but this protocol's values (HSV saturation/value especially)
+			// routinely need the full 8-bit range. data_len itself stays
+			// the semantic (unpacked) length; only the data bytes are
+			// packed.
+			u8 packed_data[MIDI_SYSEX_OUT_DATA_LEN_MAX +
+										 ((MIDI_SYSEX_OUT_DATA_LEN_MAX + 6) / 7)];
+			u8 packed_data_len =
+					sysex_pack7(sysex->data, sysex->data_len, packed_data);
+
+			// Send data_len, followed by the (now packed) data bytes, then
+			// the F7 terminator - up to 3 payload bytes (tx_buf[1..3]) per
 			// USB-MIDI packet, same as the mfid/cmd/param packets above.
 			// data_len occupies the first payload byte of the first packet.
 			//
@@ -205,8 +217,8 @@ static int midi_out_handler(void* event) {
 			// beyond the 8-byte data[] array); and that loop's
 			// lufa_transmit() call was placed after case 3's break - dead
 			// code, so those packets were never actually sent at all.
-			u8	 remaining = sysex->data_len;
-			u8*	 payload	 = sysex->data;
+			u8	 remaining = packed_data_len;
+			u8*	 payload	 = packed_data;
 			bool first		 = true;
 			bool done			 = false;
 
@@ -233,7 +245,12 @@ static int midi_out_handler(void* event) {
 
 				u8 slot = 1;
 				if (first) {
-					tx_buf[slot++] = remaining; // data_len
+					// data_len is the semantic (unpacked) length, not the
+					// packed byte count that `remaining` tracks below - a
+					// client needs to know how many real data bytes to
+					// expect after unpacking, not how many wire bytes it
+					// took to carry them.
+					tx_buf[slot++] = sysex->data_len;
 					first						= false;
 				}
 				while (slot <= in_this_packet) {

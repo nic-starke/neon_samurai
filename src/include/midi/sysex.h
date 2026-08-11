@@ -15,6 +15,17 @@
 #define MF_SYSEX_MIN_PKT_SIZE	 (sizeof(mf_sysex_msg_s) - MF_SYSEX_MAX_DATA_SIZE)
 #define MF_SYSEX_MAX_DATA_SIZE (sizeof(mf_sysex_param_s))
 
+// mf_id/cmd/param_enum + the largest param's data, 7-bit packed (see
+// sysex_pack7()/sysex_unpack7() in sysex.c): every 7 raw data bytes need an
+// extra header byte on the wire, so the packed form is larger than the
+// unpacked struct it decodes to. mf_id/cmd/param_enum are never packed
+// (always small enough to be legal 7-bit values as-is), only the data
+// portion is.
+#define MF_SYSEX_PACKED_MAX_DATA_SIZE                                       \
+	(MF_SYSEX_MAX_DATA_SIZE + ((MF_SYSEX_MAX_DATA_SIZE + 6) / 7))
+#define MF_SYSEX_PACKED_MAX_PKT_SIZE                                        \
+	(MF_SYSEX_MIN_PKT_SIZE + MF_SYSEX_PACKED_MAX_DATA_SIZE)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum mf_sysex_cmd {
@@ -43,6 +54,11 @@ enum mf_sysex_param {
 	MF_SYSEX_PARAM_VMAP_RGB,
 	MF_SYSEX_PARAM_VMAP_RB,
 	MF_SYSEX_PARAM_VMAP_PROTO,
+	// Writable HSV color - VMAP_RGB above is read-only/derived (computed
+	// from this by color_update_vmap_rgb()); this is the actual way to set
+	// an encoder's color over sysex. Previously only reachable via the CDC
+	// console's `set_vmap_hsv` command, unusable from a Web MIDI client.
+	MF_SYSEX_PARAM_VMAP_HSV,
 
 	MF_SYSEX_PARAM_SIDE_SWITCH,
 	MF_SYSEX_PARAM_ACTIVE_BANK,
@@ -133,6 +149,11 @@ typedef struct __attribute__((packed)) {
 			u8 red;
 			u8 blue;
 		} rb;
+		struct {
+			u16 hue;				 // 0-1535
+			u8	 saturation; // 0-255
+			u8	 value;			 // 0-255
+		} hsv;
 	} data;
 } mf_sysex_vmap_param_s;
 
@@ -154,3 +175,8 @@ typedef struct __attribute__((packed)) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int mf_sysex_init(void);
+
+// 7-to-8-bit sysex data packing - see the definitions in sysex.c for the
+// full rationale. Exported for use by midi_lufa.c's TX path.
+u8 sysex_pack7(const u8* unpacked, u8 unpacked_len, u8* packed);
+u8 sysex_unpack7(const u8* packed, u8 packed_len, u8* unpacked);

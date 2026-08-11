@@ -10,6 +10,7 @@
 
 #include "midi/sysex.h"
 #include "event/midi.h"
+#include "led/color.h"
 #include "system/project.h"
 
 // Test sequence:
@@ -118,6 +119,7 @@ static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_RGB, struct virtmap, rgb, VMAP_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_RB, struct virtmap, rb, VMAP_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_PROTO, struct virtmap, cfg, VMAP_PREFIX_LEN),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_HSV, struct virtmap, hsv, VMAP_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_SIDE_SWITCH, struct side_switch, mode, SW_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ACTIVE_BANK, struct mf_rt, curr_bank, BANK_PREFIX_LEN),
 	[MF_SYSEX_PARAM_DEVICE_INFO] = {0, sizeof(mf_sysex_device_info_s), 0},
@@ -126,14 +128,68 @@ static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
 // clang-format on
 
 static enum stream_state stream_state = STREAM_IDLE;
-// Buffer to stream incoming sysex, +2 for start and end sysex bytes
-static u8								 buffer[MF_SYSEX_MAX_PKT_SIZE + 2];
-static u8								 buffer_idx = 0;
+// Buffer to stream incoming sysex, +2 for start and end sysex bytes. Sized
+// for the *packed* wire form (see 7-bit packing note below), which is
+// larger than the raw struct data it decodes to.
+static u8 buffer[MF_SYSEX_PACKED_MAX_PKT_SIZE + 2];
+static u8 buffer_idx = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int mf_sysex_init(void) {
 	return event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+}
+
+// Standard MIDI 7-to-8-bit packing: sysex data bytes must be <= 0x7F (the
+// high bit marks a status byte), but this protocol's param structs are full
+// 8-bit values (HSV saturation/value in particular routinely need the
+// upper half of the range). Every 7 raw bytes are packed into 8 wire bytes:
+// a header byte (bit i = the stripped high bit of raw byte i) followed by
+// the 7 bytes with their high bit cleared. Only the variable-length param
+// payload is packed - mf_id/cmd/param_enum stay raw, since they're always
+// small enough to be legal as-is and unpacking needs param_enum to already
+// be known (to look up how much payload data to expect). Exported (used by
+// midi_lufa.c's TX path as well as midi_in_handler() below).
+//
+// unpacked_len bytes in -> returns the number of packed bytes produced.
+u8 sysex_pack7(const u8* unpacked, u8 unpacked_len, u8* packed) {
+	u8 out = 0;
+	for (u8 i = 0; i < unpacked_len; i += 7) {
+		u8 group_len = (unpacked_len - i < 7) ? (unpacked_len - i) : 7;
+		u8 header		 = 0;
+		for (u8 j = 0; j < group_len; j++) {
+			u8 b = unpacked[i + j];
+			if (b & 0x80) {
+				header |= (1 << j);
+			}
+			packed[out + 1 + j] = b & 0x7F;
+		}
+		packed[out] = header;
+		out += group_len + 1;
+	}
+	return out;
+}
+
+// Inverse of sysex_pack7(). packed_len bytes in -> returns the number of
+// unpacked bytes produced (may be less than expected if the packed data is
+// malformed/truncated - callers must independently validate the result
+// length against what the parameter expects).
+u8 sysex_unpack7(const u8* packed, u8 packed_len, u8* unpacked) {
+	u8 out = 0;
+	u8 i	 = 0;
+	while (i < packed_len) {
+		u8 header		 = packed[i++];
+		u8 group_len = (packed_len - i < 7) ? (packed_len - i) : 7;
+		for (u8 j = 0; j < group_len; j++) {
+			u8 b = packed[i + j];
+			if (header & (1 << j)) {
+				b |= 0x80;
+			}
+			unpacked[out++] = b;
+		}
+		i += group_len;
+	}
+	return out;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -176,17 +232,17 @@ static int midi_in_handler(void* evt) {
 		return 0;
 	}
 
-	// If streaming is complete then we have a message in the buffer to process.
-	const mf_sysex_msg_s* msg = (mf_sysex_msg_s*)&buffer[1];
-
-	// Validate that the received data conforms
-	// Check if the number of bytes received is too small
-	if (buffer_idx < MF_SYSEX_MIN_PKT_SIZE) {
+	// buffer[0] = F0, buffer[1..3] = mf_id, buffer[4] = cmd, buffer[5] =
+	// param_enum - these five are never 7-bit packed (see sysex_pack7()'s
+	// comment), so they can be validated directly off the raw buffer before
+	// param_enum is even known to be valid, which unpacking the payload
+	// requires (the payload's expected length depends on which param this
+	// is). buffer[buffer_idx-1] = F7.
+	if (buffer_idx < MF_SYSEX_MIN_PKT_SIZE + 2) { // +2 for F0/F7
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Check if sysex start and end bytes are correct
 	if (buffer[0] != MIDI_STATUS_SYSTEM_EXCLUSIVE ||
 			buffer[buffer_idx - 1] != MIDI_STATUS_END_OF_EXCLUSIVE) {
 		ret = ERR_BAD_MSG;
@@ -196,36 +252,47 @@ static int midi_in_handler(void* evt) {
 	// Validate the manufacturer ID is correct (SAM). Reject on any byte
 	// mismatch - using && here would only reject if all three bytes were
 	// simultaneously wrong, which accepts almost anything.
-	if (msg->mf_id[0] != MIDI_MFR_ID_1 || msg->mf_id[1] != MIDI_MFR_ID_2 ||
-			msg->mf_id[2] != MIDI_MFR_ID_3) {
+	if (buffer[1] != MIDI_MFR_ID_1 || buffer[2] != MIDI_MFR_ID_2 ||
+			buffer[3] != MIDI_MFR_ID_3) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Check the command is valid
-	if (msg->cmd != MF_SYSEX_GET && msg->cmd != MF_SYSEX_SET &&
-			msg->cmd != MF_SYSEX_STOP) {
+	u8 cmd				 = buffer[4];
+	u8 param_enum	 = buffer[5];
+
+	if (cmd != MF_SYSEX_GET && cmd != MF_SYSEX_SET && cmd != MF_SYSEX_STOP) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
 
-	// Check the parameter is valid
-	if (msg->param_enum >= MF_SYSEX_PARAM_NB) {
+	if (param_enum >= MF_SYSEX_PARAM_NB) {
 		ret = ERR_BAD_PARAM;
 		goto cleanup;
 	}
 
-	// Check the received packet size matches what this parameter expects -
-	// this was previously computed but never actually checked, so an
-	// undersized data field would fall through to memcpy() below and read
-	// past the message. buffer_idx counts the F0/F7 framing bytes too (see
-	// the streaming loop above), so the expected total is: F0(1) + mf_id(3)
-	// + cmd(1) + param_enum(1) + this param's wire struct + F7(1).
-	u8 expected_len = 1 + 3 + 1 + 1 + sysex_data_info[msg->param_enum].wire_len + 1;
-	if (buffer_idx != expected_len) {
+	// Unpack the payload (everything between param_enum and F7) from 7-bit
+	// wire form into a local unpacked scratch buffer, then splice it back
+	// over buffer[6..] so msg->param below reads correctly-sized unpacked
+	// values - this keeps every switch/memcpy case downstream unaware that
+	// packing happened at all.
+	u8 packed_payload_len = buffer_idx - 1 /*F0*/ - 3 /*mf_id*/ - 1 /*cmd*/ -
+													 1 /*param_enum*/ - 1 /*F7*/;
+	u8 unpacked_payload[MF_SYSEX_MAX_DATA_SIZE];
+	u8 unpacked_payload_len =
+			sysex_unpack7(&buffer[6], packed_payload_len, unpacked_payload);
+
+	// Check the received (unpacked) payload size matches what this
+	// parameter expects - this was previously computed but never actually
+	// checked, so an undersized data field would fall through to memcpy()
+	// below and read past the message.
+	if (unpacked_payload_len != sysex_data_info[param_enum].wire_len) {
 		ret = ERR_BAD_MSG;
 		goto cleanup;
 	}
+
+	memcpy(&buffer[6], unpacked_payload, unpacked_payload_len);
+	const mf_sysex_msg_s* msg = (mf_sysex_msg_s*)&buffer[1];
 
 	// Resolve the live-memory location and length of the target parameter.
 	// Both GET (read out) and SET (write in) operate through this pointer;
@@ -276,6 +343,30 @@ static int midi_in_handler(void* evt) {
 			param = (void*)((u8*)vmap + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
 				memcpy(param, (const void*)&msg->param.vmap.data, param_len);
+			}
+			break;
+		}
+
+		case MF_SYSEX_PARAM_VMAP_HSV: {
+			// Unlike the plain memcpy cases above, setting HSV also needs to
+			// recompute the derived RGB (VMAP_RGB) and request a display
+			// redraw - color_set_vmap_hsv() already does exactly that (it's
+			// the same function the CDC console's set_vmap_hsv command
+			// calls), so SET goes through it rather than a raw memcpy.
+			u8 bank_idx = msg->param.vmap.bank_idx;
+			u8 enc_idx	= msg->param.vmap.enc_idx;
+			u8 vmap_idx = msg->param.vmap.vmap_idx;
+			if (bank_idx >= NUM_ENC_BANKS || enc_idx >= NUM_ENCODERS ||
+					vmap_idx >= NUM_VMAPS_PER_ENC) {
+				ret = ERR_BAD_PARAM;
+				break;
+			}
+			struct virtmap* vmap = &gENCODERS[bank_idx][enc_idx].vmaps[vmap_idx];
+			param = (void*)((u8*)vmap + sysex_data_info[msg->param_enum].offset);
+			if (msg->cmd == MF_SYSEX_SET) {
+				color_set_vmap_hsv(bank_idx, enc_idx, vmap_idx, msg->param.vmap.data.hsv.hue,
+														msg->param.vmap.data.hsv.saturation,
+														msg->param.vmap.data.hsv.value);
 			}
 			break;
 		}
