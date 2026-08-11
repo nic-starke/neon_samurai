@@ -49,6 +49,16 @@ project(NEON_SAMURAI
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
 
+# Generate system/project.h (PROJECT_NAME/VERSION/VERSION_MAJOR/MINOR/PATCH)
+# from the project() call above, so firmware code (e.g. the sysex
+# device-info query) has a single source of truth for its own version
+# instead of a second, hand-maintained constant.
+configure_file(
+    ${CMAKE_SOURCE_DIR}/src/include/system/project.h.in
+    ${CMAKE_BINARY_DIR}/generated/system/project.h
+    @ONLY
+)
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # AVR MCU Settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -262,6 +272,7 @@ set_source_files_properties(
 target_include_directories(neosam PRIVATE
 	${CMAKE_SOURCE_DIR}/src/include/
 	${CMAKE_SOURCE_DIR}/src/include/usb/
+	${CMAKE_BINARY_DIR}/generated/
 )
 
 set_target_properties(neosam PROPERTIES

@@ -17,7 +17,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (u16)(11)
+#define EE_VERSION (u16)(12)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -37,18 +37,6 @@ typedef union {
 	u8										 type;
 	struct eeprom_midi_cfg midi;
 } eeprom_proto_cfg_s;
-
-struct eeprom_virtmap_cfg {
-	struct {
-		i8 lower;
-		i8 upper;
-	} range;
-
-	struct {
-		u8 start;
-		u8 stop;
-	} position;
-};
 
 struct eeprom_encoder {
 	// General
@@ -74,6 +62,14 @@ struct eeprom_encoder {
 		u8								 hsv_v; // Value (0-255)
 		u8								 rb_r;
 		u8								 rb_b;
+
+		// Value-mapping range and physical rotation window - previously set
+		// via sysex (MF_SYSEX_PARAM_VMAP_RANGE/_POSITION) but never persisted,
+		// so it was lost on every reboot.
+		i8 range_lower;
+		i8 range_upper;
+		u8 position_start;
+		u8 position_stop;
 	} vmap[NUM_VMAPS_PER_ENC];
 };
 
@@ -215,6 +211,12 @@ static int encode_encoder(const struct encoder*	 src,
 		dst->vmap[i].rb_r = src->vmaps[i].rb.red;
 		dst->vmap[i].rb_b = src->vmaps[i].rb.blue;
 		encode_proto_cfg(&src->vmaps[i].cfg, &dst->vmap[i].cfg);
+
+		// Save the value-mapping range and physical rotation window
+		dst->vmap[i].range_lower		= src->vmaps[i].range.lower;
+		dst->vmap[i].range_upper		= src->vmaps[i].range.upper;
+		dst->vmap[i].position_start = src->vmaps[i].position.start;
+		dst->vmap[i].position_stop	= src->vmaps[i].position.stop;
 	}
 
 	encode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);
@@ -248,6 +250,12 @@ static int decode_encoder(const struct eeprom_encoder* src,
 		dst->vmaps[i].rb.red	= src->vmap[i].rb_r;
 		dst->vmaps[i].rb.blue = src->vmap[i].rb_b;
 		decode_proto_cfg(&src->vmap[i].cfg, &dst->vmaps[i].cfg);
+
+		// Load the value-mapping range and physical rotation window
+		dst->vmaps[i].range.lower		= src->vmap[i].range_lower;
+		dst->vmaps[i].range.upper		= src->vmap[i].range_upper;
+		dst->vmaps[i].position.start = src->vmap[i].position_start;
+		dst->vmaps[i].position.stop	= src->vmap[i].position_stop;
 	}
 
 	decode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);

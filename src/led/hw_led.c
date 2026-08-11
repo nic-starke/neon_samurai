@@ -53,9 +53,14 @@ volatile u8 mf_frame = 0;
 
 void hw_led_init(void) {
 
-	// Set all LEDS off
-	memset((u16*)gFRAME_BUFFER, (int)0xFFFF, (size_t)sizeof(gFRAME_BUFFER));
-	// memset(gFRAME_BUFFER, 0x0000, sizeof(gFRAME_BUFFER));
+	// Set all LEDs off. The frame buffer is written in inverted/active-low
+	// form (see mf_draw_encoder()'s "Write to Frame Buffer (Inverted)" step
+	// in led.c: it stores ~final_state, i.e. bit=1 means the LED is OFF) -
+	// so the correct all-off fill is 0xFF per byte, not 0x00. memset() fills
+	// byte-by-byte regardless of the int argument's width, so 0xFF is passed
+	// directly rather than via a 16-bit-looking 0xFFFF that could misread as
+	// "the wrong endian half was taken".
+	memset((u16*)gFRAME_BUFFER, 0xFF, (size_t)sizeof(gFRAME_BUFFER));
 
 	// Configure GPIO for LED shift registers
 	gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);

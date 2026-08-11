@@ -47,8 +47,24 @@ enum mf_sysex_param {
 	MF_SYSEX_PARAM_SIDE_SWITCH,
 	MF_SYSEX_PARAM_ACTIVE_BANK,
 
+	// Read-only. Lets a host tool detect firmware version and hardware
+	// capability (encoder/bank/vmap/side-switch counts) without hardcoding
+	// them, and identify firmware predating this device-info query.
+	MF_SYSEX_PARAM_DEVICE_INFO,
+
 	MF_SYSEX_PARAM_NB,
 };
+
+// Payload for MF_SYSEX_PARAM_DEVICE_INFO GET responses.
+typedef struct __attribute__((packed)) {
+	u8 fw_version_major;
+	u8 fw_version_minor;
+	u8 fw_version_patch;
+	u8 num_encoders;
+	u8 num_banks;
+	u8 num_vmaps_per_encoder;
+	u8 num_side_switches;
+} mf_sysex_device_info_s;
 
 typedef struct __attribute__((packed)) {
 	u8 mode;
@@ -85,7 +101,12 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
 	u8 sw_idx;
+	u8 data; // enum side_switch_mode
 } mf_sysex_sideswitch_param_s;
+
+typedef struct __attribute__((packed)) {
+	u8 data; // Active bank index (0..NUM_ENC_BANKS-1)
+} mf_sysex_bank_param_s;
 
 typedef struct __attribute__((packed)) {
 	u8 bank_idx;
@@ -100,14 +121,17 @@ typedef struct __attribute__((packed)) {
 			u8 start;
 			u8 stop;
 		} position;
+		// u8 fields here, not u16: these mirror struct rgb_8/rb_8 (led/rgb.h)
+		// exactly, which store gamma-corrected BCM brightness (0..NUM_PWM_FRAMES-1,
+		// i.e. 0-31) per channel, not full 16-bit color.
 		struct {
-			u16 red;
-			u16 green;
-			u16 blue;
+			u8 red;
+			u8 green;
+			u8 blue;
 		} rgb;
 		struct {
-			u16 red;
-			u16 blue;
+			u8 red;
+			u8 blue;
 		} rb;
 	} data;
 } mf_sysex_vmap_param_s;
@@ -116,6 +140,7 @@ typedef union {
 	mf_sysex_encoder_param_s		enc;
 	mf_sysex_sideswitch_param_s sw;
 	mf_sysex_vmap_param_s				vmap;
+	mf_sysex_bank_param_s				bank;
 } mf_sysex_param_s;
 
 typedef struct __attribute__((packed)) {

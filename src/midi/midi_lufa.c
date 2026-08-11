@@ -191,82 +191,63 @@ static int midi_out_handler(void* event) {
 			tx_buf[3] = sysex->param;
 			lufa_transmit(tx_buf, sizeof(tx_buf));
 
+			// Send data_len, followed by the data bytes themselves, then the
+			// F7 terminator - up to 3 payload bytes (tx_buf[1..3]) per
+			// USB-MIDI packet, same as the mfid/cmd/param packets above.
+			// data_len occupies the first payload byte of the first packet.
+			//
+			// This replaced a hand-unrolled version with several bugs: the
+			// data_len==2 case never marked itself done (or decremented the
+			// remaining-byte count), so it fell into the follow-up loop and
+			// sent bogus extra bytes; the follow-up loop re-read *payload as
+			// an index into sysex->data[] a second time instead of using the
+			// byte it already pointed at (reading wildly out of bounds
+			// beyond the 8-byte data[] array); and that loop's
+			// lufa_transmit() call was placed after case 3's break - dead
+			// code, so those packets were never actually sent at all.
 			u8	 remaining = sysex->data_len;
 			u8*	 payload	 = sysex->data;
+			bool first		 = true;
 			bool done			 = false;
 
-			switch (sysex->data_len) {
-				case 0: {
-					tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE);
-					tx_buf[1] = MIDI_STATUS_END_OF_EXCLUSIVE;
-					tx_buf[2] = 0;
-					tx_buf[3] = 0;
-					done			= true;
-					break;
-				}
+			// USB-MIDI SysEx CIN codes are not sequential by 1 (END_1BYTE=0x50,
+			// END_2BYTE=0x60, END_3BYTE=0x70 - each a distinct nibble-shifted
+			// code, not END_1BYTE+N), so look the terminating event byte up
+			// by packet fill count rather than computing it arithmetically.
+			static const u8 end_event[4] = {
+					MIDI_COMMAND_SYSEX_END_1BYTE, // 0 data bytes this packet (just F7)
+					MIDI_COMMAND_SYSEX_END_1BYTE, // 1 data byte
+					MIDI_COMMAND_SYSEX_END_2BYTE, // 2 data bytes
+					MIDI_COMMAND_SYSEX_END_3BYTE, // unused (3 full bytes -> not terminal)
+			};
 
-				case 1: {
-					tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE);
-					tx_buf[1] = sysex->data_len;
-					tx_buf[2] = *payload;
-					tx_buf[3] = MIDI_STATUS_END_OF_EXCLUSIVE;
-					done			= true;
-					break;
-				}
-
-				default:
-				case 2: {
-					tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE);
-					tx_buf[1] = sysex->data_len;
-					tx_buf[2] = *payload++;
-					tx_buf[3] = *payload++;
-					break;
-				}
-			}
-
-			lufa_transmit(tx_buf, sizeof(tx_buf));
-
+			// Bytes still to place in this packet: data_len (only in the
+			// first packet) plus whatever remains of the data payload.
 			while (!done) {
-				memset(tx_buf, 0, sizeof(tx_buf));
-				switch (remaining) {
-					case 0: {
-						tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_1BYTE);
-						tx_buf[1] = MIDI_STATUS_END_OF_EXCLUSIVE;
-						done			= true;
-						remaining = 0;
-						break;
-					}
+				u8 pending				 = (first ? 1 : 0) + remaining;
+				u8 in_this_packet = (pending < 3) ? pending : 3;
+				bool is_last			 = (in_this_packet < 3);
 
-					case 1: {
-						tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_2BYTE);
-						tx_buf[1] = sysex->data[*payload++];
-						tx_buf[2] = MIDI_STATUS_END_OF_EXCLUSIVE;
-						done			= true;
-						remaining = 0;
-						break;
-					}
+				tx_buf[0] = MIDI_EVENT(0, is_last ? end_event[in_this_packet]
+																					 : MIDI_COMMAND_SYSEX_START_3BYTE);
 
-					case 2: {
-						tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_END_3BYTE);
-						tx_buf[1] = sysex->data[*payload++];
-						tx_buf[2] = sysex->data[*payload++];
-						tx_buf[3] = MIDI_STATUS_END_OF_EXCLUSIVE;
-						done			= true;
-						remaining = 0;
-						break;
-					}
-
-					default:
-					case 3: {
-						tx_buf[0] = MIDI_EVENT(0, MIDI_COMMAND_SYSEX_START_3BYTE);
-						tx_buf[1] = sysex->data[*payload++];
-						tx_buf[2] = sysex->data[*payload++];
-						tx_buf[3] = sysex->data[*payload++];
-						remaining -= 3;
-						break;
-					}
-						lufa_transmit(tx_buf, sizeof(tx_buf));
+				u8 slot = 1;
+				if (first) {
+					tx_buf[slot++] = remaining; // data_len
+					first						= false;
 				}
+				while (slot <= in_this_packet) {
+					tx_buf[slot++] = *payload++;
+					remaining--;
+				}
+				// Pad any unused trailing slot(s) with the terminator, and
+				// only the terminating packet actually ends the message.
+				for (; slot < 4; slot++) {
+					tx_buf[slot] = MIDI_STATUS_END_OF_EXCLUSIVE;
+				}
+
+				done = is_last;
+				lufa_transmit(tx_buf, sizeof(tx_buf));
 			}
 
 			break;

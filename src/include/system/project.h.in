@@ -7,7 +7,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define PROJECT_NAME "@PROJECT_NAME@"
-#define PLATFORM "@PLATFORM@"
 
 #define VERSION "@PROJECT_VERSION@"
 #define VERSION_MAJOR @PROJECT_VERSION_MAJOR@
