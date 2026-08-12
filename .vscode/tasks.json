@@ -322,7 +322,7 @@
 		},
 		{
 			"label": "Test: Robot Framework (hardware)",
-			"detail": "Runs the sysex protocol test suite against a connected device (see tests/robot/README.md). Skips the manual-reset persistence tests.",
+			"detail": "Runs the sysex protocol test suite against a connected device (see tests/robot/README.md). Fully automated, including device resets - takes a few minutes.",
 			"type": "shell",
 			"group": {
 				"kind": "test",
@@ -334,8 +334,6 @@
 				"robot",
 				"--outputdir",
 				"tests/robot/results",
-				"--exclude",
-				"manual-reset",
 				"tests/robot/suites/sysex_protocol.robot"
 			],
 			"presentation": {

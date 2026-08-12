@@ -3,15 +3,31 @@ Documentation     Hardware-in-the-loop tests for the neon_samurai sysex
 ...               configuration protocol (src/midi/sysex.c). Requires a
 ...               real device connected and enumerated as a MIDI port -
 ...               these are not mocked, by design; see tests/robot/README.md.
+...
+...               Suite Setup factory-resets the device (MF_SYSEX_PARAM_CONFIG_RESET)
+...               so every run starts from the same known state regardless of
+...               what a previous run (or manual poking) left behind, rather
+...               than tests silently depending on incidental leftover state.
+...               This runs once per suite, not per test - individual test
+...               cases already set every value they assert on rather than
+...               relying on the factory-reset defaults directly (except
+...               "Factory Reset Restores Defaults", which tests the reset
+...               itself), so per-test isolation doesn't require repeating
+...               the ~30s factory-reset EEPROM rewrite for every test case.
 Library           ../lib/NeonSamuraiLibrary.py
 Library           Collections
-Suite Setup       Connect To Device
+Suite Setup       Start With Known Good State
 Suite Teardown    Disconnect From Device
 
 *** Variables ***
 ${BANK}           0
 ${ENCODER}        0
 ${VMAP}           0
+
+*** Keywords ***
+Start With Known Good State
+    Connect To Device
+    Factory Reset Device
 
 *** Test Cases ***
 Device Info Reports Expected Hardware Capability
@@ -46,23 +62,40 @@ Vmap Range Set And Get Round Trip
 Vmap Range Survives Device Reset
     [Documentation]    Regression test for the EEPROM persistence fix -
     ...    range/position were previously settable over sysex but silently
-    ...    lost on every reboot. Requires a manual reset between the SET
-    ...    and the GET; see tests/robot/README.md for how this suite runs
-    ...    it (console command, not available over this MIDI-only library).
-    [Tags]    manual-reset
+    ...    lost on every reboot. Uses MF_SYSEX_PARAM_SYSTEM_RESET (a plain
+    ...    reboot, config untouched) rather than the factory reset this
+    ...    suite otherwise uses for setup, since that would defeat the
+    ...    point - persistence needs a value to survive a reboot, not be
+    ...    wiped by one.
+    ...
+    ...    The 6s sleep before resetting is not padding - cfg_update()
+    ...    (config.c) only autosaves live encoder state to EEPROM every
+    ...    5s, so a SET immediately followed by a reset races that window
+    ...    and reads back the pre-SET value after reboot, not because
+    ...    persistence is broken but because the write was never flushed
+    ...    to EEPROM in the first place. Confirmed directly: the first
+    ...    version of this test without the sleep failed with exactly
+    ...    that symptom (0 != 42).
     Set Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}    42    123
-    Log    Trigger a device reset now (console 'reset' command or power cycle), then run 'Vmap Range Persisted After Reset' separately.    level=WARN
-
-Vmap Range Persisted After Reset
-    [Documentation]    Companion to the test above - run this AFTER
-    ...    manually resetting the device, to confirm the value set there
-    ...    survived. Kept as a separate test case (not chained
-    ...    automatically) since triggering the reset needs a human or a
-    ...    separate serial keyword this MIDI-only suite doesn't have.
-    [Tags]    manual-reset
+    Sleep    6s    waiting for cfg_update()'s 5s autosave window to flush the SET to EEPROM
+    Reset Device
     ${lower}    ${upper}=    Get Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}
     Should Be Equal As Integers    ${lower}    42
     Should Be Equal As Integers    ${upper}    123
+
+Factory Reset Restores Defaults
+    [Documentation]    Regression test for MF_SYSEX_PARAM_CONFIG_RESET
+    ...    itself (also what Test Setup uses to establish known state for
+    ...    every other test in this suite) - sets a non-default value,
+    ...    factory-resets, and confirms it's back to the compiled-in
+    ...    default (MIDI_CC_MIN/MIDI_CC_MAX, i.e. 0/127 - see
+    ...    sw_encoder_init() in input_manager.c) rather than the value
+    ...    that was just set.
+    Set Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}    88    99
+    Factory Reset Device
+    ${lower}    ${upper}=    Get Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}
+    Should Be Equal As Integers    ${lower}    0
+    Should Be Equal As Integers    ${upper}    127
 
 Vmap Hsv Set And Get Round Trip With High Byte Values
     [Documentation]    Regression test for the 7-bit MIDI packing fix -

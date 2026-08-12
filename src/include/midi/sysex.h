@@ -68,6 +68,17 @@ enum mf_sysex_param {
 	// them, and identify firmware predating this device-info query.
 	MF_SYSEX_PARAM_DEVICE_INFO,
 
+	// Write-only triggers, no meaningful data payload (SET with any/no
+	// data byte fires it; GET is rejected). Both reboot the device - the
+	// SET ack is sent *before* the reboot actually happens, mirroring how
+	// the CDC console's `reset`/`reset_cfg` commands and
+	// EVT_SYS_REQ_CFG_RESET already work. Added so a host tool (e.g. a
+	// test suite establishing a known starting state, or the web GUI's
+	// "factory reset" action) doesn't need a second transport (the CDC
+	// serial console) just to reboot or factory-reset the device.
+	MF_SYSEX_PARAM_SYSTEM_RESET,	 // Soft reboot, config unchanged
+	MF_SYSEX_PARAM_CONFIG_RESET,	 // Factory reset (wipes EEPROM) + reboot
+
 	MF_SYSEX_PARAM_NB,
 };
 

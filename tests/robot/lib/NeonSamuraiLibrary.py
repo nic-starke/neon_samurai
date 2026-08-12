@@ -21,6 +21,8 @@ platform-agnostic.
 
 from __future__ import annotations
 
+import time
+
 import sysex as sx
 from rawmidi import RawMidiPort, find_rawmidi_device
 from robot.api.deco import keyword, library
@@ -28,11 +30,20 @@ from robot.api.deco import keyword, library
 DEFAULT_TIMEOUT_S = 2.0
 DEFAULT_PORT_SUBSTRING = "SAMURAI"
 
+# How long to wait, after triggering a reset, before starting to poll for
+# the device to come back. A plain reboot is fast; a config reset also
+# does a byte-by-byte EEPROM erase (see init_eeprom() in config.c) that
+# has been observed taking up to ~30s on real hardware.
+RECONNECT_INITIAL_DELAY_S = 2.0
+RECONNECT_POLL_TIMEOUT_S = 40.0
+RECONNECT_POLL_INTERVAL_S = 1.0
+
 
 @library(scope="GLOBAL")
 class NeonSamuraiLibrary:
     def __init__(self):
         self._port: RawMidiPort | None = None
+        self._port_substring = DEFAULT_PORT_SUBSTRING
 
     # --- Connection lifecycle ---------------------------------------------
 
@@ -41,6 +52,7 @@ class NeonSamuraiLibrary:
         """Open the ALSA rawmidi device whose `amidi -l` name contains
         `port_substring`. Fails the test if no matching device is found -
         this library never falls back to a mock, by design."""
+        self._port_substring = port_substring
         path = find_rawmidi_device(port_substring)
         self._port = RawMidiPort(path)
 
@@ -49,6 +61,39 @@ class NeonSamuraiLibrary:
         if self._port is not None:
             self._port.close()
             self._port = None
+
+    def _reconnect_after_reset(self, poll_timeout_s: float) -> None:
+        """After a reset/config-reset SET ack is received, the device
+        drops off the bus and re-enumerates - possibly under a different
+        ALSA card index (observed directly: card index has shifted across
+        a reset in this environment when other USB MIDI devices were
+        present). Close the current handle and re-discover/re-open by
+        name rather than assuming the same /dev/snd/midiCxDy path is
+        still valid."""
+        if self._port is not None:
+            try:
+                self._port.close()
+            except OSError:
+                pass  # fd may already be dead if the device vanished mid-op
+            self._port = None
+
+        time.sleep(RECONNECT_INITIAL_DELAY_S)
+
+        deadline = time.monotonic() + poll_timeout_s
+        last_error: Exception | None = None
+        while time.monotonic() < deadline:
+            try:
+                path = find_rawmidi_device(self._port_substring)
+                self._port = RawMidiPort(path)
+                return
+            except Exception as e:  # noqa: BLE001 - retry on any discovery/open failure
+                last_error = e
+                time.sleep(RECONNECT_POLL_INTERVAL_S)
+
+        raise AssertionError(
+            f"Device did not re-enumerate within {poll_timeout_s}s after "
+            f"reset (last error: {last_error})"
+        )
 
     # --- Low-level sysex I/O -------------------------------------------
 
@@ -220,15 +265,34 @@ class NeonSamuraiLibrary:
             f"param={reply.param.name} data={reply.data.hex()}"
         )
 
-    @keyword("Trigger Device Reset")
-    def trigger_reset(self) -> None:
-        """Device reset requires the CDC console (separate serial port),
-        not available through this MIDI-only library. See
-        tests/robot/README.md for how to trigger a reset manually or via a
-        serial library in your suite."""
-        raise NotImplementedError(
-            "Device reset requires the CDC console (separate serial port), "
-            "not available through this MIDI-only library. See "
-            "tests/robot/README.md for how to trigger a reset manually or "
-            "via a serial library in your suite."
-        )
+    def _trigger_reset(self, param: sx.Param, timeout_s: float) -> None:
+        """Send a reset-trigger SET and reconnect afterward. The ack is
+        sent by the firmware *before* it reboots (see the design note in
+        sysex.c), so it's normally readable here - but the device
+        physically drops off the USB bus very shortly after, and on a
+        real (not virtual) device that disconnect can race the read
+        itself, raising OSError from the rawmidi fd mid-read rather than
+        a clean timeout. Either outcome (a normal ack, or the read
+        erroring out because the device vanished) is equally valid
+        evidence the reset is underway - the thing that actually needs to
+        succeed is the reconnect after, which runs regardless."""
+        try:
+            self.send_and_wait(sx.Cmd.SET, param, b"", timeout_s)
+        except (AssertionError, OSError):
+            pass
+        self._reconnect_after_reset(RECONNECT_POLL_TIMEOUT_S)
+
+    @keyword("Reset Device")
+    def reset_device(self, timeout_s: float = DEFAULT_TIMEOUT_S) -> None:
+        """Soft-reboots the device via MF_SYSEX_PARAM_SYSTEM_RESET (config
+        untouched) and reconnects once it re-enumerates."""
+        self._trigger_reset(sx.Param.SYSTEM_RESET, timeout_s)
+
+    @keyword("Factory Reset Device")
+    def factory_reset_device(self, timeout_s: float = DEFAULT_TIMEOUT_S) -> None:
+        """Factory-resets the device via MF_SYSEX_PARAM_CONFIG_RESET (wipes
+        EEPROM back to defaults) and reboots, then reconnects once it
+        re-enumerates. This is the keyword suites should use to establish
+        a known starting state in Suite/Test Setup, rather than relying on
+        whatever state a previous run left behind."""
+        self._trigger_reset(sx.Param.CONFIG_RESET, timeout_s)

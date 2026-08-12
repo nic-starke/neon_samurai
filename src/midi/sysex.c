@@ -10,6 +10,7 @@
 
 #include "midi/sysex.h"
 #include "event/midi.h"
+#include "hal/sys.h"
 #include "led/color.h"
 #include "system/project.h"
 
@@ -123,6 +124,10 @@ static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_SIDE_SWITCH, struct side_switch, mode, SW_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ACTIVE_BANK, struct mf_rt, curr_bank, BANK_PREFIX_LEN),
 	[MF_SYSEX_PARAM_DEVICE_INFO] = {0, sizeof(mf_sysex_device_info_s), 0},
+	// SYSTEM_RESET/CONFIG_RESET carry no payload at all (not even an index
+	// prefix) - SET with zero data bytes fires them.
+	[MF_SYSEX_PARAM_SYSTEM_RESET] = {0, 0, 0},
+	[MF_SYSEX_PARAM_CONFIG_RESET] = {0, 0, 0},
 };
 
 // clang-format on
@@ -410,6 +415,41 @@ static int midi_in_handler(void* evt) {
 				break;
 			}
 			param = (void*)(uintptr_t)&device_info;
+			break;
+		}
+
+		// SYSTEM_RESET/CONFIG_RESET reboot the device, so they can't use the
+		// normal reply path below (event_post() only queues the ack for the
+		// main loop to transmit later via event_update()/midi_update() -
+		// too late, since the reboot happens before the queue is ever
+		// drained). Send the ack synchronously via event_post_rt() (calls
+		// midi_out_handler() directly, blocking until it's actually
+		// transmitted) here instead, then trigger the reset and return
+		// immediately - skipping the generic reply switch below entirely.
+		case MF_SYSEX_PARAM_SYSTEM_RESET:
+		case MF_SYSEX_PARAM_CONFIG_RESET: {
+			if (msg->cmd != MF_SYSEX_SET) {
+				ret = ERR_UNSUPPORTED;
+				break;
+			}
+
+			midi_event_s reply = {
+					.type = MIDI_EVENT_SYSEX,
+					.data.sysex_out =
+							{
+									.cmd			= MF_SYSEX_SET_RESPONSE,
+									.param		= msg->param_enum,
+									.data_len = 1,
+									.data			= {SUCCESS},
+							},
+			};
+			event_post_rt(EVENT_CHANNEL_MIDI_OUT, &reply);
+
+			if (msg->param_enum == MF_SYSEX_PARAM_CONFIG_RESET) {
+				mf_cfg_reset(); // Does not return
+			} else {
+				hal_system_reset(); // Does not return
+			}
 			break;
 		}
 

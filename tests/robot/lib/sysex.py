@@ -59,6 +59,8 @@ class Param(IntEnum):
     SIDE_SWITCH = 14
     ACTIVE_BANK = 15
     DEVICE_INFO = 16
+    SYSTEM_RESET = 17
+    CONFIG_RESET = 18
 
 
 def pack7(data: bytes) -> bytes:

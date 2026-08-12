@@ -31,29 +31,41 @@ Then run the suite:
 
 ```sh
 tests/robot/.venv/bin/python3 -m robot --outputdir tests/robot/results \
-    --exclude manual-reset tests/robot/suites/sysex_protocol.robot
+    tests/robot/suites/sysex_protocol.robot
 ```
 
-`--exclude manual-reset` skips the two persistence tests that need a
-device reset triggered by hand between them (see below) - everything else
-runs unattended.
-
-### Persistence tests (manual reset required)
-
-`Vmap Range Survives Device Reset` and `Vmap Range Persisted After Reset`
-are split into two separate test cases because triggering a device reset
-needs either a human or a serial connection to the CDC console (`reset`
-command) - out of scope for this MIDI-only library. To run them:
-
-```sh
-tests/robot/.venv/bin/python3 -m robot --outputdir tests/robot/results \
-    --test "Vmap Range Survives Device Reset" tests/robot/suites/sysex_protocol.robot
-# now reset the device: console `reset` command, or power-cycle
-tests/robot/.venv/bin/python3 -m robot --outputdir tests/robot/results \
-    --test "Vmap Range Persisted After Reset" tests/robot/suites/sysex_protocol.robot
-```
+This is fully automated, including device resets - no manual intervention
+needed. Suite Setup factory-resets the device (`Factory Reset Device`, over
+sysex - see below) before the first test runs, so every run starts from the
+same known state regardless of what a previous run or manual poking left
+behind. Individual tests that need a reboot mid-test (persistence, factory
+reset itself) trigger and reconnect automatically too. Expect the full run
+to take a few minutes - each factory reset alone can take up to ~30s (see
+`init_eeprom()`'s byte-by-byte EEPROM erase in `config.c`), and this suite
+triggers three resets total (one at Suite Setup, one each in `Vmap Range
+Survives Device Reset` and `Factory Reset Restores Defaults`).
 
 Results (`log.html`/`report.html`) land in `tests/robot/results/` (gitignored).
+
+### Resetting the device from a test
+
+`Reset Device` (soft reboot, config untouched) and `Factory Reset Device`
+(wipes EEPROM back to defaults, then reboots) are sysex-triggered keywords
+in `NeonSamuraiLibrary.py`, backed by `MF_SYSEX_PARAM_SYSTEM_RESET` and
+`MF_SYSEX_PARAM_CONFIG_RESET` in the firmware. Both send their SET ack
+*before* the device actually reboots (see the design note in `sysex.c` -
+the ack has to go out through `event_post_rt()`, synchronously, before the
+reboot happens, or it would never be transmitted at all), then the device
+drops off the bus and re-enumerates - the library reconnects by re-running
+device discovery afterward rather than assuming the same
+`/dev/snd/midiCxDy` path is still valid, since the ALSA card index has been
+observed to shift across a reset when other USB MIDI devices are present.
+
+These were added specifically so a test suite (or the web GUI, e.g. a
+"factory reset" button) doesn't need a second transport - the CDC serial
+console has `reset`/`reset_cfg` commands that do the same thing, but that's
+a separate port from the sysex/MIDI interface these tests otherwise only
+ever touch.
 
 ## Why direct ALSA rawmidi, not python-rtmidi/mido
 
@@ -73,7 +85,7 @@ remains a dependency, same as it already was for the project's own
 
 ## Structure
 
-```
+```text
 tests/robot/
   requirements.txt     - pinned Python deps (robotframework only)
   lib/
