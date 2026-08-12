@@ -33,9 +33,13 @@ DEFAULT_PORT_SUBSTRING = "SAMURAI"
 # How long to wait, after triggering a reset, before starting to poll for
 # the device to come back. A plain reboot is fast; a config reset also
 # does a byte-by-byte EEPROM erase (see init_eeprom() in config.c) that
-# has been observed taking up to ~30s on real hardware.
+# has been observed taking up to ~30s on real hardware, and that's before
+# USB re-enumeration time on top - an earlier, tighter 40s budget was
+# observed timing out on CONFIG_RESET specifically (not SYSTEM_RESET) in
+# back-to-back suite runs, so this has real margin above the ~30s+
+# worst case actually seen, not just the erase time alone.
 RECONNECT_INITIAL_DELAY_S = 2.0
-RECONNECT_POLL_TIMEOUT_S = 40.0
+RECONNECT_POLL_TIMEOUT_S = 90.0
 RECONNECT_POLL_INTERVAL_S = 1.0
 
 

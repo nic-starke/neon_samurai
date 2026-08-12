@@ -226,11 +226,29 @@ static int midi_out_handler(void* event) {
 			// END_2BYTE=0x60, END_3BYTE=0x70 - each a distinct nibble-shifted
 			// code, not END_1BYTE+N), so look the terminating event byte up
 			// by packet fill count rather than computing it arithmetically.
+			//
+			// The END_*BYTE CIN's number describes the packet's *total*
+			// meaningful byte count *including* the F7 terminator itself, not
+			// how many real data bytes precede it - END_1BYTE means the
+			// packet's single meaningful byte IS 0xF7 (no data byte alongside
+			// it; MIDI_COMMAND_SYSEX_1BYTE and _END_1BYTE are literally the
+			// same CIN, 0x50, reused for both a lone terminator and other
+			// single-byte messages). Getting this off by one - as an earlier
+			// version of this table did, mapping 1 data byte to END_1BYTE
+			// instead of END_2BYTE - put a real data byte where the spec
+			// expects the terminator to be, corrupting the framing on every
+			// GET reply whose data lands exactly 1 byte into a final packet
+			// (e.g. VMAP_RANGE/VMAP_POSITION's 2-byte payloads): confirmed
+			// directly, this went unnoticed via amidi/ALSA rawmidi (which
+			// tolerated the malformed packet), but Chromium's Web MIDI
+			// implementation on Linux rejected it outright - GET requests
+			// for those params timed out from the web GUI while the exact
+			// same request appeared to work fine from the CLI.
 			static const u8 end_event[4] = {
-					MIDI_COMMAND_SYSEX_END_1BYTE, // 0 data bytes this packet (just F7)
-					MIDI_COMMAND_SYSEX_END_1BYTE, // 1 data byte
-					MIDI_COMMAND_SYSEX_END_2BYTE, // 2 data bytes
-					MIDI_COMMAND_SYSEX_END_3BYTE, // unused (3 full bytes -> not terminal)
+					MIDI_COMMAND_SYSEX_END_1BYTE, // 0 data bytes - packet is just F7
+					MIDI_COMMAND_SYSEX_END_2BYTE, // 1 data byte + F7
+					MIDI_COMMAND_SYSEX_END_3BYTE, // 2 data bytes + F7
+					0,														 // unused (3 full data bytes -> not a terminal packet)
 			};
 
 			// Bytes still to place in this packet: data_len (only in the
