@@ -26,6 +26,13 @@ let protocol = null;
 let selectedEncoderIdx = null;
 let selectedVmapIdx = 0;
 let viewingBank = 0; // which bank's config is being *browsed*, independent of model.activeBank
+// Reset flows (onFactoryResetClick, and Reset Device if a UI control for it
+// is added later) trigger their own explicit waitAndReconnect() call after
+// the reboot they themselves caused - set this first so the Device's own
+// onDisconnect handler (which fires for that same reboot, just detected
+// independently via the heartbeat/statechange) doesn't also try to
+// reconnect at the same time.
+let expectingDisconnect = false;
 
 const el = {
 	unsupportedBanner: byId("unsupported-banner"),
@@ -81,9 +88,11 @@ function init() {
 
 async function onConnectClick() {
 	setStatus("connecting", "Connecting…");
+	if (device) device.destroy(); // stop any stale prior connection's heartbeat
 	try {
 		device = await midi.connect();
 		protocol = new Protocol(device);
+		device.onDisconnect((reason) => onDeviceDisconnected(reason));
 		const info = await protocol.getDeviceInfo();
 		model.deviceInfo = info;
 		setStatus("connected", `Connected: ${device.name}`);
@@ -110,24 +119,39 @@ async function onConnectClick() {
 async function onLoadFromDeviceClick() {
 	if (!protocol) return;
 	await withButtonBusy(el.btnLoadDevice, "Loading…", async () => {
-		await model.loadFromDevice(protocol, (done, total) => {
-			el.btnLoadDevice.textContent = `Loading… ${Math.round((done / total) * 100)}%`;
-		});
-		model.activeBank = await protocol.getActiveBank();
-		setViewingBank(model.activeBank);
-		renderEncoderGrid();
-		renderSideSwitches();
-		toast("success", "Loaded configuration from device.");
+		// Heartbeat paused for the duration - a ping queued behind ~200
+		// sequential bulk requests could time out purely from being busy,
+		// and every one of those requests succeeding is itself much
+		// stronger evidence of aliveness than a single ping would be. See
+		// Device.pauseHeartbeat()'s doc comment in midi.js.
+		device.pauseHeartbeat();
+		try {
+			await model.loadFromDevice(protocol, (done, total) => {
+				el.btnLoadDevice.textContent = `Loading… ${Math.round((done / total) * 100)}%`;
+			});
+			model.activeBank = await protocol.getActiveBank();
+			setViewingBank(model.activeBank);
+			renderEncoderGrid();
+			renderSideSwitches();
+			toast("success", "Loaded configuration from device.");
+		} finally {
+			device.resumeHeartbeat();
+		}
 	});
 }
 
 async function onSaveToDeviceClick() {
 	if (!protocol) return;
 	await withButtonBusy(el.btnSaveDevice, "Saving…", async () => {
-		await model.saveToDevice(protocol, (done, total) => {
-			el.btnSaveDevice.textContent = `Saving… ${Math.round((done / total) * 100)}%`;
-		});
-		toast("success", "Saved configuration to device.");
+		device.pauseHeartbeat();
+		try {
+			await model.saveToDevice(protocol, (done, total) => {
+				el.btnSaveDevice.textContent = `Saving… ${Math.round((done / total) * 100)}%`;
+			});
+			toast("success", "Saved configuration to device.");
+		} finally {
+			device.resumeHeartbeat();
+		}
 	});
 }
 
@@ -137,10 +161,23 @@ async function onFactoryResetClick() {
 		return;
 	}
 	await withButtonBusy(el.btnFactoryReset, "Resetting…", async () => {
+		expectingDisconnect = true;
 		await protocol.factoryResetDevice();
 		toast("success", "Factory reset triggered. Reconnecting…");
 		await waitAndReconnect();
 	});
+}
+
+/** Fires from Device.onDisconnect() - an *unplanned* disconnect (device
+ * unplugged, went to sleep, or stopped responding to the heartbeat while
+ * idle). Reset flows set expectingDisconnect themselves and call
+ * waitAndReconnect() directly, so this only reconnects for the case
+ * nothing else was already handling. */
+function onDeviceDisconnected(reason) {
+	if (expectingDisconnect) return;
+	setStatus("error", "Disconnected");
+	toast("error", `Device disconnected (${reason}). Reconnecting…`);
+	waitAndReconnect();
 }
 
 async function onSetActiveBankClick() {
@@ -169,19 +206,23 @@ async function onLoadPresetFileChange() {
 	}
 }
 
-/** Device drops off the bus after a reset and re-enumerates - poll until
- * it's reachable again rather than assuming a fixed delay. */
+/** Device drops off the bus after a reset (or an unplanned disconnect) and
+ * re-enumerates - poll until it's reachable again rather than assuming a
+ * fixed delay. */
 async function waitAndReconnect() {
+	if (device) device.destroy(); // stop the old instance's heartbeat/listeners
 	await sleep(2000);
 	for (let attempt = 0; attempt < 20; attempt++) {
 		try {
 			device = await midi.connect();
 			protocol = new Protocol(device);
+			device.onDisconnect((reason) => onDeviceDisconnected(reason));
 			const info = await protocol.getDeviceInfo();
 			model.deviceInfo = info;
 			setStatus("connected", `Connected: ${device.name}`);
 			el.fwVersion.textContent = `fw ${info.fwVersion}`;
 			toast("success", "Reconnected.");
+			expectingDisconnect = false;
 			return;
 		} catch {
 			await sleep(1500);
@@ -189,6 +230,7 @@ async function waitAndReconnect() {
 	}
 	setStatus("error", "Lost connection");
 	toast("error", "Device did not come back after reset. Reconnect manually.");
+	expectingDisconnect = false;
 }
 
 function sleep(ms) {

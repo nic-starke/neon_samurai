@@ -7,10 +7,22 @@
 // should check `isSupported()` before anything else and show a clear
 // message rather than failing silently - see ui.js.
 
-import { decode, encode, Param } from "./sysex.js";
+import { decode, encode, Cmd, Param } from "./sysex.js";
 
 const DEFAULT_PORT_SUBSTRING = "SAMURAI";
 const DEFAULT_TIMEOUT_MS = 2000;
+
+// Heartbeat: periodically GET DEVICE_INFO (cheap - static 7-byte reply, no
+// EEPROM/gENCODERS traversal on the firmware side) to detect a device that
+// has hung, gone to sleep, or otherwise stopped responding while still
+// showing as "connected" at the OS/driver level. This is the second of two
+// independent disconnect signals Device watches - the other is each port's
+// native `statechange` event, which fires when the device actually
+// unplugs/re-enumerates (instant, free, no traffic of its own) but says
+// nothing about whether the firmware behind it is still alive.
+const HEARTBEAT_INTERVAL_MS = 200;
+const HEARTBEAT_TIMEOUT_MS = 3000;
+const HEARTBEAT_MAX_MISSES = 2; // consecutive misses before declaring disconnected
 
 /** @returns {boolean} whether this browser exposes navigator.requestMIDIAccess at all. */
 export function isSupported() {
@@ -31,11 +43,104 @@ export class Device {
 		this.output = output;
 		/** @type {((msg: import("./sysex.js").SysexMessage) => void)[]} */
 		this._listeners = [];
+		/** @type {((reason: string) => void)[]} */
+		this._disconnectListeners = [];
+		this._alive = true;
+		this._heartbeatMisses = 0;
+		this._heartbeatTimer = null;
+		this._pauseDepth = 0;
+
 		this.input.addEventListener("midimessage", (e) => this._onMessage(e));
+		// Native port-level disconnect signal - fires on actual unplug/
+		// re-enumeration, independent of the heartbeat below.
+		this.input.addEventListener("statechange", (e) => this._onStateChange(e));
+		this.output.addEventListener("statechange", (e) => this._onStateChange(e));
+
+		this._startHeartbeat();
 	}
 
 	get name() {
 		return this.output.name ?? this.input.name ?? "unknown device";
+	}
+
+	/** @returns {boolean} whether this Device still believes the connection is live - false once any disconnect signal has fired. */
+	get isAlive() {
+		return this._alive;
+	}
+
+	/**
+	 * Subscribe to disconnect - fires at most once per Device instance, the
+	 * first time either the native port statechange or the heartbeat
+	 * declares the connection gone. Returns an unsubscribe function.
+	 * @param {(reason: string) => void} listener
+	 */
+	onDisconnect(listener) {
+		this._disconnectListeners.push(listener);
+		return () => {
+			this._disconnectListeners = this._disconnectListeners.filter((l) => l !== listener);
+		};
+	}
+
+	/** Stop the heartbeat and mark this Device dead without waiting for a
+	 * disconnect signal - call when intentionally disconnecting so a stale
+	 * heartbeat timer doesn't fire after the fact. */
+	destroy() {
+		this._alive = false;
+		if (this._heartbeatTimer) clearInterval(this._heartbeatTimer);
+	}
+
+	/**
+	 * Suspend the heartbeat ping for the duration of a long bulk operation
+	 * (e.g. DeviceModel.loadFromDevice()/saveToDevice(), ~200 sequential
+	 * requests) - a ping queued behind that traffic could time out purely
+	 * from being busy, not actually dead, and every one of those ~200
+	 * requests succeeding is itself much stronger evidence of aliveness
+	 * than a single heartbeat ping would be. Nests safely: paused while
+	 * `_pauseDepth > 0`, so overlapping bulk operations don't have one's
+	 * completion prematurely resume the heartbeat for the other still in
+	 * flight. Native statechange disconnect detection (an actual unplug)
+	 * keeps working regardless - only the periodic ping is suspended.
+	 */
+	pauseHeartbeat() {
+		this._pauseDepth++;
+	}
+
+	resumeHeartbeat() {
+		this._pauseDepth = Math.max(0, this._pauseDepth - 1);
+	}
+
+	_onStateChange(event) {
+		if (!this._alive) return;
+		const port = event.port;
+		if (port.state === "disconnected") {
+			this._declareDead(`${port.name ?? "port"} disconnected`);
+		}
+	}
+
+	_startHeartbeat() {
+		this._heartbeatTimer = setInterval(async () => {
+			if (!this._alive || this._pauseDepth > 0) return;
+			try {
+				await this.request(Cmd.GET, Param.DEVICE_INFO, [], HEARTBEAT_TIMEOUT_MS);
+				this._heartbeatMisses = 0;
+			} catch {
+				this._heartbeatMisses++;
+				if (this._heartbeatMisses >= HEARTBEAT_MAX_MISSES) {
+					this._declareDead(
+						`no response to ${HEARTBEAT_MAX_MISSES} consecutive heartbeat pings`,
+					);
+				}
+			}
+		}, HEARTBEAT_INTERVAL_MS);
+	}
+
+	_declareDead(reason) {
+		if (!this._alive) return;
+		this._alive = false;
+		if (this._heartbeatTimer) clearInterval(this._heartbeatTimer);
+		for (const listener of this._disconnectListeners) {
+			listener(reason);
+		}
 	}
 
 	_onMessage(event) {
@@ -85,6 +190,9 @@ export class Device {
 	 * @returns {Promise<import("./sysex.js").SysexMessage>}
 	 */
 	request(cmd, param, data = [], timeoutMs = DEFAULT_TIMEOUT_MS) {
+		if (!this._alive) {
+			return Promise.reject(new Error("Device is disconnected"));
+		}
 		return new Promise((resolve, reject) => {
 			let settled = false;
 			const timer = setTimeout(() => {
