@@ -1,0 +1,241 @@
+// device-model.js - in-memory mirror of the device's configuration:
+// banks[3].encoders[16].vmaps[2] + sideSwitches[6]. Shape mirrors
+// struct encoder / struct virtmap (src/include/system/hardware.h,
+// src/include/virtmap/virtmap.h) closely enough that a preset JSON dump
+// reads naturally against the firmware source, without trying to be a
+// byte-exact serialization of the C structs.
+//
+// This module owns loading from / saving to the device (via a Protocol
+// instance) and dirty-tracking (which fields differ from what was last
+// loaded/saved), but has no DOM/rendering knowledge - see ui.js for that.
+
+import { Param } from "./sysex.js";
+
+export const NUM_BANKS = 3;
+export const NUM_ENCODERS = 16;
+export const NUM_VMAPS_PER_ENCODER = 2;
+export const NUM_SIDE_SWITCHES = 6;
+
+// enum display_mode (hardware.h)
+export const DisplayMode = Object.freeze({ SINGLE: 0, MULTI: 1, MULTI_PWM: 2 });
+// enum virtmap_mode (virtmap.h)
+export const VmapMode = Object.freeze({ TOGGLE: 0, OVERLAY: 1 });
+// enum switch_mode (hardware.h)
+export const SwitchMode = Object.freeze({
+	NONE: 0,
+	VMAP_CYCLE: 1,
+	VMAP_HOLD: 2,
+	RESET_ON_PRESS: 3,
+	RESET_ON_RELEASE: 4,
+	FINE_ADJUST_TOGGLE: 5,
+	FINE_ADJUST_HOLD: 6,
+	MIDI: 7,
+});
+// enum side_switch_mode (hardware.h)
+export const SideSwitchMode = Object.freeze({
+	NONE: 0,
+	ALL_VMAP_CYCLE: 1,
+	ALL_VMAP_HOLD: 2,
+	BANK_PREV: 3,
+	BANK_NEXT: 4,
+	RESERVED: 5,
+});
+// enum midi_mode (midi.h) - CC_14/REL_CC exist in firmware but have no
+// working transmit implementation yet (see module-architecture skill's
+// notes and the plan this GUI was built from) - don't offer them in v1 UI.
+export const MidiMode = Object.freeze({ DISABLED: 0, CC: 1, CC_14: 2, REL_CC: 3, NOTE: 4 });
+// enum protocol_type (protocol.h) - only PROTOCOL_MIDI is implemented;
+// PROTOCOL_OSC is a stub in the firmware (see module-architecture skill).
+export const ProtocolType = Object.freeze({ NONE: 0, MIDI: 1, OSC: 2 });
+
+function defaultVmap() {
+	return {
+		range: { lower: 0, upper: 127 },
+		position: { start: 0, stop: 255 },
+		hsv: { hue: 0, sat: 0, val: 0 },
+		proto: { mode: MidiMode.CC, channel: 0, ccOrRaw: 0 },
+	};
+}
+
+function defaultEncoder(idx) {
+	return {
+		idx,
+		displayMode: DisplayMode.SINGLE,
+		vmapDisplayMode: 0,
+		detent: false,
+		vmapMode: VmapMode.TOGGLE,
+		vmapActive: 0,
+		vmaps: [defaultVmap(), defaultVmap()],
+		switchMode: SwitchMode.NONE,
+		switchProto: { mode: MidiMode.CC, channel: 0, ccOrRaw: 0 },
+	};
+}
+
+function defaultBank() {
+	return { encoders: Array.from({ length: NUM_ENCODERS }, (_, i) => defaultEncoder(i)) };
+}
+
+export class DeviceModel {
+	constructor() {
+		this.banks = Array.from({ length: NUM_BANKS }, () => defaultBank());
+		this.sideSwitches = Array.from({ length: NUM_SIDE_SWITCHES }, () => SideSwitchMode.NONE);
+		this.activeBank = 0;
+		this.deviceInfo = null;
+		/** Set of "bank.enc" or "bank.enc.vmap.field" keys touched since the
+		 * last load/save, for a future dirty-indicator UI (not yet wired
+		 * up in v1's ui.js, but tracked here from the start rather than
+		 * bolted on later). */
+		this.dirty = new Set();
+	}
+
+	markDirty(key) {
+		this.dirty.add(key);
+	}
+
+	clearDirty() {
+		this.dirty.clear();
+	}
+
+	/**
+	 * Load every encoder/vmap/side-switch/bank value from the device,
+	 * overwriting this model's current state. Sequential, not
+	 * parallelized - this protocol has no per-message request ID (see the
+	 * note in midi.js's request()), so concurrent requests for the same
+	 * param can't be reliably correlated; issuing them one at a time is
+	 * the safe choice even though it's slower (16 encoders x 2 vmaps x
+	 * ~6 params + 6 side switches + 1 bank = ~205 round trips).
+	 * @param {import("./protocol.js").Protocol} protocol
+	 * @param {(done: number, total: number) => void} [onProgress]
+	 */
+	async loadFromDevice(protocol, onProgress) {
+		this.deviceInfo = await protocol.getDeviceInfo();
+		this.activeBank = await protocol.getActiveBank();
+
+		const total =
+			NUM_BANKS * NUM_ENCODERS * (2 + NUM_VMAPS_PER_ENCODER * 4) + NUM_SIDE_SWITCHES;
+		let done = 0;
+		const tick = () => onProgress?.(++done, total);
+
+		for (let bank = 0; bank < NUM_BANKS; bank++) {
+			for (let enc = 0; enc < NUM_ENCODERS; enc++) {
+				const model = this.banks[bank].encoders[enc];
+				model.displayMode = await protocol.getEncoderParam(
+					Param.ENCODER_DISPLAY_MODE,
+					bank,
+					enc,
+				);
+				tick();
+				model.detent = Boolean(
+					await protocol.getEncoderParam(Param.ENCODER_DETENT, bank, enc),
+				);
+				tick();
+
+				for (let vmap = 0; vmap < NUM_VMAPS_PER_ENCODER; vmap++) {
+					const v = model.vmaps[vmap];
+					v.range = await protocol.getVmapRange(bank, enc, vmap);
+					tick();
+					v.position = await protocol.getVmapPosition(bank, enc, vmap);
+					tick();
+					v.hsv = await protocol.getVmapHsv(bank, enc, vmap);
+					tick();
+					v.proto = await protocol.getVmapProto(bank, enc, vmap);
+					tick();
+				}
+			}
+		}
+
+		for (let sw = 0; sw < NUM_SIDE_SWITCHES; sw++) {
+			this.sideSwitches[sw] = await protocol.getSideSwitch(sw);
+			tick();
+		}
+
+		this.clearDirty();
+	}
+
+	/**
+	 * Push every encoder/vmap/side-switch/bank value in this model to the
+	 * device. Same sequential-round-trip caveat as loadFromDevice().
+	 * @param {import("./protocol.js").Protocol} protocol
+	 * @param {(done: number, total: number) => void} [onProgress]
+	 */
+	async saveToDevice(protocol, onProgress) {
+		const total =
+			NUM_BANKS * NUM_ENCODERS * (2 + NUM_VMAPS_PER_ENCODER * 4) + NUM_SIDE_SWITCHES + 1;
+		let done = 0;
+		const tick = () => onProgress?.(++done, total);
+
+		for (let bank = 0; bank < NUM_BANKS; bank++) {
+			for (let enc = 0; enc < NUM_ENCODERS; enc++) {
+				const model = this.banks[bank].encoders[enc];
+				await protocol.setEncoderParam(
+					Param.ENCODER_DISPLAY_MODE,
+					bank,
+					enc,
+					model.displayMode,
+				);
+				tick();
+				await protocol.setEncoderParam(
+					Param.ENCODER_DETENT,
+					bank,
+					enc,
+					model.detent ? 1 : 0,
+				);
+				tick();
+
+				for (let vmap = 0; vmap < NUM_VMAPS_PER_ENCODER; vmap++) {
+					const v = model.vmaps[vmap];
+					await protocol.setVmapRange(bank, enc, vmap, v.range.lower, v.range.upper);
+					tick();
+					await protocol.setVmapPosition(bank, enc, vmap, v.position.start, v.position.stop);
+					tick();
+					await protocol.setVmapHsv(bank, enc, vmap, v.hsv.hue, v.hsv.sat, v.hsv.val);
+					tick();
+					await protocol.setVmapProto(
+						bank,
+						enc,
+						vmap,
+						ProtocolType.MIDI,
+						v.proto.mode,
+						v.proto.channel,
+						v.proto.ccOrRaw,
+					);
+					tick();
+				}
+			}
+		}
+
+		for (let sw = 0; sw < NUM_SIDE_SWITCHES; sw++) {
+			await protocol.setSideSwitch(sw, this.sideSwitches[sw]);
+			tick();
+		}
+
+		await protocol.setActiveBank(this.activeBank);
+		tick();
+
+		this.clearDirty();
+	}
+
+	/** Plain-object snapshot suitable for JSON.stringify (see storage.js). */
+	toJSON() {
+		return {
+			formatVersion: 1,
+			deviceInfo: this.deviceInfo,
+			activeBank: this.activeBank,
+			banks: this.banks,
+			sideSwitches: this.sideSwitches,
+		};
+	}
+
+	/** Overwrite this model's state from a previously-saved snapshot. */
+	loadFromJSON(obj) {
+		if (obj.formatVersion !== 1) {
+			throw new Error(
+				`Unsupported preset format version ${obj.formatVersion} (expected 1)`,
+			);
+		}
+		this.activeBank = obj.activeBank ?? 0;
+		this.banks = obj.banks;
+		this.sideSwitches = obj.sideSwitches;
+		this.markDirty("*"); // Loaded state hasn't been pushed to the device yet
+	}
+}
