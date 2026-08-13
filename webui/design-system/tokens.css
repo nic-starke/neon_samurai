@@ -1,0 +1,55 @@
+/* tokens.css - design tokens for the digital-twin component library
+   (webui/design-system/). A "Matrix" aesthetic: monochrome, bluey-green,
+   dark - phosphor-glow greens with a cyan-leaning accent, no other hues in
+   the chrome. The rendered device itself (encoder cap colours, RGB LED
+   colours) is driven by live HSV from the hardware/model and is exempt by
+   design - only the surrounding UI chrome commits to the palette.
+
+   Loaded fully offline like the rest of webui/ (see webui/README.md) - no
+   Google Fonts, no CDN assets, just local font stacks and CSS. */
+
+:root {
+	/* Backgrounds - near-black, a hair of green in the darkest stops so it
+	   doesn't read as neutral grey under the accent glow. */
+	--ds-bg: #06090a;
+	--ds-bg-raised: #0a1210;
+	--ds-bg-panel: #0c1613;
+	--ds-bg-inset: #050807;
+
+	/* Text */
+	--ds-text: #cdf5e4;
+	--ds-text-dim: #6f9c8c;
+	--ds-text-faint: #3d5850;
+
+	/* The one accent hue family - bluey-green, phosphor-style. Lighter
+	   steps for glow/highlight, darker for borders/inactive. */
+	--ds-accent: #4dffb0;
+	--ds-accent-bright: #9dffdb;
+	--ds-accent-dim: #1f7a5c;
+	--ds-accent-faint: #123a2d;
+	--ds-cyan: #4de8ff;
+
+	--ds-border: #163530;
+	--ds-border-bright: #2a5c50;
+
+	--ds-danger: #ff5f5f;
+	--ds-warning: #e8c34d;
+
+	/* LED/indicator states - kept in-family (green/cyan) rather than
+	   introducing white, so an "off" LED still reads as part of the same
+	   monochrome device instead of a different material.
+	   --ds-led-off is the unlit indicator LED colour: a muted sage-green,
+	   ~30% dimmer (by lightness) than the original neutral-grey #c6c8cc
+	   the first import used, re-hued into this palette's accent family
+	   rather than staying a flat grey - see design-system/README.md. */
+	--ds-led-off: #7f9a91;
+	--ds-led-on: #d8fff0;
+	--ds-glow: 0 0 6px rgba(77, 255, 176, 0.55);
+	--ds-glow-soft: 0 0 10px rgba(77, 255, 176, 0.3);
+
+	--ds-radius: 6px;
+	--ds-radius-lg: 14px;
+
+	--ds-font: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+	--ds-font-mono: ui-monospace, "SF Mono", Consolas, monospace;
+}

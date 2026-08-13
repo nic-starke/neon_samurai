@@ -17,6 +17,7 @@ import {
 import * as midi from "./midi.js";
 import { Protocol } from "./protocol.js";
 import { loadPreset, savePreset } from "./storage.js";
+import { buildEncoder, computeLitMask, ENC_MID } from "../design-system/components/index.js";
 
 const model = new DeviceModel();
 /** @type {import("./midi.js").Device|null} */
@@ -300,6 +301,19 @@ function visualPositionToFirmwareIndex(position) {
 	return NUM_ENCODERS - 1 - position;
 }
 
+// Renders each cell with the design-system's buildEncoder() (see
+// ../design-system/README.md) instead of the flat CSS ring this grid
+// used before - same component the standalone twin.html preview uses,
+// driven here by real DeviceModel state instead of demo sliders.
+//
+// One live-state gap: the sysex protocol has no "read the knob's current
+// rotation" param (only VMAP_POSITION, the *configured window* the vmap
+// occupies - see device-model.js's doc comment and MF_SYSEX_PARAM_VMAP_*
+// in src/include/midi/sysex.h) and this app doesn't listen for regular
+// (non-sysex) MIDI CC/note messages either, so there is no live position
+// to render. Indicator LEDs are drawn at ENC_MID (dead centre) as a
+// neutral "not turned" default rather than fabricating motion - only
+// colour, detent, and display-mode genuinely reflect the device/model.
 function renderEncoderGrid() {
 	el.encoderGrid.innerHTML = "";
 	const bank = model.banks[viewingBank];
@@ -309,25 +323,35 @@ function renderEncoderGrid() {
 		const activeVmap = enc.vmaps[enc.vmapActive] ?? enc.vmaps[0];
 
 		const cell = document.createElement("div");
-		cell.className = "encoder-cell";
+		cell.className = "encoder-cell encoder-cell--twin";
 		cell.dataset.encoderIdx = String(i);
-		if (i === selectedEncoderIdx) cell.classList.add("is-selected");
 
-		const ring = document.createElement("div");
-		ring.className = "encoder-cell__ring";
-		ring.style.borderColor = hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val);
-		cell.appendChild(ring);
+		const litMask = computeLitMask({
+			position: ENC_MID,
+			displayMode: enc.displayMode,
+			detent: enc.detent,
+		});
 
-		const index = document.createElement("span");
-		index.className = "encoder-cell__index";
-		index.textContent = String(i);
-		cell.appendChild(index);
+		cell.appendChild(
+			buildEncoder({
+				bodySize: 96,
+				knobSize: 60,
+				ledCount: 11,
+				ledRadius: 39,
+				ledSize: 8,
+				ledArcSpan: 270,
+				arcRadius: 39,
+				arcWidth: 8,
+				arcLength: 26,
+				litMask,
+				rgbColor: hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val),
+				selected: i === selectedEncoderIdx,
+				showLabel: true,
+				label: String(i),
+				onSelect: () => selectEncoder(i),
+			}),
+		);
 
-		const sw = document.createElement("div");
-		sw.className = "encoder-cell__switch";
-		cell.appendChild(sw);
-
-		cell.addEventListener("click", () => selectEncoder(i));
 		el.encoderGrid.appendChild(cell);
 	}
 }

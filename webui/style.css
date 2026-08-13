@@ -248,56 +248,21 @@ main {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	gap: 1.25em;
-	width: min(90vw, 32em);
+	width: min(90vw, 36em);
+	padding: 1.5em;
+	background: var(--ds-bg-panel, var(--bg-panel));
+	border-radius: var(--ds-radius-lg, var(--radius));
+	border: 1px solid var(--ds-border, var(--border));
 }
 
-.encoder-cell {
-	aspect-ratio: 1;
-	border-radius: 50%;
-	border: 3px solid var(--border);
-	background: var(--bg-panel);
+/* .encoder-cell is now just a positioning slot around a design-system
+   buildEncoder() component (see js/ui.js's renderEncoderGrid()), not a
+   styled ring itself - the component owns its own body/ring/LED/cap
+   rendering and reads colours from tokens.css. */
+.encoder-cell--twin {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	cursor: pointer;
-	position: relative;
-	transition: border-color 0.15s;
-}
-
-.encoder-cell:hover {
-	border-color: var(--accent);
-}
-
-.encoder-cell.is-selected {
-	border-color: var(--accent);
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.encoder-cell__ring {
-	position: absolute;
-	inset: 0;
-	border-radius: 50%;
-	/* border-color set inline per-encoder from its active vmap's HSV */
-	border: 6px solid var(--bg-panel-raised);
-}
-
-.encoder-cell__index {
-	font-family: var(--font-mono);
-	font-size: 0.85em;
-	color: var(--text-dim);
-	z-index: 1;
-}
-
-.encoder-cell__switch {
-	position: absolute;
-	bottom: 12%;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 18%;
-	aspect-ratio: 1;
-	border-radius: 50%;
-	background: var(--bg-panel-raised);
-	border: 1px solid var(--border);
 }
 
 /* --- Side switches --- */

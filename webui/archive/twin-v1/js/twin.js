@@ -1,17 +1,17 @@
-// twin.js - state and control panel for webui/twin.html, the standalone
-// "digital twin" geometry-tuning preview. Renders via
-// webui/design-system/components/*.js; see that directory's README for
-// the component catalog and the offline-vendored-signals rationale.
+// twin.js - state and control panel for webui/twin.html, the "digital
+// twin" device-geometry preview. Ported from a Claude Design Canvas
+// prototype ("Twister Digital Twin.dc.html"); see twin-render.js for the
+// rendering primitives this drives.
 //
-// This page is a demo/design tool - it renders a plausible chassis and
-// lets you tune its geometry/colours, it does not talk to a real device.
-// For the live-device render (real HSV/position/detent from a connected
-// Twister over sysex), see js/ui.js's encoder grid, which consumes the
-// same design-system components against DeviceModel state instead of
-// this file's tuning-sidebar state.
+// This page is a standalone visual/design tool - it renders a plausible
+// demo chassis and lets you tune its geometry, it does not talk to a real
+// device or the config GUI's device model (see webui/js/device-model.js).
+// Rebuilds the whole view on every change, same "clear and repopulate"
+// pattern webui/js/ui.js uses elsewhere in this app, batched through
+// requestAnimationFrame so dragging a slider doesn't rebuild sixteen
+// encoders per pointermove event.
 
-import { signal, effect, batch } from "./vendor/signals-core.js";
-import { elc, hsvHex, buildEncoder } from "../design-system/components/index.js";
+import { elc, hsvHex, buildEncoder } from "./twin-render.js";
 
 const NUM_ENCODERS = 16;
 
@@ -34,11 +34,9 @@ const SPEC = {
 	lightY1: -45,
 	lightX2: 130,
 	lightY2: 145,
-	// Cap top-face / inner-recess tones, HSV(220°, 13%, 17%) family -
-	// matches the main cap colour default (see capH/capS/capV below).
-	capTopHue: 220,
-	capTopSat: 13,
-	capTopVal: 17,
+	capTopHue: 226,
+	capTopSat: 5,
+	capTopVal: 22,
 	capInnerHue: 219,
 	capInnerSat: 9,
 	capInnerVal: 18,
@@ -58,41 +56,24 @@ const SPEC = {
 const PALETTE = ["#3bd6ff", "#ff3b6b", "#3bff8f", "#b23bff"];
 const RAINBOW = ["#ff3b6b", "#ff9f3b", "#f4e04d", "#3bff8f", "#3bd6ff", "#5d7bff", "#b23bff", "#ff3bd6"];
 const CAP_PRESETS = [
-	[220, 13, 17], // default - matte dark plastic, #26282B
+	[220, 15, 15],
 	[225, 10, 26],
 	[220, 6, 80],
 	[345, 77, 100],
 	[192, 77, 100],
 ];
 
-// --- Reactive state (signals) ---------------------------------------------
-// One signal per tunable field rather than one big object signal: each
-// slider/toggle only touches its own field, so effects that read a
-// disjoint set of fields don't re-run on every unrelated change. render()
-// below still does a full rebuild (cheap enough for 16 DOM subtrees - see
-// design-system/README.md), but is registered as a *single* effect that
-// depends on all of state's fields, batched so a multi-field change (e.g.
-// "Reset to spec") only triggers one rebuild instead of one per field.
-const state = {};
-for (const [k, v] of Object.entries({
+const state = {
 	...SPEC,
 	accent: "#3bd6ff",
 	capH: 220,
-	capS: 13,
-	capV: 17,
+	capS: 15,
+	capV: 15,
 	uniform: true,
 	rgbOff: false,
 	sel: 5,
 	selSide: -1,
-})) {
-	state[k] = signal(v);
-}
-
-function setState(patch) {
-	batch(() => {
-		for (const [k, v] of Object.entries(patch)) state[k].value = v;
-	});
-}
+};
 
 const el = {
 	chassis: document.getElementById("twin-chassis"),
@@ -105,10 +86,21 @@ function mm(px) {
 	return Math.round((px / 4) * 100) / 100 + " mm";
 }
 
+let renderQueued = false;
+function setState(patch) {
+	Object.assign(state, patch);
+	if (renderQueued) return;
+	renderQueued = true;
+	requestAnimationFrame(() => {
+		renderQueued = false;
+		render();
+	});
+}
+
 // --- Control descriptors -------------------------------------------------
 
 function ctl(field, label, min, max, step, unit) {
-	const value = state[field].value;
+	const value = state[field];
 	if (unit === "px") {
 		return {
 			label,
@@ -197,9 +189,7 @@ function sections() {
 // --- Stage (chassis + encoders) ------------------------------------------
 
 function renderStage() {
-	const s = {};
-	for (const k of Object.keys(state)) s[k] = state[k].value;
-
+	const s = state;
 	const gridGap = s.pitch - s.bodySize;
 	const chassisPad = s.edgeFirst - s.bodySize / 2;
 	const chassisSize = 4 * s.bodySize + 3 * gridGap + 2 * chassisPad;
@@ -230,8 +220,8 @@ function renderStage() {
 					`position:absolute; ${side === "L" ? "left" : "right"}:-${s.sideBtnW}px; top:${c - s.sideBtnH / 2}px; ` +
 					`width:${s.sideBtnW}px; height:${s.sideBtnH}px; border-radius:${side === "L" ? "6px 0 0 6px" : "0 6px 6px 0"}; ` +
 					"border:none; padding:0; cursor:pointer; " +
-					`background:${s.selSide === idx ? "linear-gradient(180deg,var(--ds-cyan),var(--ds-accent-dim))" : "linear-gradient(180deg,#16241f,#080b0a)"}; ` +
-					`box-shadow:inset 0 1px 0 rgba(157,255,219,0.10), ${side === "L" ? "-2px" : "2px"} 2px 5px rgba(0,0,0,0.55);`,
+					`background:${s.selSide === idx ? "linear-gradient(180deg,#5df0ff,#2b6f7c)" : "linear-gradient(180deg,#3a3f4a,#1a1d22)"}; ` +
+					`box-shadow:inset 0 1px 0 rgba(255,255,255,0.12), ${side === "L" ? "-2px" : "2px"} 2px 5px rgba(0,0,0,0.55);`,
 				onClick: () => setState({ selSide: idx, sel: -1 }),
 			});
 			chassis.appendChild(btn);
@@ -239,14 +229,14 @@ function renderStage() {
 	}
 
 	const bevel = elc("div", {
-		style: `position:absolute; inset:0; border-radius:${s.cornerRadius}px; background:linear-gradient(158deg,#132420 0%,#0a1210 38%,#06090a 68%,#0f1c18 100%); box-shadow:0 34px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(157,255,219,0.05); padding:${s.bevelWidth}px; box-sizing:border-box;`,
+		style: `position:absolute; inset:0; border-radius:${s.cornerRadius}px; background:linear-gradient(158deg,#2c2e34 0%,#191a1e 38%,#121316 68%,#23252a 100%); box-shadow:0 34px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06); padding:${s.bevelWidth}px; box-sizing:border-box;`,
 	});
 	chassis.appendChild(bevel);
 
 	const faceRadius = Math.max(2, s.cornerRadius - s.bevelWidth);
 	const facePad = Math.max(0, chassisPad - s.bevelWidth);
 	const face = elc("div", {
-		style: `width:100%; height:100%; border-radius:${faceRadius}px; background:linear-gradient(168deg,#0d1815 0%,#080e0c 46%,#050706 78%,#0a1210 100%); box-shadow:inset 0 1px 0 rgba(157,255,219,0.04), 0 1px 3px rgba(0,0,0,0.6); padding:${facePad}px; box-sizing:border-box;`,
+		style: `width:100%; height:100%; border-radius:${faceRadius}px; background:linear-gradient(168deg,#1e2024 0%,#15161a 46%,#0f1012 78%,#17181c 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 3px rgba(0,0,0,0.6); padding:${facePad}px; box-sizing:border-box;`,
 	});
 	bevel.appendChild(face);
 
@@ -288,8 +278,7 @@ function renderStage() {
 				arcLength: s.arcLength,
 				value: 12 + i * 7,
 				max: 127,
-				rgbColor: s.uniform ? s.accent : RAINBOW[i % 8],
-				rgbOff: s.rgbOff,
+				rgbColor: s.rgbOff ? "#c6c8cc" : s.uniform ? s.accent : RAINBOW[i % 8],
 				selected: s.sel === i,
 				showLabel: false,
 				onSelect: () => setState({ sel: i, selSide: -1 }),
@@ -313,7 +302,7 @@ function renderStage() {
 
 function swatchButton({ color, selected, onClick, size = 28 }) {
 	return elc("button", {
-		style: `width:${size}px; height:${size}px; border-radius:50%; border:2px solid ${selected ? "var(--ds-accent-bright)" : "transparent"}; background:${color}; cursor:pointer; padding:0;`,
+		style: `width:${size}px; height:${size}px; border-radius:50%; border:2px solid ${selected ? "#fff" : "transparent"}; background:${color}; cursor:pointer; padding:0;`,
 		onClick,
 	});
 }
@@ -322,13 +311,13 @@ function toggleField(labelText, checked, onToggle) {
 	return elc("label", {
 		style: "display:flex; align-items:center; justify-content:space-between;",
 		children: [
-			elc("span", { style: "font-family:var(--ds-font-mono); font-size:10.5px; color:var(--ds-text-dim);", text: labelText }),
+			elc("span", { style: "font-family:var(--twin-font-mono); font-size:10.5px; color:#9a92b0;", text: labelText }),
 			elc("button", {
-				style: `width:38px; height:21px; border-radius:11px; border:none; cursor:pointer; background:${checked ? "var(--ds-accent)" : "#16241f"}; position:relative;`,
+				style: `width:38px; height:21px; border-radius:11px; border:none; cursor:pointer; background:${checked ? "#3bff8f" : "#3a3f4a"}; position:relative;`,
 				onClick: onToggle,
 				children: [
 					elc("span", {
-						style: `position:absolute; top:2px; left:${checked ? "19px" : "2px"}; width:17px; height:17px; border-radius:50%; background:#06090a;`,
+						style: `position:absolute; top:2px; left:${checked ? "19px" : "2px"}; width:17px; height:17px; border-radius:50%; background:#fff;`,
 					}),
 				],
 			}),
@@ -341,10 +330,10 @@ function sliderField(c) {
 		style: "display:flex; flex-direction:column; gap:6px;",
 		children: [
 			elc("span", {
-				style: "display:flex; align-items:baseline; justify-content:space-between; font-family:var(--ds-font-mono); font-size:11px; color:var(--ds-text);",
+				style: "display:flex; align-items:baseline; justify-content:space-between; font-family:var(--twin-font-mono); font-size:11px; color:#c9c2dd;",
 				children: [
 					elc("span", { text: c.label }),
-					elc("span", { style: "color:var(--ds-cyan);", text: String(c.display) }),
+					elc("span", { style: "color:#5df0ff;", text: String(c.display) }),
 				],
 			}),
 			(() => {
@@ -359,8 +348,7 @@ function sliderField(c) {
 }
 
 function renderSidebar() {
-	const s = {};
-	for (const k of Object.keys(state)) s[k] = state[k].value;
+	const s = state;
 	const sidebar = elc("div", { style: "display:flex; flex-direction:column; gap:24px;" });
 
 	sidebar.appendChild(
@@ -368,11 +356,7 @@ function renderSidebar() {
 			style: "display:flex; align-items:baseline; justify-content:space-between;",
 			children: [
 				elc("span", { class: "twin-heading", text: "Geometry" }),
-				elc("button", {
-					class: "twin-reset",
-					text: "Reset to spec",
-					onClick: () => setState({ ...SPEC }),
-				}),
+				elc("button", { class: "twin-reset", text: "Reset to spec", onClick: () => setState({ ...SPEC }) }),
 			],
 		}),
 	);
@@ -390,7 +374,7 @@ function renderSidebar() {
 						swatchButton({ color, selected: s.accent === color, onClick: () => setState({ accent: color }) }),
 					),
 				}),
-				toggleField("RGB LEDs off (unlit)", s.rgbOff, () => setState({ rgbOff: !s.rgbOff })),
+				toggleField("RGB LEDs off (unlit grey)", s.rgbOff, () => setState({ rgbOff: !s.rgbOff })),
 				toggleField("Uniform colour", s.uniform, () => setState({ uniform: !s.uniform })),
 			],
 		}),
@@ -400,7 +384,7 @@ function renderSidebar() {
 	const capHex = hsvHex(s.capH, s.capS, s.capV).toUpperCase();
 	sidebar.appendChild(
 		elc("div", {
-			style: "display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--ds-border); padding-top:18px;",
+			style: "display:flex; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px;",
 			children: [
 				elc("div", {
 					style: "display:flex; align-items:center; justify-content:space-between;",
@@ -410,9 +394,9 @@ function renderSidebar() {
 							style: "display:flex; align-items:center; gap:8px;",
 							children: [
 								elc("span", {
-									style: `width:20px; height:20px; border-radius:5px; background:${capHex}; border:1px solid var(--ds-border-bright);`,
+									style: `width:20px; height:20px; border-radius:5px; background:${capHex}; border:1px solid rgba(255,255,255,0.18);`,
 								}),
-								elc("span", { style: "font-family:var(--ds-font-mono); font-size:10.5px; color:var(--ds-cyan);", text: capHex }),
+								elc("span", { style: "font-family:var(--twin-font-mono); font-size:10.5px; color:#5df0ff;", text: capHex }),
 							],
 						}),
 					],
@@ -453,7 +437,7 @@ function renderSidebar() {
 					}),
 				}),
 				elc("span", {
-					style: "font-family:var(--ds-font-mono); font-size:9.5px; color:var(--ds-text-faint);",
+					style: "font-family:var(--twin-font-mono); font-size:9.5px; color:#57506d;",
 					text: "Base, midsection and knurl tones derive from this one colour.",
 				}),
 			],
@@ -463,7 +447,7 @@ function renderSidebar() {
 	for (const sec of sections()) {
 		sidebar.appendChild(
 			elc("div", {
-				style: "display:flex; flex-direction:column; gap:14px; border-top:1px solid var(--ds-border); padding-top:18px;",
+				style: "display:flex; flex-direction:column; gap:14px; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px;",
 				children: [
 					elc("span", { class: "twin-label", text: sec.title }),
 					...sec.controls.map(sliderField),
@@ -476,12 +460,10 @@ function renderSidebar() {
 }
 
 // --- Entry -----------------------------------------------------------------
-// A single effect depending on every state signal drives the whole
-// render - signals batches multi-field updates (see setState) into one
-// re-run rather than one per changed field.
 
-effect(() => {
-	for (const k of Object.keys(state)) void state[k].value; // establish deps
+function render() {
 	renderStage();
 	renderSidebar();
-});
+}
+
+render();

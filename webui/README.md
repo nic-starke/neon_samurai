@@ -60,6 +60,10 @@ for the full build/flash/debug workflow.
 
 ## What's here (v1)
 
+- **Encoder grid**: a skeuomorphic render of the 16 physical encoders
+  (see "Digital twin" below) rather than a flat colour swatch - each
+  cell's RGB arc and indicator LEDs reflect that encoder's real active-
+  layer colour, detent, and display mode.
 - **Per-encoder**: display mode, detent, switch mode, and two color
   layers ("Layer A"/"Layer B", i.e. `virtmap[0]`/`virtmap[1]`) each with
   HSV color, value range, physical rotation window (position), and MIDI
@@ -86,33 +90,66 @@ for the full build/flash/debug workflow.
   EEPROM-persisted or sysex-addressable in firmware yet.
 - WebUSB DFU firmware flashing - see above.
 
-## Digital twin (`twin.html`)
+## Digital twin
 
-A standalone, skeuomorphic render of the physical Twister chassis - 16
-knurled encoder caps, LED rings, RGB indicator arcs, side buttons - with a
-live geometry-tuning sidebar, ported from a Claude Design Canvas
-prototype. Open `twin.html` directly (no connection required); "Connect"
-and the rest of `index.html`'s device flow are not part of it.
+A skeuomorphic render of the physical Twister chassis - 16 knurled
+encoder caps, LED rings, RGB indicator arcs, side buttons - built from a
+small component library in [`design-system/`](design-system/) (see that
+directory's own README for the component catalog, the offline-vendored-
+signals rationale, and the "Matrix" bluey-green monochrome palette
+`tokens.css` defines for the surrounding chrome).
 
-It renders demo state (a fixed value ramp, a small rainbow palette across
-encoders), not anything read from a real device - it exists to preview
-and dial in chassis/encoder/cap geometry, not to mirror live hardware
-state. If a future revision of the main config GUI's encoder grid wants
-this look, `js/twin-render.js`'s builders are written DOM-only /
-state-agnostic so they could be reused there directly; `js/twin.js` is
-just this page's own demo state and control panel.
+Two things use it:
+
+- **`twin.html`** - standalone geometry/colour tuning tool. Open it
+  directly (no connection required); "Connect" and the rest of
+  `index.html`'s device flow are not part of it. Renders demo state (a
+  fixed value ramp, a small rainbow palette across encoders), not
+  anything read from a real device - it exists to dial in chassis/
+  encoder/cap geometry and defaults, not to mirror live hardware state.
+- **`index.html`'s encoder grid** (`ui.js`'s `renderEncoderGrid()`) - the
+  live config GUI now renders each encoder with the same component,
+  driven by real `DeviceModel` state (colour, detent, display mode) for
+  whichever bank you're browsing. One honest gap: the sysex protocol has
+  no "read the knob's live rotation" param (only the *configured
+  position window*, `VMAP_POSITION` - see `device-model.js`), and this
+  app doesn't listen for regular MIDI CC/note messages either, so there
+  is no live knob angle to show - indicator LEDs render at a fixed
+  neutral mid-position instead of fabricating motion. See the doc comment
+  above `renderEncoderGrid()` for specifics.
+
+The original Claude Design Canvas import (before the split into
+`design-system/`) is frozen in [`archive/twin-v1/`](archive/twin-v1/) for
+reference.
 
 ## Structure
 
 ```text
 webui/
-  index.html       - page markup
-  style.css         - all styling, no preprocessor
-  twin.html         - standalone "digital twin" device-geometry preview
-                       (see below) - not wired to a real device
-  twin.css           - styling for twin.html
-  README.md        - this file
-  presets/           - example/starter preset JSON files (empty for now)
+  index.html          - config GUI page markup
+  style.css            - config GUI chrome styling, no preprocessor
+  twin.html             - standalone digital-twin geometry/colour tuning tool
+  twin.css               - layout/chrome styling for twin.html (component
+                          styling itself lives in design-system/)
+  README.md            - this file
+  presets/               - example/starter preset JSON files (empty for now)
+  archive/
+    twin-v1/              - frozen first-pass Claude Design import, see its README
+  design-system/
+    tokens.css            - design tokens: palette, spacing, glow effects
+    README.md            - component catalog, aesthetic rationale
+    components/
+      index.js              - barrel re-export; import from here
+      dom.js                  - elc()/svgEl() DOM helpers
+      color-utils.js         - cosmetic HSV/hex material-shading math
+      chassis.js               - faceplate + rubber bevel (static)
+      encoder.js                - composed encoder assembly (see below)
+      cap.js                      - knurled cap top-view SVG
+      led-ring.js                - indicator LED ring
+      led-mask.js                - firmware-accurate lit-LED bitmask math
+                                  (ports src/led/led.c's LUTs)
+      rgb-arc.js                  - RGB backlight indicator arc
+      side-switch.js              - one side switch button
   js/
     sysex.js          - wire-protocol encode/decode (JS port of
                          tests/robot/lib/sysex.py - keep both in sync)
@@ -122,13 +159,19 @@ webui/
     device-model.js  - in-memory banks[3].encoders[16].vmaps[2] +
                         sideSwitches[6], device load/save orchestration
     color.js            - HSV<->RGB matching the firmware's color model
-                         (src/led/hsv2rgb.c, src/led/color.c)
+                         (src/led/hsv2rgb.c, src/led/color.c) - distinct
+                         from design-system/components/color-utils.js's
+                         cosmetic HSV, see that file's header comment
     storage.js         - local preset save/load (client-side only)
-    ui.js                - DOM rendering and event wiring; the only
-                         module that touches the DOM
-    twin-render.js    - digital-twin rendering primitives (chassis/
-                         encoder/cap SVG+DOM builders), used only by twin.js
+    ui.js                - DOM rendering and event wiring for index.html;
+                         the only module that touches the DOM there
     twin.js             - state and control panel for twin.html
+    vendor/
+      signals-core.js      - vendored @preact/signals-core (MIT), used by
+                            twin.js for reactive state - see its header
+                            comment and design-system/README.md for why
+                            it's vendored rather than CDN-imported
+      signals-core.LICENSE
 ```
 
 `sysex.js` is a from-scratch reimplementation of the wire protocol

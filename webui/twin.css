@@ -1,20 +1,7 @@
-/* twin.css - styling for twin.html, the digital-twin device-geometry
-   preview. Standalone from style.css (this page's dark skeuomorphic
-   chassis render wants its own palette/gradients, distinct from the
-   flatter config-GUI theme) but reuses its font-stack tokens so the page
-   still looks like it belongs to the same app.
-
-   The original design prototype loaded "Martian Mono" and "Unbounded"
-   from Google Fonts; this app is a local tool meant to work fully
-   offline against a connected device, so those are swapped for the
-   nearest local stacks instead of adding a network dependency. */
-
-:root {
-	--twin-bg: #0d0e10;
-	--twin-accent: #5df0ff;
-	--twin-font-display: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-	--twin-font-mono: ui-monospace, "SF Mono", Consolas, monospace;
-}
+/* twin.css - styling for twin.html, the digital-twin geometry-tuning
+   preview. Layout/chrome only - the rendered chassis/encoders' own
+   styling lives inline in design-system/components/*.js and pulls colours
+   from design-system/tokens.css (loaded by twin.html before this file). */
 
 * {
 	box-sizing: border-box;
@@ -24,15 +11,15 @@ html,
 body {
 	margin: 0;
 	padding: 0;
-	background: var(--twin-bg);
+	background: var(--ds-bg);
 }
 
 body {
-	font-family: var(--twin-font-display);
+	font-family: var(--ds-font);
 }
 
 input[type="range"] {
-	accent-color: var(--twin-accent);
+	accent-color: var(--ds-accent);
 	width: 100%;
 	height: 3px;
 }
@@ -42,7 +29,7 @@ input[type="range"] {
 	display: flex;
 	align-items: stretch;
 	box-sizing: border-box;
-	background: radial-gradient(circle at 12% -6%, #2a1a3d 0%, #141518 45%, #0d0e10 100%);
+	background: radial-gradient(circle at 12% -6%, #0f2a22 0%, #0a1210 45%, var(--ds-bg) 100%);
 }
 
 .twin__stage {
@@ -67,16 +54,16 @@ input[type="range"] {
 }
 
 .twin__title {
-	font-family: var(--twin-font-display);
+	font-family: var(--ds-font);
 	font-weight: 700;
 	font-size: 20px;
-	color: #f2eefb;
+	color: var(--ds-text);
 }
 
 .twin__scale-note {
-	font-family: var(--twin-font-mono);
+	font-family: var(--ds-font-mono);
 	font-size: 11px;
-	color: #8a7fa3;
+	color: var(--ds-text-dim);
 }
 
 .twin__chassis-wrap {
@@ -87,9 +74,9 @@ input[type="range"] {
 	display: flex;
 	gap: 22px;
 	align-items: center;
-	font-family: var(--twin-font-mono);
+	font-family: var(--ds-font-mono);
 	font-size: 10.5px;
-	color: #6f6788;
+	color: var(--ds-text-faint);
 	flex-wrap: wrap;
 	justify-content: center;
 	margin: 0 auto;
@@ -100,8 +87,8 @@ input[type="range"] {
 	flex-shrink: 0;
 	position: relative;
 	z-index: 2;
-	background: #0b0c0f;
-	border-left: 1px solid rgba(255, 255, 255, 0.08);
+	background: var(--ds-bg-inset);
+	border-left: 1px solid var(--ds-border);
 	padding: 28px 26px 60px;
 	overflow-y: auto;
 	max-height: 100vh;
@@ -109,32 +96,32 @@ input[type="range"] {
 }
 
 .twin-heading {
-	font-family: var(--twin-font-display);
+	font-family: var(--ds-font);
 	font-weight: 700;
 	font-size: 16px;
-	color: #f2eefb;
+	color: var(--ds-text);
 }
 
 .twin-label {
-	font-family: var(--twin-font-mono);
+	font-family: var(--ds-font-mono);
 	font-size: 10px;
-	color: #6f6788;
+	color: var(--ds-text-dim);
 	letter-spacing: 0.08em;
 }
 
 .twin-reset {
-	background: rgba(255, 255, 255, 0.07);
-	border: 1px solid rgba(255, 255, 255, 0.12);
-	color: #c9c2dd;
-	font-family: var(--twin-font-mono);
+	background: var(--ds-bg-raised);
+	border: 1px solid var(--ds-border-bright);
+	color: var(--ds-text);
+	font-family: var(--ds-font-mono);
 	font-size: 10.5px;
 	padding: 6px 12px;
-	border-radius: 6px;
+	border-radius: var(--ds-radius);
 	cursor: pointer;
 }
 
 .twin-reset:hover {
-	border-color: var(--twin-accent);
+	border-color: var(--ds-accent);
 }
 
 @media (max-width: 60em) {
