@@ -86,12 +86,31 @@ for the full build/flash/debug workflow.
   EEPROM-persisted or sysex-addressable in firmware yet.
 - WebUSB DFU firmware flashing - see above.
 
+## Digital twin (`twin.html`)
+
+A standalone, skeuomorphic render of the physical Twister chassis - 16
+knurled encoder caps, LED rings, RGB indicator arcs, side buttons - with a
+live geometry-tuning sidebar, ported from a Claude Design Canvas
+prototype. Open `twin.html` directly (no connection required); "Connect"
+and the rest of `index.html`'s device flow are not part of it.
+
+It renders demo state (a fixed value ramp, a small rainbow palette across
+encoders), not anything read from a real device - it exists to preview
+and dial in chassis/encoder/cap geometry, not to mirror live hardware
+state. If a future revision of the main config GUI's encoder grid wants
+this look, `js/twin-render.js`'s builders are written DOM-only /
+state-agnostic so they could be reused there directly; `js/twin.js` is
+just this page's own demo state and control panel.
+
 ## Structure
 
 ```text
 webui/
   index.html       - page markup
   style.css         - all styling, no preprocessor
+  twin.html         - standalone "digital twin" device-geometry preview
+                       (see below) - not wired to a real device
+  twin.css           - styling for twin.html
   README.md        - this file
   presets/           - example/starter preset JSON files (empty for now)
   js/
@@ -107,6 +126,9 @@ webui/
     storage.js         - local preset save/load (client-side only)
     ui.js                - DOM rendering and event wiring; the only
                          module that touches the DOM
+    twin-render.js    - digital-twin rendering primitives (chassis/
+                         encoder/cap SVG+DOM builders), used only by twin.js
+    twin.js             - state and control panel for twin.html
 ```
 
 `sysex.js` is a from-scratch reimplementation of the wire protocol
