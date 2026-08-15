@@ -3,8 +3,8 @@
 A small, dependency-free component library for rendering the Midi Fighter
 Twister chassis in the browser - used by both `webui/twin.html` (the
 standalone geometry-tuning tool) and the live device view in
-`webui/index.html`/`js/ui.js`. Same "no framework, no build step, no
-`npm`/`node_modules`" constraint as the rest of `webui/` - see the
+`webui/index.html`/`js/live-twin.js`. Same "no framework, no build step,
+no `npm`/`node_modules`" constraint as the rest of `webui/` - see the
 top-level [../README.md](../README.md).
 
 Originally ported from a Claude Design Canvas prototype ("Twister Digital
@@ -52,17 +52,31 @@ render whatever colour the live HSV data (from sysex, or the tuning
 sidebar's demo state) says they are. A device showing red should still
 show red; only the surrounding interface commits to green/cyan.
 
+There are three LED brightness tiers, not two - see `tokens.css`:
+
+- **Lit** (`--ds-led-on` / a real `rgbColor`) - an LED actually on.
+- **Off** (`--ds-led-off`) - an LED that's unlit while the device is
+  live/connected (e.g. a colour layer with no colour configured, or an
+  indicator outside the current bar-graph fill).
+- **Powered off** (`--ds-led-powered-off`, dimmer still) - the *whole
+  device* has no power/connection at all (see `live-twin.js`'s
+  disconnected render). Deliberately distinct from "off" so a
+  disconnected twin doesn't read as "every LED happens to be unlit" -
+  see `rgb-arc.js`/`led-ring.js`/`encoder.js`'s `powered` prop.
+
 ## Components
 
 | Module | Renders | Notable props |
 |---|---|---|
 | `chassis.js` | Plastic faceplate + rubber bevel. Static - no colour/on-off state, only geometry. | `size`, `cornerRadius`, `bevelWidth` |
-| `encoder.js` | One full encoder assembly: body, RGB arc, LED ring, and cap, composed together. | `rgbColor`/`rgbOff`, `litMask` (or `value`/`max`), `capColor`, `selected` |
-| `cap.js` | The knurled cap top-view only (used internally by `encoder.js`, but also usable standalone for a cap-only preview). | `color`, `ribCount`, `lightAngle`/`lightOffset` |
-| `led-ring.js` | The ring of discrete indicator LEDs (11 on real hardware). | `count`, `arcSpan`, `litMask` |
-| `rgb-arc.js` | The RGB backlight indicator arc. | `color`, `off` (suppresses glow entirely, not just colour - see inline comment) |
+| `device-chassis.js` | The full assembled device: `chassis.js` + the 4x4 encoder grid + 6 side switches + the two-light knurl-shading system, composed together. Shared by `twin.js` and `live-twin.js` so the grid/lighting geometry lives in one place. | `encoderProps(i, knurlLight)` and `sideSwitchProps(side, i)` callbacks - see its doc comment |
+| `encoder.js` | One full encoder assembly: body, RGB arc, LED ring, and cap, composed together. | `rgbColor`/`rgbOff`, `litMask` (or `value`/`max`), `capColor`, `selected`, `powered` |
+| `cap.js` | The knurled cap top-view only (used internally by `encoder.js`, but also usable standalone for a cap-only preview). | `color`, `ribCount`, `lightAngle`/`lightOffset`, `reflectionColor` (subtle coloured bounce from the nearby lit RGB LED) |
+| `led-ring.js` | The ring of discrete indicator LEDs (11 on real hardware). | `count`, `arcSpan`, `litMask`, `powered` |
+| `rgb-arc.js` | The RGB backlight indicator arc. | `color`, `off` (suppresses glow entirely, not just colour - see inline comment), `powered` |
 | `side-switch.js` | One side switch button. Pressed/unpressed only. | `pressed`, `selected` |
 | `color-utils.js` | Shared cosmetic HSV/hex math (`shift`, `dim`, `hsvHex`) for material shading - NOT the firmware colour model, see `../js/color.js` for that and the note in this file. | - |
+| `led-mask.js` | Firmware-accurate lit-LED bitmask math, not a renderer - ports `src/led/led.c`'s LUTs so `litMask` can be computed correctly from a real position/display-mode/detent triple. | `computeLitMask()` |
 | `dom.js` | `elc()`/`svgEl()` - the only DOM-construction helpers every component uses. | - |
 
 ### Why "Encoder" is one component, not four
@@ -85,10 +99,12 @@ JSON preset, or a slider in the tuning sidebar. Two current callers:
 
 - `webui/twin.html`/`js/twin.js` - standalone geometry/colour tuning tool,
   demo data only (no device connection).
-- `webui/index.html`/`js/ui.js` - the live config GUI's encoder grid,
-  which as of the current version renders these components from
-  `DeviceModel`'s real per-encoder HSV/position/detent state (loaded from
-  or about to be pushed to an actual connected Twister over sysex).
+- `webui/index.html`/`js/live-twin.js` - the live device view, which
+  renders these components from `DeviceModel`'s real per-encoder HSV/
+  detent/display-mode state (pulled from a connected Twister over sysex
+  immediately on connect) plus `live-position.js`'s live knob rotation
+  (pushed unsolicited by the firmware itself over sysex - see the
+  top-level README's "How live tracking works").
 
 If you add a third caller, keep state derivation (device model → props)
 in that caller, not in these component modules.

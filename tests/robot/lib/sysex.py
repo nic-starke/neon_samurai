@@ -59,8 +59,16 @@ class Param(IntEnum):
     SIDE_SWITCH = 14
     ACTIVE_BANK = 15
     DEVICE_INFO = 16
-    SYSTEM_RESET = 17
-    CONFIG_RESET = 18
+    # Live knob position (struct virtmap.curr_pos) - the only param the
+    # firmware also pushes *unsolicited* (GET_RESPONSE-shaped, unasked)
+    # while ENCODER_LIVE_POSITION_STREAM is enabled.
+    VMAP_CURR_POS = 17
+    # SET-only trigger (data: 0 = stop, nonzero = start) controlling
+    # whether VMAP_CURR_POS is streamed. Off by default and on every
+    # device reboot.
+    ENCODER_LIVE_POSITION_STREAM = 18
+    SYSTEM_RESET = 19
+    CONFIG_RESET = 20
 
 
 def pack7(data: bytes) -> bytes:
@@ -179,6 +187,14 @@ def side_switch_payload(sw_idx: int, mode: int) -> bytes:
 
 def active_bank_payload(bank: int) -> bytes:
     return bytes([bank & 0xFF])
+
+
+def vmap_curr_pos_payload(bank: int, enc: int, vmap: int, curr_pos: int) -> bytes:
+    return bytes([bank, enc, vmap, curr_pos & 0xFF])
+
+
+def live_position_stream_payload(enabled: bool) -> bytes:
+    return bytes([1 if enabled else 0])
 
 
 def index_payload(*indices: int) -> bytes:

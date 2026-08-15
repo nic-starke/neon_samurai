@@ -68,6 +68,26 @@ enum mf_sysex_param {
 	// them, and identify firmware predating this device-info query.
 	MF_SYSEX_PARAM_DEVICE_INFO,
 
+	// Read-only, and (unlike every other param) also pushed *unsolicited*:
+	// whenever an encoder is physically turned while streaming is enabled
+	// (see MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM below), the firmware
+	// sends this param's payload as a GET_RESPONSE-shaped message without
+	// having been asked. curr_pos (0-255, struct virtmap) has no other
+	// sysex GET - VMAP_POSITION above is the *configured window* a colour
+	// layer occupies, not the knob's live rotation. A host may still issue
+	// an explicit GET too (e.g. to read the current value once on
+	// connect, before any further movement); it behaves like any other
+	// read-only param in that case.
+	MF_SYSEX_PARAM_VMAP_CURR_POS,
+
+	// Write-only trigger (u8 data: 0 = stop, nonzero = start). Controls
+	// whether MF_SYSEX_PARAM_VMAP_CURR_POS is pushed unsolicited - off by
+	// default (and forced off on every reboot/reset), so a host that never
+	// asks for it sees zero extra sysex traffic. A connected web client
+	// should enable this on connect and disable it on disconnect - see
+	// gRT.live_position_streaming and vmap_update() in input_manager.c.
+	MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM,
+
 	// Write-only triggers, no meaningful data payload (SET with any/no
 	// data byte fires it; GET is rejected). Both reboot the device - the
 	// SET ack is sent *before* the reboot actually happens, mirroring how
@@ -165,6 +185,7 @@ typedef struct __attribute__((packed)) {
 			u8	 saturation; // 0-255
 			u8	 value;			 // 0-255
 		} hsv;
+		u8 curr_pos; // MF_SYSEX_PARAM_VMAP_CURR_POS - live knob position, 0-255
 	} data;
 } mf_sysex_vmap_param_s;
 

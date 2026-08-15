@@ -38,23 +38,12 @@
 	/* LED/indicator states - kept in-family (green/cyan) rather than
 	   introducing white, so an "off" LED still reads as part of the same
 	   monochrome device instead of a different material.
-	   --ds-led-off is the unlit indicator LED colour: a muted sage-green.
-	   Dimmed three times from the original neutral-grey #c6c8cc the
-	   first import used - each pass ~30% by lightness, compounding (not
-	   restarting from the original grey each time): #7f9a91 -> #576e66
-	   -> #3d4d47 - see design-system/README.md. Still a ~1.6x lightness
-	   gap above --ds-led-powered-off below, so the two tiers stay
-	   visually distinct. */
-	--ds-led-off: #3d4d47;
+	   --ds-led-off is the unlit indicator LED colour: a muted sage-green,
+	   ~30% dimmer (by lightness) than the original neutral-grey #c6c8cc
+	   the first import used, re-hued into this palette's accent family
+	   rather than staying a flat grey - see design-system/README.md. */
+	--ds-led-off: #7f9a91;
 	--ds-led-on: #d8fff0;
-	/* --ds-led-powered-off is distinct from --ds-led-off: that's a single
-	   LED with no colour configured while the device is connected
-	   ("present but unlit"); this is for when the whole device has no
-	   power/connection at all - dimmer still, meant to sit in the
-	   chassis background rather than read as any LED state. See
-	   live-twin.js's disconnected render and encoder.js/led-ring.js's
-	   `powered` prop. */
-	--ds-led-powered-off: #28302e;
 	--ds-glow: 0 0 6px rgba(77, 255, 176, 0.55);
 	--ds-glow-soft: 0 0 10px rgba(77, 255, 176, 0.3);
 

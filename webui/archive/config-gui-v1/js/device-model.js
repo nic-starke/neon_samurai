@@ -1,8 +1,13 @@
-// In-memory mirror of the device's configuration:
+// device-model.js - in-memory mirror of the device's configuration:
 // banks[3].encoders[16].vmaps[2] + sideSwitches[6]. Shape mirrors
 // struct encoder / struct virtmap (src/include/system/hardware.h,
-// src/include/virtmap/virtmap.h) closely enough to read naturally
-// against the firmware source, without being a byte-exact serialization.
+// src/include/virtmap/virtmap.h) closely enough that a preset JSON dump
+// reads naturally against the firmware source, without trying to be a
+// byte-exact serialization of the C structs.
+//
+// This module owns loading from / saving to the device (via a Protocol
+// instance) and dirty-tracking (which fields differ from what was last
+// loaded/saved), but has no DOM/rendering knowledge - see ui.js for that.
 
 import { Param } from "./sysex.js";
 
@@ -49,13 +54,6 @@ function defaultVmap() {
 		position: { start: 0, stop: 255 },
 		hsv: { hue: 0, sat: 0, val: 0 },
 		proto: { mode: MidiMode.CC, channel: 0, ccOrRaw: 0 },
-		// Live knob rotation (struct virtmap.curr_pos, 0-255) - distinct
-		// from `position` above, which is the *configured window* this
-		// layer occupies. Populated by loadFromDevice() below and kept
-		// current after that by live-position.js's sysex push (see
-		// live-twin.js) - not round-tripped by saveToDevice(), which has
-		// nothing meaningful to write back for a live-only value.
-		currPos: 127,
 	};
 }
 
@@ -83,8 +81,10 @@ export class DeviceModel {
 		this.sideSwitches = Array.from({ length: NUM_SIDE_SWITCHES }, () => SideSwitchMode.NONE);
 		this.activeBank = 0;
 		this.deviceInfo = null;
-		// "bank.enc" or "bank.enc.vmap.field" keys touched since the last
-		// load/save - for a future dirty-indicator UI, not yet wired up.
+		/** Set of "bank.enc" or "bank.enc.vmap.field" keys touched since the
+		 * last load/save, for a future dirty-indicator UI (not yet wired
+		 * up in v1's ui.js, but tracked here from the start rather than
+		 * bolted on later). */
 		this.dirty = new Set();
 	}
 
@@ -96,15 +96,23 @@ export class DeviceModel {
 		this.dirty.clear();
 	}
 
-	// Sequential, not parallelized - this protocol has no per-message
-	// request ID (see midi.js's request()), so concurrent requests for the
-	// same param can't be reliably correlated. ~205 round trips total.
+	/**
+	 * Load every encoder/vmap/side-switch/bank value from the device,
+	 * overwriting this model's current state. Sequential, not
+	 * parallelized - this protocol has no per-message request ID (see the
+	 * note in midi.js's request()), so concurrent requests for the same
+	 * param can't be reliably correlated; issuing them one at a time is
+	 * the safe choice even though it's slower (16 encoders x 2 vmaps x
+	 * ~6 params + 6 side switches + 1 bank = ~205 round trips).
+	 * @param {import("./protocol.js").Protocol} protocol
+	 * @param {(done: number, total: number) => void} [onProgress]
+	 */
 	async loadFromDevice(protocol, onProgress) {
 		this.deviceInfo = await protocol.getDeviceInfo();
 		this.activeBank = await protocol.getActiveBank();
 
 		const total =
-			NUM_BANKS * NUM_ENCODERS * (4 + NUM_VMAPS_PER_ENCODER * 5) + NUM_SIDE_SWITCHES;
+			NUM_BANKS * NUM_ENCODERS * (2 + NUM_VMAPS_PER_ENCODER * 4) + NUM_SIDE_SWITCHES;
 		let done = 0;
 		const tick = () => onProgress?.(++done, total);
 
@@ -121,24 +129,6 @@ export class DeviceModel {
 					await protocol.getEncoderParam(Param.ENCODER_DETENT, bank, enc),
 				);
 				tick();
-				// Which colour layer is actually driving output right now -
-				// without this, live position pushes (which the firmware
-				// only sends for the vmap(s) it's actually updating; see
-				// vmap_update() in src/io/input_manager.c) can arrive on a
-				// vmap index the twin never reads, since it'd otherwise
-				// always assume layer 0.
-				model.vmapMode = await protocol.getEncoderParam(
-					Param.ENCODER_VMAP_MODE,
-					bank,
-					enc,
-				);
-				tick();
-				model.vmapActive = await protocol.getEncoderParam(
-					Param.ENCODER_VMAP_ACTIVE,
-					bank,
-					enc,
-				);
-				tick();
 
 				for (let vmap = 0; vmap < NUM_VMAPS_PER_ENCODER; vmap++) {
 					const v = model.vmaps[vmap];
@@ -149,8 +139,6 @@ export class DeviceModel {
 					v.hsv = await protocol.getVmapHsv(bank, enc, vmap);
 					tick();
 					v.proto = await protocol.getVmapProto(bank, enc, vmap);
-					tick();
-					v.currPos = await protocol.getVmapCurrPos(bank, enc, vmap);
 					tick();
 				}
 			}
@@ -164,7 +152,12 @@ export class DeviceModel {
 		this.clearDirty();
 	}
 
-	// Same sequential-round-trip caveat as loadFromDevice().
+	/**
+	 * Push every encoder/vmap/side-switch/bank value in this model to the
+	 * device. Same sequential-round-trip caveat as loadFromDevice().
+	 * @param {import("./protocol.js").Protocol} protocol
+	 * @param {(done: number, total: number) => void} [onProgress]
+	 */
 	async saveToDevice(protocol, onProgress) {
 		const total =
 			NUM_BANKS * NUM_ENCODERS * (2 + NUM_VMAPS_PER_ENCODER * 4) + NUM_SIDE_SWITCHES + 1;
@@ -222,6 +215,7 @@ export class DeviceModel {
 		this.clearDirty();
 	}
 
+	/** Plain-object snapshot suitable for JSON.stringify (see storage.js). */
 	toJSON() {
 		return {
 			formatVersion: 1,

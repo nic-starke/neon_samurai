@@ -249,6 +249,58 @@ class NeonSamuraiLibrary:
     def build_active_bank_payload(self, bank: int) -> bytes:
         return sx.active_bank_payload(bank)
 
+    @keyword("Get Vmap Curr Pos")
+    def get_vmap_curr_pos(
+        self, bank: int, enc: int, vmap: int, timeout_s: float = DEFAULT_TIMEOUT_S
+    ) -> int:
+        req = sx.vmap_curr_pos_payload(bank, enc, vmap, 0)
+        reply = self.send_and_wait(sx.Cmd.GET, sx.Param.VMAP_CURR_POS, req, timeout_s)
+        return reply.data[3]
+
+    @keyword("Set Live Position Streaming")
+    def set_live_position_streaming(
+        self, enabled: bool, timeout_s: float = DEFAULT_TIMEOUT_S
+    ) -> int:
+        req = sx.live_position_stream_payload(enabled)
+        reply = self.send_and_wait(
+            sx.Cmd.SET, sx.Param.ENCODER_LIVE_POSITION_STREAM, req, timeout_s
+        )
+        return reply.data[0] if reply.data else -1
+
+    @keyword("Wait For Live Position Push")
+    def wait_for_live_position_push(self, timeout_s: float = DEFAULT_TIMEOUT_S) -> dict:
+        """Waits for an unsolicited VMAP_CURR_POS GET_RESPONSE - nothing is
+        sent (unlike Send And Wait, there is no request to correlate a
+        reply against; the firmware pushes this on its own). Streaming
+        must already be enabled (see Set Live Position Streaming) and an
+        encoder physically turned, which on hardware-in-the-loop tests
+        means driving the quadrature/movement fixture, not sysex. Any
+        unrelated sysex traffic seen while waiting is discarded, matching
+        Send And Wait's behaviour."""
+        if self._port is None:
+            raise AssertionError("Not connected - call 'Connect To Device' first")
+
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            reply_bytes = self._port.receive(remaining)
+            if reply_bytes is None:
+                break
+            try:
+                decoded = sx.decode(reply_bytes)
+            except ValueError:
+                continue
+            if decoded.cmd == sx.Cmd.GET_RESPONSE and decoded.param == sx.Param.VMAP_CURR_POS:
+                return {
+                    "bank": decoded.data[0],
+                    "enc": decoded.data[1],
+                    "vmap": decoded.data[2],
+                    "curr_pos": decoded.data[3],
+                }
+        raise AssertionError(
+            f"No unsolicited VMAP_CURR_POS push received within {timeout_s}s"
+        )
+
     @keyword("Expect No Response")
     def expect_no_response(
         self,

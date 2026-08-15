@@ -1,0 +1,153 @@
+/* live-twin.css - chrome styling for index.html, the live device view.
+   Rebased onto design-system/tokens.css's Matrix palette (loaded before
+   this file - see index.html) rather than the old config-GUI's separate
+   --bg/--accent/etc set (see archive/config-gui-v1/style.css). The
+   rendered chassis itself is styled inline by design-system/components/*,
+   not here - this file only covers the header/toast/banner chrome around
+   it. */
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background: var(--ds-bg);
+	color: var(--ds-text);
+	font-family: var(--ds-font);
+	font-size: 14px;
+}
+
+body {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+	background: var(--ds-bg-raised);
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius);
+	padding: 0.5em 1.1em;
+	cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+	border-color: var(--ds-accent);
+}
+
+button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* --- Banner (unsupported browser) --- */
+
+.banner {
+	padding: 0.75em 1em;
+	text-align: center;
+}
+
+.banner--error {
+	background: color-mix(in srgb, var(--ds-danger) 18%, var(--ds-bg));
+	color: var(--ds-danger);
+}
+
+.banner--error a {
+	color: inherit;
+}
+
+/* --- Header --- */
+
+#header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75em;
+	padding: 0.75em 1.25em;
+	background: var(--ds-bg-panel);
+	border-bottom: 1px solid var(--ds-border);
+}
+
+.header__status {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.status-dot {
+	width: 0.7em;
+	height: 0.7em;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+.status-dot--disconnected {
+	background: var(--ds-text-faint);
+}
+
+.status-dot--connected {
+	background: var(--ds-accent);
+	box-shadow: var(--ds-glow);
+}
+
+.status-dot--error {
+	background: var(--ds-danger);
+	box-shadow: 0 0 6px var(--ds-danger);
+}
+
+.fw-version {
+	color: var(--ds-text-dim);
+	font-family: var(--ds-font-mono);
+	font-size: 0.9em;
+}
+
+/* --- Toasts --- */
+
+#toast-container {
+	position: fixed;
+	top: 1em;
+	right: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	z-index: 100;
+}
+
+.toast {
+	background: var(--ds-bg-raised);
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius);
+	padding: 0.6em 1em;
+	max-width: 24em;
+	box-shadow: 0 4px 16px rgb(0 0 0 / 0.4);
+}
+
+.toast--error {
+	border-color: var(--ds-danger);
+	color: var(--ds-danger);
+}
+
+.toast--success {
+	border-color: var(--ds-accent);
+}
+
+/* --- Main layout --- */
+
+main {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 3em 1.5em;
+	background: radial-gradient(circle at 50% -10%, #0f2a22 0%, #0a1210 45%, var(--ds-bg) 100%);
+}
+
+.twin-chassis-wrap {
+	margin: 0 auto;
+}

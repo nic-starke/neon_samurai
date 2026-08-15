@@ -123,6 +123,8 @@ static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_HSV, struct virtmap, hsv, VMAP_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_SIDE_SWITCH, struct side_switch, mode, SW_PREFIX_LEN),
 	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ACTIVE_BANK, struct mf_rt, curr_bank, BANK_PREFIX_LEN),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_VMAP_CURR_POS, struct virtmap, curr_pos, VMAP_PREFIX_LEN),
+	SYSEX_DATA_INFO(MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM, struct mf_rt, live_position_streaming, BANK_PREFIX_LEN),
 	[MF_SYSEX_PARAM_DEVICE_INFO] = {0, sizeof(mf_sysex_device_info_s), 0},
 	// SYSTEM_RESET/CONFIG_RESET carry no payload at all (not even an index
 	// prefix) - SET with zero data bytes fires them.
@@ -335,7 +337,8 @@ static int midi_in_handler(void* evt) {
 		case MF_SYSEX_PARAM_VMAP_POSITION:
 		case MF_SYSEX_PARAM_VMAP_RGB:
 		case MF_SYSEX_PARAM_VMAP_RB:
-		case MF_SYSEX_PARAM_VMAP_PROTO: {
+		case MF_SYSEX_PARAM_VMAP_PROTO:
+		case MF_SYSEX_PARAM_VMAP_CURR_POS: {
 			u8 bank_idx = msg->param.vmap.bank_idx;
 			u8 enc_idx	= msg->param.vmap.enc_idx;
 			u8 vmap_idx = msg->param.vmap.vmap_idx;
@@ -401,6 +404,16 @@ static int midi_in_handler(void* evt) {
 			param = (void*)((u8*)&gRT + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
 				memcpy(param, (const void*)&msg->param.bank.data, param_len);
+			}
+			break;
+		}
+
+		case MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM: {
+			// Reuses mf_sysex_bank_param_s's {u8 data} shape (no index
+			// prefix - this is a single global flag, not per-encoder/vmap).
+			param = (void*)((u8*)&gRT + sysex_data_info[msg->param_enum].offset);
+			if (msg->cmd == MF_SYSEX_SET) {
+				gRT.live_position_streaming = msg->param.bank.data != 0;
 			}
 			break;
 		}

@@ -18,12 +18,18 @@ import * as midi from "./midi.js";
 import { Protocol } from "./protocol.js";
 import { loadPreset, savePreset } from "./storage.js";
 import { buildEncoder, computeLitMask, ENC_MID } from "../design-system/components/index.js";
+import { LivePositionTracker } from "./live-position.js";
 
 const model = new DeviceModel();
 /** @type {import("./midi.js").Device|null} */
 let device = null;
 /** @type {Protocol|null} */
 let protocol = null;
+// Live knob position, derived from the device's own CC traffic (no sysex
+// GET exists for this - see live-position.js's header comment and
+// renderEncoderGrid()'s doc comment below). Attached/detached alongside
+// `device` at every connect/reconnect/disconnect site.
+const livePosition = new LivePositionTracker();
 let selectedEncoderIdx = null;
 let selectedVmapIdx = 0;
 let viewingBank = 0; // which bank's config is being *browsed*, independent of model.activeBank
@@ -94,6 +100,8 @@ async function onConnectClick() {
 		device = await midi.connect();
 		protocol = new Protocol(device);
 		device.onDisconnect((reason) => onDeviceDisconnected(reason));
+		livePosition.reset(); // discard any previous connection's stale positions
+		livePosition.attach(device, model, renderEncoderGrid);
 		const info = await protocol.getDeviceInfo();
 		model.deviceInfo = info;
 		setStatus("connected", `Connected: ${device.name}`);
@@ -212,12 +220,15 @@ async function onLoadPresetFileChange() {
  * fixed delay. */
 async function waitAndReconnect() {
 	if (device) device.destroy(); // stop the old instance's heartbeat/listeners
+	livePosition.detach();
 	await sleep(2000);
 	for (let attempt = 0; attempt < 20; attempt++) {
 		try {
 			device = await midi.connect();
 			protocol = new Protocol(device);
 			device.onDisconnect((reason) => onDeviceDisconnected(reason));
+			livePosition.reset();
+			livePosition.attach(device, model, renderEncoderGrid);
 			const info = await protocol.getDeviceInfo();
 			model.deviceInfo = info;
 			setStatus("connected", `Connected: ${device.name}`);
@@ -306,14 +317,17 @@ function visualPositionToFirmwareIndex(position) {
 // used before - same component the standalone twin.html preview uses,
 // driven here by real DeviceModel state instead of demo sliders.
 //
-// One live-state gap: the sysex protocol has no "read the knob's current
-// rotation" param (only VMAP_POSITION, the *configured window* the vmap
-// occupies - see device-model.js's doc comment and MF_SYSEX_PARAM_VMAP_*
-// in src/include/midi/sysex.h) and this app doesn't listen for regular
-// (non-sysex) MIDI CC/note messages either, so there is no live position
-// to render. Indicator LEDs are drawn at ENC_MID (dead centre) as a
-// neutral "not turned" default rather than fabricating motion - only
-// colour, detent, and display-mode genuinely reflect the device/model.
+// Indicator LEDs reflect the knob's *live* rotation when available - see
+// live-position.js: there is no sysex GET for this (only VMAP_POSITION,
+// the *configured window* a vmap occupies - see device-model.js's doc
+// comment and MF_SYSEX_PARAM_VMAP_* in src/include/midi/sysex.h), so it's
+// derived by listening for the CC traffic the encoder itself transmits
+// as it turns and inverting the same range/position mapping firmware
+// uses. Until at least one CC has been observed for a given encoder (no
+// device connected, a fresh connection, or a vmap not configured for CC
+// mode), there's nothing to derive a position from - those cells fall
+// back to ENC_MID (dead centre) as a neutral default rather than
+// fabricating motion.
 function renderEncoderGrid() {
 	el.encoderGrid.innerHTML = "";
 	const bank = model.banks[viewingBank];
@@ -326,8 +340,9 @@ function renderEncoderGrid() {
 		cell.className = "encoder-cell encoder-cell--twin";
 		cell.dataset.encoderIdx = String(i);
 
+		const livePos = livePosition.getPosition(viewingBank, i);
 		const litMask = computeLitMask({
-			position: ENC_MID,
+			position: livePos ?? ENC_MID,
 			displayMode: enc.displayMode,
 			detent: enc.detent,
 		});

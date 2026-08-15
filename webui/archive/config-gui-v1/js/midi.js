@@ -1,6 +1,11 @@
-// Web MIDI with sysex access (`{sysex: true}`) is Chrome/Edge only as of
-// this writing - Firefox doesn't implement it by default, Safari's
-// support is partial. Check isSupported() before anything else.
+// midi.js - Web MIDI transport: device discovery, connection, and raw
+// sysex send/receive with request/response correlation.
+//
+// Browser support note: Web MIDI with sysex access (`{sysex: true}`) is
+// Chrome/Edge (Chromium) only as of this writing - Firefox does not
+// implement it by default, Safari's support is partial/recent. Callers
+// should check `isSupported()` before anything else and show a clear
+// message rather than failing silently - see ui.js.
 
 import { decode, encode, Cmd, Param } from "./sysex.js";
 
@@ -19,18 +24,27 @@ const HEARTBEAT_INTERVAL_MS = 200;
 const HEARTBEAT_TIMEOUT_MS = 3000;
 const HEARTBEAT_MAX_MISSES = 2; // consecutive misses before declaring disconnected
 
+/** @returns {boolean} whether this browser exposes navigator.requestMIDIAccess at all. */
 export function isSupported() {
 	return typeof navigator !== "undefined" && "requestMIDIAccess" in navigator;
 }
 
-// A connected device's input+output MIDI port pair, plus the raw
-// request/response sysex plumbing. One instance per connected device.
+/**
+ * A connected device's input+output MIDI port pair, plus the raw
+ * request/response sysex plumbing. One instance per connected device.
+ */
 export class Device {
+	/**
+	 * @param {MIDIInput} input
+	 * @param {MIDIOutput} output
+	 */
 	constructor(input, output) {
 		this.input = input;
 		this.output = output;
 		/** @type {((msg: import("./sysex.js").SysexMessage) => void)[]} */
 		this._listeners = [];
+		/** @type {((msg: MidiChannelMessage) => void)[]} */
+		this._channelListeners = [];
 		/** @type {((reason: string) => void)[]} */
 		this._disconnectListeners = [];
 		this._alive = true;
@@ -51,12 +65,17 @@ export class Device {
 		return this.output.name ?? this.input.name ?? "unknown device";
 	}
 
+	/** @returns {boolean} whether this Device still believes the connection is live - false once any disconnect signal has fired. */
 	get isAlive() {
 		return this._alive;
 	}
 
-	// Fires at most once per Device instance, the first time either the
-	// native port statechange or the heartbeat declares the connection gone.
+	/**
+	 * Subscribe to disconnect - fires at most once per Device instance, the
+	 * first time either the native port statechange or the heartbeat
+	 * declares the connection gone. Returns an unsubscribe function.
+	 * @param {(reason: string) => void} listener
+	 */
 	onDisconnect(listener) {
 		this._disconnectListeners.push(listener);
 		return () => {
@@ -128,22 +147,43 @@ export class Device {
 
 	_onMessage(event) {
 		const data = event.data;
-		if (!data || data.length === 0 || data[0] !== 0xf0) return;
+		if (!data || data.length === 0) return;
 
-		let msg;
-		try {
-			msg = decode(data);
-		} catch (e) {
-			console.warn("midi.js: dropped unparseable sysex message", e, data);
+		if (data[0] === 0xf0) {
+			let msg;
+			try {
+				msg = decode(data);
+			} catch (e) {
+				console.warn("midi.js: dropped unparseable sysex message", e, data);
+				return;
+			}
+			for (const listener of this._listeners) {
+				listener(msg);
+			}
 			return;
 		}
-		for (const listener of this._listeners) {
+
+		// Regular (non-sysex) channel message - CC/Note/etc, e.g. what an
+		// encoder transmits as it's turned (see each vmap's proto config:
+		// mode/channel/CC-or-note, device-model.js). Only decoded/dispatched
+		// if something has actually subscribed via onChannelMessage() -
+		// this GUI is a config editor first and doesn't otherwise care
+		// about ordinary MIDI traffic.
+		if (this._channelListeners.length === 0) return;
+		const msg = parseChannelMessage(data);
+		if (!msg) return;
+		for (const listener of this._channelListeners) {
 			listener(msg);
 		}
 	}
 
-	// Most callers should use request() instead; this is for observing
-	// traffic without driving a specific request (e.g. live position).
+	/**
+	 * Subscribe to every decoded sysex reply from this device. Returns an
+	 * unsubscribe function. Most callers should use `request()` instead;
+	 * this is for cases that need to observe traffic without driving a
+	 * specific request (e.g. a live encoder-turn indicator).
+	 * @param {(msg: import("./sysex.js").SysexMessage) => void} listener
+	 */
 	onSysex(listener) {
 		this._listeners.push(listener);
 		return () => {
@@ -151,11 +191,39 @@ export class Device {
 		};
 	}
 
-	// Resolves with the first reply whose `param` matches; rejects on
-	// timeout. Concurrent requests for the *same* param are not correlated
-	// beyond "first matching reply wins" - this protocol has no per-message
-	// request ID, only positional ordering on a single pipe (see sysex.h) -
-	// so callers needing strict ordering should await each request first.
+	/**
+	 * Subscribe to every decoded regular (non-sysex) channel message from
+	 * this device - Control Change and Note On/Off, which is what an
+	 * encoder or side switch actually transmits as it's turned/pressed
+	 * (see each vmap/switch's proto config in device-model.js). Unlike
+	 * sysex traffic, these are never parsed unless something is
+	 * subscribed (see _onMessage) - cheap to ignore when nobody's
+	 * listening (e.g. the config-editing parts of this GUI). Returns an
+	 * unsubscribe function.
+	 * @param {(msg: MidiChannelMessage) => void} listener
+	 */
+	onChannelMessage(listener) {
+		this._channelListeners.push(listener);
+		return () => {
+			this._channelListeners = this._channelListeners.filter((l) => l !== listener);
+		};
+	}
+
+	/**
+	 * Send a sysex request and resolve with the first reply whose `param`
+	 * matches. Rejects on timeout. Concurrent requests for *different*
+	 * params are safe (each `request()` call only watches for its own
+	 * param); concurrent requests for the *same* param are not
+	 * correlated beyond "first matching reply wins" - this protocol has
+	 * no per-message request ID, only positional ordering on a single
+	 * pipe (see the note in sysex.h), so callers that need strict
+	 * ordering should await each request before sending the next.
+	 * @param {number} cmd one of Cmd
+	 * @param {number} param one of Param
+	 * @param {number[]} [data]
+	 * @param {number} [timeoutMs]
+	 * @returns {Promise<import("./sysex.js").SysexMessage>}
+	 */
 	request(cmd, param, data = [], timeoutMs = DEFAULT_TIMEOUT_MS) {
 		if (!this._alive) {
 			return Promise.reject(new Error("Device is disconnected"));
@@ -193,6 +261,15 @@ export class Device {
 	}
 }
 
+/**
+ * Request Web MIDI access (with sysex) and return the first connected
+ * input+output pair whose name contains `portSubstring`. Throws with a
+ * descriptive message if permission is denied, the API isn't supported, or
+ * no matching device is found - callers should catch and surface this to
+ * the user rather than silently failing.
+ * @param {string} [portSubstring]
+ * @returns {Promise<Device>}
+ */
 export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
 	if (!isSupported()) {
 		throw new Error(
@@ -233,6 +310,10 @@ export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
 	return new Device(input, output);
 }
 
+/**
+ * @param {MIDIInputMap|MIDIOutputMap} portMap
+ * @param {string} substring
+ */
 function findPort(portMap, substring) {
 	const needle = substring.toLowerCase();
 	for (const port of portMap.values()) {
@@ -240,6 +321,41 @@ function findPort(portMap, substring) {
 			return port;
 		}
 	}
+	return null;
+}
+
+/**
+ * @typedef {object} MidiChannelMessage
+ * @property {"cc"|"noteon"|"noteoff"} type
+ * @property {number} channel - 0-15
+ * @property {number} data1 - CC number (type: "cc") or note number (type: "noteon"/"noteoff")
+ * @property {number} data2 - CC value or note velocity, 0-127
+ */
+
+/**
+ * Parse a raw regular (non-sysex) MIDI message into a plain object, or
+ * null for anything not currently useful to this app (System Realtime,
+ * System Common, Program Change, etc).
+ *
+ * Note On/Off are parsed here because they're valid MIDI and some other
+ * device might send them, but be aware this firmware's own TX path
+ * (src/midi/midi_lufa.c's midi_out_handler()) only implements
+ * MIDI_EVENT_CC - MidiMode.NOTE exists in the enum (device-model.js) but,
+ * like CC_14/REL_CC, has no working transmit implementation yet. A
+ * connected neon_samurai device configured for NOTE mode will not
+ * actually transmit anything for this parser to see; live-position
+ * tracking (see live-position.js) is CC-only in practice today.
+ * @param {Uint8Array} data
+ * @returns {MidiChannelMessage|null}
+ */
+export function parseChannelMessage(data) {
+	if (data.length < 3) return null;
+	const status = data[0];
+	const kind = status & 0xf0;
+	const channel = status & 0x0f;
+	if (kind === 0xb0) return { type: "cc", channel, data1: data[1], data2: data[2] };
+	if (kind === 0x90) return { type: "noteon", channel, data1: data[1], data2: data[2] };
+	if (kind === 0x80) return { type: "noteoff", channel, data1: data[1], data2: data[2] };
 	return null;
 }
 

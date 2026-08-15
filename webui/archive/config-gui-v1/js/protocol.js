@@ -7,9 +7,14 @@
 // matching keyword there too (and vice versa) - see
 // tests/robot/README.md's "Adding a new test" section.
 
-import { Cmd, Param, activeBankPayload, encoderPayload, livePositionStreamPayload, sideSwitchPayload, vmapCurrPosPayload, vmapHsvPayload, vmapPositionPayload, vmapRangePayload, vmapRbPayload, vmapRgbPayload } from "./sysex.js";
+import { Cmd, Param, activeBankPayload, encoderPayload, sideSwitchPayload, vmapHsvPayload, vmapPositionPayload, vmapRangePayload, vmapRbPayload, vmapRgbPayload } from "./sysex.js";
 
+/**
+ * Thin wrapper around a midi.js Device exposing one method per sysex
+ * param, each returning plain values instead of raw payload bytes.
+ */
 export class Protocol {
+	/** @param {import("./midi.js").Device} device */
 	constructor(device) {
 		this.device = device;
 	}
@@ -105,8 +110,9 @@ export class Protocol {
 		return reply.data[0];
 	}
 
-	// Read-only - gamma-corrected BCM brightness (0-31/channel), not a
-	// settable color.
+	/** Read-only - reflects what the device is actually driving the LEDs
+	 * with (gamma-corrected BCM brightness, 0-31 per channel), not a
+	 * settable color. */
 	async getVmapRgb(bank, enc, vmap) {
 		const reply = await this.device.request(
 			Cmd.GET,
@@ -207,37 +213,6 @@ export class Protocol {
 		return reply.data[0];
 	}
 
-	// --- Live position -----------------------------------------------------
-	// See sysex.js's Param.VMAP_CURR_POS doc comment: the firmware also
-	// pushes this unsolicited while streaming is enabled - see
-	// live-position.js, which listens via device.onSysex() rather than
-	// calling getVmapCurrPos() itself. getVmapCurrPos() is for an explicit
-	// one-off read (e.g. an initial sync right after enabling streaming).
-
-	async getVmapCurrPos(bank, enc, vmap) {
-		// GET replies carry only the param's own data (matching every other
-		// GET in this protocol - see e.g. getVmapRange() above), not an
-		// echo of the bank/enc/vmap index prefix - unlike the *unsolicited
-		// push* this same param also arrives as, which does include that
-		// prefix (see live-position.js) since there's no request/response
-		// pairing to tell an unprompted message which encoder it's about.
-		const reply = await this.device.request(
-			Cmd.GET,
-			Param.VMAP_CURR_POS,
-			vmapCurrPosPayload(bank, enc, vmap, 0),
-		);
-		return reply.data[0];
-	}
-
-	async setLivePositionStreaming(enabled) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.ENCODER_LIVE_POSITION_STREAM,
-			livePositionStreamPayload(enabled),
-		);
-		return reply.data[0];
-	}
-
 	// --- Reset triggers ---------------------------------------------------
 	// Both reboot the device - the reply races the actual disconnect (the
 	// firmware sends the ack synchronously before rebooting, but the
@@ -245,7 +220,7 @@ export class Protocol {
 	// callers should tolerate the request() promise rejecting here even
 	// on a "successful" reset, same as tests/robot/lib/NeonSamuraiLibrary.py
 	// does. The caller is responsible for noticing the device disconnect
-	// (see midi.js/live-twin.js's MIDIAccess statechange handling) and
+	// (see midi.js/ui.js's MIDIAccess statechange handling) and
 	// reconnecting - this class doesn't reconnect on its own.
 
 	/** Soft reboot - config untouched. */

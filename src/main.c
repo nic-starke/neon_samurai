@@ -30,7 +30,8 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 struct mf_rt gRT = {
-		.curr_bank = 0,
+		.curr_bank							 = 0,
+		.live_position_streaming = false, // Off until a connected host enables it
 };
 
 struct sys_config gCONFIG = {
@@ -63,8 +64,8 @@ __attribute__((noreturn)) void main(void) {
 
 	// Check if the user requested a reset, or is holding the four corner
 	// encoders to request bootloader entry.
-	uint32_t time			 = systime_ms();
-	bool		 reset			 = false;
+	uint32_t time				= systime_ms();
+	bool		 reset			= false;
 	bool		 bootloader = false;
 	do {
 		input_update(); // Need to update input to read button state

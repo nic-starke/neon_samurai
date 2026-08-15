@@ -1,11 +1,7 @@
-// color-utils.js - shared colour math for the design-system components.
-// Standard 0-360/0-100/0-100 HSV for cosmetic material shading (plastic,
-// rubber, LED glow) - not the firmware's 0-1535/0-255/0-255 model, which
-// lives in webui/js/color.js and is unrelated to this file. Components
-// that need to render a *live device* colour (RGB LED, cap accent) take a
-// CSS colour string as a prop and let the caller (twin.js) do that
-// conversion via color.js's hsvToCss(); this module only handles the
-// twin's own decorative material tones.
+// Standard 0-360/0-100/0-100 HSV for cosmetic material shading - NOT the
+// firmware's 0-1535/0-255/0-255 model in webui/js/color.js. A live
+// device colour is converted via color.js's hsvToCss() by the caller and
+// passed in as a CSS string; this module only handles decorative tones.
 
 function hexToRgb(hex) {
 	const h = (hex || "#4a4d55").replace("#", "");
@@ -13,8 +9,6 @@ function hexToRgb(hex) {
 	return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
 }
 
-/** Lighten (amount > 0) or darken (amount < 0) a hex colour, returning a
- * CSS rgb() string. amount is roughly -1..1. */
 export function shift(hex, amount) {
 	const [r, g, b] = hexToRgb(hex);
 	const f = (v) =>
@@ -22,15 +16,10 @@ export function shift(hex, amount) {
 	return `rgb(${f(r)},${f(g)},${f(b)})`;
 }
 
-/** Darken a hex/rgb colour towards --ds-led-off by `amount` (0..1), for
- * "unlit" component states that should still read as the same material
- * family rather than switching to a flat grey. */
 export function dim(hex, amount) {
 	return shift(hex, -Math.abs(amount));
 }
 
-/** Standard-range (h:0-360, s/v:0-100) HSV to hex, for cosmetic material
- * tones. Not the firmware colour model - see webui/js/color.js for that. */
 export function hsvHex(h, s, v) {
 	const S = s / 100;
 	const V = v / 100;

@@ -1,10 +1,33 @@
-// Ported from a Claude Design Canvas prototype ("ChromaCap.dc.html").
+// cap.js - the knurled encoder cap (top-view render), one component of
+// the "Encoder" assembly. Ported from a Claude Design Canvas prototype
+// ("ChromaCap.dc.html", via "Encoder.dc.html"'s dc-import) - its
+// side-elevation view, dimension lines and text callouts are disabled by
+// that import and are not reproduced here, only the top-view branch.
 
 import { svgEl } from "./dom.js";
 import { shift } from "./color-utils.js";
 
 const MM_TO_UNITS = 10; // drawing units per mm, matching ChromaCap.dc.html's `U`
 
+/**
+ * Build the top-view (looking straight down) SVG of one knurled encoder
+ * cap: a fluted cylinder rendered as a scalloped silhouette plus one
+ * shaded face per flute.
+ *
+ * @param {object} p
+ * @param {number} p.size - rendered width/height in px
+ * @param {string} [p.color] - base plastic colour (hex)
+ * @param {number} [p.baseDia] - base diameter, mm
+ * @param {number} [p.gripDiaBottom] - grip diameter at the bottom, mm
+ * @param {number} [p.gripDiaTop] - grip diameter at the top, mm
+ * @param {number} [p.ribCount] - number of knurl flutes
+ * @param {number} [p.innerScallopDia] - inner recess diameter, mm
+ * @param {number} [p.lightAngle] - primary light source angle, degrees
+ * @param {number} [p.lightOffset] - secondary light's angular offset from the primary, degrees
+ * @param {number} [p.light2Strength] - secondary light's relative strength, 0-1
+ * @param {string} [p.topFaceHex] - flat top-face disc colour
+ * @param {string} [p.innerFaceHex] - inner recess disc colour
+ */
 export function buildCapTopSvg(p) {
 	const color = p.color ?? "#4a4d55";
 	const baseDia = p.baseDia ?? 18.5;
@@ -102,34 +125,6 @@ export function buildCapTopSvg(p) {
 			"stroke-width": 1,
 		}),
 	);
-
-	// Reflection from the nearby lit RGB LED: radial gradient centred at
-	// the bottom edge (where the LED physically sits), fading out within
-	// a couple of flutes so it reads as ambient bounce, not backlighting.
-	if (p.reflectionColor) {
-		const gradId = `cap-reflect-${Math.random().toString(36).slice(2, 9)}`;
-		const defs = svgEl("defs", {});
-		const grad = svgEl("radialGradient", {
-			id: gradId,
-			cx: "50%",
-			cy: "100%",
-			r: "55%",
-		});
-		const strength = p.reflectionStrength ?? 0.22;
-		grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": p.reflectionColor, "stop-opacity": strength }));
-		grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": p.reflectionColor, "stop-opacity": 0 }));
-		defs.appendChild(grad);
-		svg.appendChild(defs);
-		svg.appendChild(
-			svgEl("circle", {
-				cx: topCX,
-				cy: topCX,
-				r: halfBase,
-				fill: `url(#${gradId})`,
-				style: "pointer-events:none;",
-			}),
-		);
-	}
 
 	return svg;
 }

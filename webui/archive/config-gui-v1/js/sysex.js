@@ -51,17 +51,8 @@ export const Param = Object.freeze({
 	SIDE_SWITCH: 14,
 	ACTIVE_BANK: 15,
 	DEVICE_INFO: 16,
-	// Live knob position (struct virtmap.curr_pos) - the only param the
-	// firmware also pushes *unsolicited* (GET_RESPONSE-shaped, unasked)
-	// while ENCODER_LIVE_POSITION_STREAM is enabled. See live-position.js,
-	// which listens for it via midi.js's Device.onSysex().
-	VMAP_CURR_POS: 17,
-	// SET-only trigger (data: 0 = stop, nonzero = start) controlling
-	// whether VMAP_CURR_POS is streamed. Off by default and on every
-	// device reboot.
-	ENCODER_LIVE_POSITION_STREAM: 18,
-	SYSTEM_RESET: 19,
-	CONFIG_RESET: 20,
+	SYSTEM_RESET: 17,
+	CONFIG_RESET: 18,
 });
 
 // Reverse lookup (numeric wire value -> name), for logging/debugging.
@@ -69,7 +60,12 @@ const PARAM_NAMES = Object.fromEntries(
 	Object.entries(Param).map(([name, value]) => [value, name]),
 );
 
-// Mirrors sysex_pack7() in src/midi/sysex.c exactly.
+/**
+ * Pack raw 8-bit bytes into 7-bit wire form. Mirrors sysex_pack7() in
+ * src/midi/sysex.c exactly - see that function's comment for the format.
+ * @param {number[]|Uint8Array} data
+ * @returns {number[]}
+ */
 export function pack7(data) {
 	const out = [];
 	for (let i = 0; i < data.length; i += 7) {
@@ -88,7 +84,11 @@ export function pack7(data) {
 	return out;
 }
 
-// Inverse of pack7(). Mirrors sysex_unpack7() in src/midi/sysex.c.
+/**
+ * Inverse of pack7(). Mirrors sysex_unpack7() in src/midi/sysex.c.
+ * @param {number[]|Uint8Array} data
+ * @returns {number[]}
+ */
 export function unpack7(data) {
 	const out = [];
 	let i = 0;
@@ -108,6 +108,14 @@ export function unpack7(data) {
 	return out;
 }
 
+/**
+ * Build the raw byte array (F0 ... F7) for a request.
+ * @param {number} cmd one of Cmd
+ * @param {number} param one of Param
+ * @param {number[]|Uint8Array} [data] unpacked payload appropriate for
+ *   `param` - see the build*Payload() helpers below.
+ * @returns {number[]}
+ */
 export function encode(cmd, param, data = []) {
 	const payload = pack7(data);
 	return [SYSEX_START, ...MFR_ID, cmd, param, ...payload, SYSEX_END];
@@ -117,13 +125,20 @@ export function encode(cmd, param, data = []) {
  * @typedef {{cmd: number, param: number, paramName: string, data: number[]}} SysexMessage
  */
 
-// Parses a *response* (GET_RESPONSE/SET_RESPONSE from the device). Response
-// framing differs from request framing (see encode()): the firmware's
-// midi_out_handler() (midi_lufa.c) sends one extra raw byte - the semantic
-// (unpacked) data_len - before the packed data, so a client knows how many
-// bytes to expect after unpacking without already knowing the param. That
-// data_len byte is NOT part of the packed group and must be split off
-// before unpack7() runs.
+/**
+ * Parse a raw *response* (F0 ... F7, a GET_RESPONSE/SET_RESPONSE from the
+ * device) back into cmd/param/unpacked data. Throws on any framing/mfr-ID
+ * mismatch.
+ *
+ * Response framing differs from request framing (see encode()): the
+ * firmware's midi_out_handler() (midi_lufa.c) sends one extra raw byte -
+ * the semantic (unpacked) data_len - before the 7-bit-packed data itself,
+ * so a client knows how many bytes to expect after unpacking without
+ * needing to already know the param. That data_len byte is NOT part of the
+ * packed group and must be split off before unpack7() runs.
+ * @param {number[]|Uint8Array} raw
+ * @returns {SysexMessage}
+ */
 export function decode(raw) {
 	raw = Array.from(raw);
 	if (raw.length < 7 || raw[0] !== SYSEX_START || raw[raw.length - 1] !== SYSEX_END) {
@@ -187,14 +202,6 @@ export function sideSwitchPayload(swIdx, mode) {
 
 export function activeBankPayload(bank) {
 	return [bank & 0xff];
-}
-
-export function vmapCurrPosPayload(bank, enc, vmap, currPos) {
-	return [bank, enc, vmap, currPos & 0xff];
-}
-
-export function livePositionStreamPayload(enabled) {
-	return [enabled ? 1 : 0];
 }
 
 /**

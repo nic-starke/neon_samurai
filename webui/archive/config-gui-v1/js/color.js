@@ -18,6 +18,14 @@ export const HUE_MAX = 1535; // 6 sextants x 256 - 1
 export const SAT_MAX = 255;
 export const VAL_MAX = 255;
 
+/**
+ * Convert firmware-range HSV (hue 0-1535, sat 0-255, val 0-255) to sRGB
+ * 0-255 per channel, for CSS/canvas display.
+ * @param {number} hue 0-1535
+ * @param {number} sat 0-255
+ * @param {number} val 0-255
+ * @returns {{r:number, g:number, b:number}}
+ */
 export function hsvToRgb(hue, sat, val) {
 	hue = clamp(hue, 0, HUE_MAX);
 	sat = clamp(sat, 0, SAT_MAX);
@@ -53,6 +61,9 @@ export function hsvToRgb(hue, sat, val) {
 	};
 }
 
+/**
+ * @returns {string} a CSS rgb() color string for the given firmware-range HSV.
+ */
 export function hsvToCss(hue, sat, val) {
 	const { r, g, b } = hsvToRgb(hue, sat, val);
 	return `rgb(${r}, ${g}, ${b})`;

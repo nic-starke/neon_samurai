@@ -147,7 +147,8 @@ struct side_switch {
  * @brief Runtime data structure for the midifighter global variables.
  */
 struct mf_rt {
-	u8 curr_bank;
+	u8	 curr_bank;
+	bool live_position_streaming; // See MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -1,23 +1,12 @@
-// twin.js - state and control panel for webui/twin.html, the standalone
-// "digital twin" geometry-tuning preview. Renders via
-// webui/design-system/components/*.js; see that directory's README for
-// the component catalog and the offline-vendored-signals rationale.
-//
-// This page is a demo/design tool - it renders a plausible chassis and
-// lets you tune its geometry/colours, it does not talk to a real device.
-// For the live-device render (real HSV/position/detent from a connected
-// Twister over sysex), see js/ui.js's encoder grid, which consumes the
-// same design-system components against DeviceModel state instead of
-// this file's tuning-sidebar state.
+// State and control panel for webui/twin.html, the standalone geometry-
+// tuning preview - demo/design tool, doesn't talk to a real device. See
+// js/live-twin.js for the real-device render using the same components.
 
 import { signal, effect, batch } from "./vendor/signals-core.js";
-import { elc, hsvHex, buildEncoder } from "../design-system/components/index.js";
+import { elc, hsvHex, buildDeviceChassis } from "../design-system/components/index.js";
 
-const NUM_ENCODERS = 16;
-
-// Fixed hardware-derived geometry the design was tuned against. "Reset to
-// spec" restores exactly these fields (and only these - colour/selection
-// state is untouched, matching the original design tool's behaviour).
+// "Reset to spec" restores exactly these fields - colour/selection state
+// is untouched.
 const SPEC = {
 	pitch: 136,
 	edgeFirst: 92,
@@ -34,8 +23,6 @@ const SPEC = {
 	lightY1: -45,
 	lightX2: 130,
 	lightY2: 145,
-	// Cap top-face / inner-recess tones, HSV(220°, 13%, 17%) family -
-	// matches the main cap colour default (see capH/capS/capV below).
 	capTopHue: 220,
 	capTopSat: 13,
 	capTopVal: 17,
@@ -65,14 +52,10 @@ const CAP_PRESETS = [
 	[192, 77, 100],
 ];
 
-// --- Reactive state (signals) ---------------------------------------------
-// One signal per tunable field rather than one big object signal: each
-// slider/toggle only touches its own field, so effects that read a
-// disjoint set of fields don't re-run on every unrelated change. render()
-// below still does a full rebuild (cheap enough for 16 DOM subtrees - see
-// design-system/README.md), but is registered as a *single* effect that
-// depends on all of state's fields, batched so a multi-field change (e.g.
-// "Reset to spec") only triggers one rebuild instead of one per field.
+// One signal per field rather than one big object signal; render() does a
+// full rebuild regardless, but is a single effect over all fields,
+// batched so a multi-field change (e.g. "Reset to spec") triggers one
+// rebuild, not one per field.
 const state = {};
 for (const [k, v] of Object.entries({
 	...SPEC,
@@ -202,104 +185,56 @@ function renderStage() {
 
 	const gridGap = s.pitch - s.bodySize;
 	const chassisPad = s.edgeFirst - s.bodySize / 2;
-	const chassisSize = 4 * s.bodySize + 3 * gridGap + 2 * chassisPad;
-
-	// Two lights fixed to the panel, not to each cap: every encoder's
-	// highlight angle is derived from its own position relative to the
-	// two light points, so the knurl shading reads as one lit surface
-	// rather than 16 identical stickers.
-	const lx1 = (s.lightX1 / 100) * chassisSize;
-	const ly1 = (s.lightY1 / 100) * chassisSize;
-	const lx2 = (s.lightX2 / 100) * chassisSize;
-	const ly2 = (s.lightY2 / 100) * chassisSize;
-	const deg = (rad) => (rad * 180) / Math.PI;
 	const capColor = hsvHex(s.capH, s.capS, s.capV);
 
-	const chassis = elc("div", {
-		style: `position:relative; width:${chassisSize}px; height:${chassisSize}px; flex-shrink:0; margin:0 auto;`,
-	});
+	const { el: chassisEl, chassisSize } = buildDeviceChassis(
+		s,
+		(i, knurlLight) => ({
+			bodySize: s.bodySize,
+			knobSize: s.knobSize,
+			capColor,
+			capInnerDia: s.capInnerDia,
+			capBaseDia: s.capBaseDia,
+			capGripDiaBottom: s.capGripDiaBottom,
+			capGripDiaTop: s.capGripDiaTop,
+			capRibCount: s.capRibCount,
+			capLightAngle: knurlLight.angle,
+			capLightOffset: knurlLight.offset,
+			capTopHue: s.capTopHue,
+			capTopSat: s.capTopSat,
+			capTopVal: s.capTopVal,
+			capInnerHue: s.capInnerHue,
+			capInnerSat: s.capInnerSat,
+			capInnerVal: s.capInnerVal,
+			ledCount: s.ledCount,
+			ledSize: s.ledSize,
+			ledRadius: s.ledRadius,
+			ledArcSpan: s.ledArcSpan,
+			arcRadius: s.arcRadius,
+			arcWidth: s.arcWidth,
+			arcLength: s.arcLength,
+			value: 12 + i * 7,
+			max: 127,
+			rgbColor: s.uniform ? s.accent : RAINBOW[i % 8],
+			rgbOff: s.rgbOff,
+			selected: s.sel === i,
+			showLabel: false,
+			onSelect: () => setState({ sel: i, selSide: -1 }),
+		}),
+		(side, i) => {
+			const idx = (side === "L" ? 0 : 3) + i;
+			return {
+				selected: s.selSide === idx,
+				onSelect: () => setState({ selSide: idx, sel: -1 }),
+			};
+		},
+	);
+
+	el.chassis.replaceChildren(chassisEl);
+	el.scaleNote.textContent = `${mm(chassisSize)} × ${mm(chassisSize)} · drawn at 4× scale (1 mm = 4 px)`;
 
 	const mid = chassisSize / 2 + s.sideBtnOffsetY;
 	const centres = [mid - s.sideBtnSpacing, mid, mid + s.sideBtnSpacing];
-	for (const side of ["L", "R"]) {
-		centres.forEach((c, i) => {
-			const idx = (side === "L" ? 0 : 3) + i;
-			const btn = elc("button", {
-				title: `${side === "L" ? "Left" : "Right"} Side ${i + 1}`,
-				style:
-					`position:absolute; ${side === "L" ? "left" : "right"}:-${s.sideBtnW}px; top:${c - s.sideBtnH / 2}px; ` +
-					`width:${s.sideBtnW}px; height:${s.sideBtnH}px; border-radius:${side === "L" ? "6px 0 0 6px" : "0 6px 6px 0"}; ` +
-					"border:none; padding:0; cursor:pointer; " +
-					`background:${s.selSide === idx ? "linear-gradient(180deg,var(--ds-cyan),var(--ds-accent-dim))" : "linear-gradient(180deg,#16241f,#080b0a)"}; ` +
-					`box-shadow:inset 0 1px 0 rgba(157,255,219,0.10), ${side === "L" ? "-2px" : "2px"} 2px 5px rgba(0,0,0,0.55);`,
-				onClick: () => setState({ selSide: idx, sel: -1 }),
-			});
-			chassis.appendChild(btn);
-		});
-	}
-
-	const bevel = elc("div", {
-		style: `position:absolute; inset:0; border-radius:${s.cornerRadius}px; background:linear-gradient(158deg,#132420 0%,#0a1210 38%,#06090a 68%,#0f1c18 100%); box-shadow:0 34px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(157,255,219,0.05); padding:${s.bevelWidth}px; box-sizing:border-box;`,
-	});
-	chassis.appendChild(bevel);
-
-	const faceRadius = Math.max(2, s.cornerRadius - s.bevelWidth);
-	const facePad = Math.max(0, chassisPad - s.bevelWidth);
-	const face = elc("div", {
-		style: `width:100%; height:100%; border-radius:${faceRadius}px; background:linear-gradient(168deg,#0d1815 0%,#080e0c 46%,#050706 78%,#0a1210 100%); box-shadow:inset 0 1px 0 rgba(157,255,219,0.04), 0 1px 3px rgba(0,0,0,0.6); padding:${facePad}px; box-sizing:border-box;`,
-	});
-	bevel.appendChild(face);
-
-	const grid = elc("div", {
-		style: `display:grid; grid-template-columns:repeat(4, ${s.bodySize}px); grid-template-rows:repeat(4, ${s.bodySize}px); gap:${gridGap}px;`,
-	});
-	face.appendChild(grid);
-
-	for (let i = 0; i < NUM_ENCODERS; i++) {
-		const cx = chassisPad + s.bodySize / 2 + (i % 4) * s.pitch;
-		const cy = chassisPad + s.bodySize / 2 + Math.floor(i / 4) * s.pitch;
-		const a1 = deg(Math.atan2(cy - ly1, cx - lx1));
-		const a2 = deg(Math.atan2(cy - ly2, cx - lx2));
-
-		grid.appendChild(
-			buildEncoder({
-				bodySize: s.bodySize,
-				knobSize: s.knobSize,
-				capColor,
-				capInnerDia: s.capInnerDia,
-				capBaseDia: s.capBaseDia,
-				capGripDiaBottom: s.capGripDiaBottom,
-				capGripDiaTop: s.capGripDiaTop,
-				capRibCount: s.capRibCount,
-				capLightAngle: Math.round(a1 + 90),
-				capLightOffset: Math.round(((a2 - a1) % 360 + 360) % 360),
-				capTopHue: s.capTopHue,
-				capTopSat: s.capTopSat,
-				capTopVal: s.capTopVal,
-				capInnerHue: s.capInnerHue,
-				capInnerSat: s.capInnerSat,
-				capInnerVal: s.capInnerVal,
-				ledCount: s.ledCount,
-				ledSize: s.ledSize,
-				ledRadius: s.ledRadius,
-				ledArcSpan: s.ledArcSpan,
-				arcRadius: s.arcRadius,
-				arcWidth: s.arcWidth,
-				arcLength: s.arcLength,
-				value: 12 + i * 7,
-				max: 127,
-				rgbColor: s.uniform ? s.accent : RAINBOW[i % 8],
-				rgbOff: s.rgbOff,
-				selected: s.sel === i,
-				showLabel: false,
-				onSelect: () => setState({ sel: i, selSide: -1 }),
-			}),
-		);
-	}
-
-	el.chassis.replaceChildren(chassis);
-	el.scaleNote.textContent = `${mm(chassisSize)} × ${mm(chassisSize)} · drawn at 4× scale (1 mm = 4 px)`;
-
 	el.readouts.replaceChildren(
 		elc("span", { text: `chassis ${mm(chassisSize)} · r ${mm(s.cornerRadius)}` }),
 		elc("span", { text: `pitch ${mm(s.pitch)}` }),
@@ -378,7 +313,7 @@ function renderSidebar() {
 	);
 
 	// RGB colour (demo only - the real config GUI drives this per-encoder
-	// from the device's own vmap HSV, see webui/js/ui.js).
+	// from the device's own vmap HSV, see webui/js/live-twin.js).
 	sidebar.appendChild(
 		elc("div", {
 			style: "display:flex; flex-direction:column; gap:8px;",
@@ -396,7 +331,6 @@ function renderSidebar() {
 		}),
 	);
 
-	// Cap colour.
 	const capHex = hsvHex(s.capH, s.capS, s.capV).toUpperCase();
 	sidebar.appendChild(
 		elc("div", {
@@ -476,9 +410,6 @@ function renderSidebar() {
 }
 
 // --- Entry -----------------------------------------------------------------
-// A single effect depending on every state signal drives the whole
-// render - signals batches multi-field updates (see setState) into one
-// re-run rather than one per changed field.
 
 effect(() => {
 	for (const k of Object.keys(state)) void state[k].value; // establish deps

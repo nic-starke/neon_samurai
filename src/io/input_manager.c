@@ -18,6 +18,7 @@
 #include "event/midi.h"
 #include "event/sys.h"
 #include "event/animation.h" // Add animation event header
+#include "midi/sysex.h"
 
 #include "system/hardware.h"
 
@@ -285,6 +286,28 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 	}
 
 	vmap->curr_pos = (u8)newpos;
+
+	// Unsolicited live-position push for a connected web client - see
+	// MF_SYSEX_PARAM_VMAP_CURR_POS/ENCODER_LIVE_POSITION_STREAM in
+	// sysex.h. Independent of vmap->cfg.type/mode below: this is a sysex
+	// read of curr_pos directly, not derived from whatever (if anything)
+	// the vmap's own MIDI protocol config transmits. gRT.curr_bank is the
+	// only bank whose encoders are ever scanned for movement (see
+	// sw_encoder_update()), so it's always the right bank index here.
+	if (gRT.live_position_streaming) {
+		midi_event_s live_pos_evt = {
+				.type = MIDI_EVENT_SYSEX,
+				.data.sysex_out =
+						{
+								.cmd			= MF_SYSEX_GET_RESPONSE,
+								.param		= MF_SYSEX_PARAM_VMAP_CURR_POS,
+								.data_len = 4,
+								.data			= {gRT.curr_bank, enc->idx, (u8)(vmap - enc->vmaps),
+													 vmap->curr_pos},
+						},
+		};
+		event_post(EVENT_CHANNEL_MIDI_OUT, &live_pos_evt);
+	}
 
 	switch (vmap->cfg.type) {
 
