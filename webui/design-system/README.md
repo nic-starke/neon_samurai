@@ -8,10 +8,7 @@ no `npm`/`node_modules`" constraint as the rest of `webui/` - see the
 top-level [../README.md](../README.md).
 
 Originally ported from a Claude Design Canvas prototype ("Twister Digital
-Twin.dc.html", importing "Encoder.dc.html" and "ChromaCap.dc.html"); the
-frozen first-pass import lives in
-[../archive/twin-v1/](../archive/twin-v1/) if you want to compare against
-the current version.
+Twin.dc.html", importing "Encoder.dc.html" and "ChromaCap.dc.html").
 
 ## Why not a framework
 

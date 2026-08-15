@@ -1,6 +1,6 @@
 // Live device view for index.html - connect, and watch the physical
-// Twister's real state render as the digital twin. No editing UI - see
-// webui/archive/config-gui-v1/ for that.
+// Twister's real state render as the digital twin. No editing UI - this
+// page is a passive viewer only.
 
 import { hsvToCss } from "./color.js";
 import { DeviceModel, NUM_BANKS, NUM_ENCODERS } from "./device-model.js";

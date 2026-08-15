@@ -8,10 +8,7 @@ loaded directly as ES modules.
 Connect, and watch the physical device's real state - encoder colours,
 detent, display mode, and live knob rotation - render as a skeuomorphic
 chassis in the browser. There is no editing UI here: this page is a
-passive viewer, not a configuration tool. See
-[`archive/config-gui-v1/`](archive/config-gui-v1/) for the full sysex
-config-editing GUI (bank browsing, per-encoder HSV/range/MIDI setup,
-presets, factory reset) this replaced.
+passive viewer, not a configuration tool.
 
 ## Browser support
 
@@ -114,15 +111,6 @@ Two pages use it:
   live hardware state. `GEOMETRY`/`SPEC` in `live-twin.js`/`twin.js`
   should be kept in sync if you retune one.
 
-Frozen prior versions, both self-contained and still runnable standalone,
-live under `archive/`:
-
-- [`archive/twin-v1/`](archive/twin-v1/) - the original Claude Design
-  Canvas import, before the split into `design-system/`.
-- [`archive/config-gui-v1/`](archive/config-gui-v1/) - the full sysex
-  config-editing GUI this page replaced (see its own README for what it
-  covered and why it was archived).
-
 ## Structure
 
 ```text
@@ -134,11 +122,6 @@ webui/
   twin.html              - standalone digital-twin geometry/colour tuning tool
   twin.css                - chrome styling for twin.html
   README.md              - this file
-  presets/                 - example/starter preset JSON files (empty for now;
-                          presets are a config-gui-v1 feature - see archive/)
-  archive/
-    twin-v1/                - frozen first-pass Claude Design import, see its README
-    config-gui-v1/          - frozen full config-editing GUI, see its README
   design-system/
     tokens.css              - design tokens: palette, spacing, glow effects
     README.md              - component catalog, aesthetic rationale
