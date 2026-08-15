@@ -9,4 +9,12 @@ export { buildCapTopSvg } from "./cap.js";
 export { buildLedRing } from "./led-ring.js";
 export { buildRgbArc } from "./rgb-arc.js";
 export { buildSideSwitch } from "./side-switch.js";
-export { computeLitMask, DisplayMode as LedDisplayMode, ENC_MID, ENC_MAX } from "./led-mask.js";
+export {
+	computeLitMask,
+	computeLedBrightness,
+	computeDetentColorOverride,
+	DisplayMode as LedDisplayMode,
+	ENC_MID,
+	ENC_MAX,
+	NUM_PWM_FRAMES,
+} from "./led-mask.js";

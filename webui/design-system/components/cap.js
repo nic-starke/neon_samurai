@@ -25,7 +25,15 @@ export function buildCapTopSvg(p) {
 
 	const flutes = ribCount;
 	const step = (Math.PI * 2) / flutes;
-	const lightAngle = (((p.lightAngle ?? 315) - 90) * Math.PI) / 180;
+	// The cap's rib geometry below is drawn rotated by knobRotation (via
+	// encoder.js's `knob` wrapper), since the physical cap really does spin
+	// with the knob. The two knurl lights and RGB reflection are panel-
+	// fixed ambient lighting, not part of the cap - so their angles are
+	// counter-rotated here to cancel that wrapper rotation and land back
+	// at the same panel-relative position regardless of knob position.
+	const knobRotation = p.knobRotation ?? 0;
+	const rotationComp = (-knobRotation * Math.PI) / 180;
+	const lightAngle = (((p.lightAngle ?? 315) - 90) * Math.PI) / 180 + rotationComp;
 	const lightAngle2 = lightAngle + (((p.lightOffset ?? 180) * Math.PI) / 180);
 	const light2Strength = p.light2Strength ?? 0.6;
 	const fluteDepth = Math.max(1.2, (halfGripB - halfGripT) * 0.42);
@@ -113,9 +121,17 @@ export function buildCapTopSvg(p) {
 			id: gradId,
 			cx: "50%",
 			cy: "100%",
-			r: "55%",
+			r: "38.5%",
+			// Counter-rotate around the gradient's own centre so this stays
+			// anchored at the LED's panel position (bottom edge) instead of
+			// spinning away with the rib geometry - same reasoning as
+			// lightAngle above. gradientUnits defaults to objectBoundingBox,
+			// whose coordinate space is 0-1 (not 0-100, despite cx/cy above
+			// being written as percentages) - a pivot of "50 50" is ~50x
+			// outside that box and silently blanks the whole gradient.
+			gradientTransform: `rotate(${-knobRotation} 0.5 0.5)`,
 		});
-		const strength = p.reflectionStrength ?? 0.22;
+		const strength = p.reflectionStrength ?? 0.154;
 		grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": p.reflectionColor, "stop-opacity": strength }));
 		grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": p.reflectionColor, "stop-opacity": 0 }));
 		defs.appendChild(grad);

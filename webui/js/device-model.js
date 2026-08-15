@@ -56,6 +56,12 @@ function defaultVmap() {
 		// live-twin.js) - not round-tripped by saveToDevice(), which has
 		// nothing meaningful to write back for a live-only value.
 		currPos: 127,
+		// Detent LED colour (struct virtmap.rb - gamma-corrected BCM,
+		// 0-31/channel, same representation as the derived `rgb` field but
+		// independently settable, not derived from `hsv`) - see
+		// mf_draw_encoder() in src/led/led.c: only actually lit while
+		// detent is on and the knob is at dead centre.
+		rb: { r: 0, b: 0 },
 	};
 }
 
@@ -104,7 +110,7 @@ export class DeviceModel {
 		this.activeBank = await protocol.getActiveBank();
 
 		const total =
-			NUM_BANKS * NUM_ENCODERS * (4 + NUM_VMAPS_PER_ENCODER * 5) + NUM_SIDE_SWITCHES;
+			NUM_BANKS * NUM_ENCODERS * (4 + NUM_VMAPS_PER_ENCODER * 6) + NUM_SIDE_SWITCHES;
 		let done = 0;
 		const tick = () => onProgress?.(++done, total);
 
@@ -151,6 +157,8 @@ export class DeviceModel {
 					v.proto = await protocol.getVmapProto(bank, enc, vmap);
 					tick();
 					v.currPos = await protocol.getVmapCurrPos(bank, enc, vmap);
+					tick();
+					v.rb = await protocol.getVmapRb(bank, enc, vmap);
 					tick();
 				}
 			}

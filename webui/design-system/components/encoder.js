@@ -68,6 +68,8 @@ export function buildEncoder(p) {
 		value: p.value,
 		max: p.max,
 		litMask: p.litMask,
+		brightness: p.ledBrightness,
+		colorOverride: p.ledColorOverride,
 		powered: p.powered,
 	});
 	// Children of `body`, not `bodyWrap` - their top:50%/left:50% anchors
@@ -75,8 +77,16 @@ export function buildEncoder(p) {
 	body.appendChild(ledFrag);
 
 	const knobSize = p.knobSize ?? 53;
+	// Rotates the whole cap (including its SVG's rib geometry) to reflect
+	// the knob's live position. capLightAngle/capLightOffset and the RGB
+	// reflection are panel-fixed ambient lighting, not part of the physical
+	// cap - buildCapTopSvg() counter-rotates those internally using this
+	// same knobRotation so they don't spin along with the ribs.
+	const knobRotation = p.knobRotation ?? 0;
 	const knob = elc("div", {
-		style: `width:${knobSize}px; height:${knobSize}px; border-radius:50%; box-shadow:0 3px 7px rgba(0,0,0,0.65); position:relative; display:flex; align-items:center; justify-content:center;`,
+		style:
+			`width:${knobSize}px; height:${knobSize}px; border-radius:50%; box-shadow:0 3px 7px rgba(0,0,0,0.65); position:relative; display:flex; align-items:center; justify-content:center; ` +
+			`transform:rotate(${knobRotation}deg);`,
 	});
 	body.appendChild(knob);
 	knob.appendChild(
@@ -90,6 +100,7 @@ export function buildEncoder(p) {
 			ribCount: p.capRibCount ?? 19,
 			lightAngle: p.capLightAngle ?? 265,
 			lightOffset: p.capLightOffset ?? 180,
+			knobRotation,
 			topFaceHex: hsvHex(p.capTopHue ?? 220, p.capTopSat ?? 13, p.capTopVal ?? 17),
 			innerFaceHex: hsvHex(p.capInnerHue ?? 219, p.capInnerSat ?? 9, p.capInnerVal ?? 18),
 			// Only reflect a real, actually-lit colour - same "off means off,

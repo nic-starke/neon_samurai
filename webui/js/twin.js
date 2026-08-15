@@ -3,7 +3,16 @@
 // js/live-twin.js for the real-device render using the same components.
 
 import { signal, effect, batch } from "./vendor/signals-core.js";
-import { elc, hsvHex, buildDeviceChassis } from "../design-system/components/index.js";
+import {
+	elc,
+	hsvHex,
+	buildDeviceChassis,
+	computeLitMask,
+	computeLedBrightness,
+	computeDetentColorOverride,
+	LedDisplayMode,
+	ENC_MAX,
+} from "../design-system/components/index.js";
 
 // "Reset to spec" restores exactly these fields - colour/selection state
 // is untouched.
@@ -67,6 +76,14 @@ for (const [k, v] of Object.entries({
 	rgbOff: false,
 	sel: 5,
 	selSide: -1,
+	// Demo indicator/rotation state - shared across all 16 encoders in
+	// this preview (the live twin drives these per-encoder from real
+	// device state instead - see js/live-twin.js).
+	demoPosition: 160,
+	demoDisplayMode: LedDisplayMode.SINGLE,
+	demoDetent: false,
+	demoRbRed: 31,
+	demoRbBlue: 0,
 })) {
 	state[k] = signal(v);
 }
@@ -187,6 +204,19 @@ function renderStage() {
 	const chassisPad = s.edgeFirst - s.bodySize / 2;
 	const capColor = hsvHex(s.capH, s.capS, s.capV);
 
+	// All 16 encoders in this demo share one position/mode/detent, driven
+	// by the sidebar controls - the live twin drives these per-encoder
+	// from real device state instead (see js/live-twin.js).
+	const maskArgs = { position: s.demoPosition, displayMode: s.demoDisplayMode, detent: s.demoDetent };
+	const litMask = computeLitMask(maskArgs);
+	const ledBrightness = s.demoDisplayMode === LedDisplayMode.MULTI_PWM ? computeLedBrightness(maskArgs) : undefined;
+	const ledColorOverride = computeDetentColorOverride({
+		position: s.demoPosition,
+		detent: s.demoDetent,
+		rb: { r: s.demoRbRed, b: s.demoRbBlue },
+	});
+	const knobRotation = -(s.ledArcSpan / 2) + (s.demoPosition / ENC_MAX) * s.ledArcSpan;
+
 	const { el: chassisEl, chassisSize } = buildDeviceChassis(
 		s,
 		(i, knurlLight) => ({
@@ -213,8 +243,10 @@ function renderStage() {
 			arcRadius: s.arcRadius,
 			arcWidth: s.arcWidth,
 			arcLength: s.arcLength,
-			value: 12 + i * 7,
-			max: 127,
+			knobRotation,
+			litMask,
+			ledBrightness,
+			ledColorOverride,
 			rgbColor: s.uniform ? s.accent : RAINBOW[i % 8],
 			rgbOff: s.rgbOff,
 			selected: s.sel === i,
@@ -327,6 +359,66 @@ function renderSidebar() {
 				}),
 				toggleField("RGB LEDs off (unlit)", s.rgbOff, () => setState({ rgbOff: !s.rgbOff })),
 				toggleField("Uniform colour", s.uniform, () => setState({ uniform: !s.uniform })),
+			],
+		}),
+	);
+
+	// Indicator LED demo (position/display mode/detent/RB) - drives all 16
+	// encoders identically, previewing the same computeLitMask()/
+	// computeLedBrightness()/computeDetentColorOverride() pipeline the
+	// live twin uses per-encoder from real device state.
+	sidebar.appendChild(
+		elc("div", {
+			style: "display:flex; flex-direction:column; gap:8px;",
+			children: [
+				elc("span", { class: "twin-label", text: "INDICATOR LEDS (DEMO)" }),
+				sliderField({
+					label: "Position",
+					min: 0,
+					max: ENC_MAX,
+					step: 1,
+					value: s.demoPosition,
+					display: s.demoPosition,
+					onInput: (v) => setState({ demoPosition: Number(v) }),
+				}),
+				elc("div", {
+					style: "display:flex; gap:9px;",
+					children: [
+						{ mode: LedDisplayMode.SINGLE, label: "Dot" },
+						{ mode: LedDisplayMode.MULTI, label: "Bar" },
+						{ mode: LedDisplayMode.MULTI_PWM, label: "Blended Bar" },
+					].map(({ mode, label }) =>
+						elc("button", {
+							class: "twin-reset",
+							style: s.demoDisplayMode === mode ? "border-color:var(--ds-accent-bright); color:var(--ds-accent-bright);" : "",
+							text: label,
+							onClick: () => setState({ demoDisplayMode: mode }),
+						}),
+					),
+				}),
+				toggleField("Detent mode", s.demoDetent, () => setState({ demoDetent: !s.demoDetent })),
+				sliderField({
+					label: "Detent red LED",
+					min: 0,
+					max: 31,
+					step: 1,
+					value: s.demoRbRed,
+					display: s.demoRbRed,
+					onInput: (v) => setState({ demoRbRed: Number(v) }),
+				}),
+				sliderField({
+					label: "Detent blue LED",
+					min: 0,
+					max: 31,
+					step: 1,
+					value: s.demoRbBlue,
+					display: s.demoRbBlue,
+					onInput: (v) => setState({ demoRbBlue: Number(v) }),
+				}),
+				elc("span", {
+					style: "font-family:var(--ds-font-mono); font-size:9.5px; color:var(--ds-text-faint);",
+					text: "Red/blue detent LEDs only show at dead-centre position (127), and share the centre indicator's slot.",
+				}),
 			],
 		}),
 	);

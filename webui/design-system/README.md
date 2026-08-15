@@ -70,13 +70,13 @@ There are three LED brightness tiers, not two - see `tokens.css`:
 |---|---|---|
 | `chassis.js` | Plastic faceplate + rubber bevel. Static - no colour/on-off state, only geometry. | `size`, `cornerRadius`, `bevelWidth` |
 | `device-chassis.js` | The full assembled device: `chassis.js` + the 4x4 encoder grid + 6 side switches + the two-light knurl-shading system, composed together. Shared by `twin.js` and `live-twin.js` so the grid/lighting geometry lives in one place. | `encoderProps(i, knurlLight)` and `sideSwitchProps(side, i)` callbacks - see its doc comment |
-| `encoder.js` | One full encoder assembly: body, RGB arc, LED ring, and cap, composed together. | `rgbColor`/`rgbOff`, `litMask` (or `value`/`max`), `capColor`, `selected`, `powered` |
+| `encoder.js` | One full encoder assembly: body, RGB arc, LED ring, and cap, composed together. | `rgbColor`/`rgbOff`, `litMask` (or `value`/`max`), `ledBrightness`, `ledColorOverride`, `knobRotation`, `capColor`, `selected`, `powered` |
 | `cap.js` | The knurled cap top-view only (used internally by `encoder.js`, but also usable standalone for a cap-only preview). | `color`, `ribCount`, `lightAngle`/`lightOffset`, `reflectionColor` (subtle coloured bounce from the nearby lit RGB LED) |
-| `led-ring.js` | The ring of discrete indicator LEDs (11 on real hardware). | `count`, `arcSpan`, `litMask`, `powered` |
+| `led-ring.js` | The ring of discrete indicator LEDs (11 on real hardware). | `count`, `arcSpan`, `litMask`, `brightness` (per-LED BCM 0-31, for `DIS_MODE_MULTI_PWM`'s smooth fade - takes priority over `litMask`), `colorOverride` (recolors one LED - used for the detent red/blue LEDs, which share the center indicator's physical slot), `powered` |
 | `rgb-arc.js` | The RGB backlight indicator arc. | `color`, `off` (suppresses glow entirely, not just colour - see inline comment), `powered` |
 | `side-switch.js` | One side switch button. Pressed/unpressed only. | `pressed`, `selected` |
 | `color-utils.js` | Shared cosmetic HSV/hex math (`shift`, `dim`, `hsvHex`) for material shading - NOT the firmware colour model, see `../js/color.js` for that and the note in this file. | - |
-| `led-mask.js` | Firmware-accurate lit-LED bitmask math, not a renderer - ports `src/led/led.c`'s LUTs so `litMask` can be computed correctly from a real position/display-mode/detent triple. | `computeLitMask()` |
+| `led-mask.js` | Firmware-accurate lit-LED/brightness/detent-colour math, not a renderer - ports `src/led/led.c`'s LUTs and BCM brightness calculation so a real position/display-mode/detent/rb tuple can drive `led-ring.js` exactly like the real device. | `computeLitMask()`, `computeLedBrightness()` (per-LED BCM for `DIS_MODE_MULTI_PWM`), `computeDetentColorOverride()` (red/blue detent LED colour, only shown at dead-centre) |
 | `dom.js` | `elc()`/`svgEl()` - the only DOM-construction helpers every component uses. | - |
 
 ### Why "Encoder" is one component, not four
@@ -88,8 +88,8 @@ them into separate top-level components would mean threading the same
 position/colour/detent state through four call sites for every render.
 `encoder.js` composes the finer-grained `cap.js`/`led-ring.js`/
 `rgb-arc.js` internally so those pieces stay independently testable/
-reusable, but the thing callers (`twin.js`, `ui.js`) instantiate per
-physical encoder is the one composed unit.
+reusable, but the thing callers (`twin.js`, `live-twin.js`) instantiate
+per physical encoder is the one composed unit.
 
 ### Firmware-accurate rendering vs. demo/geometry preview
 

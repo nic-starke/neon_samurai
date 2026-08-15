@@ -7,7 +7,15 @@ import { DeviceModel, NUM_BANKS, NUM_ENCODERS } from "./device-model.js";
 import * as midi from "./midi.js";
 import { Protocol } from "./protocol.js";
 import { LivePositionTracker } from "./live-position.js";
-import { buildDeviceChassis, computeLitMask, ENC_MID } from "../design-system/components/index.js";
+import {
+	buildDeviceChassis,
+	computeLitMask,
+	computeLedBrightness,
+	computeDetentColorOverride,
+	LedDisplayMode,
+	ENC_MID,
+	ENC_MAX,
+} from "../design-system/components/index.js";
 
 // Matches twin.js's SPEC - duplicated rather than imported since that
 // file's copy is mutable (tuning sidebar) and this page has none.
@@ -167,6 +175,14 @@ function visualPositionToFirmwareIndex(position) {
 	return NUM_ENCODERS - 1 - position;
 }
 
+// Maps curr_pos (0-255) onto the same angular sweep the indicator LED
+// ring uses (see led-ring.js: LEDs run -span/2..+span/2 across the
+// count), so the cap's visual rotation lines up with which indicator
+// LEDs are lit rather than sweeping a different arc.
+function positionToKnobRotation(position) {
+	return -(GEOMETRY.ledArcSpan / 2) + (position / ENC_MAX) * GEOMETRY.ledArcSpan;
+}
+
 const ENCODER_GEOMETRY_PROPS = {
 	knobSize: GEOMETRY.knobSize,
 	capBaseDia: GEOMETRY.capBaseDia,
@@ -195,6 +211,7 @@ function renderChassis() {
 			if (!connected) {
 				return {
 					...ENCODER_GEOMETRY_PROPS,
+					knobRotation: 0,
 					litMask: new Array(GEOMETRY.ledCount).fill(false),
 					rgbOff: true,
 					powered: false,
@@ -204,18 +221,23 @@ function renderChassis() {
 			const enc = bank.encoders[i];
 			const activeVmapIdx = enc.vmaps[enc.vmapActive] ? enc.vmapActive : 0;
 			const activeVmap = enc.vmaps[activeVmapIdx];
-			const livePos = livePosition.getPosition(viewingBank, i, activeVmapIdx);
-			const litMask = computeLitMask({
-				position: livePos ?? ENC_MID,
-				displayMode: enc.displayMode,
-				detent: enc.detent,
-			});
+			const livePos = livePosition.getPosition(viewingBank, i, activeVmapIdx) ?? activeVmap.currPos ?? ENC_MID;
+			const maskArgs = { position: livePos, displayMode: enc.displayMode, detent: enc.detent };
 
 			return {
 				...ENCODER_GEOMETRY_PROPS,
-				litMask,
+				knobRotation: positionToKnobRotation(livePos),
+				// MULTI_PWM's leading-LED brightness needs the continuous
+				// per-LED value (computeLedBrightness); every other mode
+				// only needs on/off, so litMask stays the cheaper path -
+				// led-ring.js prefers `brightness` over `litMask` when both
+				// are given, so passing both here is safe/redundant, not
+				// conflicting.
+				litMask: computeLitMask(maskArgs),
+				ledBrightness: enc.displayMode === LedDisplayMode.MULTI_PWM ? computeLedBrightness(maskArgs) : undefined,
 				rgbColor: hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val),
 				rgbOff: false,
+				ledColorOverride: computeDetentColorOverride({ position: livePos, detent: enc.detent, rb: activeVmap.rb }),
 			};
 		},
 		(side, i) => {
