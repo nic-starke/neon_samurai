@@ -84,6 +84,7 @@ for (const [k, v] of Object.entries({
 	demoDetent: false,
 	demoRbRed: 31,
 	demoRbBlue: 0,
+	demoVmapActive: 0,
 })) {
 	state[k] = signal(v);
 }
@@ -247,6 +248,8 @@ function renderStage() {
 			litMask,
 			ledBrightness,
 			ledColorOverride,
+			vmapCount: 2,
+			vmapActive: s.demoVmapActive,
 			rgbColor: s.uniform ? s.accent : RAINBOW[i % 8],
 			rgbOff: s.rgbOff,
 			selected: s.sel === i,
@@ -419,6 +422,9 @@ function renderSidebar() {
 					style: "font-family:var(--ds-font-mono); font-size:9.5px; color:var(--ds-text-faint);",
 					text: "Red/blue detent LEDs only show at dead-centre position (127), and share the centre indicator's slot.",
 				}),
+				toggleField("Active vmap: B", s.demoVmapActive === 1, () =>
+					setState({ demoVmapActive: s.demoVmapActive === 1 ? 0 : 1 }),
+				),
 			],
 		}),
 	);

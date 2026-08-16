@@ -32,6 +32,7 @@ static void sw_encoder_update(void);
 static void sw_side_switch_init(void);
 static void sw_side_switch_update(void);
 static void vmap_update(struct encoder* enc, struct virtmap* map);
+static void set_vmap_active(struct encoder* enc, u8 bank, u8 new_active);
 static int	midi_in_handler(void* evt);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -179,7 +180,7 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_VMAP_CYCLE: {
-					enc->vmap_active = (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC;
+					set_vmap_active(enc, gRT.curr_bank, (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
 					mf_draw_encoder(enc);
 					break;
 				}
@@ -275,6 +276,23 @@ static void sw_encoder_update(void) {
 	}
 }
 
+// Choke point for every runtime enc->vmap_active mutation - posts an IO
+// event instead of pushing sysex directly, so this file stays unaware of
+// who's listening. Callers still call mf_draw_encoder() themselves after.
+static void set_vmap_active(struct encoder* enc, u8 bank, u8 new_active) {
+	enc->vmap_active = new_active;
+
+	struct io_event evt = {
+			.type	 = EVT_IO_ENCODER_FIELD_CHANGED,
+			.bank	 = bank,
+			.enc	 = enc->idx,
+			.vmap	 = 0xFF, // encoder-scoped field, not per-vmap
+			.field = IO_FIELD_VMAP_ACTIVE,
+			.value = new_active,
+	};
+	event_post(EVENT_CHANNEL_IO, &evt);
+}
+
 static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 	i16 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
 	newpos		 = CLAMP(newpos, ENC_MIN, ENC_MAX);
@@ -289,17 +307,15 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 
 	// Unsolicited live-position push for a connected web client - see
 	// MF_SYSEX_PARAM_VMAP_CURR_POS/ENCODER_LIVE_POSITION_STREAM in
-	// sysex.h. Independent of vmap->cfg.type/mode below: this is a sysex
-	// read of curr_pos directly, not derived from whatever (if anything)
-	// the vmap's own MIDI protocol config transmits. gRT.curr_bank is the
-	// only bank whose encoders are ever scanned for movement (see
-	// sw_encoder_update()), so it's always the right bank index here.
+	// sysex.h. Kept inline rather than going through EVENT_CHANNEL_IO
+	// like set_vmap_active() above - this fires on every quadrature
+	// tick, too hot a path for the extra queue hop.
 	if (gRT.live_position_streaming) {
 		midi_event_s live_pos_evt = {
 				.type = MIDI_EVENT_SYSEX,
 				.data.sysex_out =
 						{
-								.cmd			= MF_SYSEX_GET_RESPONSE,
+								.cmd			= MF_SYSEX_WEBUI_PUSH,
 								.param		= MF_SYSEX_PARAM_VMAP_CURR_POS,
 								.data_len = 4,
 								.data			= {gRT.curr_bank, enc->idx, (u8)(vmap - enc->vmaps),
@@ -464,7 +480,7 @@ static void sw_side_switch_update(void) {
 					// Cycle vmaps on all encoders
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
-						enc->vmap_active		= (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC;
+						set_vmap_active(enc, gRT.curr_bank, (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
 						mf_draw_encoder(enc);
 					}
 					break;
@@ -474,7 +490,7 @@ static void sw_side_switch_update(void) {
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 						gSIDE_SWITCHES[i].prev_vmap_active[e] = enc->vmap_active;
-						enc->vmap_active = (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC;
+						set_vmap_active(enc, gRT.curr_bank, (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
 						mf_draw_encoder(enc);
 					}
 					break;
@@ -527,7 +543,7 @@ static void sw_side_switch_update(void) {
 					// Restore original vmap for each encoder
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
-						enc->vmap_active		= gSIDE_SWITCHES[i].prev_vmap_active[e];
+						set_vmap_active(enc, gRT.curr_bank, gSIDE_SWITCHES[i].prev_vmap_active[e]);
 						mf_draw_encoder(enc);
 					}
 					break;

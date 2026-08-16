@@ -22,13 +22,24 @@ enum events_io {
 	EVT_IO_ENCODER_ROTATION,
 	EVT_IO_ENCODER_SWITCH,
 	EVT_IO_BUTTON,
+	EVT_IO_ENCODER_FIELD_CHANGED, // curr_pos excluded - see vmap_update()
 
 	EVT_IO_NB,
 };
 
+enum io_event_field {
+	IO_FIELD_VMAP_ACTIVE,
+
+	IO_FIELD_NB,
+};
+
 struct io_event {
-	u8		type;
-	void* ctx;
+	u8 type; // enum events_io
+	u8 bank;
+	u8 enc;
+	u8 vmap; // 0xFF if not applicable
+	u8 field; // enum io_event_field
+	u8 value;
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

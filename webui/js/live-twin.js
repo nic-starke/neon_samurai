@@ -7,6 +7,7 @@ import { DeviceModel, NUM_BANKS, NUM_ENCODERS } from "./device-model.js";
 import * as midi from "./midi.js";
 import { Protocol } from "./protocol.js";
 import { LivePositionTracker } from "./live-position.js";
+import { LiveVmapActiveTracker } from "./live-vmap-active.js";
 import {
 	buildDeviceChassis,
 	computeLitMask,
@@ -54,6 +55,7 @@ let protocol = null;
 let connected = false;
 let viewingBank = 0; // which bank is currently shown - follows model.activeBank once connected
 const livePosition = new LivePositionTracker();
+const liveVmapActive = new LiveVmapActiveTracker();
 let expectingDisconnect = false;
 
 const el = {
@@ -104,6 +106,9 @@ async function onConnectClick() {
 		livePosition.reset();
 		livePosition.seed(model); // last-known position from the config pull, before any live push has arrived
 		livePosition.attach(device, renderChassis);
+		liveVmapActive.reset();
+		liveVmapActive.seed(model);
+		liveVmapActive.attach(device, renderChassis);
 		await protocol.setLivePositionStreaming(true);
 
 		connected = true;
@@ -137,6 +142,7 @@ function onDeviceDisconnected(reason) {
 	if (expectingDisconnect) return;
 	connected = false;
 	livePosition.detach();
+	liveVmapActive.detach();
 	setStatus("error", "Disconnected");
 	toast("error", `Device disconnected (${reason}).`);
 	renderChassis();
@@ -219,7 +225,8 @@ function renderChassis() {
 			}
 
 			const enc = bank.encoders[i];
-			const activeVmapIdx = enc.vmaps[enc.vmapActive] ? enc.vmapActive : 0;
+			const liveActive = liveVmapActive.getActive(viewingBank, i);
+			const activeVmapIdx = enc.vmaps[liveActive] ? liveActive : enc.vmaps[enc.vmapActive] ? enc.vmapActive : 0;
 			const activeVmap = enc.vmaps[activeVmapIdx];
 			const livePos = livePosition.getPosition(viewingBank, i, activeVmapIdx) ?? activeVmap.currPos ?? ENC_MID;
 			const maskArgs = { position: livePos, displayMode: enc.displayMode, detent: enc.detent };
@@ -238,6 +245,8 @@ function renderChassis() {
 				rgbColor: hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val),
 				rgbOff: false,
 				ledColorOverride: computeDetentColorOverride({ position: livePos, detent: enc.detent, rb: activeVmap.rb }),
+				vmapCount: enc.vmaps.length,
+				vmapActive: activeVmapIdx,
 			};
 		},
 		(side, i) => {

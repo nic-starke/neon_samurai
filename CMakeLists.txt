@@ -243,6 +243,7 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/lfo/lfo.c
     ${CMAKE_SOURCE_DIR}/src/midi/midi_lufa.c
     ${CMAKE_SOURCE_DIR}/src/midi/sysex.c
+    ${CMAKE_SOURCE_DIR}/src/midi/webui_bridge.c
     ${CMAKE_SOURCE_DIR}/src/system/rng.c
     ${CMAKE_SOURCE_DIR}/src/system/sys.c
     ${CMAKE_SOURCE_DIR}/src/system/systime.c

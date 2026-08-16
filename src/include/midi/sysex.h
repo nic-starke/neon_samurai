@@ -36,6 +36,13 @@ enum mf_sysex_cmd {
 	MF_SYSEX_SET_RESPONSE,
 
 	MF_SYSEX_STOP,
+
+	// Outbound-only: an unsolicited value, not a reply to any host
+	// request. Used for curr_pos/vmap_active live pushes to a connected
+	// web-ui client - same param_enum + data shape a GET_RESPONSE for
+	// that param would carry, just tagged so a host can tell "you asked
+	// for this" apart from "this happened on its own".
+	MF_SYSEX_WEBUI_PUSH,
 };
 
 enum mf_sysex_param {
@@ -43,6 +50,8 @@ enum mf_sysex_param {
 	MF_SYSEX_PARAM_ENCODER_DISPLAY_MODE,
 	MF_SYSEX_PARAM_ENCODER_VMAP_DISPLAY_MODE,
 	MF_SYSEX_PARAM_ENCODER_VMAP_MODE,
+	// Also pushed unsolicited (MF_SYSEX_WEBUI_PUSH) when a switch press
+	// changes it - see set_vmap_active() in input_manager.c.
 	MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE,
 
 	MF_SYSEX_PARAM_ENCODER_SWITCH_STATE,
@@ -68,10 +77,9 @@ enum mf_sysex_param {
 	// them, and identify firmware predating this device-info query.
 	MF_SYSEX_PARAM_DEVICE_INFO,
 
-	// Read-only, and (unlike every other param) also pushed *unsolicited*:
+	// Read-only, and also pushed *unsolicited* (MF_SYSEX_WEBUI_PUSH):
 	// whenever an encoder is physically turned while streaming is enabled
-	// (see MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM below), the firmware
-	// sends this param's payload as a GET_RESPONSE-shaped message without
+	// (see MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM below), without
 	// having been asked. curr_pos (0-255, struct virtmap) has no other
 	// sysex GET - VMAP_POSITION above is the *configured window* a colour
 	// layer occupies, not the knob's live rotation. A host may still issue
@@ -207,6 +215,10 @@ typedef struct __attribute__((packed)) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int mf_sysex_init(void);
+
+// Unsolicited push, gated by gRT.live_position_streaming. Called from
+// webui_bridge.c.
+void sysex_push_vmap_active(u8 bank, u8 enc, u8 active);
 
 // 7-to-8-bit sysex data packing - see the definitions in sysex.c for the
 // full rationale. Exported for use by midi_lufa.c's TX path.

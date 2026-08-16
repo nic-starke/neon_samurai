@@ -6,6 +6,7 @@ import { elc, svgEl } from "./dom.js";
 import { buildCapTopSvg } from "./cap.js";
 import { buildLedRing } from "./led-ring.js";
 import { buildRgbArc } from "./rgb-arc.js";
+import { buildVmapPill } from "./vmap-pill.js";
 import { hsvHex } from "./color-utils.js";
 
 export function buildEncoder(p) {
@@ -108,6 +109,20 @@ export function buildEncoder(p) {
 			reflectionColor: p.rgbOff || p.powered === false || !p.rgbColor ? undefined : p.rgbColor,
 		}),
 	);
+
+	if (p.vmapCount > 1) {
+		// Centred directly on the cap's inner disc, not the ring - small
+		// enough to fit inside p.capInnerDia without covering the whole
+		// knob. Appended to `knob`, not `body`, so it rotates along with
+		// the cap (matching how the letters sit fixed to the physical
+		// button face on real hardware, not the panel).
+		knob.appendChild(
+			elc("div", {
+				style: `position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(${-knobRotation}deg);`,
+				children: [buildVmapPill({ count: p.vmapCount, active: p.vmapActive, powered: p.powered, compact: true })],
+			}),
+		);
+	}
 
 	if (showLabel) {
 		outer.appendChild(

@@ -35,6 +35,10 @@ class Cmd(IntEnum):
     SET = 2
     SET_RESPONSE = 3
     STOP = 4
+    # Outbound-only: an unsolicited value, not a reply to a request this
+    # client sent. Same param/data shape a GET_RESPONSE for that param
+    # would carry.
+    WEBUI_PUSH = 5
 
 
 class Param(IntEnum):
@@ -46,6 +50,7 @@ class Param(IntEnum):
     ENCODER_DISPLAY_MODE = 1
     ENCODER_VMAP_DISPLAY_MODE = 2
     ENCODER_VMAP_MODE = 3
+    # Also pushed unsolicited (Cmd.WEBUI_PUSH) when a switch press changes it.
     ENCODER_VMAP_ACTIVE = 4
     ENCODER_SWITCH_STATE = 5
     ENCODER_SWITCH_MODE = 6
@@ -59,9 +64,9 @@ class Param(IntEnum):
     SIDE_SWITCH = 14
     ACTIVE_BANK = 15
     DEVICE_INFO = 16
-    # Live knob position (struct virtmap.curr_pos) - the only param the
-    # firmware also pushes *unsolicited* (GET_RESPONSE-shaped, unasked)
-    # while ENCODER_LIVE_POSITION_STREAM is enabled.
+    # Live knob position (struct virtmap.curr_pos) - also pushed
+    # unsolicited (Cmd.WEBUI_PUSH) while ENCODER_LIVE_POSITION_STREAM is
+    # enabled.
     VMAP_CURR_POS = 17
     # SET-only trigger (data: 0 = stop, nonzero = start) controlling
     # whether VMAP_CURR_POS is streamed. Off by default and on every

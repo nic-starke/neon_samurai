@@ -111,7 +111,10 @@ class NeonSamuraiLibrary:
     ) -> sx.SysexMessage:
         """Send a sysex request and block until a reply for the same
         `param` arrives (or `timeout_s` elapses). Any unrelated sysex
-        traffic seen in between is discarded, not returned."""
+        traffic seen in between is discarded, not returned - this includes
+        WEBUI_PUSH messages, which can share a param with a pending
+        request/response pair (e.g. VMAP_CURR_POS) but are never a reply
+        to it."""
         if self._port is None:
             raise AssertionError("Not connected - call 'Connect To Device' first")
 
@@ -123,27 +126,29 @@ class NeonSamuraiLibrary:
         raw = bytes(sx.encode(cmd, param, data))
         self._port.send(raw)
 
-        reply_bytes = self._port.receive(timeout_s)
-        if reply_bytes is None:
-            raise AssertionError(
-                f"No sysex reply for {param.name} within {timeout_s}s "
-                f"(cmd={cmd.name}, sent data={data.hex()})"
-            )
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            reply_bytes = self._port.receive(remaining)
+            if reply_bytes is None:
+                break
+            try:
+                decoded = sx.decode(reply_bytes)
+            except ValueError:
+                continue
+            if decoded.cmd == sx.Cmd.WEBUI_PUSH:
+                continue
+            if decoded.param != param:
+                raise AssertionError(
+                    f"Expected a reply for {param.name} but got one for "
+                    f"{decoded.param.name}: {reply_bytes.hex()}"
+                )
+            return decoded
 
-        try:
-            decoded = sx.decode(reply_bytes)
-        except ValueError as e:
-            raise AssertionError(
-                f"Received bytes that don't decode as a valid sysex "
-                f"reply: {reply_bytes.hex()} ({e})"
-            ) from e
-
-        if decoded.param != param:
-            raise AssertionError(
-                f"Expected a reply for {param.name} but got one for "
-                f"{decoded.param.name}: {reply_bytes.hex()}"
-            )
-        return decoded
+        raise AssertionError(
+            f"No sysex reply for {param.name} within {timeout_s}s "
+            f"(cmd={cmd.name}, sent data={data.hex()})"
+        )
 
     # --- High-level GET/SET keywords, one per param family ------------
     # These build the correctly-shaped payload for the request and return
@@ -255,7 +260,7 @@ class NeonSamuraiLibrary:
     ) -> int:
         req = sx.vmap_curr_pos_payload(bank, enc, vmap, 0)
         reply = self.send_and_wait(sx.Cmd.GET, sx.Param.VMAP_CURR_POS, req, timeout_s)
-        return reply.data[3]
+        return reply.data[0]
 
     @keyword("Set Live Position Streaming")
     def set_live_position_streaming(
@@ -269,7 +274,7 @@ class NeonSamuraiLibrary:
 
     @keyword("Wait For Live Position Push")
     def wait_for_live_position_push(self, timeout_s: float = DEFAULT_TIMEOUT_S) -> dict:
-        """Waits for an unsolicited VMAP_CURR_POS GET_RESPONSE - nothing is
+        """Waits for an unsolicited VMAP_CURR_POS WEBUI_PUSH - nothing is
         sent (unlike Send And Wait, there is no request to correlate a
         reply against; the firmware pushes this on its own). Streaming
         must already be enabled (see Set Live Position Streaming) and an
@@ -290,7 +295,7 @@ class NeonSamuraiLibrary:
                 decoded = sx.decode(reply_bytes)
             except ValueError:
                 continue
-            if decoded.cmd == sx.Cmd.GET_RESPONSE and decoded.param == sx.Param.VMAP_CURR_POS:
+            if decoded.cmd == sx.Cmd.WEBUI_PUSH and decoded.param == sx.Param.VMAP_CURR_POS:
                 return {
                     "bank": decoded.data[0],
                     "enc": decoded.data[1],

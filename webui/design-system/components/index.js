@@ -8,6 +8,7 @@ export { buildEncoder } from "./encoder.js";
 export { buildCapTopSvg } from "./cap.js";
 export { buildLedRing } from "./led-ring.js";
 export { buildRgbArc } from "./rgb-arc.js";
+export { buildVmapPill } from "./vmap-pill.js";
 export { buildSideSwitch } from "./side-switch.js";
 export {
 	computeLitMask,

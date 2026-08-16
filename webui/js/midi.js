@@ -174,7 +174,13 @@ export class Device {
 			}, timeoutMs);
 
 			const unsubscribe = this.onSysex((msg) => {
-				if (msg.param !== param || settled) return;
+				// WEBUI_PUSH shares a param with some request/response pairs
+				// (e.g. VMAP_CURR_POS - see live-position.js) but is never a
+				// reply to this request; without this check a request could
+				// resolve against an unrelated unsolicited push for a
+				// different encoder instead of timing out or getting its own
+				// real reply.
+				if (msg.param !== param || msg.cmd === Cmd.WEBUI_PUSH || settled) return;
 				settled = true;
 				clearTimeout(timer);
 				unsubscribe();

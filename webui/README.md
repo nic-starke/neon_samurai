@@ -63,7 +63,7 @@ Two different kinds of "live" are involved, from two different sources:
   (see `device-model.js`'s `loadFromDevice()`), so every encoder shows
   its real position immediately on connect, not a neutral placeholder.
   From then on the firmware pushes updates to a connected client itself,
-  unsolicited: the same param is sent again as a `GET_RESPONSE`-shaped
+  unsolicited: the same param is sent again as a `WEBUI_PUSH`-shaped
   `{bank, enc, vmap, curr_pos}` message on every subsequent encoder
   movement, but only while streaming is enabled
   (`MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM`, a `SET`-only trigger -
@@ -142,6 +142,7 @@ webui/
       led-mask.js                  - firmware-accurate lit-LED bitmask math
                                   (ports src/led/led.c's LUTs)
       rgb-arc.js                    - RGB backlight indicator arc
+      vmap-pill.js                   - small A/B active-vmap indicator pill
       side-switch.js                - one side switch button
   js/
     sysex.js            - wire-protocol encode/decode (JS port of
@@ -155,6 +156,8 @@ webui/
     live-position.js    - tracks each encoder's live knob position from
                         the firmware's own unsolicited sysex push - see
                         "How live tracking works" above
+    live-vmap-active.js  - same pattern as live-position.js, for each
+                        encoder's active vmap (A/B) index
     color.js              - HSV<->RGB matching the firmware's color model
                          (src/led/hsv2rgb.c, src/led/color.c) - distinct
                          from design-system/components/color-utils.js's
@@ -199,9 +202,21 @@ test" section for the same principle applied to the test suite.
    `live-twin.js`'s `renderChassis()`.
 
 If the param is *pushed unsolicited* rather than only read on request
-(like `VMAP_CURR_POS`/`ENCODER_LIVE_POSITION_STREAM`), the firmware side
-needs more: a place to construct and `event_post()` the
-`GET_RESPONSE`-shaped push (see `vmap_update()` in
-`src/io/input_manager.c`), and usually a way to turn it on/off so an
-unlistened stream doesn't run forever - a `gRT` flag SET through its own
-trigger param is the pattern used so far.
+(like `VMAP_CURR_POS`/`ENCODER_VMAP_ACTIVE`), the firmware side needs
+more: a `MF_SYSEX_WEBUI_PUSH`-shaped push, gated on
+`gRT.live_position_streaming` so an unlistened stream doesn't run
+forever. Two patterns exist depending on how often the field changes:
+
+- **Low-frequency changes** (once per switch press, sysex write, etc.) -
+  route through `EVENT_CHANNEL_IO`: post an `EVT_IO_ENCODER_FIELD_CHANGED`
+  event (see `set_vmap_active()` in `src/io/input_manager.c`) and add a
+  case in `src/midi/webui_bridge.c`'s handler that calls a small exported
+  `sysex_push_*()` function in `sysex.c` (see `sysex_push_vmap_active()`).
+  Every mutation site (input handling, sysex `SET`, wherever else the
+  field can change) just posts the same event - none of them need to know
+  a web-ui or sysex exists.
+- **High-frequency changes** (every quadrature tick while an encoder
+  turns, like `curr_pos`) - push inline instead, matching
+  `vmap_update()` in `input_manager.c`. The event-channel hop is real but
+  negligible overhead per-call; at hundreds of calls/sec while turning
+  it's the one case where skipping it is worth the inconsistency.

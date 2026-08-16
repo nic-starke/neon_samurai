@@ -1,11 +1,11 @@
 // Tracks each encoder's live knob position (struct virtmap.curr_pos, 0-255)
 // from the firmware's own unsolicited sysex push - see
 // MF_SYSEX_PARAM_VMAP_CURR_POS/ENCODER_LIVE_POSITION_STREAM in sysex.h and
-// vmap_update() in src/io/input_manager.c, which sends a GET_RESPONSE-
-// shaped {bank, enc, vmap, curr_pos} message on every encoder movement
-// while streaming is enabled. Call enable()/disable() (via Protocol) to
-// turn that streaming on/off - it defaults off, so a client that never
-// asks for it sees zero extra sysex traffic.
+// vmap_update() in src/io/input_manager.c, which sends a WEBUI_PUSH-shaped
+// {bank, enc, vmap, curr_pos} message on every encoder movement while
+// streaming is enabled. Call enable()/disable() (via Protocol) to turn
+// that streaming on/off - it defaults off, so a client that never asks
+// for it sees zero extra sysex traffic.
 
 import { Cmd, Param } from "./sysex.js";
 
@@ -20,7 +20,7 @@ export class LivePositionTracker {
 		this.detach();
 		this.onUpdate = onUpdate ?? null;
 		this._unsubscribe = device.onSysex((msg) => {
-			if (msg.cmd !== Cmd.GET_RESPONSE || msg.param !== Param.VMAP_CURR_POS) return;
+			if (msg.cmd !== Cmd.WEBUI_PUSH || msg.param !== Param.VMAP_CURR_POS) return;
 			const [bank, enc, vmap, currPos] = msg.data;
 			const key = `${bank}.${enc}.${vmap}`;
 			if (this._positions.get(key) !== currPos) {

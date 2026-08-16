@@ -17,6 +17,7 @@
 #include "led/led.h"
 #include "midi/midi.h"
 #include "midi/sysex.h"
+#include "midi/webui_bridge.h"
 #include "system/hardware.h"
 #include "system/print.h"
 #include "system/rng.h"
@@ -53,6 +54,7 @@ __attribute__((noreturn)) void main(void) {
 	display_init();
 	input_init();
 	mf_sysex_init();
+	webui_bridge_init();
 	systime_start();
 	usb_init();
 #ifdef ENABLE_CONSOLE

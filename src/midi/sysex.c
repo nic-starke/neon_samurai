@@ -9,9 +9,11 @@
 #include <string.h>
 
 #include "midi/sysex.h"
+#include "event/io.h"
 #include "event/midi.h"
 #include "hal/sys.h"
 #include "led/color.h"
+#include "midi/webui_bridge.h"
 #include "system/project.h"
 
 // Test sequence:
@@ -145,6 +147,24 @@ static u8 buffer_idx = 0;
 
 int mf_sysex_init(void) {
 	return event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+}
+
+void sysex_push_vmap_active(u8 bank, u8 enc, u8 active) {
+	if (!gRT.live_position_streaming) {
+		return;
+	}
+
+	midi_event_s evt = {
+			.type = MIDI_EVENT_SYSEX,
+			.data.sysex_out =
+					{
+							.cmd			= MF_SYSEX_WEBUI_PUSH,
+							.param		= MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE,
+							.data_len = 3,
+							.data			= {bank, enc, active},
+					},
+	};
+	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
 }
 
 // Standard MIDI 7-to-8-bit packing: sysex data bytes must be <= 0x7F (the
@@ -329,6 +349,30 @@ static int midi_in_handler(void* evt) {
 					(void*)((u8*)encoder + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
 				memcpy(param, (const void*)&msg->param.enc.data, param_len);
+
+				// SWITCH_* params don't affect the LED display.
+				switch (msg->param_enum) {
+					case MF_SYSEX_PARAM_ENCODER_DETENT:
+					case MF_SYSEX_PARAM_ENCODER_DISPLAY_MODE:
+					case MF_SYSEX_PARAM_ENCODER_VMAP_DISPLAY_MODE:
+					case MF_SYSEX_PARAM_ENCODER_VMAP_MODE:
+					case MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE:
+						encoder->update_display = 1;
+						break;
+					default: break;
+				}
+
+				if (msg->param_enum == MF_SYSEX_PARAM_ENCODER_VMAP_ACTIVE) {
+					struct io_event evt = {
+							.type	 = EVT_IO_ENCODER_FIELD_CHANGED,
+							.bank	 = bank,
+							.enc	 = enc,
+							.vmap	 = 0xFF,
+							.field = IO_FIELD_VMAP_ACTIVE,
+							.value = msg->param.enc.data.vmap_active,
+					};
+					event_post(EVENT_CHANNEL_IO, &evt);
+				}
 			}
 			break;
 		}
@@ -351,6 +395,11 @@ static int midi_in_handler(void* evt) {
 			param = (void*)((u8*)vmap + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
 				memcpy(param, (const void*)&msg->param.vmap.data, param_len);
+
+				// VMAP_PROTO is MIDI-routing config only, doesn't affect display.
+				if (msg->param_enum != MF_SYSEX_PARAM_VMAP_PROTO) {
+					gENCODERS[bank_idx][enc_idx].update_display = 1;
+				}
 			}
 			break;
 		}
@@ -413,7 +462,7 @@ static int midi_in_handler(void* evt) {
 			// prefix - this is a single global flag, not per-encoder/vmap).
 			param = (void*)((u8*)&gRT + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
-				gRT.live_position_streaming = msg->param.bank.data != 0;
+				webui_bridge_set_streaming(msg->param.bank.data != 0);
 			}
 			break;
 		}
