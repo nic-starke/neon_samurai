@@ -10,11 +10,12 @@
 
 #include "system/time.h"
 #include "system/print.h"
+#include "system/error.h"
 #include "hal/timer.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define DIV_ROUND(a, b) (((a) + (b) / 2) / (b))
+#define SYSTIME_FREQ_HZ (1000) // 1 tick == 1 millisecond
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -22,25 +23,25 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// static struct timer_config sys_timer = {
-// 	.timer = &TCE0,
-// 	.periph = TIMER_TCE0,
-// 	.channel = TIMER_CHANNEL_A,
-// 	.freq = 1000,
-// 	.mode = TIMER_MODE_OVF,
-// 	.pwm = {0},
-// };
+static struct timer_config sys_timer = {
+		.timer	 = &TCE0,
+		.periph	 = TIMER_TCE0,
+		.channel = TIMER_CHANNEL_A,
+		.freq		 = SYSTIME_FREQ_HZ,
+		.mode		 = TIMER_MODE_OVF,
+		.pwm		 = {0},
+};
 
 static volatile u32 thetime = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void systime_start(void) {
-	TCE0.PER			= DIV_ROUND(F_CPU, 1000);
-	TCE0.CTRLB		= TC_WGMODE_NORMAL_gc;
-	TCE0.INTCTRLA = TC_OVFINTLVL_LO_gc;
-	TCE0.CNT			= 0;
-	TCE0.CTRLA		= TC_CLKSEL_DIV1_gc;
+int systime_start(void) {
+	int status = timer_init(&sys_timer);
+	RETURN_ON_ERR(status);
+
+	timer_ovr_isr_enable(&sys_timer, PRIORITY_LOW);
+	return SUCCESS;
 }
 
 u32 systime_ms(void) {

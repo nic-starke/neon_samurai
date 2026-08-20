@@ -16,8 +16,10 @@
 
 /**
  * @brief Start the system time.
+ *
+ * @return int 0 on success, negative error code on failure.
  */
-void systime_start(void);
+int systime_start(void);
 
 /**
  * @brief Get the system time.

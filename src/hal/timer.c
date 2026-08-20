@@ -47,8 +47,11 @@ int timer_init(struct timer_config* cfg) {
 				TC_CLKSEL_t clk_sel;
 
 				timer_get_parameters((unsigned int)cfg->freq, &clk_sel, &period);
-				cfg->timer->CTRLA |= (u8)clk_sel;
 				cfg->timer->PER = period;
+				cfg->timer->CNT = 0;
+
+				// Set clock source (starts the timer)
+				cfg->timer->CTRLA |= (u8)clk_sel;
 				break;
 			}
 
@@ -147,30 +150,33 @@ void timer_pwm_start(struct timer_config* cfg) {
 #pragma GCC diagnostic ignored "-Wconversion"
 void timer_get_parameters(unsigned int freq, TC_CLKSEL_t* clk_sel,
 													u16* period) {
-	PROGMEM static const u32 prescalers[]		 = {1, 2, 4, 8, 64, 256, 1024};
-	const u32								 clocks_per_tick = F_CPU / freq;
-	u32											 lowest_error		 = UINT32_MAX;
-	u32											 per						 = 0;
-	u16											 best_per				 = 0;
+	static const u32 prescalers[] PROGMEM = {1, 2, 4, 8, 64, 256, 1024};
+	const u32				 clocks_per_tick			= F_CPU / freq;
+	u32							 lowest_error					= UINT32_MAX;
+	u16							 best_per							= 0;
+	u8							 best_idx							= 0;
 
-	u8 i = 0;
+	for (u8 i = 0; i < NUM_PRESCALERS; ++i) {
+		const u32 prescaler = pgm_read_dword(&prescalers[i]);
 
-	for (; i < NUM_PRESCALERS; ++i) {
-		per = clocks_per_tick / prescalers[i];
-		per--;
-		if (per > MAX_PER)
+		// Underflows (and is rejected below) if the prescaler is too slow.
+		u32 per = (clocks_per_tick / prescaler) - 1u;
+		if (per > MAX_PER) {
 			continue;
+		}
 
-		u32 error;
-
-		error = abs(clocks_per_tick - ((per + 1u) * prescalers[i]));
+		const u32 actual = (per + 1u) * prescaler;
+		const u32 error	 = (actual > clocks_per_tick) ? (actual - clocks_per_tick)
+																									: (clocks_per_tick - actual);
 		if (error < lowest_error) {
 			lowest_error = error;
 			best_per		 = per;
+			best_idx		 = i;
 		}
 	}
 
-	*clk_sel = (TC_CLKSEL_t)i + 1;
+	// Prescaler index 0 (divide by 1) maps to TC_CLKSEL_DIV1_gc.
+	*clk_sel = (TC_CLKSEL_t)(best_idx + 1);
 	*period	 = best_per;
 }
 #pragma GCC diagnostic pop
