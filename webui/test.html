@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>NEON_SAMURAI — webui self-test</title>
+	<link rel="stylesheet" href="design-system/tokens.css" />
+	<style>
+		body {
+			margin: 0;
+			padding: 2rem;
+			background: var(--ds-bg);
+			color: var(--ds-text);
+			font-family: var(--ds-font-mono);
+			font-size: 14px;
+			line-height: 1.6;
+		}
+		h1 { font-size: 1.2rem; margin: 0 0 0.25rem; }
+		p.lede { color: var(--ds-text-dim); margin: 0 0 1.5rem; max-width: 46rem; }
+		#summary { font-size: 1.05rem; padding: 0.6rem 1rem; border-radius: var(--ds-radius); margin-bottom: 1.5rem; display: inline-block; }
+		.ok { color: var(--ds-accent); border: 1px solid var(--ds-accent); }
+		.bad { color: var(--ds-danger); border: 1px solid var(--ds-danger); }
+		h2 { font-size: 0.95rem; color: var(--ds-text-dim); margin: 1.5rem 0 0.4rem; text-transform: uppercase; letter-spacing: 0.08em; }
+		li { list-style: none; }
+		li.pass::before { content: "PASS  "; color: var(--ds-accent-dim); }
+		li.fail::before { content: "FAIL  "; color: var(--ds-danger); }
+		li.fail { color: var(--ds-danger); }
+		ul { margin: 0; padding: 0; }
+		.detail { color: var(--ds-text-faint); padding-left: 3.5rem; }
+	</style>
+</head>
+<body>
+	<h1>webui self-test</h1>
+	<p class="lede">
+		Covers everything that can be checked without a device: the sysex wire
+		codec, the firmware LED-mask port, the colour model, the design-system
+		components, the incremental-render signature, and the connection
+		lifecycle driven against a fake MIDI port. Needs no build - serve the
+		directory and open this page. Anything needing real hardware belongs in
+		<code>tests/robot/</code> instead.
+	</p>
+	<div id="summary">running…</div>
+	<div id="results"></div>
+
+	<script type="module">
+		import { pack7, unpack7, encode, decode, Cmd, Param, MFR_ID, SYSEX_START, SYSEX_END } from "./js/sysex.js";
+		import { hsvToRgb, HUE_MAX } from "./js/color.js";
+		import { Device } from "./js/midi.js";
+		import { LivePushTracker } from "./js/live-tracker.js";
+		import { encoderSignature } from "./js/encoder-signature.js";
+		import { buildEncoder, buildBankSelector, buildDeviceChassis, buildLedRing } from "./design-system/components/index.js";
+		import { GEOMETRY } from "./design-system/geometry.js";
+		import {
+			computeLitMask,
+			computeLedBrightness,
+			computeDetentColorOverride,
+			DisplayMode,
+			ENC_MID,
+			ENC_MAX,
+			NUM_PWM_FRAMES,
+		} from "./design-system/components/led-mask.js";
+
+		let passed = 0;
+		let failed = 0;
+		let group;
+
+		function section(name) {
+			const h = document.createElement("h2");
+			h.textContent = name;
+			document.getElementById("results").appendChild(h);
+			group = document.createElement("ul");
+			document.getElementById("results").appendChild(group);
+		}
+
+		function check(name, fn) {
+			const li = document.createElement("li");
+			try {
+				fn();
+				li.className = "pass";
+				li.textContent = name;
+				passed++;
+			} catch (e) {
+				li.className = "fail";
+				li.textContent = `${name} — ${e.message}`;
+				failed++;
+			}
+			group.appendChild(li);
+		}
+
+		function eq(actual, expected, what = "value") {
+			const a = JSON.stringify(actual);
+			const b = JSON.stringify(expected);
+			if (a !== b) throw new Error(`${what}: got ${a}, expected ${b}`);
+		}
+
+		function throws(fn, what) {
+			try {
+				fn();
+			} catch {
+				return;
+			}
+			throw new Error(`${what}: expected a throw, got none`);
+		}
+
+
+		function checkAsync(name, fn) {
+			const li = document.createElement("li");
+			group.appendChild(li);
+			li.className = "pass";
+			li.textContent = `${name} (running)`;
+			return fn().then(
+				() => {
+					li.textContent = name;
+					passed++;
+				},
+				(e) => {
+					li.className = "fail";
+					li.textContent = `${name} — ${e.message}`;
+					failed++;
+				},
+			);
+		}
+
+		const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+		// style.cssText is reserialized by the browser, so collapse whitespace
+		// before matching against a declaration.
+		const styleOf = (node) => (node.getAttribute("style") ?? "").replace(/\s+/g, "");
+		const markupOf = (node) => node.outerHTML.replace(/\s+/g, "");
+
+		// Minimal stand-in for a MIDIInput/MIDIOutput pair. Nothing sent to it
+		// goes anywhere; tests drive replies by calling emit() themselves.
+		class FakePort {
+			constructor(name) {
+				this.name = name;
+				this.state = "connected";
+				this.sent = [];
+				this._handlers = new Map();
+			}
+			addEventListener(type, fn) {
+				if (!this._handlers.has(type)) this._handlers.set(type, new Set());
+				this._handlers.get(type).add(fn);
+			}
+			removeEventListener(type, fn) {
+				this._handlers.get(type)?.delete(fn);
+			}
+			listenerCount(type) {
+				return this._handlers.get(type)?.size ?? 0;
+			}
+			send(bytes) {
+				this.sent.push(bytes);
+			}
+			emit(type, event) {
+				for (const fn of [...(this._handlers.get(type) ?? [])]) fn(event);
+			}
+			deliver(bytes) {
+				this.emit("midimessage", { data: bytes });
+			}
+		}
+
+		function fakeDevice() {
+			const input = new FakePort("SAMURAI in");
+			const output = new FakePort("SAMURAI out");
+			return { device: new Device(input, output), input, output };
+		}
+
+		function response(cmd, param, data) {
+			return [SYSEX_START, ...MFR_ID, cmd, param, data.length, ...pack7(data), SYSEX_END];
+		}
+
+		/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ 7-bit packing ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+		section("7-bit packing (mirrors sysex_pack7/unpack7 in src/midi/sysex.c)");
+
+		check("high bits are stripped into the group header", () => {
+			eq(pack7([0x80, 0x01]), [0x01, 0x00, 0x01]);
+		});
+
+		check("a byte with no high bit leaves the header clear", () => {
+			eq(pack7([0x7f]), [0x00, 0x7f]);
+		});
+
+		check("every high bit maps to its own header bit", () => {
+			eq(pack7([0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80]), [0x7f, 0, 0, 0, 0, 0, 0, 0]);
+		});
+
+		check("groups split every 7 raw bytes", () => {
+			eq(pack7(new Array(8).fill(0)).length, 10, "8 raw bytes -> 8+2 wire bytes");
+		});
+
+		check("no wire byte ever exceeds 0x7F", () => {
+			const packed = pack7(Array.from({ length: 32 }, (_, i) => (i * 9) & 0xff));
+			const over = packed.filter((b) => b > 0x7f);
+			eq(over, [], "bytes above 0x7F");
+		});
+
+		check("roundtrips across every length up to 3 groups", () => {
+			for (let n = 0; n <= 21; n++) {
+				const src = Array.from({ length: n }, (_, i) => (i * 37 + 128) & 0xff);
+				eq(unpack7(pack7(src)), src, `roundtrip at length ${n}`);
+			}
+		});
+
+		/* ~~~~~~~~~~~~~~~~~~~~~~~~~ Message framing ~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+		section("Message framing");
+
+		check("encode emits F0, manufacturer id, cmd, param, payload, F7", () => {
+			const msg = encode(Cmd.GET, Param.DEVICE_INFO, []);
+			eq(msg, [SYSEX_START, ...MFR_ID, Cmd.GET, Param.DEVICE_INFO, SYSEX_END]);
+		});
+
+		check("manufacturer id is SAM", () => {
+			eq(MFR_ID, [0x53, 0x41, 0x4d]);
+			eq(String.fromCharCode(...MFR_ID), "SAM");
+		});
+
+		check("decode recovers cmd, param and data", () => {
+			const msg = decode(response(Cmd.GET_RESPONSE, Param.VMAP_CURR_POS, [200]));
+			eq(msg.cmd, Cmd.GET_RESPONSE, "cmd");
+			eq(msg.param, Param.VMAP_CURR_POS, "param");
+			eq(msg.data, [200], "data");
+			eq(msg.paramName, "VMAP_CURR_POS", "paramName");
+		});
+
+		check("decode handles a full-8-bit payload", () => {
+			const data = [0xff, 0x00, 0x80, 0x7f];
+			eq(decode(response(Cmd.GET_RESPONSE, Param.VMAP_HSV, data)).data, data);
+		});
+
+		check("decode rejects a missing F0", () => {
+			throws(() => decode([0x00, ...MFR_ID, 0, 0, 0, SYSEX_END]), "bad start byte");
+		});
+
+		check("decode rejects a foreign manufacturer id", () => {
+			throws(() => decode([SYSEX_START, 0x7d, 0x00, 0x00, 0, 0, 0, SYSEX_END]), "foreign mfr id");
+		});
+
+		check("decode rejects a data_len that disagrees with the payload", () => {
+			const raw = response(Cmd.GET_RESPONSE, Param.ACTIVE_BANK, [1]);
+			raw[6] = 5;
+			throws(() => decode(raw), "data_len mismatch");
+		});
+
+		check("decode names an unknown param rather than throwing", () => {
+			const msg = decode(response(Cmd.GET_RESPONSE, 99, [0]));
+			eq(msg.paramName, "UNKNOWN(99)");
+		});
+
+		check("WEBUI_PUSH decodes with the same framing as a reply", () => {
+			const msg = decode(response(Cmd.WEBUI_PUSH, Param.VMAP_CURR_POS, [2, 15, 1, 200]));
+			eq(msg.cmd, Cmd.WEBUI_PUSH, "cmd");
+			eq(msg.data, [2, 15, 1, 200], "bank/enc/vmap/pos");
+		});
+
+		/* ~~~~~~~~~~~~~~~~~~~~~~~~~~ Param mirroring ~~~~~~~~~~~~~~~~~~~~~~~ */
+
+		section("Param table (must match enum mf_sysex_param in src/include/midi/sysex.h)");
+
+		check("param values are contiguous from 0 with no gaps or duplicates", () => {
+			const values = Object.values(Param).sort((a, b) => a - b);
+			eq(values, values.map((_, i) => i), "contiguous range");
+		});
+
+		check("the param count matches the firmware enum", () => {
+			eq(Object.keys(Param).length, 21, "MF_SYSEX_PARAM_NB");
+		});
+
+		check("cmd values match enum mf_sysex_cmd", () => {
+			eq(Cmd, { GET: 0, GET_RESPONSE: 1, SET: 2, SET_RESPONSE: 3, STOP: 4, WEBUI_PUSH: 5 });
+		});
+
+		/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LED masks ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+		section("LED masks (ports mf_draw_encoder() in src/led/led.c)");
+
+		const single = (position, detent = false) =>
+			computeLitMask({ position, displayMode: DisplayMode.SINGLE, detent });
+		const multi = (position, detent = false) =>
+			computeLitMask({ position, displayMode: DisplayMode.MULTI, detent });
+
+		check("every mask is 11 LEDs wide", () => {
+			eq(single(0).length, 11);
+		});
+
+		check("SINGLE at position 0 lights only the first LED", () => {
+			eq(single(0), [true, ...new Array(10).fill(false)]);
+		});
+
+		check("SINGLE at full scale lights only the last LED", () => {
+			eq(single(ENC_MAX), [...new Array(10).fill(false), true]);
+		});
+
+		check("SINGLE lights exactly one LED at every position", () => {
+			for (let pos = 0; pos <= ENC_MAX; pos++) {
+				const lit = single(pos).filter(Boolean).length;
+				if (lit !== 1) throw new Error(`position ${pos} lit ${lit} LEDs`);
+			}
+		});
+
+		check("MULTI fills a bar graph that only ever grows with position", () => {
+			let prev = 0;
+			for (let pos = 0; pos <= ENC_MAX; pos++) {
+				const lit = multi(pos).filter(Boolean).length;
+				if (lit < prev) throw new Error(`bar graph shrank at position ${pos}`);
+				prev = lit;
+			}
+		});
+
+		check("MULTI at full scale lights the whole ring", () => {
+			eq(multi(ENC_MAX), new Array(11).fill(true));
+		});
+
+		check("detent clears the centre LED at dead centre and sets it elsewhere", () => {
+			eq(single(ENC_MID, true)[5], false, "centre LED at ENC_MID");
+			eq(single(0, true)[5], true, "centre LED off-centre");
+		});
+
+		check("brightness is full-scale for every lit LED outside MULTI_PWM", () => {
+			const b = computeLedBrightness({ position: ENC_MAX, displayMode: DisplayMode.MULTI, detent: false });
+			eq(b, new Array(11).fill(NUM_PWM_FRAMES - 1));
+		});
+
+		check("MULTI_PWM brightness stays inside the BCM range", () => {
+			for (let pos = 0; pos <= ENC_MAX; pos++) {
+				for (const detent of [false, true]) {
+					const b = computeLedBrightness({ position: pos, displayMode: DisplayMode.MULTI_PWM, detent });
+					for (const v of b) {
+						if (!Number.isInteger(v) || v < 0 || v > NUM_PWM_FRAMES - 1) {
+							throw new Error(`position ${pos} detent=${detent} produced ${v}`);
+						}
+					}
+				}
+			}
+		});
+
+		check("unlit LEDs are always fully dark", () => {
+			for (let pos = 0; pos <= ENC_MAX; pos += 7) {
+				const mask = computeLitMask({ position: pos, displayMode: DisplayMode.MULTI_PWM, detent: false });
+				const b = computeLedBrightness({ position: pos, displayMode: DisplayMode.MULTI_PWM, detent: false });
+				mask.forEach((lit, i) => {
+					if (!lit && b[i] !== 0) throw new Error(`unlit LED ${i} at position ${pos} had brightness ${b[i]}`);
+				});
+			}
+		});
+
+		check("the detent colour shows only at dead centre, with detent on", () => {
+			const rb = { r: 31, b: 0 };
+			eq(computeDetentColorOverride({ position: ENC_MID, detent: false, rb }), null, "detent off");
+			eq(computeDetentColorOverride({ position: 0, detent: true, rb }), null, "off centre");
+			eq(computeDetentColorOverride({ position: ENC_MID, detent: true, rb: { r: 0, b: 0 } }), null, "both channels dark");
+			const on = computeDetentColorOverride({ position: ENC_MID, detent: true, rb });
+			if (!on) throw new Error("expected an override at dead centre");
+		});
+
+		check("the detent colour targets the centre LED slot", () => {
+			const on = computeDetentColorOverride({ position: ENC_MID, detent: true, rb: { r: 31, b: 0 } });
+			eq(on.index, 5, "0-based index of indicator 6");
+		});
+
+		/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Colour model ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+		section("Colour model (firmware range: hue 0-1535, sat/val 0-255)");
+
+		check("zero saturation is neutral grey", () => {
+			eq(hsvToRgb(0, 0, 128), { r: 128, g: 128, b: 128 });
+		});
+
+		check("zero value is black at any hue", () => {
+			for (const hue of [0, 256, 700, HUE_MAX]) {
+				eq(hsvToRgb(hue, 255, 0), { r: 0, g: 0, b: 0 }, `hue ${hue}`);
+			}
+		});
+
+		check("hue 0 at full saturation and value is pure red", () => {
+			eq(hsvToRgb(0, 255, 255), { r: 255, g: 0, b: 0 });
+		});
+
+		check("the six sextant boundaries land on primaries and secondaries", () => {
+			eq(hsvToRgb(256, 255, 255), { r: 255, g: 255, b: 0 }, "yellow");
+			eq(hsvToRgb(512, 255, 255), { r: 0, g: 255, b: 0 }, "green");
+			eq(hsvToRgb(768, 255, 255), { r: 0, g: 255, b: 255 }, "cyan");
+			eq(hsvToRgb(1024, 255, 255), { r: 0, g: 0, b: 255 }, "blue");
+			eq(hsvToRgb(1280, 255, 255), { r: 255, g: 0, b: 255 }, "magenta");
+		});
+
+		check("out-of-range inputs are clamped, not wrapped", () => {
+			eq(hsvToRgb(99999, 255, 255), hsvToRgb(HUE_MAX, 255, 255), "hue above max");
+			eq(hsvToRgb(-50, 255, 255), hsvToRgb(0, 255, 255), "negative hue");
+		});
+
+
+		section("Encoder signature (drives the incremental render)");
+
+		const baseProps = {
+			knobRotation: 12.5,
+			litMask: [true, false, true, false, false, false, false, false, false, false, false],
+			rgbColor: "rgb(255, 0, 0)",
+			rgbOff: false,
+			vmapCount: 2,
+			vmapActive: 0,
+		};
+
+		check("identical props produce an identical signature", () => {
+			eq(encoderSignature(baseProps), encoderSignature({ ...baseProps }));
+		});
+
+		check("every visually significant field changes the signature", () => {
+			const sig = encoderSignature(baseProps);
+			const mutations = {
+				knobRotation: 13.5,
+				litMask: new Array(11).fill(true),
+				rgbColor: "rgb(0, 255, 0)",
+				rgbOff: true,
+				vmapActive: 1,
+				vmapCount: 3,
+				powered: false,
+				ledBrightness: new Array(11).fill(7),
+				ledColorOverride: { index: 5, color: "rgb(255,0,0)" },
+			};
+			for (const [field, value] of Object.entries(mutations)) {
+				if (encoderSignature({ ...baseProps, [field]: value }) === sig) {
+					throw new Error(`changing ${field} did not change the signature`);
+				}
+			}
+		});
+
+		check("sub-0.01deg rotation is treated as no change", () => {
+			eq(
+				encoderSignature({ ...baseProps, knobRotation: 12.5001 }),
+				encoderSignature(baseProps),
+				"signature",
+			);
+		});
+
+		section("Components");
+
+		const encoderProps = { ...baseProps, bodySize: 168, ledCount: 11, showLabel: false };
+
+		check("the LED ring renders one element per indicator", () => {
+			const frag = buildLedRing({ count: 11, litMask: new Array(11).fill(false) });
+			eq(frag.childElementCount, 11, "LED count");
+		});
+
+		check("the LED ring lights exactly the LEDs its mask names", () => {
+			const litMask = [true, false, true, false, false, false, false, false, false, false, true];
+			const frag = buildLedRing({ count: 11, litMask });
+			const lit = [...frag.children].map((c) => styleOf(c).includes("background:var(--ds-led-on)"));
+			eq(lit, litMask);
+		});
+
+		check("an encoder composes a cap, an arc and a full LED ring", () => {
+			const node = buildEncoder(encoderProps);
+			eq(node.querySelectorAll("svg").length >= 2, true, "cap and arc SVGs present");
+			eq(markupOf(node).includes("--ds-led-on"), true, "at least one lit LED");
+		});
+
+		check("an encoder claims no pointer affordance without a click handler", () => {
+			eq(styleOf(buildEncoder(encoderProps)).includes("cursor:pointer"), false, "cursor with no onSelect");
+			eq(
+				styleOf(buildEncoder({ ...encoderProps, onSelect: () => {} })).includes("cursor:pointer"),
+				true,
+				"cursor with an onSelect",
+			);
+		});
+
+		check("an unpowered encoder uses the powered-off LED colour, not the unlit one", () => {
+			const off = markupOf(buildEncoder({ ...encoderProps, powered: false, rgbOff: true }));
+			eq(off.includes("--ds-led-powered-off"), true, "powered-off token used");
+			eq(off.includes("--ds-led-on"), false, "no LED lit while unpowered");
+		});
+
+		check("the vmap pill only appears when there is more than one layer", () => {
+			const one = buildEncoder({ ...encoderProps, vmapCount: 1 }).textContent;
+			const two = buildEncoder({ ...encoderProps, vmapCount: 2 }).textContent;
+			eq(one.includes("A"), false, "pill shown for a single vmap");
+			eq(two.includes("A") && two.includes("B"), true, "pill missing for two vmaps");
+		});
+
+		check("bank numbers are real buttons, not click-handled spans", () => {
+			const node = buildBankSelector({ count: 3, active: 1, onSelect: () => {} });
+			const buttons = node.querySelectorAll("button");
+			eq(buttons.length, 3, "button count");
+			eq([...buttons].map((b) => b.getAttribute("aria-pressed")), ["false", "true", "false"]);
+			eq([...buttons].every((b) => b.getAttribute("aria-label")), true, "every button labelled");
+		});
+
+		check("bank numbers are disabled with no device attached", () => {
+			const node = buildBankSelector({ count: 3, active: 0 });
+			eq([...node.querySelectorAll("button")].every((b) => b.disabled), true, "all disabled");
+		});
+
+		check("a pending bank is marked busy and distinct from the active one", () => {
+			const node = buildBankSelector({ count: 3, active: 0, pending: 2, onSelect: () => {} });
+			const buttons = [...node.querySelectorAll("button")];
+			eq(buttons[2].getAttribute("aria-busy"), "true", "pending button busy");
+			eq(buttons[0].getAttribute("aria-busy"), null, "active button not busy");
+		});
+
+		check("clicking a bank number reports its index", () => {
+			let got = null;
+			const node = buildBankSelector({ count: 3, active: 0, onSelect: (i) => (got = i) });
+			node.querySelectorAll("button")[2].click();
+			eq(got, 2);
+		});
+
+		section("Incremental render");
+
+		check("the chassis exposes one replaceable cell per encoder", () => {
+			const built = buildDeviceChassis(GEOMETRY, () => ({ ...encoderProps }), () => ({ pressed: false }));
+			eq(built.encoderCells.length, 16, "cell count");
+			eq(built.knurlLights.length, 16, "knurl light count");
+			eq(built.encoderCells.every((c) => c.childElementCount === 1), true, "each cell holds one encoder");
+		});
+
+		check("each encoder gets its own knurl lighting angle", () => {
+			const built = buildDeviceChassis(GEOMETRY, () => ({ ...encoderProps }), null);
+			const angles = new Set(built.knurlLights.map((l) => l.angle));
+			if (angles.size < 8) throw new Error(`only ${angles.size} distinct light angles across 16 encoders`);
+		});
+
+		check("replacing one cell leaves the other fifteen untouched", () => {
+			const built = buildDeviceChassis(GEOMETRY, () => ({ ...encoderProps }), null);
+			const before = built.encoderCells.map((c) => c.firstElementChild);
+			built.encoderCells[4].replaceChildren(buildEncoder({ ...encoderProps, knobRotation: 90 }));
+			built.encoderCells.forEach((cell, i) => {
+				const same = cell.firstElementChild === before[i];
+				if (i === 4 && same) throw new Error("target cell was not replaced");
+				if (i !== 4 && !same) throw new Error(`cell ${i} was rebuilt unnecessarily`);
+			});
+		});
+
+		section("Live push tracker");
+
+		function pushTo(input, param, data) {
+			input.deliver(response(Cmd.WEBUI_PUSH, param, data));
+		}
+
+		check("a tracker keys by its index arity", () => {
+			const { device, input } = fakeDevice();
+			const pos = new LivePushTracker(Param.VMAP_CURR_POS, 3);
+			pos.attach(device);
+			pushTo(input, Param.VMAP_CURR_POS, [2, 15, 1, 200]);
+			eq(pos.get(2, 15, 1), 200, "per-vmap value");
+			eq(pos.get(2, 15, 0), undefined, "unrelated vmap untouched");
+			device.destroy();
+		});
+
+		check("a device-scoped tracker keys on nothing", () => {
+			const { device, input } = fakeDevice();
+			const bank = new LivePushTracker(Param.ACTIVE_BANK, 0);
+			bank.attach(device);
+			pushTo(input, Param.ACTIVE_BANK, [2]);
+			eq(bank.get(), 2);
+			device.destroy();
+		});
+
+		check("a tracker ignores other params and non-push commands", () => {
+			const { device, input } = fakeDevice();
+			const bank = new LivePushTracker(Param.ACTIVE_BANK, 0);
+			bank.attach(device);
+			pushTo(input, Param.VMAP_CURR_POS, [0, 0, 0, 9]);
+			eq(bank.get(), undefined, "after a different param");
+			input.deliver(response(Cmd.GET_RESPONSE, Param.ACTIVE_BANK, [1]));
+			eq(bank.get(), undefined, "after a GET_RESPONSE for its own param");
+			device.destroy();
+		});
+
+		check("a tracker only notifies when the value actually changes", () => {
+			const { device, input } = fakeDevice();
+			const bank = new LivePushTracker(Param.ACTIVE_BANK, 0);
+			let updates = 0;
+			bank.attach(device, () => updates++);
+			pushTo(input, Param.ACTIVE_BANK, [1]);
+			pushTo(input, Param.ACTIVE_BANK, [1]);
+			pushTo(input, Param.ACTIVE_BANK, [2]);
+			eq(updates, 2, "update count for 1,1,2");
+			device.destroy();
+		});
+
+		check("detach stops delivery and reset clears seeded values", () => {
+			const { device, input } = fakeDevice();
+			const bank = new LivePushTracker(Param.ACTIVE_BANK, 0);
+			bank.attach(device);
+			bank.set([], 1);
+			bank.detach();
+			pushTo(input, Param.ACTIVE_BANK, [2]);
+			eq(bank.get(), 1, "value after detach");
+			bank.reset();
+			eq(bank.get(), undefined, "value after reset");
+			device.destroy();
+		});
+
+		section("Device lifecycle");
+
+		await checkAsync("a request resolves on the first matching reply", async () => {
+			const { device, input } = fakeDevice();
+			const p = device.request(Cmd.GET, Param.ACTIVE_BANK, [0]);
+			input.deliver(response(Cmd.GET_RESPONSE, Param.ACTIVE_BANK, [2]));
+			eq((await p).data, [2]);
+			device.destroy();
+		});
+
+		await checkAsync("a request is never resolved by an unsolicited push", async () => {
+			const { device, input } = fakeDevice();
+			let settled = false;
+			const p = device.request(Cmd.GET, Param.VMAP_CURR_POS, [0, 0, 0, 0], 150).then(
+				() => (settled = "resolved"),
+				() => (settled = "rejected"),
+			);
+			pushTo(input, Param.VMAP_CURR_POS, [0, 0, 0, 77]);
+			await sleep(30);
+			eq(settled, false, "state while only a push has arrived");
+			await p;
+			eq(settled, "rejected", "state after the timeout");
+			device.destroy();
+		});
+
+		await checkAsync("a request rejects on timeout", async () => {
+			const { device } = fakeDevice();
+			let message = null;
+			await device.request(Cmd.GET, Param.ACTIVE_BANK, [0], 60).catch((e) => (message = e.message));
+			if (!message || !message.includes("No sysex reply")) {
+				throw new Error(`unexpected rejection: ${message}`);
+			}
+			device.destroy();
+		});
+
+		await checkAsync("a settled request leaves no listener behind", async () => {
+			const { device, input } = fakeDevice();
+			const p = device.request(Cmd.GET, Param.ACTIVE_BANK, [0]);
+			input.deliver(response(Cmd.GET_RESPONSE, Param.ACTIVE_BANK, [1]));
+			await p;
+			eq(device._listeners.length, 0, "listeners after a resolved request");
+			await device.request(Cmd.GET, Param.ACTIVE_BANK, [0], 60).catch(() => {});
+			eq(device._listeners.length, 0, "listeners after a timed-out request");
+			device.destroy();
+		});
+
+		check("destroy detaches every port listener", () => {
+			const { device, input, output } = fakeDevice();
+			eq(input.listenerCount("midimessage"), 1, "message listener attached");
+			device.destroy();
+			eq(input.listenerCount("midimessage"), 0, "message listener after destroy");
+			eq(input.listenerCount("statechange"), 0, "input statechange after destroy");
+			eq(output.listenerCount("statechange"), 0, "output statechange after destroy");
+		});
+
+		check("reconnecting on the same ports does not stack listeners", () => {
+			const input = new FakePort("SAMURAI in");
+			const output = new FakePort("SAMURAI out");
+			let device = new Device(input, output);
+			for (let i = 0; i < 5; i++) {
+				device.destroy();
+				device = new Device(input, output);
+			}
+			eq(input.listenerCount("midimessage"), 1, "message listeners after 5 reconnects");
+			device.destroy();
+		});
+
+		check("a destroyed device decodes nothing further", () => {
+			const { device, input } = fakeDevice();
+			let seen = 0;
+			device.onSysex(() => seen++);
+			input.deliver(response(Cmd.WEBUI_PUSH, Param.ACTIVE_BANK, [1]));
+			eq(seen, 1, "delivered while alive");
+			device.destroy();
+			input.emit("midimessage", { data: response(Cmd.WEBUI_PUSH, Param.ACTIVE_BANK, [2]) });
+			eq(seen, 1, "delivered after destroy");
+		});
+
+		check("an unparseable message is dropped without disturbing the rest", () => {
+			const { device, input } = fakeDevice();
+			let seen = 0;
+			device.onSysex(() => seen++);
+			input.deliver([0xf0, 0x53, 0x41, 0x4d, 1, 15, 99, 0x00, 0x01, 0xf7]);
+			eq(seen, 0, "bad message delivered to listeners");
+			input.deliver(response(Cmd.GET_RESPONSE, Param.ACTIVE_BANK, [1]));
+			eq(seen, 1, "good message after a bad one");
+			device.destroy();
+		});
+
+		check("a disconnected port declares the device dead exactly once", () => {
+			const { device, input } = fakeDevice();
+			let reasons = [];
+			device.onDisconnect((r) => reasons.push(r));
+			input.state = "disconnected";
+			input.emit("statechange", { port: input });
+			input.emit("statechange", { port: input });
+			eq(reasons.length, 1, "disconnect notifications");
+			eq(device.isAlive, false, "isAlive after disconnect");
+		});
+
+		await checkAsync("a request on a dead device rejects rather than hanging", async () => {
+			const { device } = fakeDevice();
+			device.destroy();
+			let message = null;
+			await device.request(Cmd.GET, Param.ACTIVE_BANK, [0]).catch((e) => (message = e.message));
+			eq(message, "Device is disconnected");
+		});
+
+		check("heartbeat pause nests and resume clears accumulated misses", () => {
+			const { device } = fakeDevice();
+			device.pauseHeartbeat();
+			device.pauseHeartbeat();
+			eq(device._pauseDepth, 2, "depth after two pauses");
+			device.resumeHeartbeat();
+			eq(device._pauseDepth, 1, "depth after one resume");
+			device._heartbeatMisses = 1;
+			device.resumeHeartbeat();
+			eq(device._pauseDepth, 0, "depth after both resumes");
+			eq(device._heartbeatMisses, 0, "misses after resume");
+			device.resumeHeartbeat();
+			eq(device._pauseDepth, 0, "depth never goes negative");
+			device.destroy();
+		});
+
+		/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Summary ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+		const summary = document.getElementById("summary");
+		summary.textContent = failed === 0 ? `all ${passed} checks passed` : `${failed} failed, ${passed} passed`;
+		summary.className = failed === 0 ? "ok" : "bad";
+		document.title = `${failed === 0 ? "PASS" : "FAIL"} — webui self-test`;
+	</script>
+</body>
+</html>

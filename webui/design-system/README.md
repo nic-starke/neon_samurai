@@ -29,11 +29,14 @@ What's here instead:
   DOM, no lifecycle - a component is just a function.
 - **`@preact/signals-core`** (vendored, see `../js/vendor/`) for reactive
   state - a `signal()` write triggers exactly the `effect()`s that read
-  it, so a live device stream (sysex/MIDI messages arriving many times a
-  second) doesn't require hand-written dirty-checking or a full
-  "rebuild everything" pass on every message. ~1.2kB, MIT-licensed,
-  vendored locally rather than CDN-imported so the app keeps working
-  fully offline.
+  it. ~1.2kB, MIT-licensed, vendored locally rather than CDN-imported so
+  the app keeps working fully offline.
+
+  Note that only `twin.js` uses signals; `live-twin.js` does not. The live
+  page coalesces renders to an animation frame and then diffs per encoder
+  (see `webui/README.md`'s "Rendering"), which is where its update
+  granularity comes from - not from a state library. Components stay pure
+  prop-driven functions in both cases.
 - **`tokens.css`** - the design tokens (colours, spacing, glow effects)
   every component's inline styles reference via `var(--ds-*)`, so the
   palette lives in one place.
@@ -66,7 +69,7 @@ There are three LED brightness tiers, not two - see `tokens.css`:
 | Module | Renders | Notable props |
 |---|---|---|
 | `chassis.js` | Plastic faceplate + rubber bevel. Static - no colour/on-off state, only geometry. | `size`, `cornerRadius`, `bevelWidth` |
-| `device-chassis.js` | The full assembled device: `chassis.js` + the 4x4 encoder grid + 6 side switches + the two-light knurl-shading system, composed together. Shared by `twin.js` and `live-twin.js` so the grid/lighting geometry lives in one place. | `encoderProps(i, knurlLight)` and `sideSwitchProps(side, i)` callbacks - see its doc comment |
+| `device-chassis.js` | The full assembled device: `chassis.js` + the 4x4 encoder grid + 6 side switches + the two-light knurl-shading system, composed together. Shared by `twin.js` and `live-twin.js` so the grid/lighting geometry lives in one place. Returns `encoderCells` and `knurlLights` so a caller can replace one encoder without rebuilding the rest - see `webui/README.md`'s "Rendering". | `encoderProps(i, knurlLight)` and `sideSwitchProps(side, i)` callbacks |
 | `encoder.js` | One full encoder assembly: body, RGB arc, LED ring, cap, and vmap pill, composed together. | `rgbColor`/`rgbOff`, `litMask` (or `value`/`max`), `ledBrightness`, `ledColorOverride`, `knobRotation`, `capColor`, `selected`, `powered`, `vmapCount`/`vmapActive` |
 | `cap.js` | The knurled cap top-view only (used internally by `encoder.js`, but also usable standalone for a cap-only preview). | `color`, `ribCount`, `lightAngle`/`lightOffset`, `reflectionColor` (subtle coloured bounce from the nearby lit RGB LED) |
 | `led-ring.js` | The ring of discrete indicator LEDs (11 on real hardware). | `count`, `arcSpan`, `litMask`, `brightness` (per-LED BCM 0-31, for `DIS_MODE_MULTI_PWM`'s smooth fade - takes priority over `litMask`), `colorOverride` (recolors one LED - used for the detent red/blue LEDs, which share the center indicator's physical slot), `powered` |
@@ -100,7 +103,7 @@ JSON preset, or a slider in the tuning sidebar. Two current callers:
 - `webui/index.html`/`js/live-twin.js` - the live device view, which
   renders these components from `DeviceModel`'s real per-encoder HSV/
   detent/display-mode state (pulled from a connected Twister over sysex
-  immediately on connect) plus `live-position.js`'s live knob rotation
+  immediately on connect) plus `live-tracker.js`'s live knob rotation
   (pushed unsolicited by the firmware itself over sysex - see the
   top-level README's "How live tracking works").
 

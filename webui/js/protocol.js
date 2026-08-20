@@ -1,11 +1,15 @@
-// protocol.js - per-param GET/SET orchestration on top of midi.js/sysex.js.
+// Per-param GET/SET orchestration on top of midi.js/sysex.js. Mirrors
+// tests/robot/lib/NeonSamuraiLibrary.py's keyword shape so the two
+// independent clients stay easy to diff when the protocol changes.
 //
-// Mirrors tests/robot/lib/NeonSamuraiLibrary.py's keyword shape (one
-// get*/set* function per param family) so the two independent client
-// implementations - this GUI and the hardware test suite - stay easy to
-// compare when the wire protocol changes. If you add a param here, add the
-// matching keyword there too (and vice versa) - see
-// tests/robot/README.md's "Adding a new test" section.
+// GET requests must carry a dummy payload sized to the param's real wire
+// struct: the firmware validates packet length and NAKs by dropping the
+// message, so an undersized payload surfaces only as a timeout. GET replies
+// carry the param's data alone, with no echo of the index prefix.
+//
+// Only the two setters the live view actually uses are here. HSV is the
+// device's writable colour source of truth and RGB a derived read-only
+// mirror, so an editing UI would add setVmapHsv rather than setVmapRgb.
 
 import { Cmd, Param, activeBankPayload, encoderPayload, livePositionStreamPayload, sideSwitchPayload, vmapCurrPosPayload, vmapHsvPayload, vmapPositionPayload, vmapRangePayload, vmapRbPayload, vmapRgbPayload } from "./sysex.js";
 
@@ -13,8 +17,6 @@ export class Protocol {
 	constructor(device) {
 		this.device = device;
 	}
-
-	// --- Device info -----------------------------------------------------
 
 	async getDeviceInfo() {
 		const reply = await this.device.request(Cmd.GET, Param.DEVICE_INFO);
@@ -28,24 +30,10 @@ export class Protocol {
 		};
 	}
 
-	// --- Encoder-level params (detent, display mode, vmap mode/active,
-	// switch mode/proto) - all share the same {bank, enc, u8 value} shape. ---
-
 	async getEncoderParam(param, bank, enc) {
 		const reply = await this.device.request(Cmd.GET, param, encoderPayload(bank, enc, 0));
 		return reply.data[0];
 	}
-
-	async setEncoderParam(param, bank, enc, value) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			param,
-			encoderPayload(bank, enc, value),
-		);
-		return reply.data[0]; // return code, 0 = success
-	}
-
-	// --- Vmap range / position -----------------------------------------
 
 	async getVmapRange(bank, enc, vmap) {
 		const reply = await this.device.request(
@@ -54,15 +42,6 @@ export class Protocol {
 			vmapRangePayload(bank, enc, vmap, 0, 0),
 		);
 		return { lower: toSigned8(reply.data[0]), upper: toSigned8(reply.data[1]) };
-	}
-
-	async setVmapRange(bank, enc, vmap, lower, upper) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.VMAP_RANGE,
-			vmapRangePayload(bank, enc, vmap, lower, upper),
-		);
-		return reply.data[0];
 	}
 
 	async getVmapPosition(bank, enc, vmap) {
@@ -74,18 +53,6 @@ export class Protocol {
 		return { start: reply.data[0], stop: reply.data[1] };
 	}
 
-	async setVmapPosition(bank, enc, vmap, start, stop) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.VMAP_POSITION,
-			vmapPositionPayload(bank, enc, vmap, start, stop),
-		);
-		return reply.data[0];
-	}
-
-	// --- Color: HSV is the writable source of truth; RGB is a read-only
-	// derived mirror (see the note in sysex.h / color_update_vmap_rgb()). ---
-
 	async getVmapHsv(bank, enc, vmap) {
 		const reply = await this.device.request(
 			Cmd.GET,
@@ -96,17 +63,6 @@ export class Protocol {
 		return { hue: lo | (hi << 8), sat, val };
 	}
 
-	async setVmapHsv(bank, enc, vmap, hue, sat, val) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.VMAP_HSV,
-			vmapHsvPayload(bank, enc, vmap, hue, sat, val),
-		);
-		return reply.data[0];
-	}
-
-	// Read-only - gamma-corrected BCM brightness (0-31/channel), not a
-	// settable color.
 	async getVmapRgb(bank, enc, vmap) {
 		const reply = await this.device.request(
 			Cmd.GET,
@@ -125,73 +81,27 @@ export class Protocol {
 		return { r: reply.data[0], b: reply.data[1] };
 	}
 
-	async setVmapRb(bank, enc, vmap, r, b) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.VMAP_RB,
-			vmapRbPayload(bank, enc, vmap, r, b),
-		);
-		return reply.data[0];
-	}
-
-	// --- MIDI proto config (mode/channel/cc) per vmap ---------------------
-
+	// struct proto_cfg is 4 bytes on the wire - type + mode + channel +
+	// cc-or-raw - under -fpack-struct -fshort-enums.
 	async getVmapProto(bank, enc, vmap) {
-		// Dummy payload must be sized to match struct proto_cfg's real wire
-		// length (protocol.h) - type(1) + midi_cfg{mode(1),channel(1),
-		// cc-or-raw(1)} = 4 bytes, given -fpack-struct -fshort-enums (see
-		// CMakeLists.txt) packs each enum field down to 1 byte with no
-		// padding. A too-short dummy payload here failed the firmware's
-		// packet-length check silently (this protocol NAKs by dropping the
-		// message, not replying with an error - see sysex.c), surfacing as
-		// a GET timeout with no other symptom.
-		const reply = await this.device.request(Cmd.GET, Param.VMAP_PROTO, [
-			bank,
-			enc,
-			vmap,
-			0,
-			0,
-			0,
-			0,
-		]);
+		const reply = await this.device.request(Cmd.GET, Param.VMAP_PROTO, [bank, enc, vmap, 0, 0, 0, 0]);
 		const [type, mode, channel, ccOrRaw] = reply.data;
 		return { type, mode, channel, ccOrRaw };
 	}
 
-	async setVmapProto(bank, enc, vmap, type, mode, channel, ccOrRaw) {
-		const reply = await this.device.request(Cmd.SET, Param.VMAP_PROTO, [
-			bank,
-			enc,
-			vmap,
-			type,
-			mode,
-			channel,
-			ccOrRaw,
-		]);
+	async getSideSwitch(swIdx) {
+		const reply = await this.device.request(Cmd.GET, Param.SIDE_SWITCH, sideSwitchPayload(swIdx, 0));
 		return reply.data[0];
 	}
 
-	// --- Side switches -----------------------------------------------------
-
-	async getSideSwitch(swIdx) {
+	async getVmapCurrPos(bank, enc, vmap) {
 		const reply = await this.device.request(
 			Cmd.GET,
-			Param.SIDE_SWITCH,
-			sideSwitchPayload(swIdx, 0),
+			Param.VMAP_CURR_POS,
+			vmapCurrPosPayload(bank, enc, vmap, 0),
 		);
 		return reply.data[0];
 	}
-
-	async setSideSwitch(swIdx, mode) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.SIDE_SWITCH,
-			sideSwitchPayload(swIdx, mode),
-		);
-		return reply.data[0];
-	}
-
-	// --- Bank -----------------------------------------------------------
 
 	async getActiveBank() {
 		const reply = await this.device.request(Cmd.GET, Param.ACTIVE_BANK, activeBankPayload(0));
@@ -199,33 +109,7 @@ export class Protocol {
 	}
 
 	async setActiveBank(bank) {
-		const reply = await this.device.request(
-			Cmd.SET,
-			Param.ACTIVE_BANK,
-			activeBankPayload(bank),
-		);
-		return reply.data[0];
-	}
-
-	// --- Live position -----------------------------------------------------
-	// See sysex.js's Param.VMAP_CURR_POS doc comment: the firmware also
-	// pushes this unsolicited while streaming is enabled - see
-	// live-position.js, which listens via device.onSysex() rather than
-	// calling getVmapCurrPos() itself. getVmapCurrPos() is for an explicit
-	// one-off read (e.g. an initial sync right after enabling streaming).
-
-	async getVmapCurrPos(bank, enc, vmap) {
-		// GET replies carry only the param's own data (matching every other
-		// GET in this protocol - see e.g. getVmapRange() above), not an
-		// echo of the bank/enc/vmap index prefix - unlike the *unsolicited
-		// push* this same param also arrives as, which does include that
-		// prefix (see live-position.js) since there's no request/response
-		// pairing to tell an unprompted message which encoder it's about.
-		const reply = await this.device.request(
-			Cmd.GET,
-			Param.VMAP_CURR_POS,
-			vmapCurrPosPayload(bank, enc, vmap, 0),
-		);
+		const reply = await this.device.request(Cmd.SET, Param.ACTIVE_BANK, activeBankPayload(bank));
 		return reply.data[0];
 	}
 
@@ -237,37 +121,9 @@ export class Protocol {
 		);
 		return reply.data[0];
 	}
-
-	// --- Reset triggers ---------------------------------------------------
-	// Both reboot the device - the reply races the actual disconnect (the
-	// firmware sends the ack synchronously before rebooting, but the
-	// device can still vanish from the OS's port list moments later), so
-	// callers should tolerate the request() promise rejecting here even
-	// on a "successful" reset, same as tests/robot/lib/NeonSamuraiLibrary.py
-	// does. The caller is responsible for noticing the device disconnect
-	// (see midi.js/live-twin.js's MIDIAccess statechange handling) and
-	// reconnecting - this class doesn't reconnect on its own.
-
-	/** Soft reboot - config untouched. */
-	async resetDevice() {
-		try {
-			await this.device.request(Cmd.SET, Param.SYSTEM_RESET, []);
-		} catch {
-			// Expected sometimes - see note above.
-		}
-	}
-
-	/** Factory reset - wipes EEPROM back to defaults, then reboots. */
-	async factoryResetDevice() {
-		try {
-			await this.device.request(Cmd.SET, Param.CONFIG_RESET, []);
-		} catch {
-			// Expected sometimes - see note above.
-		}
-	}
 }
 
-/** virtmap.range.{lower,upper} are i8 in firmware (src/include/virtmap/virtmap.h) - convert the raw u8 wire byte to a signed JS number. */
+// virtmap.range.{lower,upper} are i8 in firmware.
 function toSigned8(byte) {
 	return byte > 127 ? byte - 256 : byte;
 }

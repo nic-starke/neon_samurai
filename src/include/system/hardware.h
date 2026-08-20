@@ -178,6 +178,7 @@ void input_init(void);
 void input_update(void);
 bool is_reset_pressed(void);
 bool is_bootloader_gesture_pressed(void);
+void set_active_bank(u8 new_bank);
 
 int mf_display_init(void);
 int mf_draw_encoder(struct encoder* enc);

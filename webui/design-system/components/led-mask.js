@@ -1,15 +1,11 @@
-// led-mask.js - computes which of the 11 indicator LEDs are lit for a
-// given encoder position/display mode/detent state, mirroring the
-// firmware's mf_draw_encoder() (src/led/led.c) bit-for-bit (the LUTs
-// below are transcribed directly from its INDICATOR_MASKS/
-// BAR_GRAPH_MASKS/CENTER_OUT_MASKS). This is the bridge between real
-// device/model state and led-ring.js's `litMask` prop - kept separate
-// from rendering so it can be unit-tested and reused without a DOM.
+// Which of the 11 indicator LEDs are lit for a given position, display mode
+// and detent state, mirroring mf_draw_encoder() in src/led/led.c bit-for-bit.
+// The LUTs below are transcribed from its INDICATOR_MASKS/BAR_GRAPH_MASKS/
+// CENTER_OUT_MASKS. Kept out of the renderer so it is testable without a DOM.
 //
-// Firmware represents the 11 LEDs as bits 15..5 of a u16 (bit 15 =
-// indicator 1, bit 5 = indicator 11); this module works in a plainer
-// "array of 11 booleans, index 0 = indicator 1" shape instead and only
-// deals in that bitfield where directly transcribing a LUT.
+// Firmware packs the 11 LEDs into bits 15..5 of a u16; this module works in
+// booleans (index 0 = indicator 1) and only touches the bitfield where it is
+// transcribing a LUT directly.
 
 export const NUM_INDICATOR_LEDS = 11;
 export const CENTER_INDICATOR = 6; // 1-based, matches firmware's CENTER_INDICATOR
@@ -17,8 +13,7 @@ export const ENC_MAX = 255; // ENC_MAX in io/encoder.h
 export const ENC_MID = 127; // ENC_MID = ENC_MAX/2, integer division
 export const NUM_PWM_FRAMES = 32; // NUM_PWM_FRAMES in system/hardware.h - BCM brightness steps
 
-// enum display_mode (system/hardware.h) - re-exported here so callers
-// don't need to reach into device-model.js just for this.
+// enum display_mode (system/hardware.h)
 export const DisplayMode = Object.freeze({ SINGLE: 0, MULTI: 1, MULTI_PWM: 2 });
 
 function maskBit(n) {
@@ -41,7 +36,6 @@ const CENTER_INDICATOR_MASK = maskBit(CENTER_INDICATOR);
 function leadingLedIndex(currentPos) {
 	if (currentPos === 0) return 1;
 	if (currentPos >= ENC_MAX) return NUM_INDICATOR_LEDS;
-	// Ceiling division, matches the firmware's integer math exactly.
 	let ledIndex = Math.floor((currentPos * NUM_INDICATOR_LEDS + ENC_MAX - 1) / ENC_MAX);
 	if (ledIndex < 1) ledIndex = 1;
 	if (ledIndex > NUM_INDICATOR_LEDS) ledIndex = NUM_INDICATOR_LEDS;
@@ -55,12 +49,9 @@ function unpackMask(bits) {
 	return Array.from({ length: NUM_INDICATOR_LEDS }, (_, i) => Boolean(bits & INDICATOR_MASKS[i + 1]));
 }
 
-// Mirrors mf_draw_encoder()'s PWM-brightness calculation for
-// DIS_MODE_MULTI_PWM exactly (src/led/led.c), including its 32-bit
-// intermediate scaling and the detent left-side inversion quirk. Returns
-// 0-31 (NUM_PWM_FRAMES-1 max) - the leading LED's effective duty cycle
-// within the current inter-LED span, i.e. how "filled in" it is between
-// its neighbours rather than a plain on/off bar segment.
+// Mirrors mf_draw_encoder()'s MULTI_PWM brightness calculation, including its
+// 32-bit intermediate scaling and the detent left-side inversion. Returns the
+// leading LED's duty cycle (0-31) within the current inter-LED span.
 function pwmBrightness(position, ledIndex, isDetent) {
 	let brightness;
 	if (position === ENC_MAX) {
@@ -75,11 +66,8 @@ function pwmBrightness(position, ledIndex, isDetent) {
 		brightness = 0;
 	}
 
-	// Brightness inversion quirk for detent mode, left side (firmware's
-	// own comment - "Apply brightness inversion quirk for detent mode,
-	// left side"): mirrors the ramp so it fills toward the center on the
-	// left half of a detent-mode ring, matching the center-out fill
-	// direction CENTER_OUT_MASKS already gives the rest of that side.
+	// Firmware's detent left-side inversion: mirrors the ramp so it fills
+	// toward the centre, matching CENTER_OUT_MASKS on that side.
 	if (isDetent && ledIndex < CENTER_INDICATOR) {
 		brightness = NUM_PWM_FRAMES - 1 - brightness;
 	}
@@ -123,9 +111,8 @@ export function computeLedBrightness({ position, displayMode, detent }) {
 		return litMask.map((lit) => (lit ? NUM_PWM_FRAMES - 1 : 0));
 	}
 
-	// Same "don't dim the center LED while it's substituting for the
-	// leading LED in detent mode" exception mf_draw_encoder() applies
-	// (see its is_detent && led_index == CENTER_INDICATOR branch).
+	// mf_draw_encoder() does not dim the centre LED while it substitutes for
+	// the leading one in detent mode.
 	const dimTargetIndex = detent && ledIndex === CENTER_INDICATOR ? null : ledIndex;
 	const leadingBrightness = dimTargetIndex === null ? NUM_PWM_FRAMES - 1 : pwmBrightness(position, ledIndex, detent);
 
@@ -137,22 +124,9 @@ export function computeLedBrightness({ position, displayMode, detent }) {
 	});
 }
 
-/**
- * Compute the detent red/blue LED's colour override for the center
- * indicator slot, or null when it shouldn't show. Firmware drives red
- * and blue as two independent BCM channels into the *same* physical LED
- * position as indicator 6 (see led-ring.js's `colorOverride` doc
- * comment) - only while detent is on and the knob is at dead centre
- * (mf_draw_encoder(): "Only show detent RB LEDs when at middle
- * position"), and only the white indicator is suppressed there (see
- * baseIndicatorState()'s CENTER_INDICATOR_MASK clear) to let it show.
- *
- * @param {object} p
- * @param {number} p.position
- * @param {boolean} p.detent
- * @param {{r: number, b: number}} [p.rb] - gamma-corrected BCM, 0-31 each (struct rb_8)
- * @returns {{index: number, color: string}|null} `index` is 0-based (4 = indicator 6, matching led-ring.js's litMask ordering)
- */
+// Detent colour for the centre indicator slot, or null when it should not
+// show. Firmware drives red and blue as two BCM channels into the same
+// physical LED as indicator 6, lit only at dead centre with detent on.
 export function computeDetentColorOverride({ position, detent, rb }) {
 	if (!detent || position !== ENC_MID || !rb) return null;
 	const r = rb.r ?? 0;
@@ -161,15 +135,14 @@ export function computeDetentColorOverride({ position, detent, rb }) {
 
 	const rFrac = Math.min(1, r / (NUM_PWM_FRAMES - 1));
 	const bFrac = Math.min(1, b / (NUM_PWM_FRAMES - 1));
-	// Additive-ish blend, matching two independent BCM channels driving
-	// the same physical LED rather than a single hue - a real device
-	// with both channels lit shows magenta/purple, not a 50/50 average.
+	// Additive blend: two BCM channels on one LED read as magenta when both
+	// are lit, not as a 50/50 average.
 	const red = Math.round(rFrac * 255);
 	const blue = Math.round(bFrac * 255);
-	const green = Math.round(Math.min(rFrac, bFrac) * 40); // slight lift when both channels are lit, avoids a muddy magenta reading as flat purple
+	const green = Math.round(Math.min(rFrac, bFrac) * 40);
 
 	return {
-		index: CENTER_INDICATOR - 1, // CENTER_INDICATOR is 1-based; litMask/led-ring.js are 0-based
+		index: CENTER_INDICATOR - 1,
 		color: `rgb(${red}, ${green}, ${blue})`,
 	};
 }

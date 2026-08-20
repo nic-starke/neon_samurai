@@ -7,8 +7,16 @@ loaded directly as ES modules.
 
 Connect, and watch the physical device's real state - encoder colours,
 detent, display mode, and live knob rotation - render as a skeuomorphic
-chassis in the browser. There is no editing UI here: this page is a
-passive viewer, not a configuration tool.
+chassis in the browser. The one thing you can change from this page is the
+active bank; everything else is read-only. It is a viewer, not a
+configuration tool.
+
+`js/protocol.js` carries only the two setters the live view uses
+(`setActiveBank`, `setLivePositionStreaming`). An editing UI would add the
+rest back against `tests/robot/lib/NeonSamuraiLibrary.py`, which keeps the
+full keyword set - note that HSV is the device's writable colour source of
+truth and RGB a read-only derived mirror, so the setter to add is
+`setVmapHsv`, not `setVmapRgb`.
 
 ## Browser support
 
@@ -31,8 +39,11 @@ cd webui
 python3 -m http.server 8420
 ```
 
-Then open <http://localhost:8420/> in Chrome or Edge, and click
-**Connect**. On a successful connection the page immediately pulls the
+Then open <http://localhost:8420/> in Chrome or Edge, and click **Connect**.
+(<http://localhost:8420/test.html> runs the self-test suite - see "Tests"
+below - and needs no device.)
+
+On a successful connection the page immediately pulls the
 device's full configuration (colours, detent, display mode, side-switch
 modes, active bank) with no further action needed, then starts live
 knob-position tracking - see "How live tracking works" below.
@@ -67,11 +78,11 @@ Two different kinds of "live" are involved, from two different sources:
   `{bank, enc, vmap, curr_pos}` message on every subsequent encoder
   movement, but only while streaming is enabled
   (`MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM`, a `SET`-only trigger -
-  see `sysex.h`). `js/live-twin.js` seeds `js/live-position.js` from the
-  just-loaded model (`LivePositionTracker.seed()`) and then enables
-  streaming right after the initial config pull; `live-position.js`
-  listens for the pushed messages via `Device.onSysex()` (see `midi.js`)
-  rather than polling or inferring anything - `curr_pos` is exact, not
+  see `sysex.h`). `js/live-twin.js` seeds its `LivePushTracker` instances
+  from the just-loaded model and then enables streaming right after the
+  initial config pull; the trackers listen for the pushed messages via
+  `Device.onSysex()` (see `midi.js`) rather than polling or inferring
+  anything - `curr_pos` is exact, not
   derived from MIDI CC output. Streaming defaults off and resets to off
   on every device reboot, so a device that's never had a web client
   connect emits zero extra sysex traffic; this page also makes a
@@ -87,8 +98,8 @@ Two different kinds of "live" are involved, from two different sources:
   *absolute* 7-bit CC, so a knob turned past what one CC byte can express
   reads as stuck at 0/127 with no way to tell "parked at the rail" from
   "still turning past it". The sysex push above replaced that as the
-  real mechanism; see git history on `live-position.js` if you need the
-  CC-based version for reference.
+  real mechanism; see git history on `js/live-position.js` (since folded
+  into `js/live-tracker.js`) if you need the CC-based version.
 
 ## Digital twin rendering
 
@@ -108,8 +119,9 @@ Two pages use it:
   tool, open directly with no connection involved. Renders demo state (a
   fixed value ramp, a small rainbow palette across encoders) - it exists
   to dial in chassis/encoder/cap geometry and defaults, not to mirror
-  live hardware state. `GEOMETRY`/`SPEC` in `live-twin.js`/`twin.js`
-  should be kept in sync if you retune one.
+  live hardware state. Both pages read their chassis geometry from
+  `design-system/geometry.js`, so retuning one retunes both; `twin.js`'s
+  `SPEC` adds only the cap-colour fields on top.
 
 ## Structure
 
@@ -121,8 +133,11 @@ webui/
                           by design-system/components/*)
   twin.html              - standalone digital-twin geometry/colour tuning tool
   twin.css                - chrome styling for twin.html
+  test.html               - dependency-free self-test page (see "Tests")
+  check-imports.py        - resolves every relative import (see "Tests")
   README.md              - this file
   design-system/
+    geometry.js             - chassis geometry shared by both pages
     tokens.css              - design tokens: palette, spacing, glow effects
     README.md              - component catalog, aesthetic rationale
     components/
@@ -153,12 +168,13 @@ webui/
                          incl. setLivePositionStreaming()/getVmapCurrPos()
     device-model.js    - in-memory banks[3].encoders[16].vmaps[2] +
                         sideSwitches[6], device load orchestration
-    live-position.js    - tracks each encoder's live knob position from
-                        the firmware's own unsolicited sysex push - see
+    live-tracker.js      - LivePushTracker: one per unsolicited field
+                        (knob position, active vmap, active bank) - see
                         "How live tracking works" above
-    live-vmap-active.js  - same pattern as live-position.js, for each
-                        encoder's active vmap (A/B) index
-    color.js              - HSV<->RGB matching the firmware's color model
+    encoder-signature.js - props -> short string, for the render diff
+    bank-flicker.js      - reproduces the firmware's bank-change LED
+                        flicker; suppressed under prefers-reduced-motion
+    color.js              - HSV->RGB matching the firmware's color model
                          (src/led/hsv2rgb.c, src/led/color.c) - distinct
                          from design-system/components/color-utils.js's
                          cosmetic HSV, see that file's header comment
@@ -172,6 +188,49 @@ webui/
                             it's vendored rather than CDN-imported
       signals-core.LICENSE
 ```
+
+## Rendering
+
+`live-twin.js` builds the chassis once, then updates it in two stages:
+
+1. **Frame coalescing.** Every live data source calls `scheduleRender()`,
+   never `renderChassis()` directly. The firmware pushes `curr_pos` on every
+   quadrature tick - hundreds a second while a knob turns - and this collapses
+   those into at most one render per animation frame.
+2. **Per-encoder diffing.** A render computes each encoder's props, reduces
+   them to a short string via `js/encoder-signature.js`, and rebuilds only the
+   cells whose signature changed. `buildDeviceChassis()` returns an
+   `encoderCells` array for exactly this. Turning one knob replaces one
+   encoder, not sixteen.
+
+Components themselves stay pure prop-driven functions with no identity or
+lifecycle - the diffing happens above them, on props. That keeps the
+"add a third caller" contract in `design-system/README.md` intact.
+
+Anything rendered inside a rebuilt encoder is still discarded and recreated,
+so don't put a CSS transition or a focusable element inside one and expect it
+to survive. The bank selector sits outside the chassis for that reason.
+
+## Tests
+
+`test.html` is the whole test suite for `webui/`: 67 checks over the sysex
+codec, the firmware LED-mask port, the colour model, the design-system
+components, the render signature, and the connection lifecycle - the last of
+those driven against a `FakePort` stand-in for a MIDI port, so `Device`'s
+request correlation, listener cleanup and heartbeat pausing are all covered
+without hardware. Serve the directory and open it.
+
+`check-imports.py` verifies every relative import resolves and that the names
+imported are actually exported. With no bundler or type checker, a renamed
+export otherwise fails only at runtime, in a browser, on whichever code path
+happens to touch it.
+
+Both run in CI on any change under `webui/` - see
+[`.github/workflows/webui.yml`](../.github/workflows/webui.yml). The test page
+stamps `PASS`/`FAIL` into its `<title>`, which is how a headless Chrome DOM
+dump is turned into a pass/fail gate without a driver protocol.
+
+Anything needing real hardware belongs in `tests/robot/` instead.
 
 `sysex.js` is a from-scratch reimplementation of the wire protocol
 (mirroring `src/midi/sysex.c`/`sysex.h`), not a binding to the firmware's

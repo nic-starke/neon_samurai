@@ -1,48 +1,42 @@
-// sysex.js - sysex wire-protocol encode/decode for the neon_samurai
-// firmware (src/midi/sysex.c, src/include/midi/sysex.h).
+// Sysex wire-protocol encode/decode, a from-scratch reimplementation of
+// src/midi/sysex.c rather than a binding to it - same approach as
+// tests/robot/lib/sysex.py. Keep all three in sync; a divergence between two
+// independent implementations is what this duplication exists to catch.
 //
-// This is a from-scratch reimplementation of the wire protocol (a JS port
-// of tests/robot/lib/sysex.py, which is itself independent of the
-// firmware's C code) - not a binding. Keep this in sync with sysex.py and
-// sysex.h whenever the protocol changes; a divergence between the two
-// implementations is exactly the kind of bug this duplication exists to
-// help catch (see sysex.py's module docstring).
+// Wire format:  F0 [mf_id x3] [cmd] [param_enum] [packed payload...] F7
 //
-// Wire format (see sysex.c's top-of-file comment for the original):
-//   F0 [mf_id x3] [cmd] [param_enum] [packed payload...] F7
-//
-// Manufacturer ID is "SAM" (0x53 0x41 0x4D). The payload is 7-bit packed
-// (see pack7/unpack7 below) - sysex data bytes must be <= 0x7F, but this
-// protocol's values are full 8-bit, so every 7 raw bytes become 8 wire
-// bytes: a header byte (bit i = the stripped high bit of raw byte i)
-// followed by the 7 bytes with their high bit cleared.
+// Sysex data bytes must be <= 0x7F but this protocol's values are full 8-bit,
+// so every 7 raw bytes become 8 wire bytes: a header byte holding the stripped
+// high bits, then the 7 bytes with their high bit cleared.
 
 export const MFR_ID = [0x53, 0x41, 0x4d]; // "SAM"
 
 export const SYSEX_START = 0xf0;
 export const SYSEX_END = 0xf7;
 
+// WEBUI_PUSH is outbound-only: an unsolicited value shaped like a
+// GET_RESPONSE, tagged so a host can tell it from a reply it asked for.
 export const Cmd = Object.freeze({
 	GET: 0,
 	GET_RESPONSE: 1,
 	SET: 2,
 	SET_RESPONSE: 3,
 	STOP: 4,
-	// Outbound-only: an unsolicited value, not a reply to a request this
-	// client sent - see live-position.js. Same param/data shape a
-	// GET_RESPONSE for that param would carry.
 	WEBUI_PUSH: 5,
 });
 
-// Mirrors enum mf_sysex_param in src/include/midi/sysex.h. Keep this
-// object's membership and values in sync with that enum exactly - the
-// numeric value is what goes on the wire.
+// Mirrors enum mf_sysex_param in src/include/midi/sysex.h - membership and
+// values must match exactly, since the numeric value goes on the wire.
+//
+// ENCODER_VMAP_ACTIVE, ACTIVE_BANK and VMAP_CURR_POS are also pushed
+// unsolicited while ENCODER_LIVE_POSITION_STREAM is on (a SET-only trigger,
+// 0 = stop, off by default and after every reboot). SYSTEM_RESET and
+// CONFIG_RESET are SET-only triggers that carry no payload.
 export const Param = Object.freeze({
 	ENCODER_DETENT: 0,
 	ENCODER_DISPLAY_MODE: 1,
 	ENCODER_VMAP_DISPLAY_MODE: 2,
 	ENCODER_VMAP_MODE: 3,
-	// Also pushed unsolicited (Cmd.WEBUI_PUSH) when a switch press changes it.
 	ENCODER_VMAP_ACTIVE: 4,
 	ENCODER_SWITCH_STATE: 5,
 	ENCODER_SWITCH_MODE: 6,
@@ -56,25 +50,18 @@ export const Param = Object.freeze({
 	SIDE_SWITCH: 14,
 	ACTIVE_BANK: 15,
 	DEVICE_INFO: 16,
-	// Live knob position (struct virtmap.curr_pos) - also pushed
-	// unsolicited (Cmd.WEBUI_PUSH) while ENCODER_LIVE_POSITION_STREAM is
-	// enabled. See live-position.js, which listens for it via midi.js's
-	// Device.onSysex().
 	VMAP_CURR_POS: 17,
-	// SET-only trigger (data: 0 = stop, nonzero = start) controlling
-	// whether VMAP_CURR_POS is streamed. Off by default and on every
-	// device reboot.
 	ENCODER_LIVE_POSITION_STREAM: 18,
 	SYSTEM_RESET: 19,
 	CONFIG_RESET: 20,
 });
 
-// Reverse lookup (numeric wire value -> name), for logging/debugging.
 const PARAM_NAMES = Object.fromEntries(
 	Object.entries(Param).map(([name, value]) => [value, name]),
 );
 
-// Mirrors sysex_pack7() in src/midi/sysex.c exactly.
+// Mirrors sysex_pack7()/sysex_unpack7() in src/midi/sysex.c.
+
 export function pack7(data) {
 	const out = [];
 	for (let i = 0; i < data.length; i += 7) {
@@ -93,7 +80,6 @@ export function pack7(data) {
 	return out;
 }
 
-// Inverse of pack7(). Mirrors sysex_unpack7() in src/midi/sysex.c.
 export function unpack7(data) {
 	const out = [];
 	let i = 0;
@@ -122,12 +108,9 @@ export function encode(cmd, param, data = []) {
  * @typedef {{cmd: number, param: number, paramName: string, data: number[]}} SysexMessage
  */
 
-// Parses a *response* (GET_RESPONSE/SET_RESPONSE from the device). Response
-// framing differs from request framing (see encode()): the firmware's
-// midi_out_handler() (midi_lufa.c) sends one extra raw byte - the semantic
-// (unpacked) data_len - before the packed data, so a client knows how many
-// bytes to expect after unpacking without already knowing the param. That
-// data_len byte is NOT part of the packed group and must be split off
+// Parses any device-to-host message. Their framing differs from requests:
+// midi_out_handler() in midi_lufa.c emits the semantic (unpacked) data_len
+// ahead of the packed data, outside the packed group, so it must be split off
 // before unpack7() runs.
 export function decode(raw) {
 	raw = Array.from(raw);
@@ -157,9 +140,9 @@ function toHex(bytes) {
 		.join(" ");
 }
 
-// --- Per-param payload builders --------------------------------------
-// Mirror the mf_sysex_*_param_s wire structs in sysex.h. Each returns the
-// *unpacked* payload bytes for encode()'s `data` argument.
+// Mirror the mf_sysex_*_param_s wire structs. Each returns unpacked payload
+// bytes. On a GET the trailing value bytes are ignored by the firmware but
+// must be present and correctly sized to pass its packet-length check.
 
 export function encoderPayload(bank, enc, value) {
 	return [bank, enc, value & 0xff];
@@ -181,7 +164,7 @@ export function vmapRbPayload(bank, enc, vmap, r, b) {
 	return [bank, enc, vmap, r & 0xff, b & 0xff];
 }
 
-/** hue is u16 (0-1535), little-endian on the wire (AVR/GCC default). */
+// hue is u16 (0-1535), little-endian on the wire (AVR/GCC default).
 export function vmapHsvPayload(bank, enc, vmap, hue, sat, val) {
 	return [bank, enc, vmap, hue & 0xff, (hue >> 8) & 0xff, sat & 0xff, val & 0xff];
 }
@@ -202,11 +185,3 @@ export function livePositionStreamPayload(enabled) {
 	return [enabled ? 1 : 0];
 }
 
-/**
- * Bare index prefix with no data - used for GET requests, where the
- * trailing data bytes are ignored by the firmware but still need to be
- * present and correctly *sized* to pass the packet-length check.
- */
-export function indexPayload(...indices) {
-	return indices;
-}

@@ -293,6 +293,37 @@ static void set_vmap_active(struct encoder* enc, u8 bank, u8 new_active) {
 	event_post(EVENT_CHANNEL_IO, &evt);
 }
 
+// Choke point for every gRT.curr_bank mutation - posts the bank-change
+// animation event, redraws the new bank, and notifies a webui client, so
+// every caller (side switches here, sysex SET) gets all three for free.
+void set_active_bank(u8 new_bank) {
+	u8 prev_bank = gRT.curr_bank;
+	if (new_bank == prev_bank) {
+		return;
+	}
+	gRT.curr_bank = new_bank;
+
+	struct animation_event anim_evt = {
+			.type = ANIM_EVT_BANK_CHANGE,
+			.data.bank_change = {.prev_bank = prev_bank, .new_bank = new_bank},
+	};
+	event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
+
+	for (u8 e = 0; e < NUM_ENCODERS; e++) {
+		gENCODERS[new_bank][e].update_display = 1;
+	}
+
+	struct io_event io_evt = {
+			.type	 = EVT_IO_ENCODER_FIELD_CHANGED,
+			.bank	 = 0xFF,
+			.enc	 = 0xFF,
+			.vmap	 = 0xFF,
+			.field = IO_FIELD_ACTIVE_BANK,
+			.value = new_bank,
+	};
+	event_post(EVENT_CHANNEL_IO, &io_evt);
+}
+
 static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 	i16 newpos = vmap->curr_pos + enc->enc_ctx.velocity;
 	newpos		 = CLAMP(newpos, ENC_MIN, ENC_MAX);
@@ -496,40 +527,13 @@ static void sw_side_switch_update(void) {
 					break;
 
 				case SIDE_SW_MODE_BANK_PREV: {
-					// Decrease bank index with wrapping
-					if (gRT.curr_bank > 0) {
-						gRT.curr_bank--;
-					} else {
-						gRT.curr_bank = NUM_ENC_BANKS - 1;
-					}
-					// Emit animation event for bank change
-					struct animation_event anim_evt;
-					anim_evt.type = ANIM_EVT_BANK_CHANGE;
-					anim_evt.data.bank_change.prev_bank = (gRT.curr_bank + 1) % NUM_ENC_BANKS;
-					anim_evt.data.bank_change.new_bank = gRT.curr_bank;
-					event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
-					// Update all encoders for the new bank
-					for (u8 e = 0; e < NUM_ENCODERS; e++) {
-						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
-						mf_draw_encoder(enc);
-					}
+					u8 new_bank = gRT.curr_bank > 0 ? gRT.curr_bank - 1 : NUM_ENC_BANKS - 1;
+					set_active_bank(new_bank);
 					break;
 				}
 
 				case SIDE_SW_MODE_BANK_NEXT: {
-					// Increase bank index with wrapping
-					gRT.curr_bank = (gRT.curr_bank + 1) % NUM_ENC_BANKS;
-					// Emit animation event for bank change
-					struct animation_event anim_evt;
-					anim_evt.type = ANIM_EVT_BANK_CHANGE;
-					anim_evt.data.bank_change.prev_bank = (gRT.curr_bank - 1 + NUM_ENC_BANKS) % NUM_ENC_BANKS;
-					anim_evt.data.bank_change.new_bank = gRT.curr_bank;
-					event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
-					// Update all encoders for the new bank
-					for (u8 e = 0; e < NUM_ENCODERS; e++) {
-						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
-						mf_draw_encoder(enc);
-					}
+					set_active_bank((gRT.curr_bank + 1) % NUM_ENC_BANKS);
 					break;
 				}
 

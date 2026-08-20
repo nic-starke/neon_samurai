@@ -216,9 +216,10 @@ typedef struct __attribute__((packed)) {
 
 int mf_sysex_init(void);
 
-// Unsolicited push, gated by gRT.live_position_streaming. Called from
+// Unsolicited pushes, gated by gRT.live_position_streaming. Called from
 // webui_bridge.c.
 void sysex_push_vmap_active(u8 bank, u8 enc, u8 active);
+void sysex_push_active_bank(u8 bank);
 
 // 7-to-8-bit sysex data packing - see the definitions in sysex.c for the
 // full rationale. Exported for use by midi_lufa.c's TX path.

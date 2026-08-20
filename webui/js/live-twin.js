@@ -1,15 +1,23 @@
-// Live device view for index.html - connect, and watch the physical
-// Twister's real state render as the digital twin. No editing UI - this
-// page is a passive viewer only.
+// Live device view for index.html. Connect, and watch the physical Twister's
+// state render as the digital twin. Read-only apart from the bank selector.
+//
+// Renders are coalesced to one animation frame and only encoders whose props
+// actually changed are rebuilt, so a knob turn touches one encoder per frame
+// rather than the whole chassis per sysex push.
 
 import { hsvToCss } from "./color.js";
 import { DeviceModel, NUM_BANKS, NUM_ENCODERS } from "./device-model.js";
 import * as midi from "./midi.js";
+import { Param } from "./sysex.js";
 import { Protocol } from "./protocol.js";
-import { LivePositionTracker } from "./live-position.js";
-import { LiveVmapActiveTracker } from "./live-vmap-active.js";
+import { LivePushTracker } from "./live-tracker.js";
+import { encoderSignature } from "./encoder-signature.js";
+import { BankFlicker } from "./bank-flicker.js";
+import { GEOMETRY } from "../design-system/geometry.js";
 import {
 	buildDeviceChassis,
+	buildEncoder,
+	buildBankSelector,
 	computeLitMask,
 	computeLedBrightness,
 	computeDetentColorOverride,
@@ -18,45 +26,20 @@ import {
 	ENC_MAX,
 } from "../design-system/components/index.js";
 
-// Matches twin.js's SPEC - duplicated rather than imported since that
-// file's copy is mutable (tuning sidebar) and this page has none.
-const GEOMETRY = {
-	pitch: 136,
-	edgeFirst: 92,
-	cornerRadius: 36,
-	bevelWidth: 14,
-	bodySize: 112,
-	knobSize: 71,
-	capBaseDia: 18.5,
-	capGripDiaBottom: 15,
-	capGripDiaTop: 13.5,
-	capRibCount: 19,
-	capInnerDia: 11.3,
-	lightX1: -35,
-	lightY1: -45,
-	lightX2: 130,
-	lightY2: 145,
-	ledCount: 11,
-	ledRadius: 46,
-	ledSize: 10,
-	ledArcSpan: 270,
-	arcRadius: 46,
-	arcWidth: 10,
-	arcLength: 32,
-	sideBtnW: 6,
-	sideBtnH: 39,
-	sideBtnSpacing: 76,
-	sideBtnOffsetY: 0,
-};
-
 const model = new DeviceModel();
+const livePosition = new LivePushTracker(Param.VMAP_CURR_POS, 3);
+const liveVmapActive = new LivePushTracker(Param.ENCODER_VMAP_ACTIVE, 2);
+const liveActiveBank = new LivePushTracker(Param.ACTIVE_BANK, 0);
+const bankFlicker = new BankFlicker();
+
 let device = null;
 let protocol = null;
 let connected = false;
-let viewingBank = 0; // which bank is currently shown - follows model.activeBank once connected
-const livePosition = new LivePositionTracker();
-const liveVmapActive = new LiveVmapActiveTracker();
-let expectingDisconnect = false;
+let viewingBank = 0;
+let pendingBank = null;
+let chassis = null;
+let renderPending = false;
+const signatures = new Array(NUM_ENCODERS).fill(null);
 
 const el = {
 	unsupportedBanner: byId("unsupported-banner"),
@@ -65,6 +48,7 @@ const el = {
 	fwVersion: byId("fw-version"),
 	btnConnect: byId("btn-connect"),
 	chassis: byId("twin-chassis"),
+	bankSelector: byId("twin-bank-selector"),
 	toastContainer: byId("toast-container"),
 };
 
@@ -78,12 +62,20 @@ function init() {
 		el.btnConnect.disabled = true;
 	}
 	el.btnConnect.addEventListener("click", onConnectClick);
-	renderChassis();
+	bankFlicker.onFrame = scheduleRender;
+	buildChassisOnce();
+	renderBankSelector();
 }
 
-// No separate "Load from device" action - the full config is pulled
-// immediately on every successful connect/reconnect, before live
-// tracking starts.
+function scheduleRender() {
+	if (renderPending) return;
+	renderPending = true;
+	requestAnimationFrame(() => {
+		renderPending = false;
+		renderChassis();
+	});
+}
+
 async function onConnectClick() {
 	setStatus("connecting", "Connecting…");
 	el.btnConnect.disabled = true;
@@ -91,10 +83,11 @@ async function onConnectClick() {
 	try {
 		device = await midi.connect();
 		protocol = new Protocol(device);
-		device.onDisconnect((reason) => onDeviceDisconnected(reason));
+		device.onDisconnect(onDeviceDisconnected);
 
 		const info = await protocol.getDeviceInfo();
 		model.deviceInfo = info;
+		el.fwVersion.textContent = `fw ${info.fwVersion}`;
 		setStatus("connecting", "Loading configuration…");
 
 		await model.loadFromDevice(protocol, (done, total) => {
@@ -102,18 +95,16 @@ async function onConnectClick() {
 		});
 		model.activeBank = await protocol.getActiveBank();
 		viewingBank = model.activeBank;
+		pendingBank = null;
 
-		livePosition.reset();
-		livePosition.seed(model); // last-known position from the config pull, before any live push has arrived
-		livePosition.attach(device, renderChassis);
-		liveVmapActive.reset();
-		liveVmapActive.seed(model);
-		liveVmapActive.attach(device, renderChassis);
+		seedTrackers();
+		livePosition.attach(device, scheduleRender);
+		liveVmapActive.attach(device, scheduleRender);
+		liveActiveBank.attach(device, onBankChanged);
 		await protocol.setLivePositionStreaming(true);
 
 		connected = true;
 		setStatus("connected", `Connected: ${device.name}`);
-		el.fwVersion.textContent = `fw ${info.fwVersion}`;
 		el.btnConnect.textContent = "Reconnect";
 
 		if (info.numEncoders !== NUM_ENCODERS || info.numBanks !== NUM_BANKS) {
@@ -123,68 +114,95 @@ async function onConnectClick() {
 					`but this twin assumes ${NUM_ENCODERS}/${NUM_BANKS}. Some encoders may not line up.`,
 			);
 		}
-		renderChassis();
 	} catch (e) {
 		connected = false;
 		setStatus("error", "Connection failed");
 		toast("error", e.message);
-		renderChassis();
 	} finally {
 		el.btnConnect.disabled = false;
+		scheduleRender();
+		renderBankSelector();
 	}
 }
 
-// Fires from Device.onDisconnect() - an *unplanned* disconnect. No
-// setLivePositionStreaming(false) here - the device is already gone, so
-// there's nothing to send it to; the firmware's own flag resets to off
-// on its next reboot regardless (see gRT's initializer in main.c).
 function onDeviceDisconnected(reason) {
-	if (expectingDisconnect) return;
 	connected = false;
+	pendingBank = null;
 	livePosition.detach();
 	liveVmapActive.detach();
+	liveActiveBank.detach();
+	bankFlicker.stop();
 	setStatus("error", "Disconnected");
-	toast("error", `Device disconnected (${reason}).`);
-	renderChassis();
+	toast("error", `Device disconnected (${reason}). Reconnect to resume.`);
+	scheduleRender();
+	renderBankSelector();
 }
 
-// Best-effort: stop the device streaming before the tab goes away, so a
-// device that stays powered (rather than being unplugged) doesn't keep
-// pushing sysex to a client that's no longer listening. Not guaranteed
-// to complete - the page may already be gone before the request lands -
-// but harmless to attempt, and correct behaviour when it does land in
-// time (most browsers give beforeunload handlers a brief grace window).
 window.addEventListener("beforeunload", () => {
 	if (connected && protocol) {
 		protocol.setLivePositionStreaming(false).catch(() => {});
 	}
 });
 
+function seedTrackers() {
+	livePosition.reset();
+	liveVmapActive.reset();
+	liveActiveBank.reset();
+	model.banks.forEach((bank, b) => {
+		bank.encoders.forEach((enc, e) => {
+			liveVmapActive.set([b, e], enc.vmapActive);
+			enc.vmaps.forEach((vmap, m) => livePosition.set([b, e, m], vmap.currPos));
+		});
+	});
+	liveActiveBank.set([], model.activeBank);
+}
+
+function onBankChanged(newBank) {
+	viewingBank = newBank;
+	model.activeBank = newBank;
+	pendingBank = null;
+	bankFlicker.start(newBank);
+	renderBankSelector();
+}
+
+async function switchBank(bank) {
+	if (!connected || bank === liveActiveBank.get() || pendingBank !== null) return;
+	pendingBank = bank;
+	renderBankSelector();
+	try {
+		const rc = await protocol.setActiveBank(bank);
+		if (rc !== 0) {
+			throw new Error(`device rejected bank change (code ${rc})`);
+		}
+		if (liveActiveBank.get() !== bank) {
+			liveActiveBank.set([], bank);
+			onBankChanged(bank);
+		}
+	} catch (e) {
+		pendingBank = null;
+		toast("error", `Could not switch to bank ${bank + 1}: ${e.message}`);
+		renderBankSelector();
+	}
+}
+
 function setStatus(state, text) {
-	el.statusDot.className = `status-dot status-dot--${state === "connecting" ? "disconnected" : state}`;
+	el.statusDot.className = `status-dot status-dot--${state}`;
 	el.statusText.textContent = text;
 }
 
 function toast(kind, message) {
 	const t = document.createElement("div");
-	t.className = `toast toast--${kind === "warn" ? "error" : kind}`;
+	t.className = `toast toast--${kind}`;
+	t.setAttribute("role", kind === "error" ? "alert" : "status");
 	t.textContent = message;
 	el.toastContainer.appendChild(t);
 	setTimeout(() => t.remove(), 6000);
 }
 
-// Grid is laid out in reading order (top-left to bottom-right), but the
-// firmware's encoder index runs the opposite direction on the actual
-// hardware (confirmed against a real device). This is the single place
-// that translates between the two.
 function visualPositionToFirmwareIndex(position) {
 	return NUM_ENCODERS - 1 - position;
 }
 
-// Maps curr_pos (0-255) onto the same angular sweep the indicator LED
-// ring uses (see led-ring.js: LEDs run -span/2..+span/2 across the
-// count), so the cap's visual rotation lines up with which indicator
-// LEDs are lit rather than sweeping a different arc.
 function positionToKnobRotation(position) {
 	return -(GEOMETRY.ledArcSpan / 2) + (position / ENC_MAX) * GEOMETRY.ledArcSpan;
 }
@@ -206,62 +224,84 @@ const ENCODER_GEOMETRY_PROPS = {
 	showLabel: false,
 };
 
-function renderChassis() {
-	const bank = model.banks[viewingBank];
+const UNPOWERED_LIT_MASK = new Array(GEOMETRY.ledCount).fill(false);
 
-	const { el: chassisEl } = buildDeviceChassis(
-		GEOMETRY,
-		(position) => {
-			const i = visualPositionToFirmwareIndex(position);
+function encoderPropsFor(position) {
+	if (!connected) {
+		return {
+			...ENCODER_GEOMETRY_PROPS,
+			knobRotation: 0,
+			litMask: UNPOWERED_LIT_MASK,
+			rgbOff: true,
+			powered: false,
+		};
+	}
 
-			if (!connected) {
-				return {
-					...ENCODER_GEOMETRY_PROPS,
-					knobRotation: 0,
-					litMask: new Array(GEOMETRY.ledCount).fill(false),
-					rgbOff: true,
-					powered: false,
-				};
-			}
+	const i = visualPositionToFirmwareIndex(position);
+	const enc = model.banks[viewingBank].encoders[i];
+	const liveActive = liveVmapActive.get(viewingBank, i);
+	const activeVmapIdx = enc.vmaps[liveActive] ? liveActive : enc.vmaps[enc.vmapActive] ? enc.vmapActive : 0;
+	const activeVmap = enc.vmaps[activeVmapIdx];
+	const livePos = livePosition.get(viewingBank, i, activeVmapIdx) ?? activeVmap.currPos ?? ENC_MID;
+	const maskArgs = { position: livePos, displayMode: enc.displayMode, detent: enc.detent };
 
-			const enc = bank.encoders[i];
-			const liveActive = liveVmapActive.getActive(viewingBank, i);
-			const activeVmapIdx = enc.vmaps[liveActive] ? liveActive : enc.vmaps[enc.vmapActive] ? enc.vmapActive : 0;
-			const activeVmap = enc.vmaps[activeVmapIdx];
-			const livePos = livePosition.getPosition(viewingBank, i, activeVmapIdx) ?? activeVmap.currPos ?? ENC_MID;
-			const maskArgs = { position: livePos, displayMode: enc.displayMode, detent: enc.detent };
+	const flickering = bankFlicker.isFlickering(i);
+	const rgbColor = flickering ? "#ffffff" : hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val);
 
-			return {
-				...ENCODER_GEOMETRY_PROPS,
-				knobRotation: positionToKnobRotation(livePos),
-				// MULTI_PWM's leading-LED brightness needs the continuous
-				// per-LED value (computeLedBrightness); every other mode
-				// only needs on/off, so litMask stays the cheaper path -
-				// led-ring.js prefers `brightness` over `litMask` when both
-				// are given, so passing both here is safe/redundant, not
-				// conflicting.
-				litMask: computeLitMask(maskArgs),
-				ledBrightness: enc.displayMode === LedDisplayMode.MULTI_PWM ? computeLedBrightness(maskArgs) : undefined,
-				rgbColor: hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val),
-				rgbOff: false,
-				ledColorOverride: computeDetentColorOverride({ position: livePos, detent: enc.detent, rb: activeVmap.rb }),
-				vmapCount: enc.vmaps.length,
-				vmapActive: activeVmapIdx,
-			};
-		},
-		(side, i) => {
-			const swIdx = (side === "L" ? 0 : 3) + i;
-			return { pressed: connected && sideSwitchPressed(swIdx) };
-		},
-	);
-
-	el.chassis.replaceChildren(chassisEl);
+	return {
+		...ENCODER_GEOMETRY_PROPS,
+		knobRotation: positionToKnobRotation(livePos),
+		litMask: computeLitMask(maskArgs),
+		ledBrightness: enc.displayMode === LedDisplayMode.MULTI_PWM ? computeLedBrightness(maskArgs) : undefined,
+		rgbColor,
+		rgbOff: flickering ? !bankFlicker.isWhite(i) : false,
+		ledColorOverride: computeDetentColorOverride({ position: livePos, detent: enc.detent, rb: activeVmap.rb }),
+		vmapCount: enc.vmaps.length,
+		vmapActive: activeVmapIdx,
+	};
 }
 
-// No sysex param exposes live side-switch press state (only SIDE_SWITCH
-// mode config) - always false until the protocol adds one.
-function sideSwitchPressed(_swIdx) {
-	return false;
+function buildChassisOnce() {
+	// No sysex param exposes live side-switch press state, only its mode config.
+	chassis = buildDeviceChassis(
+		GEOMETRY,
+		(position) => {
+			const props = encoderPropsFor(position);
+			signatures[position] = encoderSignature(props);
+			return props;
+		},
+		() => ({ pressed: false }),
+	);
+	el.chassis.replaceChildren(chassis.el);
+}
+
+function renderChassis() {
+	for (let position = 0; position < NUM_ENCODERS; position++) {
+		const props = encoderPropsFor(position);
+		const signature = encoderSignature(props);
+		if (signature === signatures[position]) continue;
+		signatures[position] = signature;
+		const light = chassis.knurlLights[position];
+		chassis.encoderCells[position].replaceChildren(
+			buildEncoder({
+				bodySize: chassis.bodySize,
+				capLightAngle: light.angle,
+				capLightOffset: light.offset,
+				...props,
+			}),
+		);
+	}
+}
+
+function renderBankSelector() {
+	el.bankSelector.replaceChildren(
+		buildBankSelector({
+			count: NUM_BANKS,
+			active: viewingBank,
+			pending: pendingBank,
+			onSelect: connected ? switchBank : undefined,
+		}),
+	);
 }
 
 init();

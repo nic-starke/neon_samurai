@@ -14,8 +14,12 @@ export function buildEncoder(p) {
 	const center = bodySize / 2;
 	const showLabel = p.showLabel ?? true;
 
+	// Only claim to be clickable when a handler is actually wired - the live
+	// view passes none, and a pointer cursor there is a false affordance.
 	const outer = elc("div", {
-		style: `cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${showLabel ? 9 : 0}px; flex-shrink:0; padding:${showLabel ? 6 : 0}px;`,
+		style:
+			`${p.onSelect ? "cursor:pointer; " : ""}display:flex; flex-direction:column; align-items:center; ` +
+			`justify-content:center; gap:${showLabel ? 9 : 0}px; flex-shrink:0; padding:${showLabel ? 6 : 0}px;`,
 		title: p.label ?? "",
 		onClick: p.onSelect,
 	});
@@ -61,6 +65,8 @@ export function buildEncoder(p) {
 		}),
 	);
 
+	// LEDs are children of `body`, not `bodyWrap` - their top/left 50%
+	// anchors need the same box the arc and cap use.
 	const ledFrag = buildLedRing({
 		count: p.ledCount ?? 11,
 		radius: p.ledRadius ?? 37,
@@ -73,16 +79,12 @@ export function buildEncoder(p) {
 		colorOverride: p.ledColorOverride,
 		powered: p.powered,
 	});
-	// Children of `body`, not `bodyWrap` - their top:50%/left:50% anchors
-	// need the same box the arc/cap use.
 	body.appendChild(ledFrag);
 
+	// knobRotation spins the whole cap, rib geometry included. The two
+	// knurl lights and the RGB reflection are panel-fixed, so
+	// buildCapTopSvg() counter-rotates them internally by the same amount.
 	const knobSize = p.knobSize ?? 53;
-	// Rotates the whole cap (including its SVG's rib geometry) to reflect
-	// the knob's live position. capLightAngle/capLightOffset and the RGB
-	// reflection are panel-fixed ambient lighting, not part of the physical
-	// cap - buildCapTopSvg() counter-rotates those internally using this
-	// same knobRotation so they don't spin along with the ribs.
 	const knobRotation = p.knobRotation ?? 0;
 	const knob = elc("div", {
 		style:
@@ -104,18 +106,13 @@ export function buildEncoder(p) {
 			knobRotation,
 			topFaceHex: hsvHex(p.capTopHue ?? 220, p.capTopSat ?? 13, p.capTopVal ?? 17),
 			innerFaceHex: hsvHex(p.capInnerHue ?? 219, p.capInnerSat ?? 9, p.capInnerVal ?? 18),
-			// Only reflect a real, actually-lit colour - same "off means off,
-			// not dim" rule rgb-arc.js follows.
 			reflectionColor: p.rgbOff || p.powered === false || !p.rgbColor ? undefined : p.rgbColor,
 		}),
 	);
 
+	// Appended to `knob` rather than `body` so the pill rotates with the
+	// cap, matching letters printed on a physical button face.
 	if (p.vmapCount > 1) {
-		// Centred directly on the cap's inner disc, not the ring - small
-		// enough to fit inside p.capInnerDia without covering the whole
-		// knob. Appended to `knob`, not `body`, so it rotates along with
-		// the cap (matching how the letters sit fixed to the physical
-		// button face on real hardware, not the panel).
 		knob.appendChild(
 			elc("div", {
 				style: `position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(${-knobRotation}deg);`,

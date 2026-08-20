@@ -3,6 +3,7 @@
 // js/live-twin.js for the real-device render using the same components.
 
 import { signal, effect, batch } from "./vendor/signals-core.js";
+import { GEOMETRY } from "../design-system/geometry.js";
 import {
 	elc,
 	hsvHex,
@@ -14,41 +15,18 @@ import {
 	ENC_MAX,
 } from "../design-system/components/index.js";
 
-// "Reset to spec" restores exactly these fields - colour/selection state
-// is untouched.
+// "Reset to spec" restores exactly these fields - colour/selection state is
+// untouched. The shared chassis geometry comes from design-system/
+// geometry.js, which the live view uses too; only the cap-colour fields
+// below are specific to this tuning tool.
 const SPEC = {
-	pitch: 136,
-	edgeFirst: 92,
-	cornerRadius: 36,
-	bevelWidth: 14,
-	bodySize: 112,
-	knobSize: 71,
-	capBaseDia: 18.5,
-	capGripDiaBottom: 15,
-	capGripDiaTop: 13.5,
-	capRibCount: 19,
-	capInnerDia: 11.3,
-	lightX1: -35,
-	lightY1: -45,
-	lightX2: 130,
-	lightY2: 145,
+	...GEOMETRY,
 	capTopHue: 220,
 	capTopSat: 13,
 	capTopVal: 17,
 	capInnerHue: 219,
 	capInnerSat: 9,
 	capInnerVal: 18,
-	ledCount: 11,
-	ledRadius: 46,
-	ledSize: 10,
-	ledArcSpan: 270,
-	arcRadius: 46,
-	arcWidth: 10,
-	arcLength: 32,
-	sideBtnW: 6,
-	sideBtnH: 39,
-	sideBtnSpacing: 76,
-	sideBtnOffsetY: 0,
 };
 
 const PALETTE = ["#3bd6ff", "#ff3b6b", "#3bff8f", "#b23bff"];

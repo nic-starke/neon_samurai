@@ -58,40 +58,6 @@ export function hsvToCss(hue, sat, val) {
 	return `rgb(${r}, ${g}, ${b})`;
 }
 
-/**
- * Convert sRGB 0-255 per channel to firmware-range HSV (hue 0-1535, sat
- * 0-255, val 0-255). Used only for e.g. importing a preset that stored a
- * CSS color; the device itself is never sent RGB, only HSV (see
- * MF_SYSEX_PARAM_VMAP_RGB, which is a *read-only* gamma-corrected BCM
- * mirror of the HSV value, not an independently settable color).
- */
-export function rgbToHsv(r, g, b) {
-	r = clamp(r, 0, 255) / 255;
-	g = clamp(g, 0, 255) / 255;
-	b = clamp(b, 0, 255) / 255;
-
-	const max = Math.max(r, g, b);
-	const min = Math.min(r, g, b);
-	const delta = max - min;
-
-	let h360 = 0;
-	if (delta !== 0) {
-		if (max === r) h360 = 60 * (((g - b) / delta) % 6);
-		else if (max === g) h360 = 60 * ((b - r) / delta + 2);
-		else h360 = 60 * ((r - g) / delta + 4);
-	}
-	if (h360 < 0) h360 += 360;
-
-	const sat = max === 0 ? 0 : delta / max;
-	const val = max;
-
-	return {
-		hue: Math.round((h360 / 360) * (HUE_MAX + 1)) % (HUE_MAX + 1),
-		sat: Math.round(sat * SAT_MAX),
-		val: Math.round(val * VAL_MAX),
-	};
-}
-
 function clamp(v, lo, hi) {
 	return Math.min(hi, Math.max(lo, v));
 }

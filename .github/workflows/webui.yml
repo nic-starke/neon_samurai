@@ -1,0 +1,58 @@
+name: webui
+
+on:
+  push:
+    paths:
+      - 'webui/**'
+      - '.github/workflows/webui.yml'
+  pull_request:
+    paths:
+      - 'webui/**'
+      - '.github/workflows/webui.yml'
+  workflow_dispatch:
+
+jobs:
+  selftest:
+    name: imports + self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No npm, no bundler and no type checker in this project, so a moved file
+      # or renamed export would otherwise fail only at runtime in a browser.
+      - name: Check module imports
+        working-directory: webui
+        run: python3 check-imports.py
+
+      - name: Serve webui
+        working-directory: webui
+        run: |
+          python3 -m http.server 8420 --bind 127.0.0.1 &
+          for _ in $(seq 40); do
+            if curl -sf http://127.0.0.1:8420/test.html >/dev/null; then exit 0; fi
+            sleep 0.25
+          done
+          echo "::error::server did not come up"
+          exit 1
+
+      # test.html stamps PASS/FAIL into <title> so the result is greppable from
+      # a DOM dump without a test runner or driver protocol.
+      - name: Run self-test
+        run: |
+          google-chrome --headless --disable-gpu --no-sandbox \
+            --virtual-time-budget=30000 \
+            --dump-dom http://127.0.0.1:8420/test.html > dom.html
+
+          if ! grep -q '<title>PASS' dom.html; then
+            echo "::error::webui self-test failed"
+            grep -o '<li class="fail">[^<]*' dom.html | sed 's|<li class="fail">|  |'
+            exit 1
+          fi
+          grep -o '<div id="summary"[^>]*>[^<]*' dom.html | sed 's|.*>||'
+
+      - name: Upload DOM dump on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui-selftest-dom
+          path: dom.html

@@ -42,6 +42,11 @@ static int io_event_handler(void* evt) {
 					break;
 				}
 
+				case IO_FIELD_ACTIVE_BANK: {
+					sysex_push_active_bank(io->value);
+					break;
+				}
+
 				default: break;
 			}
 			break;

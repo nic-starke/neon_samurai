@@ -1,8 +1,12 @@
-// Composes chassis.js + encoder.js + side-switch.js into the full
-// assembled device: faceplate/bevel, 4x4 grid, 6 side switches, and the
-// two-light knurl-shading system. Shared by twin.js (demo) and
-// live-twin.js (real device) so the grid/lighting geometry lives in one
-// place instead of being duplicated per caller.
+// The full assembled device: faceplate/bevel, 4x4 encoder grid, 6 side
+// switches, and the two-light knurl shading. Shared by twin.js and
+// live-twin.js so the grid and lighting geometry live in one place.
+//
+// Each encoder sits in its own cell wrapper, returned as `encoderCells`, so a
+// caller can replace one encoder without rebuilding the other fifteen.
+// `encoderProps(i, knurlLight)` is called per index 0-15 in reading order and
+// returns a buildEncoder() prop object; `sideSwitchProps(side, i)` is
+// optional.
 
 import { elc } from "./dom.js";
 import { buildChassis } from "./chassis.js";
@@ -12,22 +16,11 @@ import { buildSideSwitch } from "./side-switch.js";
 const NUM_ENCODERS = 16;
 const NUM_SIDE_SWITCHES_PER_SIDE = 3;
 
-/**
- * `encoderProps(i, knurlLight)` is called once per encoder index 0-15
- * (reading order - see live-twin.js's visualPositionToFirmwareIndex()
- * if the caller needs firmware index order) and must return the full
- * buildEncoder() prop object. `sideSwitchProps(side, i)` is optional;
- * omit to render no side switches.
- */
 export function buildDeviceChassis(g, encoderProps, sideSwitchProps) {
 	const gridGap = g.pitch - g.bodySize;
 	const chassisPad = g.edgeFirst - g.bodySize / 2;
 	const chassisSize = 4 * g.bodySize + 3 * gridGap + 2 * chassisPad;
 
-	// Two lights fixed to the panel, not to each cap: every encoder's
-	// highlight angle is derived from its own position relative to the
-	// two light points, so the knurl shading reads as one lit surface
-	// rather than 16 identical stickers.
 	const lx1 = (g.lightX1 / 100) * chassisSize;
 	const ly1 = (g.lightY1 / 100) * chassisSize;
 	const lx2 = (g.lightX2 / 100) * chassisSize;
@@ -66,6 +59,9 @@ export function buildDeviceChassis(g, encoderProps, sideSwitchProps) {
 	});
 	face.appendChild(grid);
 
+	const encoderCells = [];
+	const knurlLights = [];
+
 	for (let i = 0; i < NUM_ENCODERS; i++) {
 		const cx = chassisPad + g.bodySize / 2 + (i % 4) * g.pitch;
 		const cy = chassisPad + g.bodySize / 2 + Math.floor(i / 4) * g.pitch;
@@ -75,8 +71,12 @@ export function buildDeviceChassis(g, encoderProps, sideSwitchProps) {
 			angle: Math.round(a1 + 90),
 			offset: Math.round((((a2 - a1) % 360) + 360) % 360),
 		};
+		knurlLights.push(knurlLight);
 
-		grid.appendChild(
+		const cell = elc("div", {
+			style: "display:flex; align-items:center; justify-content:center;",
+		});
+		cell.appendChild(
 			buildEncoder({
 				bodySize: g.bodySize,
 				capLightAngle: knurlLight.angle,
@@ -84,9 +84,11 @@ export function buildDeviceChassis(g, encoderProps, sideSwitchProps) {
 				...encoderProps(i, knurlLight),
 			}),
 		);
+		grid.appendChild(cell);
+		encoderCells.push(cell);
 	}
 
-	return { el: outer, chassisSize };
+	return { el: outer, chassisSize, encoderCells, knurlLights, bodySize: g.bodySize };
 }
 
 export { NUM_ENCODERS, NUM_SIDE_SWITCHES_PER_SIDE };

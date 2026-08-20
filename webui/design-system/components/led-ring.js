@@ -1,23 +1,19 @@
-// LEDs sit at fixed angular positions, not a continuous arc - `count`
-// LEDs spread evenly across `arcSpan` degrees, centred on top. For a
-// firmware-accurate lit pattern (bar graph / center-out detent / etc,
-// matching mf_draw_encoder() in src/led/led.c) compute one with
-// led-mask.js's computeLitMask() and pass it as `litMask`; for
-// DIS_MODE_MULTI_PWM's smooth leading-LED fade, use
-// computeLedBrightness() and pass it as `brightness` instead (takes
-// priority over `litMask` when both are given).
+// `count` LEDs at fixed angular positions spread evenly across `arcSpan`
+// degrees, centred on top - not a continuous arc.
 //
-// `colorOverride` recolors a single LED instead of using the standard
-// on/off palette - for the detent red/blue LEDs, which share the same
-// physical position as indicator 6 (the center LED), not a separate
-// pair of LEDs (see src/led/led.c's encoder_led_s bitfield: DETENT_RED/
-// BLUE_BIT and the center indicator bit both drive the same slot in the
-// 16-bit frame word, and mf_draw_encoder() explicitly turns the white
-// indicator off there whenever a detent colour is showing instead).
+// For a firmware-accurate lit pattern use led-mask.js's computeLitMask()
+// and pass it as `litMask`; for DIS_MODE_MULTI_PWM's leading-LED fade use
+// computeLedBrightness() as `brightness`, which takes priority over
+// `litMask` when both are given.
+//
+// `colorOverride` recolors one LED. The detent red/blue LEDs share the
+// centre indicator's physical slot rather than being a separate pair - see
+// encoder_led_s in src/led/led.c, where both drive the same bit of the
+// 16-bit frame word.
 
 import { elc } from "./dom.js";
 
-const NUM_PWM_FRAMES = 32; // matches led-mask.js's NUM_PWM_FRAMES
+const NUM_PWM_FRAMES = 32; // matches led-mask.js
 
 export function buildLedRing(p) {
 	const count = p.count ?? 11;
@@ -29,7 +25,7 @@ export function buildLedRing(p) {
 	const powered = p.powered ?? true;
 	const lit = Math.round(count * ((value || 0) / (max || 1)));
 	const litMask = p.litMask ?? Array.from({ length: count }, (_, i) => i < lit);
-	const colorOverride = powered ? p.colorOverride : null; // {index, color} - index is 0-based
+	const colorOverride = powered ? p.colorOverride : null;
 
 	const frag = document.createDocumentFragment();
 	for (let s = 0; s < count; s++) {
@@ -42,9 +38,6 @@ export function buildLedRing(p) {
 			background = colorOverride.color;
 			boxShadow = `0 0 6px ${colorOverride.color}, inset 0 0 2px rgba(0,0,0,0.25)`;
 		} else if (powered && p.brightness) {
-			// 0-31 BCM duty cycle -> a continuous blend from off to on, via
-			// color-mix, rather than a hard on/off snap - see
-			// led-mask.js's computeLedBrightness() doc comment.
 			const frac = Math.max(0, Math.min(1, p.brightness[s] / (NUM_PWM_FRAMES - 1)));
 			background = `color-mix(in srgb, var(--ds-led-on) ${(frac * 100).toFixed(0)}%, ${offColor})`;
 			boxShadow =

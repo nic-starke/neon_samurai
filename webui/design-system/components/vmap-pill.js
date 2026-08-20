@@ -13,12 +13,10 @@ import { elc } from "./dom.js";
 
 const LETTERS = "ABCDEFGH";
 
-// One colour per layer, not a shared highlight - a vmap's letter needs to
-// read as "which one" at a glance, not just "the active one" (which
-// --ds-accent already means elsewhere, e.g. selection rings). Cyan (cool)
-// + amber (warm) is a deliberate two-colour pair, not arbitrary picks -
-// see tokens.css's --ds-cyan/--ds-amber. Anything past B falls back to
-// the neutral accent - real hardware only ever has 2 vmaps.
+// One colour per layer rather than a shared highlight, so a letter reads
+// as "which one" and not merely "the active one" (which --ds-accent
+// already means elsewhere). Past B falls back to the neutral accent; real
+// hardware only ever has two.
 const LETTER_COLORS = ["var(--ds-cyan)", "var(--ds-amber)"];
 
 export function buildVmapPill(p) {
@@ -48,8 +46,8 @@ export function buildVmapPill(p) {
 		pill.appendChild(
 			elc("span", {
 				style:
-					`display:flex; align-items:center; justify-content:center; ${compact ? "width:9px; height:9px;" : "height:14px;"} ` +
-					`font-family:var(--ds-font-mono); font-size:${compact ? 6.5 : 9}px; font-weight:600; line-height:1; ` +
+					`display:flex; align-items:center; justify-content:center; ${compact ? "width:13.5px; height:13.5px;" : "height:14px;"} ` +
+					`font-family:var(--ds-font-mono); font-size:${compact ? 9.75 : 9}px; font-weight:600; line-height:1; ` +
 					`background:${isActive ? color : "transparent"}; ` +
 					`color:${isActive ? "var(--ds-bg)" : powered ? "var(--ds-text-dim)" : "var(--ds-text-faint)"};`,
 				text: LETTERS[i] ?? "?",

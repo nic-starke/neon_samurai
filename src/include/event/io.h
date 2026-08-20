@@ -29,6 +29,7 @@ enum events_io {
 
 enum io_event_field {
 	IO_FIELD_VMAP_ACTIVE,
+	IO_FIELD_ACTIVE_BANK, // device-scoped - bank/enc/vmap unused, see value
 
 	IO_FIELD_NB,
 };

@@ -17,7 +17,7 @@ body {
 	background: var(--ds-bg);
 	color: var(--ds-text);
 	font-family: var(--ds-font);
-	font-size: 14px;
+	font-size: 21px; /* 14px * 1.5 - scales all em-based chrome (buttons, header, toasts) */
 }
 
 body {
@@ -91,6 +91,15 @@ button:disabled {
 	background: var(--ds-text-faint);
 }
 
+/* Connecting is a multi-second, ~205-round-trip state. It gets its own
+   colour rather than reusing "disconnected", which was previously showing
+   a dead-looking dot for the whole of a successful connect. */
+.status-dot--connecting {
+	background: var(--ds-warning);
+	box-shadow: 0 0 6px var(--ds-warning);
+	animation: status-pulse 1.2s ease-in-out infinite;
+}
+
 .status-dot--connected {
 	background: var(--ds-accent);
 	box-shadow: var(--ds-glow);
@@ -99,6 +108,12 @@ button:disabled {
 .status-dot--error {
 	background: var(--ds-danger);
 	box-shadow: 0 0 6px var(--ds-danger);
+}
+
+@keyframes status-pulse {
+	50% {
+		opacity: 0.35;
+	}
 }
 
 .fw-version {
@@ -133,6 +148,11 @@ button:disabled {
 	color: var(--ds-danger);
 }
 
+.toast--warn {
+	border-color: var(--ds-warning);
+	color: var(--ds-warning);
+}
+
 .toast--success {
 	border-color: var(--ds-accent);
 }
@@ -142,12 +162,35 @@ button:disabled {
 main {
 	flex: 1;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 1.25em;
 	padding: 3em 1.5em;
 	background: radial-gradient(circle at 50% -10%, #0f2a22 0%, #0a1210 45%, var(--ds-bg) 100%);
 }
 
 .twin-chassis-wrap {
 	margin: 0 auto;
+}
+
+button:focus-visible {
+	outline: none;
+	box-shadow: var(--ds-focus-ring);
+}
+
+/* The chassis is a fixed ~888px square. On a short viewport the page
+   should scroll rather than clip the device. */
+main {
+	overflow: auto;
+}
+
+/* The bank-change flicker reproduces the firmware's animation: a full-white
+   RGB LED toggling every ~31ms, which is a ~16Hz flash - inside the range
+   associated with photosensitive seizures. Suppressed entirely under
+   reduced-motion, along with the status pulse. */
+@media (prefers-reduced-motion: reduce) {
+	.status-dot--connecting {
+		animation: none;
+	}
 }

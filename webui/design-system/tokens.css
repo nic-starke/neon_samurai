@@ -46,4 +46,17 @@
 
 	--ds-font: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 	--ds-font-mono: ui-monospace, "SF Mono", Consolas, monospace;
+
+	--ds-focus-ring: 0 0 0 2px var(--ds-bg), 0 0 0 4px var(--ds-accent);
+}
+
+/* Components build their own inline styles, so the one thing that cannot
+   live inline - a :focus-visible rule - is provided here. Every
+   interactive component in this library carries one of these classes. */
+
+.ds-bank-number:focus-visible,
+.ds-side-switch:focus-visible {
+	outline: none;
+	box-shadow: var(--ds-focus-ring);
+	border-radius: var(--ds-radius);
 }

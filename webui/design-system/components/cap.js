@@ -23,14 +23,12 @@ export function buildCapTopSvg(p) {
 	const topCX = halfBase;
 	const vbSize = halfBase * 2;
 
+	// encoder.js rotates this whole SVG by knobRotation, since the physical
+	// cap spins with the knob. The knurl lights and RGB reflection are
+	// panel-fixed, so their angles are counter-rotated here to cancel that
+	// and land back at the same panel-relative position.
 	const flutes = ribCount;
 	const step = (Math.PI * 2) / flutes;
-	// The cap's rib geometry below is drawn rotated by knobRotation (via
-	// encoder.js's `knob` wrapper), since the physical cap really does spin
-	// with the knob. The two knurl lights and RGB reflection are panel-
-	// fixed ambient lighting, not part of the cap - so their angles are
-	// counter-rotated here to cancel that wrapper rotation and land back
-	// at the same panel-relative position regardless of knob position.
 	const knobRotation = p.knobRotation ?? 0;
 	const rotationComp = (-knobRotation * Math.PI) / 180;
 	const lightAngle = (((p.lightAngle ?? 315) - 90) * Math.PI) / 180 + rotationComp;
@@ -122,13 +120,9 @@ export function buildCapTopSvg(p) {
 			cx: "50%",
 			cy: "100%",
 			r: "38.5%",
-			// Counter-rotate around the gradient's own centre so this stays
-			// anchored at the LED's panel position (bottom edge) instead of
-			// spinning away with the rib geometry - same reasoning as
-			// lightAngle above. gradientUnits defaults to objectBoundingBox,
-			// whose coordinate space is 0-1 (not 0-100, despite cx/cy above
-			// being written as percentages) - a pivot of "50 50" is ~50x
-			// outside that box and silently blanks the whole gradient.
+			// Pivot is in objectBoundingBox units (0-1), despite cx/cy above
+			// reading as percentages - a pivot of "50 50" lands far outside
+			// the box and silently blanks the gradient.
 			gradientTransform: `rotate(${-knobRotation} 0.5 0.5)`,
 		});
 		const strength = p.reflectionStrength ?? 0.154;

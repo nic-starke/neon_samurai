@@ -17,16 +17,20 @@
 
 	<header id="header">
 		<div class="header__status">
-			<span id="status-dot" class="status-dot status-dot--disconnected"></span>
+			<span id="status-dot" class="status-dot status-dot--disconnected" aria-hidden="true"></span>
 			<span id="status-text">Not connected</span>
 			<span id="fw-version" class="fw-version"></span>
 		</div>
 		<button id="btn-connect" type="button">Connect</button>
 	</header>
 
-	<div id="toast-container" aria-live="polite"></div>
+	<!-- Each toast carries its own role (alert for errors, status otherwise),
+	     so the container deliberately has no aria-live of its own - two
+	     nested live regions would announce twice. -->
+	<div id="toast-container"></div>
 
 	<main>
+		<div id="twin-bank-selector"></div>
 		<div id="twin-chassis" class="twin-chassis-wrap"></div>
 	</main>
 

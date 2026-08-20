@@ -167,6 +167,24 @@ void sysex_push_vmap_active(u8 bank, u8 enc, u8 active) {
 	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
 }
 
+void sysex_push_active_bank(u8 bank) {
+	if (!gRT.live_position_streaming) {
+		return;
+	}
+
+	midi_event_s evt = {
+			.type = MIDI_EVENT_SYSEX,
+			.data.sysex_out =
+					{
+							.cmd			= MF_SYSEX_WEBUI_PUSH,
+							.param		= MF_SYSEX_PARAM_ACTIVE_BANK,
+							.data_len = 1,
+							.data			= {bank},
+					},
+	};
+	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
+}
+
 // Standard MIDI 7-to-8-bit packing: sysex data bytes must be <= 0x7F (the
 // high bit marks a status byte), but this protocol's param structs are full
 // 8-bit values (HSV saturation/value in particular routinely need the
@@ -452,7 +470,10 @@ static int midi_in_handler(void* evt) {
 			}
 			param = (void*)((u8*)&gRT + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
-				memcpy(param, (const void*)&msg->param.bank.data, param_len);
+				// set_active_bank() also fires the switch animation, redraws
+				// the new bank, and pushes the webui notification - a raw
+				// memcpy here would silently skip all three.
+				set_active_bank(msg->param.bank.data);
 			}
 			break;
 		}

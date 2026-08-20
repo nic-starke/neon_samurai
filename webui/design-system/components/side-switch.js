@@ -6,6 +6,8 @@ export function buildSideSwitch(p) {
 	// selected use the accent colour deliberately - that's live/UI signal,
 	// not a passive material finish.
 	return elc("button", {
+		class: "ds-side-switch",
+		attrs: { type: "button", "aria-label": `${side === "L" ? "Left" : "Right"} side switch ${p.index + 1}` },
 		title: `${side === "L" ? "Left" : "Right"} Side ${p.index + 1}`,
 		style:
 			`position:absolute; ${side === "L" ? "left" : "right"}:-${width}px; top:${top}px; ` +
