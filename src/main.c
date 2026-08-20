@@ -32,7 +32,7 @@
 
 struct mf_rt gRT = {
 		.curr_bank							 = 0,
-		.live_position_streaming = false, // Off until a connected host enables it
+		.live_position_streaming = false,
 };
 
 struct sys_config gCONFIG = {
@@ -50,7 +50,7 @@ __attribute__((noreturn)) void main(void) {
 	rng_init();
 	event_init();
 	midi_init();
-	animation_init(); // Initialize the animation system
+	animation_init();
 	display_init();
 	input_init();
 	mf_sysex_init();
@@ -81,11 +81,8 @@ __attribute__((noreturn)) void main(void) {
 		bootloader_start(); // Does not return - resets into DFU bootloader
 	}
 
-	// Initialize config
-	cfg_init(reset);
 
-	// Load configuration - either defaults if reset occurred, or existing from
-	// EEPROM
+	cfg_init(reset);
 	cfg_load();
 
 	hw_led_init();
@@ -100,7 +97,7 @@ __attribute__((noreturn)) void main(void) {
 		usb_update();
 		cfg_update();
 #ifdef ENABLE_CONSOLE
-		console_update(); // Update the console module in the main loop
+		console_update();
 #endif
 	}
 }
