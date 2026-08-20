@@ -17,7 +17,7 @@
 #include "LUFA/Drivers/USB/USB.h"
 #include "LUFA/Drivers/USB/Class/Common/MIDIClassCommon.h"
 #include "LUFA/Drivers/USB/Class/Device/MIDIClassDevice.h"
-#include "LUFA/Drivers/USB/Class/Device/CDCClassDevice.h" // Add CDC include
+#include "LUFA/Drivers/USB/Class/Device/CDCClassDevice.h"
 #include "LUFAConfig.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -36,7 +36,7 @@
 
 extern USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device;
 #ifdef ENABLE_CONSOLE
-extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
+	extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
 #endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
