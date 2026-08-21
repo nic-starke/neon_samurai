@@ -3,6 +3,25 @@
 /*                  https://github.com/nic-starke/neon_samurai               */
 /*                         SPDX-License-Identifier: MIT                       */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/**
+ * Drives the 256 encoder LEDs through a chain of 32 8-bit shift registers.
+ *
+ * Brightness is bit-code modulated in software: led.c renders NUM_PWM_FRAMES
+ * frames into gFRAME_BUFFER, and this module shifts one frame out per timer
+ * compare interrupt. TCD0 runs at F_CPU/256 (125 kHz, 8 us per tick) over a
+ * 256-tick cycle, and channel B is stepped by SOFT_PWM_PERIOD ticks to give
+ * eight evenly spaced interrupts per cycle:
+ *
+ *   frame interval  = 32 ticks       = 256 us   (3.9 kHz)
+ *   full BCM cycle  = 32 frames      = 8.192 ms (122 Hz refresh)
+ *   DMA burst       = 32 bytes @ 8M  = 32 us    (12.5% of a frame interval)
+ *
+ * The DMA burst therefore always completes well before the next interrupt
+ * re-points the channel at the following frame.
+ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <string.h>
@@ -15,7 +34,6 @@
 #include "hal/gpio.h"
 #include "hal/dma.h"
 #include "hal/usart.h"
-#include "hal/timer.h"
 
 #include "system/hardware.h"
 
@@ -23,9 +41,12 @@
 
 #define PORT_SR_LED					(PORTD)		// IO port for led shift registers
 #define USART_LED						(USARTD0) // USART on D0
-#define TIMER_LED						(TCD0)		// Timer on D0
-#define TIMER_PERIOD				(255)
-#define SOFT_PWM_PERIOD			(32)
+#define TIMER_LED						(TCD0)		// Timer on D0 - see ISR() below
+#define DMA_CH_LED					(DMA.CH0) // DMA channel feeding the USART
+
+#define TIMER_TOP						(255)						// Timer PER (counter wraps here)
+#define TIMER_TICKS					(TIMER_TOP + 1) // Counter states per cycle
+#define SOFT_PWM_PERIOD			(32)						// Ticks between frames
 
 #define PIN_SR_LED_ENABLE_N (0)
 #define PIN_SR_LED_CLOCK		(1)
@@ -35,19 +56,29 @@
 
 #define USART_BAUD					(8000000)
 
+// The compare value is advanced with 8-bit wraparound, which only lands on
+// evenly spaced slots if the counter has exactly 256 states.
+_Static_assert(TIMER_TICKS == 256, "CCB wraparound assumes an 8-bit counter");
+_Static_assert((TIMER_TICKS % SOFT_PWM_PERIOD) == 0,
+							 "soft PWM period must divide the timer period evenly");
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void mf_led_set_max_brightness(u8 brightness);
+// LED frame buffer - written by led.c, read by the DMA controller.
+volatile u16 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// LED frame buffer
-volatile u16 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
-
 // Frame index (the current frame being transmitted)
-volatile u8 mf_frame = 0;
+static vu8 mf_frame = 0;
+
+// Timer compare value of the next frame interrupt. Biased so that the slot
+// sequence is 31, 63, ... 255 - it never reaches 0, which would place the
+// compare match on the counter reload.
+static vu8 pwm_slot = SOFT_PWM_PERIOD - 1;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -102,26 +133,29 @@ void hw_led_init(void) {
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
 
-	// Configure timer in single slope waveform mode
-	TCD0.CTRLB |= TC_WGMODE_SINGLESLOPE_gc;
-	TCD0.PER = TIMER_PERIOD; // Timer max tick count (timer resets at this value)
-	TCD0.CCA = 0; // Channel A -> Global brightness (0 = max, 255 = min)
-	TCD0.CCB = SOFT_PWM_PERIOD; // Channel B -> Software PWM tick (RGB colour
-															// generation)
+	// Configure timer in single slope waveform mode. Compare channel A drives
+	// pin 0 (the shift register output enable) and could PWM the global LED
+	// brightness, but the output is left disabled (no TC0_CCAEN_bm) - led.c
+	// does brightness in software, so the OE pin stays permanently asserted.
+	TIMER_LED.CTRLA = TC_CLKSEL_OFF_gc; // Stop the timer while configuring
+	TIMER_LED.CTRLB = TC_WGMODE_SINGLESLOPE_gc;
+	TIMER_LED.PER		= TIMER_TOP;
+	TIMER_LED.CNT		= 0;
 
-	// Enable timer compare channel A to generate PWM on pin 0 (shift register
-	// output enable pin). The duty cycle of this PWM signal determines the
-	// maximum brightness of ALL leds
-	// TCD0.CTRLB |= TC0_CCAEN_bm;
+	// Channel B -> Software PWM tick (RGB colour generation)
+	TIMER_LED.CCB = pwm_slot;
 
 	// Enable interrupts on compare match for channel B
-	TCD0.INTCTRLB |= (PRIORITY_MED << (2)) & TC0_CCBINTLVL_gm;
+	TIMER_LED.INTFLAGS = TC0_CCBIF_bm; // Discard any stale pending match
+	TIMER_LED.INTCTRLB = (u8)((TIMER_LED.INTCTRLB & (u8)~TC0_CCBINTLVL_gm) |
+														(u8)(PRIORITY_MED << TC0_CCBINTLVL_gp));
 
-	dma_channel_init(&DMA.CH0, &dma_cfg);
+	dma_channel_init(&DMA_CH_LED, &dma_cfg);
 	usart_module_init(&USART_LED, &usart_cfg);
-	TCD0.CTRLA |= TC_CLKSEL_DIV256_gc; // Start the timer!
+	TIMER_LED.CTRLA = TC_CLKSEL_DIV256_gc; // Start the timer!
 }
 
+// Must match TIMER_LED - the vector name cannot be derived from the macro.
 ISR(TCD0_CCB_vect) {
 	ATOMIC_BLOCK(ATOMIC_FORCEON) {
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
@@ -132,14 +166,18 @@ ISR(TCD0_CCB_vect) {
 		if (++mf_frame >= NUM_PWM_FRAMES) {
 			mf_frame = 0;
 		}
-		// This ISR needs to trigger every 32 ticks, therefore the
-		// compare value must be incremented by 32 ticks each time the interrupt
-		// fires. The CCB value must wrap around at the TOP/PER value of the
-		// timer.
-		TCD0.CCB				 = (TCD0.CCB + SOFT_PWM_PERIOD) % TIMER_PERIOD;
-		DMA.CH0.SRCADDR0 = (u8)(ptr >> 0) & 0xFF;
-		DMA.CH0.SRCADDR1 = (u8)(ptr >> 8) & 0xFF;
-		DMA.CH0.CTRLA |= DMA_CH_ENABLE_bm;
+
+		// This ISR needs to trigger every SOFT_PWM_PERIOD ticks, so the compare
+		// value is advanced by that much each time. The counter has 256 states,
+		// so the 8-bit wraparound lands exactly on the next slot - taking the
+		// modulo of TIMER_TOP instead would stretch one interval in every eight
+		// to 33 ticks and drift the phase by a tick per cycle.
+		pwm_slot += SOFT_PWM_PERIOD;
+		TIMER_LED.CCB = pwm_slot;
+
+		DMA_CH_LED.SRCADDR0 = (u8)(ptr >> 0);
+		DMA_CH_LED.SRCADDR1 = (u8)(ptr >> 8);
+		DMA_CH_LED.CTRLA |= DMA_CH_ENABLE_bm;
 	}
 }
 
