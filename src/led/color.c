@@ -34,25 +34,28 @@ extern struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// Gamma brightness lookup table <https://victornpb.github.io/gamma-table-generator>
-// gamma = 2.20 steps = 256 range = 0-255
+// Gamma brightness lookup table
+// <https://victornpb.github.io/gamma-table-generator> gamma = 2.20 steps = 256
+// range = 0-255
 const uint8_t gamma_lut[256] PROGMEM = {
-	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   1,
-	1,   1,   1,   1,   1,   1,   1,   1,   1,   2,   2,   2,   2,   2,   2,   2,
-	3,   3,   3,   3,   3,   4,   4,   4,   4,   5,   5,   5,   5,   6,   6,   6,
-	6,   7,   7,   7,   8,   8,   8,   9,   9,   9,  10,  10,  11,  11,  11,  12,
- 12,  13,  13,  13,  14,  14,  15,  15,  16,  16,  17,  17,  18,  18,  19,  19,
- 20,  20,  21,  22,  22,  23,  23,  24,  25,  25,  26,  26,  27,  28,  28,  29,
- 30,  30,  31,  32,  33,  33,  34,  35,  35,  36,  37,  38,  39,  39,  40,  41,
- 42,  43,  43,  44,  45,  46,  47,  48,  49,  49,  50,  51,  52,  53,  54,  55,
- 56,  57,  58,  59,  60,  61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,
- 73,  74,  75,  76,  77,  78,  79,  81,  82,  83,  84,  85,  87,  88,  89,  90,
- 91,  93,  94,  95,  97,  98,  99, 100, 102, 103, 105, 106, 107, 109, 110, 111,
-113, 114, 116, 117, 119, 120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135,
-137, 138, 140, 141, 143, 145, 146, 148, 149, 151, 153, 154, 156, 158, 159, 161,
-163, 165, 166, 168, 170, 172, 173, 175, 177, 179, 181, 182, 184, 186, 188, 190,
-192, 194, 196, 197, 199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221,
-223, 225, 227, 229, 231, 234, 236, 238, 240, 242, 244, 246, 248, 251, 253, 255,
+		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,
+		1,	 1,		1,	 1,		1,	 1,		1,	 1,		1,	 1,		2,	 2,		2,	 2,		2,
+		2,	 2,		3,	 3,		3,	 3,		3,	 4,		4,	 4,		4,	 5,		5,	 5,		5,
+		6,	 6,		6,	 6,		7,	 7,		7,	 8,		8,	 8,		9,	 9,		9,	 10,	10,
+		11,	 11,	11,	 12,	12,	 13,	13,	 13,	14,	 14,	15,	 15,	16,	 16,	17,
+		17,	 18,	18,	 19,	19,	 20,	20,	 21,	22,	 22,	23,	 23,	24,	 25,	25,
+		26,	 26,	27,	 28,	28,	 29,	30,	 30,	31,	 32,	33,	 33,	34,	 35,	35,
+		36,	 37,	38,	 39,	39,	 40,	41,	 42,	43,	 43,	44,	 45,	46,	 47,	48,
+		49,	 49,	50,	 51,	52,	 53,	54,	 55,	56,	 57,	58,	 59,	60,	 61,	62,
+		63,	 64,	65,	 66,	67,	 68,	69,	 70,	71,	 73,	74,	 75,	76,	 77,	78,
+		79,	 81,	82,	 83,	84,	 85,	87,	 88,	89,	 90,	91,	 93,	94,	 95,	97,
+		98,	 99,	100, 102, 103, 105, 106, 107, 109, 110, 111, 113, 114, 116, 117,
+		119, 120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135, 137, 138, 140,
+		141, 143, 145, 146, 148, 149, 151, 153, 154, 156, 158, 159, 161, 163, 165,
+		166, 168, 170, 172, 173, 175, 177, 179, 181, 182, 184, 186, 188, 190, 192,
+		194, 196, 197, 199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221,
+		223, 225, 227, 229, 231, 234, 236, 238, 240, 242, 244, 246, 248, 251, 253,
+		255,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -84,23 +87,22 @@ void color_update_vmap_rgb(struct virtmap* vmap) {
 	fast_hsv2rgb_8bit(vmap->hsv.hue, vmap->hsv.saturation, vmap->hsv.value,
 										&r_linear, &g_linear, &b_linear);
 
-	// Apply gamma correction using the lookup tables
-	// This maps the linear 0-255 RGB values to gamma-corrected 0-31 BCM values
-	vmap->rgb.red		= pgm_read_byte(&gamma_lut[r_linear]) >> 3;
-	vmap->rgb.green = pgm_read_byte(&gamma_lut[g_linear]) >> 3;
-	vmap->rgb.blue	= pgm_read_byte(&gamma_lut[b_linear]) >> 3;
+	// Apply gamma correction using the lookup tables.
+	vmap->rgb.red		= pgm_read_byte(&gamma_lut[r_linear]);
+	vmap->rgb.green = pgm_read_byte(&gamma_lut[g_linear]);
+	vmap->rgb.blue	= pgm_read_byte(&gamma_lut[b_linear]);
 
 	// Ensure values are within the valid BCM range (0-31)
-	vmap->rgb.red		= CLAMP(vmap->rgb.red, 0, NUM_PWM_FRAMES - 1);
-	vmap->rgb.green = CLAMP(vmap->rgb.green, 0, NUM_PWM_FRAMES - 1);
-	vmap->rgb.blue	= CLAMP(vmap->rgb.blue, 0, NUM_PWM_FRAMES - 1);
+	vmap->rgb.red		= CLAMP(vmap->rgb.red, 0, MAX_BRIGHTNESS);
+	vmap->rgb.green = CLAMP(vmap->rgb.green, 0, MAX_BRIGHTNESS);
+	vmap->rgb.blue	= CLAMP(vmap->rgb.blue, 0, MAX_BRIGHTNESS);
 }
 
 /**
  * @brief Sets linear RGB values with gamma correction
  *
  * Takes linear RGB values (0-255) and converts them to gamma-corrected
- * BCM values (0-31) for display on the LEDs.
+ * BCM values (0-255) for display on the LEDs.
  *
  * @param vmap Pointer to the virtmap structure
  * @param r_linear Red component (0-255)
@@ -112,14 +114,9 @@ void color_set_vmap_rgb_linear(struct virtmap* vmap, uint8_t r_linear,
 	assert(vmap);
 
 	// Apply gamma correction using the lookup tables
-	vmap->rgb.red		= pgm_read_byte(&gamma_lut[r_linear]) >> 3;
-	vmap->rgb.green = pgm_read_byte(&gamma_lut[g_linear]) >> 3;
-	vmap->rgb.blue	= pgm_read_byte(&gamma_lut[b_linear]) >> 3;
-
-	// Ensure values are within the valid BCM range
-	vmap->rgb.red		= CLAMP(vmap->rgb.red, 0, NUM_PWM_FRAMES - 1);
-	vmap->rgb.green = CLAMP(vmap->rgb.green, 0, NUM_PWM_FRAMES - 1);
-	vmap->rgb.blue	= CLAMP(vmap->rgb.blue, 0, NUM_PWM_FRAMES - 1);
+	vmap->rgb.red		= pgm_read_byte(&gamma_lut[r_linear]);
+	vmap->rgb.green = pgm_read_byte(&gamma_lut[g_linear]);
+	vmap->rgb.blue	= pgm_read_byte(&gamma_lut[b_linear]);
 
 	// Also update the HSV values to maintain consistency
 	// This is a simple approximation since RGB to HSV conversion is more complex
@@ -159,22 +156,21 @@ void color_set_vmap_rgb_linear(struct virtmap* vmap, uint8_t r_linear,
 /**
  * @brief Sets BCM RGB values directly
  *
- * Allows direct setting of the BCM RGB values (0-31) without gamma correction.
+ * Allows direct setting of the BCM RGB values (0-255) without gamma correction.
  * This is useful for direct control of the LED brightness levels.
  *
  * @param vmap Pointer to the virtmap structure
- * @param r_bcm Red BCM value (0-31)
- * @param g_bcm Green BCM value (0-31)
- * @param b_bcm Blue BCM value (0-31)
+ * @param r_bcm Red BCM value (0-255)
+ * @param g_bcm Green BCM value (0-255)
+ * @param b_bcm Blue BCM value (0-255)
  */
 void color_set_vmap_rgb_bcm(struct virtmap* vmap, uint8_t r_bcm, uint8_t g_bcm,
 														uint8_t b_bcm) {
 	assert(vmap);
 
-	// Set BCM values directly with range checking
-	vmap->rgb.red		= CLAMP(r_bcm, 0, NUM_PWM_FRAMES - 1);
-	vmap->rgb.green = CLAMP(g_bcm, 0, NUM_PWM_FRAMES - 1);
-	vmap->rgb.blue	= CLAMP(b_bcm, 0, NUM_PWM_FRAMES - 1);
+	vmap->rgb.red		= r_bcm;
+	vmap->rgb.green = g_bcm;
+	vmap->rgb.blue	= b_bcm;
 
 	// This function doesn't update HSV values since it's a direct BCM setter
 	// This can cause state inconsistency between HSV and RGB values
@@ -246,9 +242,9 @@ void color_set_vmap_rgb_linear_by_index(uint8_t bank, uint8_t enc,
  * @param bank Bank index
  * @param enc Encoder index
  * @param vmap_idx Virtmap index
- * @param r_bcm Red BCM value (0-31)
- * @param g_bcm Green BCM value (0-31)
- * @param b_bcm Blue BCM value (0-31)
+ * @param r_bcm Red BCM value (0-255)
+ * @param g_bcm Green BCM value (0-255)
+ * @param b_bcm Blue BCM value (0-255)
  */
 void color_set_vmap_rgb_bcm_by_index(uint8_t bank, uint8_t enc,
 																		 uint8_t vmap_idx, uint8_t r_bcm,

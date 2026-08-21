@@ -17,7 +17,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (u16)(12)
+#define EE_VERSION (u16)(13)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -252,10 +252,10 @@ static int decode_encoder(const struct eeprom_encoder* src,
 		decode_proto_cfg(&src->vmap[i].cfg, &dst->vmaps[i].cfg);
 
 		// Load the value-mapping range and physical rotation window
-		dst->vmaps[i].range.lower		= src->vmap[i].range_lower;
-		dst->vmaps[i].range.upper		= src->vmap[i].range_upper;
+		dst->vmaps[i].range.lower		 = src->vmap[i].range_lower;
+		dst->vmaps[i].range.upper		 = src->vmap[i].range_upper;
 		dst->vmaps[i].position.start = src->vmap[i].position_start;
-		dst->vmaps[i].position.stop	= src->vmap[i].position_stop;
+		dst->vmaps[i].position.stop	 = src->vmap[i].position_stop;
 	}
 
 	decode_proto_cfg(&src->sw_cfg, &dst->sw_cfg);

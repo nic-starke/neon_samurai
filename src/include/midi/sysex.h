@@ -21,9 +21,9 @@
 // unpacked struct it decodes to. mf_id/cmd/param_enum are never packed
 // (always small enough to be legal 7-bit values as-is), only the data
 // portion is.
-#define MF_SYSEX_PACKED_MAX_DATA_SIZE                                       \
+#define MF_SYSEX_PACKED_MAX_DATA_SIZE                                          \
 	(MF_SYSEX_MAX_DATA_SIZE + ((MF_SYSEX_MAX_DATA_SIZE + 6) / 7))
-#define MF_SYSEX_PACKED_MAX_PKT_SIZE                                        \
+#define MF_SYSEX_PACKED_MAX_PKT_SIZE                                           \
 	(MF_SYSEX_MIN_PKT_SIZE + MF_SYSEX_PACKED_MAX_DATA_SIZE)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -104,8 +104,8 @@ enum mf_sysex_param {
 	// test suite establishing a known starting state, or the web GUI's
 	// "factory reset" action) doesn't need a second transport (the CDC
 	// serial console) just to reboot or factory-reset the device.
-	MF_SYSEX_PARAM_SYSTEM_RESET,	 // Soft reboot, config unchanged
-	MF_SYSEX_PARAM_CONFIG_RESET,	 // Factory reset (wipes EEPROM) + reboot
+	MF_SYSEX_PARAM_SYSTEM_RESET, // Soft reboot, config unchanged
+	MF_SYSEX_PARAM_CONFIG_RESET, // Factory reset (wipes EEPROM) + reboot
 
 	MF_SYSEX_PARAM_NB,
 };
@@ -176,9 +176,6 @@ typedef struct __attribute__((packed)) {
 			u8 start;
 			u8 stop;
 		} position;
-		// u8 fields here, not u16: these mirror struct rgb_8/rb_8 (led/rgb.h)
-		// exactly, which store gamma-corrected BCM brightness (0..NUM_PWM_FRAMES-1,
-		// i.e. 0-31) per channel, not full 16-bit color.
 		struct {
 			u8 red;
 			u8 green;
@@ -189,9 +186,9 @@ typedef struct __attribute__((packed)) {
 			u8 blue;
 		} rb;
 		struct {
-			u16 hue;				 // 0-1535
-			u8	 saturation; // 0-255
-			u8	 value;			 // 0-255
+			u16 hue;				// 0-1535
+			u8	saturation; // 0-255
+			u8	value;			// 0-255
 		} hsv;
 		u8 curr_pos; // MF_SYSEX_PARAM_VMAP_CURR_POS - live knob position, 0-255
 	} data;

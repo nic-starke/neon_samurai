@@ -69,10 +69,10 @@ bool is_reset_pressed(void) {
 // NOTE: this mapping is inferred from the row layout documented in
 // sw_encoder_init() below and has not been verified against physical
 // hardware - confirm on a real device before relying on it.
-#define ENC_IDX_TOP_LEFT	 (0)
-#define ENC_IDX_TOP_RIGHT	 (3)
-#define ENC_IDX_BOT_LEFT	 (12)
-#define ENC_IDX_BOT_RIGHT	 (15)
+#define ENC_IDX_TOP_LEFT	(0)
+#define ENC_IDX_TOP_RIGHT (3)
+#define ENC_IDX_BOT_LEFT	(12)
+#define ENC_IDX_BOT_RIGHT (15)
 
 bool is_bootloader_gesture_pressed(void) {
 	return hw_enc_switch_state(ENC_IDX_TOP_LEFT) == SWITCH_PRESSED &&
@@ -149,17 +149,17 @@ static void sw_encoder_init(void) {
 					map->curr_pos = ENC_MID;
 					// Assign RB based on encoder index
 					if (enc->idx < 4) {
-						map->rb.red	 = 0x1F;
+						map->rb.red	 = MAX_BRIGHTNESS;
 						map->rb.blue = 0x00;
 					} else if (enc->idx < 8) {
-						map->rb.red	 = 0x0F;
-						map->rb.blue = 0x1F;
+						map->rb.red	 = MAX_BRIGHTNESS / 2;
+						map->rb.blue = MAX_BRIGHTNESS;
 					} else if (enc->idx < 12) {
 						map->rb.red	 = 0x00;
-						map->rb.blue = 0x1F;
+						map->rb.blue = MAX_BRIGHTNESS;
 					} else {
-						map->rb.red	 = 0x1F;
-						map->rb.blue = 0x1F;
+						map->rb.red	 = MAX_BRIGHTNESS;
+						map->rb.blue = MAX_BRIGHTNESS;
 					}
 				}
 			}
@@ -180,7 +180,8 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_VMAP_CYCLE: {
-					set_vmap_active(enc, gRT.curr_bank, (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
+					set_vmap_active(enc, gRT.curr_bank,
+													(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
 					mf_draw_encoder(enc);
 					break;
 				}
@@ -304,7 +305,7 @@ void set_active_bank(u8 new_bank) {
 	gRT.curr_bank = new_bank;
 
 	struct animation_event anim_evt = {
-			.type = ANIM_EVT_BANK_CHANGE,
+			.type							= ANIM_EVT_BANK_CHANGE,
 			.data.bank_change = {.prev_bank = prev_bank, .new_bank = new_bank},
 	};
 	event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
@@ -350,7 +351,7 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 								.param		= MF_SYSEX_PARAM_VMAP_CURR_POS,
 								.data_len = 4,
 								.data			= {gRT.curr_bank, enc->idx, (u8)(vmap - enc->vmaps),
-													 vmap->curr_pos},
+														 vmap->curr_pos},
 						},
 		};
 		event_post(EVENT_CHANNEL_MIDI_OUT, &live_pos_evt);
@@ -484,14 +485,14 @@ static int midi_in_handler(void* evt) {
 static void sw_side_switch_init(void) {
 	// Initialize side switches with their default modes
 	// 0 is bottom left, increasing in clockwise direction
-	gSIDE_SWITCHES[1].mode	= SIDE_SW_MODE_BANK_PREV;
-	gSIDE_SWITCHES[4].mode	= SIDE_SW_MODE_BANK_NEXT;
+	gSIDE_SWITCHES[1].mode = SIDE_SW_MODE_BANK_PREV;
+	gSIDE_SWITCHES[4].mode = SIDE_SW_MODE_BANK_NEXT;
 
-	gSIDE_SWITCHES[2].mode	= SIDE_SW_MODE_ALL_VMAP_CYCLE;
-	gSIDE_SWITCHES[3].mode	= SIDE_SW_MODE_ALL_VMAP_HOLD;
+	gSIDE_SWITCHES[2].mode = SIDE_SW_MODE_ALL_VMAP_CYCLE;
+	gSIDE_SWITCHES[3].mode = SIDE_SW_MODE_ALL_VMAP_HOLD;
 
-	gSIDE_SWITCHES[0].mode	= SIDE_SW_MODE_NONE;
-	gSIDE_SWITCHES[5].mode	= SIDE_SW_MODE_NONE;
+	gSIDE_SWITCHES[0].mode = SIDE_SW_MODE_NONE;
+	gSIDE_SWITCHES[5].mode = SIDE_SW_MODE_NONE;
 }
 
 static void sw_side_switch_update(void) {
@@ -511,7 +512,8 @@ static void sw_side_switch_update(void) {
 					// Cycle vmaps on all encoders
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
-						set_vmap_active(enc, gRT.curr_bank, (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
+						set_vmap_active(enc, gRT.curr_bank,
+														(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
 						mf_draw_encoder(enc);
 					}
 					break;
@@ -521,13 +523,15 @@ static void sw_side_switch_update(void) {
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 						gSIDE_SWITCHES[i].prev_vmap_active[e] = enc->vmap_active;
-						set_vmap_active(enc, gRT.curr_bank, (enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
+						set_vmap_active(enc, gRT.curr_bank,
+														(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
 						mf_draw_encoder(enc);
 					}
 					break;
 
 				case SIDE_SW_MODE_BANK_PREV: {
-					u8 new_bank = gRT.curr_bank > 0 ? gRT.curr_bank - 1 : NUM_ENC_BANKS - 1;
+					u8 new_bank =
+							gRT.curr_bank > 0 ? gRT.curr_bank - 1 : NUM_ENC_BANKS - 1;
 					set_active_bank(new_bank);
 					break;
 				}
@@ -547,7 +551,8 @@ static void sw_side_switch_update(void) {
 					// Restore original vmap for each encoder
 					for (u8 e = 0; e < NUM_ENCODERS; e++) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
-						set_vmap_active(enc, gRT.curr_bank, gSIDE_SWITCHES[i].prev_vmap_active[e]);
+						set_vmap_active(enc, gRT.curr_bank,
+														gSIDE_SWITCHES[i].prev_vmap_active[e]);
 						mf_draw_encoder(enc);
 					}
 					break;

@@ -25,9 +25,11 @@
 #define NUM_INDICATOR_LEDS				(11)
 #define NUM_LED_SHIFT_REGISTERS		(32)
 #define NUM_INPUT_SHIFT_REGISTERS (6)
-#define NUM_PWM_FRAMES						(32)
 
-#define MAX_BRIGHTNESS						(NUM_PWM_FRAMES)
+#define NUM_BCM_PLANES						(8)
+#define NUM_PWM_LEVELS						(1u << NUM_BCM_PLANES) // 256
+
+#define MAX_BRIGHTNESS						(NUM_PWM_LEVELS - 1)
 #define MIN_BRIGHTNESS						(0)
 
 #define NUM_ENC_BANKS							(3)
@@ -35,7 +37,7 @@
 #define NUM_VMAPS_PER_ENC					(2)
 
 #define RGB_WHITE									(0x32DF) // red = max, blue = 12, green = 22
-#define RGB_MAX_VAL								(NUM_PWM_FRAMES)
+#define RGB_MAX_VAL								(MAX_BRIGHTNESS)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -139,7 +141,8 @@ struct side_switch {
 	// Current state of the switch
 	enum switch_state state;
 
-	// Previous vmap_active values for ALL encoders (used for SIDE_SW_MODE_ALL_VMAP_HOLD)
+	// Previous vmap_active values for ALL encoders (used for
+	// SIDE_SW_MODE_ALL_VMAP_HOLD)
 	u8 prev_vmap_active[NUM_ENCODERS];
 };
 
@@ -148,17 +151,18 @@ struct side_switch {
  */
 struct mf_rt {
 	u8	 curr_bank;
-	bool live_position_streaming; // See MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM
+	bool live_position_streaming; // See
+																// MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-extern volatile u16			 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
-extern struct quadrature gQUAD_ENC[NUM_ENCODER_SWITCHES];
-extern struct encoder		 gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
+extern volatile u16				gFRAME_BUFFER[NUM_BCM_PLANES][NUM_ENCODERS];
+extern struct quadrature	gQUAD_ENC[NUM_ENCODER_SWITCHES];
+extern struct encoder			gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
 extern struct side_switch gSIDE_SWITCHES[NUM_SIDE_SWITCHES];
-extern struct mf_rt			 gRT;
-extern struct sys_config gCONFIG;
+extern struct mf_rt				gRT;
+extern struct sys_config	gCONFIG;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

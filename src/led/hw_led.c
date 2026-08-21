@@ -8,18 +8,26 @@
 /**
  * Drives the 256 encoder LEDs through a chain of 32 8-bit shift registers.
  *
- * Brightness is bit-code modulated in software: led.c renders NUM_PWM_FRAMES
- * frames into gFRAME_BUFFER, and this module shifts one frame out per timer
- * compare interrupt. TCD0 runs at F_CPU/256 (125 kHz, 8 us per tick) over a
- * 256-tick cycle, and channel B is stepped by SOFT_PWM_PERIOD ticks to give
- * eight evenly spaced interrupts per cycle:
+ * Brightness is binary code modulated. led.c renders NUM_BCM_PLANES bit-planes
+ * into gFRAME_BUFFER - plane p holds bit p of every channel's brightness - and
+ * this module displays plane p for a slot weighted 2^p. An LED lit in the
+ * planes matching value v is therefore on for v/255 of the cycle, giving 256
+ * levels from 8 rendering frames.
  *
- *   frame interval  = 32 ticks       = 256 us   (3.9 kHz)
- *   full BCM cycle  = 32 frames      = 8.192 ms (122 Hz refresh)
- *   DMA burst       = 32 bytes @ 8M  = 32 us    (12.5% of a frame interval)
+ * A slot cannot be shorter than the time to clock the next plane into the
+ * shift registers, since that transfer runs during the current slot. That
+ * shift time is what caps the achievable depth:
  *
- * The DMA burst therefore always completes well before the next interrupt
- * re-points the channel at the following frame.
+ *   shift-out       = 32 bytes @ 16 MHz = 16 us
+ *   slot unit       = 32 us  (2x margin over the shift)
+ *   cycle           = 255 units = 8.16 ms  -> 122.5 Hz
+ *
+ * The two heaviest planes are split into 32-unit chunks and interleaved with
+ * the light ones (see bcm_schedule below). This costs no RAM - the same plane
+ * is simply clocked out more than once - but it keeps any single slot down to
+ * ~1 ms, so the light is chopped at ~1.5 kHz rather than showing one 4 ms
+ * pulse per cycle, which is what makes plain BCM prone to visible break-up
+ * when the eye moves across the panel.
  */
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -27,6 +35,7 @@
 #include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include <util/atomic.h>
 
 #include "system/types.h"
@@ -44,9 +53,9 @@
 #define TIMER_LED						(TCD0)		// Timer on D0 - see ISR() below
 #define DMA_CH_LED					(DMA.CH0) // DMA channel feeding the USART
 
-#define TIMER_TOP						(255)						// Timer PER (counter wraps here)
-#define TIMER_TICKS					(TIMER_TOP + 1) // Counter states per cycle
-#define SOFT_PWM_PERIOD			(32)						// Ticks between frames
+#define SLOT_UNIT_TICKS			(4)		 // Timer ticks in one BCM weight unit (32 us)
+#define NUM_BCM_SLOTS				(12)	 // Schedule entries, see bcm_schedule below
+#define TIMER_TOP						(1019) // 255 units x SLOT_UNIT_TICKS, minus one
 
 #define PIN_SR_LED_ENABLE_N (0)
 #define PIN_SR_LED_CLOCK		(1)
@@ -54,31 +63,51 @@
 #define PIN_SR_LED_LATCH		(4)
 #define PIN_SR_LED_RESET_N	(5)
 
-#define USART_BAUD					(8000000)
+// F_CPU/2 is the USART master-SPI ceiling. The BCM slot floor scales directly
+// with this, so halving the shift time is what buys the eighth plane.
+#define USART_BAUD					(16000000)
 
-// The compare value is advanced with 8-bit wraparound, which only lands on
-// evenly spaced slots if the counter has exactly 256 states.
-_Static_assert(TIMER_TICKS == 256, "CCB wraparound assumes an 8-bit counter");
-_Static_assert((TIMER_TICKS % SOFT_PWM_PERIOD) == 0,
-							 "soft PWM period must divide the timer period evenly");
+// Every defined interrupt flag of a type-0 timer - bits 2 and 3 are reserved
+// and must be written as zero.
+#define TC_INTFLAGS_ALL                                                        \
+	(TC0_OVFIF_bm | TC0_ERRIF_bm | TC0_CCAIF_bm | TC0_CCBIF_bm | TC0_CCCIF_bm |  \
+	 TC0_CCDIF_bm)
+
+_Static_assert(NUM_BCM_PLANES == 8, "the BCM schedule is built for 8 planes");
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// LED frame buffer - written by led.c, read by the DMA controller.
-volatile u16 gFRAME_BUFFER[NUM_PWM_FRAMES][NUM_ENCODERS];
+// LED frame buffer - one bit-plane per row, written by led.c and animation.c,
+// read by the DMA controller.
+volatile u16 gFRAME_BUFFER[NUM_BCM_PLANES][NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// Frame index (the current frame being transmitted)
-static vu8 mf_frame = 0;
+/**
+ * The display schedule, as (plane, weight in units) pairs:
+ *
+ *   7:32  0:1  6:32  1:2  7:32  2:4  6:32  3:8  7:32  4:16  7:32  5:32
+ *
+ * Plane 7 appears four times and plane 6 twice, so every plane still gets its
+ * binary share (128 and 64 units), but spread across the cycle. The tables
+ * below are that schedule pre-resolved for the ISR:
+ *
+ *   bcm_slot_end - timer count at which each slot ends
+ *   bcm_plane    - plane displayed during each slot
+ */
+static const u16 bcm_slot_end[NUM_BCM_SLOTS] PROGMEM = {
+		127, 131, 259, 267, 395, 411, 539, 571, 699, 763, 891, 1019};
 
-// Timer compare value of the next frame interrupt. Biased so that the slot
-// sequence is 31, 63, ... 255 - it never reaches 0, which would place the
-// compare match on the counter reload.
-static vu8 pwm_slot = SOFT_PWM_PERIOD - 1;
+// One entry longer than the schedule: the extra element repeats slot 0, so the
+// ISR can read the next slot's plane as bcm_plane[slot + 1] with no wrap test.
+static const u8 bcm_plane[NUM_BCM_SLOTS + 1] PROGMEM = {7, 0, 6, 1, 7, 2, 6,
+																												3, 7, 4, 7, 5, 7};
+
+// Index of the slot currently being displayed.
+static vu8 bcm_slot = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -107,7 +136,7 @@ void hw_led_init(void) {
 			.mode			= SPI_MODE_CLK_LO_PHA_LO,
 	};
 
-	// Configure DMA to transfer display frames to the USARTs 1-byte tx buffer
+	// Configure DMA to transfer one bit-plane to the USARTs 1-byte tx buffer.
 	// The configuration will transmit 1 byte at a time, for a total of:
 	// 32 bytes (block count) x 1 times (repeat count).
 	// The trigger is set to USART data buffer being empty.
@@ -127,11 +156,12 @@ void hw_led_init(void) {
 			.dst_reload_mode = DMA_CH_DESTRELOAD_NONE_gc,
 	};
 
-	// Reset shift registers
+	// Reset shift registers. The outputs stay disabled until the first plane
+	// has been latched - a reset leaves the registers all-zero, which in this
+	// active-low wiring means every LED on.
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1);
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
 	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
-	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
 
 	// Configure timer in single slope waveform mode. Compare channel A drives
 	// pin 0 (the shift register output enable) and could PWM the global LED
@@ -142,8 +172,13 @@ void hw_led_init(void) {
 	TIMER_LED.PER		= TIMER_TOP;
 	TIMER_LED.CNT		= 0;
 
-	// Channel B -> Software PWM tick (RGB colour generation)
-	TIMER_LED.CCB = pwm_slot;
+	// Channel B -> end of the first BCM slot
+	bcm_slot			= 0;
+	TIMER_LED.CCB = pgm_read_word(&bcm_slot_end[0]);
+
+	// The DMA is armed with the plane slot 0 displays; it is clocked out and
+	// latched below, before the timer starts.
+	dma_cfg.src_ptr = (uptr)&gFRAME_BUFFER[pgm_read_byte(&bcm_plane[0])][0];
 
 	// Enable interrupts on compare match for channel B
 	TIMER_LED.INTFLAGS = TC0_CCBIF_bm; // Discard any stale pending match
@@ -152,28 +187,48 @@ void hw_led_init(void) {
 
 	dma_channel_init(&DMA_CH_LED, &dma_cfg);
 	usart_module_init(&USART_LED, &usart_cfg);
+
+	// Wait for that first plane to reach the shift registers (~16 us), latch
+	// it, and only then enable the outputs. The guard bounds the spin so a
+	// misconfigured DMA cannot wedge startup.
+	for (u16 guard = 0; guard != UINT16_MAX; ++guard) {
+		if ((DMA_CH_LED.CTRLA & DMA_CH_ENABLE_bm) == 0) {
+			break;
+		}
+	}
+
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
+
+	// Slot 0 must clock out the plane slot 1 will display.
+	const uptr ptr			= (uptr)&gFRAME_BUFFER[pgm_read_byte(&bcm_plane[1])][0];
+	DMA_CH_LED.SRCADDR0 = (u8)(ptr >> 0);
+	DMA_CH_LED.SRCADDR1 = (u8)(ptr >> 8);
+	DMA_CH_LED.CTRLA |= DMA_CH_ENABLE_bm;
+
 	TIMER_LED.CTRLA = TC_CLKSEL_DIV256_gc; // Start the timer!
 }
 
 // Must match TIMER_LED - the vector name cannot be derived from the macro.
 ISR(TCD0_CCB_vect) {
 	ATOMIC_BLOCK(ATOMIC_FORCEON) {
+		// Latch the plane clocked out during the slot that just ended - it is
+		// the one this new slot displays.
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
 		gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
 
-		uptr ptr = (uptr)&gFRAME_BUFFER[mf_frame][0];
-
-		if (++mf_frame >= NUM_PWM_FRAMES) {
-			mf_frame = 0;
+		u8 slot = bcm_slot + 1;
+		if (slot >= NUM_BCM_SLOTS) {
+			slot = 0;
 		}
+		bcm_slot = slot;
 
-		// This ISR needs to trigger every SOFT_PWM_PERIOD ticks, so the compare
-		// value is advanced by that much each time. The counter has 256 states,
-		// so the 8-bit wraparound lands exactly on the next slot - taking the
-		// modulo of TIMER_TOP instead would stretch one interval in every eight
-		// to 33 ticks and drift the phase by a tick per cycle.
-		pwm_slot += SOFT_PWM_PERIOD;
-		TIMER_LED.CCB = pwm_slot;
+		TIMER_LED.CCB = pgm_read_word(&bcm_slot_end[slot]);
+
+		// Clock out the plane the *following* slot will display.
+		const u8	 plane = pgm_read_byte(&bcm_plane[slot + 1]);
+		const uptr ptr	 = (uptr)&gFRAME_BUFFER[plane][0];
 
 		DMA_CH_LED.SRCADDR0 = (u8)(ptr >> 0);
 		DMA_CH_LED.SRCADDR1 = (u8)(ptr >> 8);
