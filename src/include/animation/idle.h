@@ -32,8 +32,26 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// How long the device must be left alone before the display takes over.
+/*
+	How long the device must be left alone before the display takes over.
+
+	There are two bars, because how much is known differs.
+
+	With nothing configured - a charger, a dead hub, a host that has not
+	enumerated it, or one that has gone to sleep - nothing can possibly be
+	using the device, and a short wait is safe.
+
+	With a host attached the device is much less certain. USB MIDI has no way
+	to say that an application has opened the port: unlike a serial port, which
+	raises DTR, the operating system claims the MIDI interface when it
+	enumerates and never tells the device what happens above that. Traffic is
+	the only evidence there is, and absence of traffic is weak evidence - a
+	mapping that sends no feedback looks exactly like nothing being there. So
+	the bar is set far higher before taking the panel from something that might
+	still want it.
+*/
 #define IDLE_TIMEOUT_MS			 (10000u)
+#define IDLE_HOST_QUIET_MS	 (120000u)
 
 // Milliseconds per step of the wave.
 #define IDLE_STEP_MS				 (40u)

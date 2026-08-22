@@ -54,6 +54,10 @@ When nothing is connected that could be using the device - a charger, a dead
 hub, a computer that has not enumerated it - and nothing has been touched for
 ten seconds, the panel fades out to an idle animation.
 
+Plugged into a computer it waits far longer, and only if no MIDI has passed in
+either direction. Touching any control brings the normal display straight
+back.
+
 ## The detent lights {: #detent-lights }
 
 The two detent LEDs light when a detented encoder is sitting exactly on its

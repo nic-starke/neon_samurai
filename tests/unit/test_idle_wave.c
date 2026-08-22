@@ -18,7 +18,6 @@
 #define BOTTOM_LEFT	 (12)
 #define BOTTOM_RIGHT (15)
 
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 TEST(the_wave_leads_at_the_last_encoder) {
@@ -208,7 +207,8 @@ TEST(an_out_of_range_encoder_is_handled) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Fade ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Build an encoder's plane words from a per-LED brightness list.
-static void encode(const u8 level[IDLE_LEDS_PER_ENC], u16 planes[IDLE_BCM_PLANES]) {
+static void encode(const u8 level[IDLE_LEDS_PER_ENC],
+									 u16			planes[IDLE_BCM_PLANES]) {
 	for (u8 p = 0; p < IDLE_BCM_PLANES; p++) {
 		u16 state = 0;
 		for (u8 b = 0; b < IDLE_LEDS_PER_ENC; b++) {
@@ -221,7 +221,8 @@ static void encode(const u8 level[IDLE_LEDS_PER_ENC], u16 planes[IDLE_BCM_PLANES
 }
 
 // And read them back out again.
-static void decode(const u16 planes[IDLE_BCM_PLANES], u8 level[IDLE_LEDS_PER_ENC]) {
+static void decode(const u16 planes[IDLE_BCM_PLANES],
+									 u8				 level[IDLE_LEDS_PER_ENC]) {
 	for (u8 b = 0; b < IDLE_LEDS_PER_ENC; b++) {
 		level[b] = 0;
 	}
@@ -252,7 +253,8 @@ TEST(the_fade_dims_every_led_it_is_given) {
 
 	for (u8 b = 0; b < IDLE_LEDS_PER_ENC; b++) {
 		CHECK(after[b] < level[b]);
-		CHECK_EQ(after[b], (u8)(((u16)level[b] * IDLE_FADE_OUT_NUM) / IDLE_FADE_OUT_DEN));
+		CHECK_EQ(after[b],
+						 (u8)(((u16)level[b] * IDLE_FADE_OUT_NUM) / IDLE_FADE_OUT_DEN));
 	}
 }
 
@@ -345,24 +347,22 @@ TEST(an_already_dark_panel_stays_dark) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Main ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-NSTEST_MAIN(RUN(the_wave_leads_at_the_last_encoder);
-						RUN(the_wave_travels_along_a_row);
-						RUN(each_row_starts_just_before_the_second_encoder_of_the_row_below);
-						RUN(each_row_starts_after_the_one_below_it);
-						RUN(the_far_corner_lags_the_most);
-						RUN(no_encoder_lags_by_more_than_one_period);
-						RUN(brightness_stays_within_the_envelope);
-						RUN(the_encoders_dim_but_never_go_out);
-						RUN(every_encoder_reaches_both_ends_of_the_swell);
-						RUN(the_swell_repeats);
-						RUN(the_wave_moves);
-						RUN(the_peak_travels_from_the_leader_outwards);
-						RUN(the_leading_encoder_holds_the_base_shade);
-						RUN(every_encoder_has_its_own_hue);
-						RUN(the_palette_stays_in_the_sea_green_band);
-						RUN(an_out_of_range_encoder_is_handled);
-						RUN(the_fade_dims_every_led_it_is_given);
-						RUN(the_planes_round_trip_without_the_fade_touching_them);
-						RUN(the_fade_reaches_black_and_stays_there);
-						RUN(the_fade_never_brightens_anything);
-						RUN(an_already_dark_panel_stays_dark);)
+NSTEST_MAIN(
+		RUN(the_wave_leads_at_the_last_encoder); RUN(the_wave_travels_along_a_row);
+		RUN(each_row_starts_just_before_the_second_encoder_of_the_row_below);
+		RUN(each_row_starts_after_the_one_below_it);
+		RUN(the_far_corner_lags_the_most);
+		RUN(no_encoder_lags_by_more_than_one_period);
+		RUN(brightness_stays_within_the_envelope);
+		RUN(the_encoders_dim_but_never_go_out);
+		RUN(every_encoder_reaches_both_ends_of_the_swell); RUN(the_swell_repeats);
+		RUN(the_wave_moves); RUN(the_peak_travels_from_the_leader_outwards);
+		RUN(the_leading_encoder_holds_the_base_shade);
+		RUN(every_encoder_has_its_own_hue);
+		RUN(the_palette_stays_in_the_sea_green_band);
+		RUN(an_out_of_range_encoder_is_handled);
+		RUN(the_fade_dims_every_led_it_is_given);
+		RUN(the_planes_round_trip_without_the_fade_touching_them);
+		RUN(the_fade_reaches_black_and_stays_there);
+		RUN(the_fade_never_brightens_anything);
+		RUN(an_already_dark_panel_stays_dark);)

@@ -77,17 +77,14 @@ void idle_update(void) {
 	const u32 now = systime_ms();
 
 	/*
-		A host that has configured the interface is a host that could be talking
-		to the device at any moment, whether or not it happens to be sending
-		anything this second. Only take the panel when nothing is in a position
-		to use it.
+		A configured host might be about to use the device even while it is
+		saying nothing, so it gets a far longer benefit of the doubt than a
+		charger does. LUFA drops out of the configured state on suspend, so a
+		sleeping computer counts as nothing being attached.
 	*/
-	if (usb_is_configured()) {
-		idle_notify_activity();
-		return;
-	}
+	const u32 quiet = usb_is_configured() ? IDLE_HOST_QUIET_MS : IDLE_TIMEOUT_MS;
 
-	if ((now - last_activity_ms) < IDLE_TIMEOUT_MS) {
+	if ((now - last_activity_ms) < quiet) {
 		return;
 	}
 

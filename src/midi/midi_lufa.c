@@ -6,6 +6,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/types.h"
+#include "animation/idle.h"
 #include "system/error.h"
 #include "system/diag.h"
 #include "system/print.h"
@@ -101,6 +102,12 @@ int midi_update(void) {
 	MIDI_EventPacket_t rx;
 
 	while (MIDI_Device_ReceiveEventPacket(&lufa_usb_midi_device, &rx)) {
+		/*
+			Traffic is the only thing that says a host is actually using the port -
+			there is no notification when software opens it - so every packet, of
+			whatever kind, counts.
+		*/
+		idle_notify_activity();
 
 		switch (rx.Event) {
 			case MIDI_EVENT(0, MIDI_COMMAND_CONTROL_CHANGE): {
@@ -150,6 +157,9 @@ int midi_update(void) {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int midi_out_handler(void* event) {
+	// Sending to the host counts just as much as receiving.
+	idle_notify_activity();
+
 	assert(event);
 
 	midi_event_s* e = (midi_event_s*)event;
