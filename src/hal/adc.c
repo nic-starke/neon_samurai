@@ -14,23 +14,14 @@
 #include "hal/adc.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* Constants for temperature sensor conversion */
-#define ADC_TEMP_FACTOR (1.0f / 1.13f) /* Temperature coefficient */
-#define ADC_TEMP_OFFSET (-272.8f)			 /* Temperature offset value */
-
-/* Base address for production signature row access (adjust if needed) */
-/* NOTE: Direct pointer access to signature row might not be portable or
-	 reliable. Using NVM controller commands or specific toolchain functions
-	 (e.g., boot_signature_byte_get) is generally safer. This implementation
-	 follows the pattern in the original code. */
-#define PROD_SIGNATURES_BASE                                                   \
-	0x00 // Assuming base address, check datasheet/toolchain
-
-/* Offsets for calibration bytes within the signature row */
-#define ADCACAL0_OFFSET 0x20
-#define ADCACAL1_OFFSET 0x21
-// #define TEMPSENSE0_OFFSET 0x2E // Not used in current simple temp formula
-// #define TEMPSENSE1_OFFSET 0x2F // Not used in current simple temp formula
+/*
+	TEMPSENSE0/1 hold the 12-bit ADC reading taken at 85C during production test
+	(AU manual 4.17.24), so they are the low and high bytes of one calibration
+	point, not an offset and a scale. Single-point calibration is therefore
+	T[K] = 358.15 * reading / calibration.
+*/
+#define ADC_TEMP_CAL_KELVIN (358.15f)
+#define ADC_KELVIN_TO_C			(273.15f)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -65,6 +56,8 @@ void adc_init(adc_reference_t reference, adc_resolution_t resolution,
 		/* ADC already initialized, no need to reconfigure */
 		return;
 	}
+
+	initialized = true;
 	/* Disable the ADC before configuring */
 	ADCA.CTRLA &= (uint8_t)(~(uint8_t)ADC_ENABLE_bm);
 
@@ -150,6 +143,16 @@ void adc_channel_config_internal(adc_channel_t					 ch,
  */
 void adc_start_conversion(adc_channel_t ch) {
 	ADC_CH_t* adc_ch = adc_get_channel_ptr(ch);
+
+	/* A flag left set by a conversion whose result was never read would
+		 satisfy the next wait immediately. */
+	switch (ch) {
+		case ADC_CH0: ADCA.INTFLAGS = ADC_CH0IF_bm; break;
+		case ADC_CH1: ADCA.INTFLAGS = ADC_CH1IF_bm; break;
+		case ADC_CH2: ADCA.INTFLAGS = ADC_CH2IF_bm; break;
+		case ADC_CH3: ADCA.INTFLAGS = ADC_CH3IF_bm; break;
+		default: break;
+	}
 
 	/* Set channel start conversion bit */
 	adc_ch->CTRL |= ADC_CH_START_bm;
@@ -244,15 +247,16 @@ float adc_read_temperature_float(void) {
 	/* Get ADC reading */
 	adc_value = adc_get_sample(ADC_CH0);
 
-	/*
-	 * Calculate temperature using calibration values from signature row.
-	 * Formula from XMEGA datasheet:
-	 * Temperature = ((ADC reading - TEMPSENSE0) * TEMPSENSE1) / 256 + 25°C
-	 */
+	const uint16_t calibration =
+			(uint16_t)(((uint16_t)sig_data.TEMPSENSE1 << 8) | sig_data.TEMPSENSE0);
 
-	/* Using floating point for more precision */
-	temperature = ((float)adc_value - (float)sig_data.TEMPSENSE0);
-	temperature = (temperature * (float)sig_data.TEMPSENSE1) / 256.0f + 25.0f;
+	if (calibration == 0) {
+		return 0.0f;
+	}
+
+	temperature =
+			((ADC_TEMP_CAL_KELVIN * (float)adc_value) / (float)calibration) -
+			ADC_KELVIN_TO_C;
 
 	return temperature;
 }

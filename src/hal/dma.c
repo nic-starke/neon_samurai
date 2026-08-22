@@ -23,10 +23,19 @@
 
 void dma_peripheral_init(void) {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		PR.PRGEN &= (u8)~PR_DMA_bm;			// Enable power to the DMA controller
-		DMA.CTRL &= (u8)~DMA_ENABLE_bm; // Disable
-		DMA.CTRL |= DMA_RESET_bm;				// Reset (all registers cleared)
-		DMA.CTRL |= DMA_ENABLE_bm;			// Enable
+		PR.PRGEN &= (u8)~PR_DMA_bm; // Enable power to the DMA controller
+
+		// RESET is ignored while ENABLE is set, and is self-clearing once the
+		// reset completes - so disable, reset, wait, then enable. Read-modify-
+		// write would otherwise re-assert RESET in the same write as ENABLE.
+		DMA.CTRL = 0;
+		DMA.CTRL = DMA_RESET_bm;
+
+		while (DMA.CTRL & DMA_RESET_bm) {
+			;
+		}
+
+		DMA.CTRL = DMA_ENABLE_bm;
 	}
 }
 

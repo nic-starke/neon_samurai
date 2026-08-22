@@ -8,6 +8,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #include <avr/io.h>
 #include <avr/cpufunc.h>
+#include <util/atomic.h>
 #include "hal/signature.h"
 #include "system/types.h"
 
@@ -51,22 +52,19 @@ static uint8_t nvm_read_prod_sig_byte(uint16_t address) {
 		; // Wait
 	}
 
-	// Set the NVM command to read the calibration/production signature row.
-	// This requires Configuration Change Protection (CCP).
-	_PROTECTED_WRITE(NVM.CMD, NVM_CMD_READ_CALIB_ROW_gc);
+	/*
+		READ_CALIB_ROW changes what LPM does, for every LPM on the core - not just
+		this one. Any interrupt taken between arming the command and clearing it
+		would read the calibration row instead of its own flash constants, so the
+		sequence runs with interrupts disabled (AU manual 33.11.2, note 4).
+	*/
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		_PROTECTED_WRITE(NVM.CMD, NVM_CMD_READ_CALIB_ROW_gc);
 
-	// Use inline assembly to perform the Load Program Memory (LPM) instruction.
-	// The Z-pointer register (R31:R30) must point to the address (byte offset)
-	// within the signature row to be read.
-	__asm__ __volatile__(
-			"lpm %0, Z\n"
-			: "=r"(byte_value) // Output: store result in byte_value register
-			: "z"(address)		 // Input: load 'address' into Z-pointer (R31:R30)
-	);
+		__asm__ __volatile__("lpm %0, Z\n" : "=r"(byte_value) : "z"(address));
 
-	// After the LPM instruction, it's good practice to clear the NVM command.
-	// This also requires CCP.
-	_PROTECTED_WRITE(NVM.CMD, NVM_CMD_NO_OPERATION_gc);
+		_PROTECTED_WRITE(NVM.CMD, NVM_CMD_NO_OPERATION_gc);
+	}
 
 	return byte_value;
 }
