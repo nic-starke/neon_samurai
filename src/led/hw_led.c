@@ -44,6 +44,8 @@
 #include "hal/dma.h"
 #include "hal/usart.h"
 
+#include "led/led.h"
+
 #include "system/hardware.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -209,6 +211,43 @@ void hw_led_init(void) {
 	DMA_CH_LED.CTRLA |= DMA_CH_ENABLE_bm;
 
 	TIMER_LED.CTRLA = TC_CLKSEL_DIV256_gc; // Start the timer!
+}
+
+void hw_led_panic_red(void) {
+	/*
+		Runs before - or instead of - hw_led_init(), so it cannot rely on the
+		USART, DMA or timer being configured, and it must work at whatever clock
+		the CPU ended up on. Bit-bangs one frame straight into the shift
+		registers and leaves it latched.
+	*/
+	const u16 red = (u16) ~(u16)(1u << RGB_RED_BIT);
+
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_CLOCK, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_DATA_OUT, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_LATCH, GPIO_OUTPUT);
+	gpio_dir(&PORT_SR_LED, PIN_SR_LED_RESET_N, GPIO_OUTPUT);
+
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 1);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 0);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_RESET_N, 1);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
+
+	// Same wire order the USART produces: bytes low-to-high, bits LSB first.
+	for (u8 enc = 0; enc < NUM_ENCODERS; ++enc) {
+		u16 word = red;
+
+		for (u8 bit = 0; bit < 16u; ++bit) {
+			gpio_set(&PORT_SR_LED, PIN_SR_LED_CLOCK, 0);
+			gpio_set(&PORT_SR_LED, PIN_SR_LED_DATA_OUT, (u8)(word & 1u));
+			gpio_set(&PORT_SR_LED, PIN_SR_LED_CLOCK, 1);
+			word >>= 1;
+		}
+	}
+
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 1);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_LATCH, 0);
+	gpio_set(&PORT_SR_LED, PIN_SR_LED_ENABLE_N, 0);
 }
 
 // Must match TIMER_LED - the vector name cannot be derived from the macro.

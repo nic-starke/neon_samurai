@@ -170,6 +170,14 @@ extern struct sys_config	gCONFIG;
 
 void hw_led_init(void);
 
+/**
+ * @brief Drive every RGB LED red and latch it, without the USART, DMA or timer.
+ *
+ * For failures early in startup, where the normal display path is not yet
+ * usable and the only thing left to do is show that something went wrong.
+ */
+void hw_led_panic_red(void);
+
 void hw_encoder_init(void);
 void hw_encoder_scan(void);
 

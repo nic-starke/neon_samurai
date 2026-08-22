@@ -7,6 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/wdt.h>
+#include <avr/interrupt.h>
 
 #include "LUFA/Common/Common.h"
 #include "LUFA/Drivers/USB/USB.h"
@@ -15,6 +16,8 @@
 #include "hal/adc.h"
 #include "hal/dma.h"
 #include "hal/init.h"
+
+#include "system/hardware.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -30,11 +33,23 @@ void avr_xmega128a4u_init(void) {
 	// TODO - this relies on LUFA init functionality, but what if another
 	// USB stack is used? need to add the init functionality to the HAL.
 
-	// Initialise system clocks
-	XMEGACLK_StartPLL(CLOCK_SRC_INT_RC2MHZ, 2000000, F_CPU);
-	XMEGACLK_SetCPUClockSource(CLOCK_SRC_PLL);
-	XMEGACLK_StartInternalOscillator(CLOCK_SRC_INT_RC32MHZ);
-	XMEGACLK_StartDFLL(CLOCK_SRC_INT_RC32MHZ, DFLL_REF_INT_USBSOF, F_USB);
+	/*
+		Every rate in the firmware - SPI baud, LED timing, systick, USB - is
+		derived from these. A silent failure leaves the CPU on the 2MHz startup
+		oscillator with everything sixteen times out, which is far harder to
+		recognise than a dead panel, so stop here instead.
+	*/
+	if (!XMEGACLK_StartPLL(CLOCK_SRC_INT_RC2MHZ, 2000000, F_CPU) ||
+			!XMEGACLK_SetCPUClockSource(CLOCK_SRC_PLL) ||
+			!XMEGACLK_StartInternalOscillator(CLOCK_SRC_INT_RC32MHZ) ||
+			!XMEGACLK_StartDFLL(CLOCK_SRC_INT_RC32MHZ, DFLL_REF_INT_USBSOF, F_USB)) {
+		hw_led_panic_red();
+
+		cli();
+		while (1) {
+			;
+		}
+	}
 
 	// Configure interrupt controller
 	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;

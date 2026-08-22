@@ -46,23 +46,37 @@ void hw_encoder_init(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
 
 	for (uint i = 0; i < NUM_ENCODERS; i++) {
-		gQUAD_ENC[i].dir = 0;
-		gQUAD_ENC[i].rot = 0;
+		gQUAD_ENC[i].dir	 = DIR_ST;
+		gQUAD_ENC[i].rot	 = 0;
+		gQUAD_ENC[i].accum = 0;
 	}
 }
 
-// Scan the hardware state of the midifighter and update local contexts
+/*
+	One pass over the 74HC165 chain: 16 switch bits then 32 quadrature bits, all
+	on the same three pins. Driven through the port registers directly rather
+	than gpio_*() - this runs every main loop iteration, and at 48 bits the call
+	overhead dominated the actual work.
+*/
 void hw_encoder_scan(void) {
-	// Latch the IO levels into the shift registers
-	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 1);
+	const u8 clock = (u8)(1u << PIN_SR_ENC_CLOCK);
+	const u8 data	 = (u8)(1u << PIN_SR_ENC_DATA_IN);
+	const u8 latch = (u8)(1u << PIN_SR_ENC_LATCH);
 
-	// Clock the 16 data bits for the encoder switches
+	// Latch the IO levels into the shift registers
+	PORT_SR_ENC.OUTSET = latch;
+
+	// Clock the 16 data bits for the encoder switches - active low.
 	u16 swstates = 0;
-	for (size_t i = 0; i < NUM_ENCODER_SWITCHES; i++) {
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
-		u8 state = !(bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
-		swstates |= (state << i);
+
+	for (u8 i = 0; i < NUM_ENCODER_SWITCHES; i++) {
+		PORT_SR_ENC.OUTCLR = clock;
+
+		if ((PORT_SR_ENC.IN & data) == 0) {
+			swstates |= (u16)(1u << i);
+		}
+
+		PORT_SR_ENC.OUTSET = clock;
 	}
 
 	// Execute the debounce and update routine for the switches
@@ -70,19 +84,20 @@ void hw_encoder_scan(void) {
 
 	// Clock the 32 bits for the 2x16 quadrature encoder signals, and update
 	// encoder state.
-	for (int i = 0; i < NUM_ENCODERS; ++i) {
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
-		u8 ch_a = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 0);
-		u8 ch_b = (bool)gpio_get(&PORT_SR_ENC, PIN_SR_ENC_DATA_IN);
-		gpio_set(&PORT_SR_ENC, PIN_SR_ENC_CLOCK, 1);
+	for (u8 i = 0; i < NUM_ENCODERS; ++i) {
+		PORT_SR_ENC.OUTCLR = clock;
+		const u8 ch_a			 = (PORT_SR_ENC.IN & data) ? 1u : 0u;
+		PORT_SR_ENC.OUTSET = clock;
+
+		PORT_SR_ENC.OUTCLR = clock;
+		const u8 ch_b			 = (PORT_SR_ENC.IN & data) ? 1u : 0u;
+		PORT_SR_ENC.OUTSET = clock;
 
 		quadrature_update(&gQUAD_ENC[i], ch_a, ch_b);
 	}
 
 	// Close the door!
-	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
+	PORT_SR_ENC.OUTCLR = latch;
 }
 
 bool hw_enc_switch_held(u8 idx) {
