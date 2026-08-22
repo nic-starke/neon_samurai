@@ -164,7 +164,18 @@ def encoder_payload(bank: int, enc: int, value: int) -> bytes:
 
 
 def vmap_range_payload(bank: int, enc: int, vmap: int, lower: int, upper: int) -> bytes:
-    return bytes([bank, enc, vmap, lower & 0xFF, upper & 0xFF])
+    # lower/upper are i16 (0-16383 for 14-bit CC), little-endian on the wire.
+    return bytes(
+        [
+            bank,
+            enc,
+            vmap,
+            lower & 0xFF,
+            (lower >> 8) & 0xFF,
+            upper & 0xFF,
+            (upper >> 8) & 0xFF,
+        ]
+    )
 
 
 def vmap_position_payload(bank: int, enc: int, vmap: int, start: int, stop: int) -> bytes:

@@ -44,6 +44,12 @@ RECONNECT_POLL_INTERVAL_S = 1.0
 
 
 @library(scope="GLOBAL")
+def _to_signed16(word: int) -> int:
+    """virtmap.range.{lower,upper} are i16 - widened from i8 so a 14-bit CC
+    range (0-16383) is expressible."""
+    return word - 65536 if word > 32767 else word
+
+
 class NeonSamuraiLibrary:
     def __init__(self):
         self._port: RawMidiPort | None = None
@@ -182,7 +188,10 @@ class NeonSamuraiLibrary:
     ) -> tuple[int, int]:
         req = sx.vmap_range_payload(bank, enc, vmap, 0, 0)
         reply = self.send_and_wait(sx.Cmd.GET, sx.Param.VMAP_RANGE, req, timeout_s)
-        return reply.data[0], reply.data[1]
+        return (
+            _to_signed16(reply.data[0] | (reply.data[1] << 8)),
+            _to_signed16(reply.data[2] | (reply.data[3] << 8)),
+        )
 
     @keyword("Set Vmap Range")
     def set_vmap_range(

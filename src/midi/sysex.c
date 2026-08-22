@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "midi/sysex.h"
+#include "virtmap/virtmap.h"
 #include "event/io.h"
 #include "event/midi.h"
 #include "hal/sys.h"
@@ -45,11 +46,11 @@ struct sysex_type_streamer_def {
 
 struct sysex_item_data_info {
 	size_t offset;
-	size_t len;			 // Size of the destination field in live memory (gENCODERS/...)
+	size_t len; // Size of the destination field in live memory (gENCODERS/...)
 	size_t wire_len; // Size of this param's mf_sysex_param_s union member on
-										 // the wire (bank_idx/enc_idx/... prefix + data) - used
-										 // to validate the received packet length, which is NOT
-										 // the same as len above.
+									 // the wire (bank_idx/enc_idx/... prefix + data) - used
+									 // to validate the received packet length, which is NOT
+									 // the same as len above.
 };
 
 // Read-only device-info payload for MF_SYSEX_PARAM_DEVICE_INFO, populated
@@ -98,14 +99,15 @@ static const enum stream_state sysex_next_state[SYSEX_TYPE_NB] = {
 // per-param data length (len, already correct: the destination field's
 // real size in live memory, which is also how many data bytes this param
 // actually carries on the wire).
-#define ENC_PREFIX_LEN	2 // mf_sysex_encoder_param_s: bank_idx + enc_idx
-#define VMAP_PREFIX_LEN 3 // mf_sysex_vmap_param_s: bank_idx + enc_idx + vmap_idx
-#define SW_PREFIX_LEN		1 // mf_sysex_sideswitch_param_s: sw_idx (data is the len-tracked field)
+#define ENC_PREFIX_LEN 2 // mf_sysex_encoder_param_s: bank_idx + enc_idx
+#define VMAP_PREFIX_LEN                                                        \
+	3 // mf_sysex_vmap_param_s: bank_idx + enc_idx + vmap_idx
+#define SW_PREFIX_LEN                                                          \
+	1 // mf_sysex_sideswitch_param_s: sw_idx (data is the len-tracked field)
 #define BANK_PREFIX_LEN 0 // mf_sysex_bank_param_s: no prefix, just data
 
-#define SYSEX_DATA_INFO(e, s, v, prefix_len)                                 \
-	[e] = {offsetof(s, v), sizeof(((s*)0)->v),                                 \
-				 (prefix_len) + sizeof(((s*)0)->v)}
+#define SYSEX_DATA_INFO(e, s, v, prefix_len)                                   \
+	[e] = {offsetof(s, v), sizeof(((s*)0)->v), (prefix_len) + sizeof(((s*)0)->v)}
 
 // clang-format off
 static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
@@ -140,8 +142,8 @@ static enum stream_state stream_state = STREAM_IDLE;
 // Buffer to stream incoming sysex, +2 for start and end sysex bytes. Sized
 // for the *packed* wire form (see 7-bit packing note below), which is
 // larger than the raw struct data it decodes to.
-static u8 buffer[MF_SYSEX_PACKED_MAX_PKT_SIZE + 2];
-static u8 buffer_idx = 0;
+static u8								 buffer[MF_SYSEX_PACKED_MAX_PKT_SIZE + 2];
+static u8								 buffer_idx = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -303,8 +305,8 @@ static int midi_in_handler(void* evt) {
 		goto cleanup;
 	}
 
-	u8 cmd				 = buffer[4];
-	u8 param_enum	 = buffer[5];
+	u8 cmd				= buffer[4];
+	u8 param_enum = buffer[5];
 
 	if (cmd != MF_SYSEX_GET && cmd != MF_SYSEX_SET && cmd != MF_SYSEX_STOP) {
 		ret = ERR_BAD_MSG;
@@ -322,7 +324,7 @@ static int midi_in_handler(void* evt) {
 	// values - this keeps every switch/memcpy case downstream unaware that
 	// packing happened at all.
 	u8 packed_payload_len = buffer_idx - 1 /*F0*/ - 3 /*mf_id*/ - 1 /*cmd*/ -
-													 1 /*param_enum*/ - 1 /*F7*/;
+													1 /*param_enum*/ - 1 /*F7*/;
 	u8 unpacked_payload[MF_SYSEX_MAX_DATA_SIZE];
 	u8 unpacked_payload_len =
 			sysex_unpack7(&buffer[6], packed_payload_len, unpacked_payload);
@@ -363,8 +365,7 @@ static int midi_in_handler(void* evt) {
 				break;
 			}
 			struct encoder* encoder = &gENCODERS[bank][enc];
-			param =
-					(void*)((u8*)encoder + sysex_data_info[msg->param_enum].offset);
+			param = (void*)((u8*)encoder + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
 				memcpy(param, (const void*)&msg->param.enc.data, param_len);
 
@@ -415,7 +416,9 @@ static int midi_in_handler(void* evt) {
 				memcpy(param, (const void*)&msg->param.vmap.data, param_len);
 
 				// VMAP_PROTO is MIDI-routing config only, doesn't affect display.
-				if (msg->param_enum != MF_SYSEX_PARAM_VMAP_PROTO) {
+				if (msg->param_enum == MF_SYSEX_PARAM_VMAP_PROTO) {
+					vmap_apply_mode_range(vmap);
+				} else {
 					gENCODERS[bank_idx][enc_idx].update_display = 1;
 				}
 			}
@@ -439,9 +442,10 @@ static int midi_in_handler(void* evt) {
 			struct virtmap* vmap = &gENCODERS[bank_idx][enc_idx].vmaps[vmap_idx];
 			param = (void*)((u8*)vmap + sysex_data_info[msg->param_enum].offset);
 			if (msg->cmd == MF_SYSEX_SET) {
-				color_set_vmap_hsv(bank_idx, enc_idx, vmap_idx, msg->param.vmap.data.hsv.hue,
-														msg->param.vmap.data.hsv.saturation,
-														msg->param.vmap.data.hsv.value);
+				color_set_vmap_hsv(bank_idx, enc_idx, vmap_idx,
+													 msg->param.vmap.data.hsv.hue,
+													 msg->param.vmap.data.hsv.saturation,
+													 msg->param.vmap.data.hsv.value);
 			}
 			break;
 		}

@@ -235,6 +235,7 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/io/hw_switch.c
     ${CMAKE_SOURCE_DIR}/src/io/input_manager.c
     ${CMAKE_SOURCE_DIR}/src/io/io.c
+    ${CMAKE_SOURCE_DIR}/src/virtmap/virtmap.c
     ${CMAKE_SOURCE_DIR}/src/io/switch.c
     ${CMAKE_SOURCE_DIR}/src/led/color.c
     ${CMAKE_SOURCE_DIR}/src/led/hw_led.c

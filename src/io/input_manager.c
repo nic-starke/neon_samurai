@@ -11,6 +11,7 @@
 #include "system/print.h"
 #include "system/time.h"
 #include "io/encoder.h"
+#include "virtmap/virtmap.h"
 #include "event/event.h"
 #include "event/io.h"
 #include "event/midi.h"
@@ -125,12 +126,11 @@ static void sw_encoder_init(void) {
 				struct virtmap* map		= &enc->vmaps[v];
 				map->position.start		= ENC_MIN;
 				map->position.stop		= ENC_MAX;
-				map->range.lower			= MIDI_CC_MIN;
-				map->range.upper			= MIDI_CC_MAX;
 				map->cfg.midi.mode		= MIDI_MODE_CC;
 				map->cfg.type					= PROTOCOL_MIDI;
 				map->cfg.midi.channel = 0;
 				map->cfg.midi.cc			= cc++;
+				vmap_apply_mode_range(map);
 
 				// Set initial HSV values based on encoder index
 				// This will create a nice color gradient across encoders

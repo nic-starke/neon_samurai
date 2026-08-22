@@ -94,3 +94,14 @@ struct virtmap {
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/**
+ * @brief Set the value range to the full span the configured protocol mode
+ * can carry - 0..127 for 7-bit MIDI, 0..16383 for 14-bit CC.
+ *
+ * An existing descending (inverted) range stays descending. Modes with no
+ * defined span, and non-MIDI protocols, are left untouched.
+ *
+ * @param vmap Virtual mapping to update.
+ */
+void vmap_apply_mode_range(struct virtmap* vmap);
