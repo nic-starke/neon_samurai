@@ -33,6 +33,7 @@ static void sw_side_switch_update(void);
 static void vmap_update(struct encoder* enc, struct virtmap* map);
 static void set_vmap_active(struct encoder* enc, u8 bank, u8 new_active);
 static int	midi_in_handler(void* evt);
+static void sw_midi_send(const struct encoder* enc, u8 value);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -41,6 +42,10 @@ EVT_HANDLER(1, evt_midi, midi_in_handler);
 
 struct encoder		 gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
 struct side_switch gSIDE_SWITCHES[NUM_SIDE_SWITCHES];
+
+// Switch state for the encoders of the active bank - only that bank is polled.
+static u8		sw_prev_vmap[NUM_ENCODERS];
+static bool sw_fine_adjust[NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -187,7 +192,10 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_VMAP_HOLD: {
-					// ?
+					sw_prev_vmap[i] = enc->vmap_active;
+					set_vmap_active(enc, gRT.curr_bank,
+													(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
+					mf_draw_encoder(enc);
 					break;
 				}
 
@@ -201,10 +209,17 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_FINE_ADJUST_TOGGLE: {
+					sw_fine_adjust[i] = !sw_fine_adjust[i];
 					break;
 				}
 
 				case SW_MODE_FINE_ADJUST_HOLD: {
+					sw_fine_adjust[i] = true;
+					break;
+				}
+
+				case SW_MODE_MIDI: {
+					sw_midi_send(enc, MIDI_CC_MAX);
 					break;
 				}
 
@@ -223,7 +238,8 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_VMAP_HOLD: {
-					// ?
+					set_vmap_active(enc, gRT.curr_bank, sw_prev_vmap[i]);
+					mf_draw_encoder(enc);
 					break;
 				}
 
@@ -241,6 +257,12 @@ static void sw_encoder_update(void) {
 				}
 
 				case SW_MODE_FINE_ADJUST_HOLD: {
+					sw_fine_adjust[i] = false;
+					break;
+				}
+
+				case SW_MODE_MIDI: {
+					sw_midi_send(enc, 0);
 					break;
 				}
 
@@ -253,6 +275,10 @@ static void sw_encoder_update(void) {
 
 		if (!moved) {
 			continue;
+		}
+
+		if (sw_fine_adjust[i] && (enc->enc_ctx.velocity != 0)) {
+			enc->enc_ctx.velocity = (enc->enc_ctx.velocity > 0) ? 1 : -1;
 		}
 
 		if (enc->vmap_mode == VIRTMAP_MODE_TOGGLE) {
@@ -311,6 +337,8 @@ void set_active_bank(u8 new_bank) {
 
 	for (u8 e = 0; e < NUM_ENCODERS; e++) {
 		gENCODERS[new_bank][e].update_display = 1;
+		sw_fine_adjust[e]											= false;
+		sw_prev_vmap[e]												= gENCODERS[new_bank][e].vmap_active;
 	}
 
 	struct io_event io_evt = {
@@ -439,6 +467,11 @@ static int midi_in_handler(void* evt) {
 				for (uint e = 0; e < NUM_ENCODERS; e++) {
 					struct encoder* enc = &gENCODERS[b][e];
 
+					// do not update if the encoder is moving.
+					if (enc->enc_ctx.velocity != 0) {
+						continue;
+					}
+
 					for (int v = 0; v < NUM_VMAPS_PER_ENC; v++) {
 						struct virtmap* vmap = &enc->vmaps[v];
 						if (vmap->cfg.type != PROTOCOL_MIDI) {
@@ -446,11 +479,6 @@ static int midi_in_handler(void* evt) {
 						} else if (vmap->cfg.midi.channel != midi->data.cc.channel) {
 							continue;
 						} else if (vmap->cfg.midi.cc != midi->data.cc.control) {
-							continue;
-						}
-
-						// do not update if the encoder is moving.
-						if (enc->enc_ctx.velocity != 0) {
 							continue;
 						}
 
@@ -474,9 +502,29 @@ static int midi_in_handler(void* evt) {
 
 			break;
 		}
+
+		default: break;
 	}
 
 	return 0;
+}
+
+static void sw_midi_send(const struct encoder* enc, u8 value) {
+	if ((enc->sw_cfg.type != PROTOCOL_MIDI) ||
+			(enc->sw_cfg.midi.mode != MIDI_MODE_CC)) {
+		return;
+	}
+
+	midi_event_s evt = {
+			.type = MIDI_EVENT_CC,
+			.data.cc =
+					{
+							.channel = enc->sw_cfg.midi.channel,
+							.control = enc->sw_cfg.midi.cc,
+							.value	 = value,
+					},
+	};
+	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
 }
 
 static void sw_side_switch_init(void) {
