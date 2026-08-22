@@ -176,6 +176,9 @@ void hw_encoder_scan(void);
 void							hw_switch_init(void);
 void							hw_switch_update(void);
 enum switch_state hw_enc_switch_state(u8 idx);
+
+// Debounced level, not an edge - use for held-button and gesture checks.
+bool							hw_enc_switch_held(u8 idx);
 enum switch_state hw_side_switch_state(u8 idx);
 
 void input_init(void);

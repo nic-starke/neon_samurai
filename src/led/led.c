@@ -27,7 +27,7 @@
 #define INDICATOR_MASK(n) (0x8000 >> ((n) - 1)) // Mask for indicator n (1-11)
 #define CENTER_INDICATOR	(6)
 #define CENTER_INDICATOR_MASK                                                  \
-INDICATOR_MASK(CENTER_INDICATOR) // Explicit mask for center
+	INDICATOR_MASK(CENTER_INDICATOR) // Explicit mask for center
 // Minimum age of a pending update before it is drawn, in milliseconds.
 #define DISPLAY_UPDATE_MIN_MS (15)
 
@@ -164,19 +164,12 @@ int display_init(void) {
 void display_update(void) {
 	u32 time_now = systime_ms();
 
-	// Check if an animation is active and has priority
-	if (animation_is_active()) {
-		// Update animation state (frame transitions, timing)
-		animation_update();
+	const bool anim_active = animation_is_active();
 
-		// Draw animation frame for each encoder
-		for (int e = 0; e < NUM_ENCODERS; e++) {
-			animation_draw_encoder(e);
-		}
-		return;
+	if (anim_active) {
+		animation_update();
 	}
 
-	// Normal display update when no animation is active
 	for (int e = 0; e < NUM_ENCODERS; e++) {
 		struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 
@@ -184,6 +177,13 @@ void display_update(void) {
 				(time_now - enc->update_display) > DISPLAY_UPDATE_MIN_MS) {
 			mf_draw_encoder(enc);
 			enc->update_display = 0;
+		}
+
+		// Animations overlay the RGB bits on top of the drawn frame, so the
+		// indicator ring stays live underneath and the rest of the panel keeps
+		// updating while one encoder is animating.
+		if (anim_active) {
+			animation_draw_encoder(e);
 		}
 	}
 }

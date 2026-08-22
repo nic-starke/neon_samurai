@@ -62,8 +62,8 @@ struct virtmap {
 	 * 127 or below 0.
 	 */
 	struct {
-		i8 lower;
-		i8 upper;
+		i16 lower;
+		i16 upper;
 	} range;
 
 	/**

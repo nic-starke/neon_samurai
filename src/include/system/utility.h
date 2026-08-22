@@ -18,16 +18,16 @@
 #define IN_RANGE(x, min, max) (((x) >= min) && ((x) <= max))
 
 // Clamp a value between a min and max
-#define CLAMP(x, min, max)		((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
+#define CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
 
 // Get the min value of two values
-#define MIN(a, b)							((a) < (b) ? (a) : (b))
+#define MIN(a, b)					 ((a) < (b) ? (a) : (b))
 
 // Get the max value of two values
-#define MAX(a, b)							((a) > (b) ? (a) : (b))
+#define MAX(a, b)					 ((a) > (b) ? (a) : (b))
 
 // Get the number of elements in an array
-#define COUNTOF(a)						(sizeof(a) / sizeof(*(a)))
+#define COUNTOF(a)				 (sizeof(a) / sizeof(*(a)))
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -49,5 +49,7 @@ convert_range_i16(i16 c, i16 omin, i16 omax, i16 nmin, i16 nmax) {
 	const i16 or = omax - omin;
 	const i16 nr = nmax - nmin;
 
-	return (((c - omin) * nr) / or) + nmin;
+	// The product needs 32 bits: both spans can reach 255, and 255 * 255
+	// overflows a signed 16-bit intermediate.
+	return (i16)((((i32)(c - omin) * nr) / or) + nmin);
 }

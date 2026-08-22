@@ -85,6 +85,12 @@ void hw_encoder_scan(void) {
 	gpio_set(&PORT_SR_ENC, PIN_SR_ENC_LATCH, 0);
 }
 
+bool hw_enc_switch_held(u8 idx) {
+	assert(idx < NUM_ENCODER_SWITCHES);
+
+	return (switch_x16_states(&switch_ctx) & (1u << idx)) != 0;
+}
+
 enum switch_state hw_enc_switch_state(u8 idx) {
 	assert(idx < NUM_ENCODER_SWITCHES);
 

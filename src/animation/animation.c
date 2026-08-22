@@ -22,6 +22,14 @@
 
 #define ANIMATION_EVENT_QUEUE_SIZE 4
 
+// Frames across the bank-change fade. Finer than ANIMATION_MAX_FRAMES so the
+// ramp is smooth rather than stepped.
+#define ANIM_BANK_CHANGE_FRAMES		 32
+
+// A channel at or above this counts as already white, so the flash inverts to
+// off instead of being invisible.
+#define ANIM_WHITE_THRESHOLD			 200
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -40,8 +48,12 @@ struct animation_state {
 
 	union {
 		struct {
-			u8 prev_bank;
-			u8 new_bank;
+			u8	 prev_bank;
+			u8	 new_bank;
+			u8	 orig_r;
+			u8	 orig_g;
+			u8	 orig_b;
+			bool to_off;
 		} bank_change;
 	} data;
 };
@@ -51,6 +63,7 @@ struct animation_state {
 static int	animation_event_handler(void* event);
 static int	draw_bank_change_animation(u8											 encoder_idx,
 																			 struct animation_state* anim);
+static u8		mix_channel(u8 from, u8 to, u8 weight);
 static int	find_free_animation_slot(void);
 static bool is_encoder_animated(u8 encoder_idx);
 
@@ -167,25 +180,9 @@ int animation_update(void) {
 }
 
 int animation_start_bank_change(u8 prev_bank, u8 new_bank) {
-	// Find the appropriate encoder to animate based on the bank
-	u8 bank_idx = new_bank;
-	u8 encoder_to_flash;
-
-	// Map each bank to a specific encoder in the bottom row
-	switch (bank_idx) {
-		case 0:
-			encoder_to_flash = 3; // Bottom left encoder
-			break;
-		case 1:
-			encoder_to_flash = 2; // Second from left on bottom row
-			break;
-		case 2:
-			encoder_to_flash = 1; // Third from left on bottom row
-			break;
-		default:
-			encoder_to_flash = 3; // Default to bottom left for any other bank
-			break;
-	}
+	// The first row indicates the active bank, right to left: bank 0 lights
+	// encoder 3, bank 3 lights encoder 0.
+	u8 encoder_to_flash = (new_bank < 4) ? (u8)(3 - new_bank) : 3;
 
 	// First, cancel any existing bank change animations
 	for (u8 i = 0; i < ANIMATION_MAX_CONCURRENT; i++) {
@@ -212,11 +209,21 @@ int animation_start_bank_change(u8 prev_bank, u8 new_bank) {
 	anim->start_time								 = systime_ms();
 	anim->duration									 = ANIMATION_DEFAULT_DURATION_MS;
 	anim->current_frame							 = 0;
-	anim->total_frames							 = ANIMATION_MAX_FRAMES;
+	anim->total_frames							 = ANIM_BANK_CHANGE_FRAMES;
 	anim->target_encoder						 = encoder_to_flash;
 	anim->data.bank_change.prev_bank = prev_bank;
 	anim->data.bank_change.new_bank	 = new_bank;
-	anim->active										 = true;
+
+	const struct encoder* enc = &gENCODERS[gRT.curr_bank][encoder_to_flash];
+	const struct virtmap* vm	= &enc->vmaps[enc->vmap_active];
+
+	anim->data.bank_change.orig_r = vm->rgb.red;
+	anim->data.bank_change.orig_g = vm->rgb.green;
+	anim->data.bank_change.orig_b = vm->rgb.blue;
+	anim->data.bank_change.to_off = (vm->rgb.red >= ANIM_WHITE_THRESHOLD) &&
+																	(vm->rgb.green >= ANIM_WHITE_THRESHOLD) &&
+																	(vm->rgb.blue >= ANIM_WHITE_THRESHOLD);
+	anim->active									= true;
 	anim->can_be_overridden = true; // Bank switch animations can be overridden
 	anim->overrides_same_type =
 			true; // Bank switch animations override other bank switch animations
@@ -315,33 +322,58 @@ static int animation_event_handler(void* event) {
 	}
 }
 
+static u8 mix_channel(u8 from, u8 to, u8 weight) {
+	return (u8)((i16)from + (((i16)to - (i16)from) * weight) / 255);
+}
+
 static int draw_bank_change_animation(u8											encoder_idx,
 																			struct animation_state* anim) {
-	// Calculate animation step for RGB LEDs (off-on pattern)
-	bool rgb_on = (anim->current_frame % 2 == 0);
+	u8 frame = anim->current_frame;
+	if (frame > anim->total_frames) {
+		frame = anim->total_frames;
+	}
 
-	// Use the frame buffer directly
+	// Triangle ramp - fully at the flash colour by the midpoint, back to the
+	// encoder's own colour by the end.
+	const u8 half = (u8)(anim->total_frames / 2u);
+	u8			 weight;
+
+	if (half == 0) {
+		weight = 0;
+	} else if (frame <= half) {
+		weight = (u8)(((u16)frame * 255u) / half);
+	} else {
+		weight = (u8)(((u16)(anim->total_frames - frame) * 255u) /
+									(anim->total_frames - half));
+	}
+
+	const u8 target = anim->data.bank_change.to_off ? 0 : MAX_BRIGHTNESS;
+
+	u8 r = mix_channel(anim->data.bank_change.orig_r, target, weight);
+	u8 g = mix_channel(anim->data.bank_change.orig_g, target, weight);
+	u8 b = mix_channel(anim->data.bank_change.orig_b, target, weight);
+
+	const u16 rgb_mask =
+			(u16) ~((1 << RGB_RED_BIT) | (1 << RGB_GREEN_BIT) | (1 << RGB_BLUE_BIT));
+
 	for (u8 p = 0; p < NUM_BCM_PLANES; p++) {
-		// Start with the current frame buffer state to preserve indicator LEDs
-		u16 current_state =
-				~gFRAME_BUFFER[p][encoder_idx]; // Invert to get actual state
+		u16 state = (u16)(~gFRAME_BUFFER[p][encoder_idx]) & rgb_mask;
 
-		// Clear the RGB bits (mask with 1s except for those bits)
-		u16 rgb_mask =
-				~((1 << RGB_RED_BIT) | (1 << RGB_GREEN_BIT) | (1 << RGB_BLUE_BIT));
-
-		current_state &= rgb_mask;
-
-		// Add the RGB values based on animation state
-		if (rgb_on) {
-			// Full-brightness white: every bit-plane carries all three bits.
-			current_state |= (1 << RGB_RED_BIT);	 // Red
-			current_state |= (1 << RGB_GREEN_BIT); // Green
-			current_state |= (1 << RGB_BLUE_BIT);	 // Blue
+		if (r & 1u) {
+			state |= (1 << RGB_RED_BIT);
+		}
+		if (g & 1u) {
+			state |= (1 << RGB_GREEN_BIT);
+		}
+		if (b & 1u) {
+			state |= (1 << RGB_BLUE_BIT);
 		}
 
-		// Write to frame buffer (inverted)
-		gFRAME_BUFFER[p][encoder_idx] = ~current_state;
+		gFRAME_BUFFER[p][encoder_idx] = (u16)~state;
+
+		r >>= 1;
+		g >>= 1;
+		b >>= 1;
 	}
 
 	return SUCCESS;

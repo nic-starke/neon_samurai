@@ -169,8 +169,8 @@ typedef struct __attribute__((packed)) {
 	u8 vmap_idx;
 	union {
 		struct {
-			u8 lower;
-			u8 upper;
+			i16 lower;
+			i16 upper;
 		} range;
 		struct {
 			u8 start;

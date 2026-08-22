@@ -6,8 +6,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include <stdio.h>
-
 #include "system/config.h"
 #include "system/error.h"
 #include "system/print.h"
@@ -60,11 +58,6 @@ void input_update(void) {
 	sw_side_switch_update();
 }
 
-bool is_reset_pressed(void) {
-	return hw_enc_switch_state(2) == SWITCH_PRESSED &&
-				 hw_enc_switch_state(3) == SWITCH_PRESSED;
-}
-
 // Corner indices in the 4x4 encoder grid (row-major, idx = row * 4 + col).
 // NOTE: this mapping is inferred from the row layout documented in
 // sw_encoder_init() below and has not been verified against physical
@@ -74,11 +67,19 @@ bool is_reset_pressed(void) {
 #define ENC_IDX_BOT_LEFT	(12)
 #define ENC_IDX_BOT_RIGHT (15)
 
+#define ENC_IDX_RESET_A		(2)
+#define ENC_IDX_RESET_B		(3)
+
+bool is_reset_pressed(void) {
+	return hw_enc_switch_held(ENC_IDX_RESET_A) &&
+				 hw_enc_switch_held(ENC_IDX_RESET_B);
+}
+
 bool is_bootloader_gesture_pressed(void) {
-	return hw_enc_switch_state(ENC_IDX_TOP_LEFT) == SWITCH_PRESSED &&
-				 hw_enc_switch_state(ENC_IDX_TOP_RIGHT) == SWITCH_PRESSED &&
-				 hw_enc_switch_state(ENC_IDX_BOT_LEFT) == SWITCH_PRESSED &&
-				 hw_enc_switch_state(ENC_IDX_BOT_RIGHT) == SWITCH_PRESSED;
+	return hw_enc_switch_held(ENC_IDX_TOP_LEFT) &&
+				 hw_enc_switch_held(ENC_IDX_TOP_RIGHT) &&
+				 hw_enc_switch_held(ENC_IDX_BOT_LEFT) &&
+				 hw_enc_switch_held(ENC_IDX_BOT_RIGHT);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -171,9 +172,10 @@ static void sw_encoder_update(void) {
 	for (uint i = 0; i < NUM_ENCODERS; i++) {
 		struct encoder* enc = &gENCODERS[gRT.curr_bank][i];
 
-		enc->sw_state = hw_enc_switch_state(enc->idx);
+		const enum switch_state edge = hw_enc_switch_state(enc->idx);
 
-		if (enc->sw_state == SWITCH_PRESSED) {
+		if (edge == SWITCH_PRESSED) {
+			enc->sw_state = SWITCH_PRESSED;
 			switch (enc->sw_mode) {
 				case SW_MODE_NONE: {
 					break;
@@ -211,8 +213,8 @@ static void sw_encoder_update(void) {
 				default: break;
 			}
 
+		} else if (edge == SWITCH_RELEASED) {
 			enc->sw_state = SWITCH_IDLE;
-		} else if (enc->sw_state == SWITCH_RELEASED) {
 			switch (enc->sw_mode) {
 				case SW_MODE_NONE: {
 					break;
@@ -246,7 +248,6 @@ static void sw_encoder_update(void) {
 
 				default: break;
 			}
-			enc->sw_state = SWITCH_IDLE;
 		}
 
 		int	 dir	 = quadrature_direction(enc->quad_ctx);
@@ -366,15 +367,9 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 				}
 
 				case MIDI_MODE_CC: {
-					bool invert = (vmap->range.lower > vmap->range.upper);
-
 					i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
 																			vmap->position.stop, vmap->range.lower,
 																			vmap->range.upper);
-
-					if (invert) {
-						val = MIDI_CC_MAX - val;
-					}
 
 					if (vmap->curr_val == val) {
 						break;
@@ -392,15 +387,9 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 				}
 
 				case MIDI_MODE_CC_14: {
-					bool invert = (vmap->range.lower > vmap->range.upper);
-
 					i16 val = convert_range_i16(vmap->curr_pos, vmap->position.start,
 																			vmap->position.stop, vmap->range.lower,
 																			vmap->range.upper);
-
-					if (invert) {
-						val = 0x3FFF - val;
-					}
 
 					if (vmap->curr_val == val) {
 						break;
@@ -466,11 +455,21 @@ static int midi_in_handler(void* evt) {
 						if (enc->enc_ctx.velocity != 0) {
 							continue;
 						}
-						u16 newpos = (u16)convert_range_i16(
+
+						i16 newpos = convert_range_i16(
 								midi->data.cc.value, vmap->range.lower, vmap->range.upper,
 								vmap->position.start, vmap->position.stop);
+						newpos = CLAMP(newpos, ENC_MIN, ENC_MAX);
 
-						vmap->curr_pos = newpos;
+						if (vmap->curr_pos == (u8)newpos) {
+							continue;
+						}
+
+						vmap->curr_pos = (u8)newpos;
+
+						if (enc->update_display == 0) {
+							enc->update_display = systime_ms();
+						}
 					}
 				}
 			}

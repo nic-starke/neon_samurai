@@ -17,7 +17,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (u16)(14)
+#define EE_VERSION (u16)(15)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -57,16 +57,16 @@ struct eeprom_encoder {
 		uint16_t					 hsv_h; // Hue (0-1535)
 		u8								 hsv_s; // Saturation (0-255)
 		u8								 hsv_v; // Value (0-255)
-		u8								 rb_r;
-		u8								 rb_b;
+		u8								 rb_r : 4;
+		u8								 rb_b : 4;
 
 		// Value-mapping range and physical rotation window - previously set
 		// via sysex (MF_SYSEX_PARAM_VMAP_RANGE/_POSITION) but never persisted,
 		// so it was lost on every reboot.
-		i8 range_lower;
-		i8 range_upper;
-		u8 position_start;
-		u8 position_stop;
+		i16 range_lower;
+		i16 range_upper;
+		u8	position_start;
+		u8	position_stop;
 	} vmap[NUM_VMAPS_PER_ENC];
 };
 
@@ -199,8 +199,8 @@ static int encode_encoder(const struct encoder*	 src,
 		dst->vmap[i].hsv_s = src->vmaps[i].hsv.saturation;
 		dst->vmap[i].hsv_v = src->vmaps[i].hsv.value;
 
-		dst->vmap[i].rb_r = src->vmaps[i].rb.red;
-		dst->vmap[i].rb_b = src->vmaps[i].rb.blue;
+		dst->vmap[i].rb_r = (u8)(src->vmaps[i].rb.red >> 4);
+		dst->vmap[i].rb_b = (u8)(src->vmaps[i].rb.blue >> 4);
 		encode_proto_cfg(&src->vmaps[i].cfg, &dst->vmap[i].cfg);
 
 		// Save the value-mapping range and physical rotation window
@@ -232,8 +232,8 @@ static int decode_encoder(const struct eeprom_encoder* src,
 		// Update RGB values from HSV values to ensure consistency
 		color_update_vmap_rgb(&dst->vmaps[i]);
 
-		dst->vmaps[i].rb.red	= src->vmap[i].rb_r;
-		dst->vmaps[i].rb.blue = src->vmap[i].rb_b;
+		dst->vmaps[i].rb.red	= (u8)((src->vmap[i].rb_r << 4) | src->vmap[i].rb_r);
+		dst->vmaps[i].rb.blue = (u8)((src->vmap[i].rb_b << 4) | src->vmap[i].rb_b);
 		decode_proto_cfg(&src->vmap[i].cfg, &dst->vmaps[i].cfg);
 
 		// Load the value-mapping range and physical rotation window
