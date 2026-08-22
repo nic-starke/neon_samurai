@@ -23,12 +23,9 @@
 #define ANIMATION_EVENT_QUEUE_SIZE 4
 
 // Frames across the bank-change fade. Finer than ANIMATION_MAX_FRAMES so the
-// ramp is smooth rather than stepped.
-#define ANIM_BANK_CHANGE_FRAMES		 32
-
-// A channel at or above this counts as already white, so the flash inverts to
-// off instead of being invisible.
-#define ANIM_WHITE_THRESHOLD			 200
+// ramp is smooth rather than stepped, and a multiple of three so the
+// off/white/off/colour segments divide evenly.
+#define ANIM_BANK_CHANGE_FRAMES		 33
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -48,12 +45,8 @@ struct animation_state {
 
 	union {
 		struct {
-			u8	 prev_bank;
-			u8	 new_bank;
-			u8	 orig_r;
-			u8	 orig_g;
-			u8	 orig_b;
-			bool to_off;
+			u8 prev_bank;
+			u8 new_bank;
 		} bank_change;
 	} data;
 };
@@ -213,17 +206,7 @@ int animation_start_bank_change(u8 prev_bank, u8 new_bank) {
 	anim->target_encoder						 = encoder_to_flash;
 	anim->data.bank_change.prev_bank = prev_bank;
 	anim->data.bank_change.new_bank	 = new_bank;
-
-	const struct encoder* enc = &gENCODERS[gRT.curr_bank][encoder_to_flash];
-	const struct virtmap* vm	= &enc->vmaps[enc->vmap_active];
-
-	anim->data.bank_change.orig_r = vm->rgb.red;
-	anim->data.bank_change.orig_g = vm->rgb.green;
-	anim->data.bank_change.orig_b = vm->rgb.blue;
-	anim->data.bank_change.to_off = (vm->rgb.red >= ANIM_WHITE_THRESHOLD) &&
-																	(vm->rgb.green >= ANIM_WHITE_THRESHOLD) &&
-																	(vm->rgb.blue >= ANIM_WHITE_THRESHOLD);
-	anim->active									= true;
+	anim->active										 = true;
 	anim->can_be_overridden = true; // Bank switch animations can be overridden
 	anim->overrides_same_type =
 			true; // Bank switch animations override other bank switch animations
@@ -333,25 +316,34 @@ static int draw_bank_change_animation(u8											encoder_idx,
 		frame = anim->total_frames;
 	}
 
-	// Triangle ramp - fully at the flash colour by the midpoint, back to the
-	// encoder's own colour by the end.
-	const u8 half = (u8)(anim->total_frames / 2u);
-	u8			 weight;
+	const struct encoder* enc = &gENCODERS[gRT.curr_bank][encoder_idx];
+	const struct virtmap* vm	= &enc->vmaps[enc->vmap_active];
 
-	if (half == 0) {
-		weight = 0;
-	} else if (frame <= half) {
-		weight = (u8)(((u16)frame * 255u) / half);
-	} else {
-		weight = (u8)(((u16)(anim->total_frames - frame) * 255u) /
-									(anim->total_frames - half));
+	const u8 segment = (u8)(anim->total_frames / 3u);
+	u8			 r;
+	u8			 g;
+	u8			 b;
+
+	if (segment == 0) {
+		return SUCCESS;
 	}
 
-	const u8 target = anim->data.bank_change.to_off ? 0 : MAX_BRIGHTNESS;
+	if (frame < segment) {
+		// Off to white.
+		r = g = b = (u8)(((u16)frame * MAX_BRIGHTNESS) / segment);
+	} else if (frame < (u8)(segment * 2u)) {
+		// White back to off.
+		const u8 w = (u8)(((u16)(frame - segment) * MAX_BRIGHTNESS) / segment);
+		r = g = b = (u8)(MAX_BRIGHTNESS - w);
+	} else {
+		// Off up to the encoder's own colour.
+		const u8 span = (u8)(anim->total_frames - (segment * 2u));
+		const u8 w = (u8)(((u16)(frame - (segment * 2u)) * MAX_BRIGHTNESS) / span);
 
-	u8 r = mix_channel(anim->data.bank_change.orig_r, target, weight);
-	u8 g = mix_channel(anim->data.bank_change.orig_g, target, weight);
-	u8 b = mix_channel(anim->data.bank_change.orig_b, target, weight);
+		r = mix_channel(0, vm->rgb.red, w);
+		g = mix_channel(0, vm->rgb.green, w);
+		b = mix_channel(0, vm->rgb.blue, w);
+	}
 
 	const u16 rgb_mask =
 			(u16) ~((1 << RGB_RED_BIT) | (1 << RGB_GREEN_BIT) | (1 << RGB_BLUE_BIT));
