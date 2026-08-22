@@ -53,7 +53,16 @@ jobs:
       matrix:
         build_type: [Debug, Release, RelWithDebInfo]
     steps:
+      # cmake/utils is a submodule (nic-starke/cmake-buildsystem) and the build
+      # cannot configure without it. Its URL in .gitmodules is an SSH one,
+      # which a runner has no key for, so it is rewritten to HTTPS first - the
+      # repository is public, so no credential is needed.
+      - name: Use HTTPS for submodules
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install AVR toolchain
         run: |
@@ -64,6 +73,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build/${{ matrix.build_type }} -G Ninja \
+            --toolchain=cmake/toolchain.cmake \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       # The firmware builds without diagnostics today. Treating a new one as a
@@ -99,7 +109,16 @@ jobs:
     name: static analysis
     runs-on: ubuntu-latest
     steps:
+      # cmake/utils is a submodule (nic-starke/cmake-buildsystem) and the build
+      # cannot configure without it. Its URL in .gitmodules is an SSH one,
+      # which a runner has no key for, so it is rewritten to HTTPS first - the
+      # repository is public, so no credential is needed.
+      - name: Use HTTPS for submodules
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -110,7 +129,9 @@ jobs:
       # The analyser needs the generated version header and the fetched LUFA
       # sources, both of which only exist once the firmware has been configured.
       - name: Configure firmware
-        run: cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release
+        run: |
+          cmake -S . -B build/Release -G Ninja \
+            --toolchain=cmake/toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 
       - name: Run clang static analyzer
         run: tools/analysis/run-analyzer.sh
@@ -121,10 +142,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pinned rather than taken from the distribution: the AlignConsecutive
+      # options behave differently between major versions, so an unpinned
+      # formatter disagrees with whatever the tree was last formatted with.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Install clang-format
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends clang-format
+        run: pip install 'clang-format==22.1.8'
 
       - name: Check formatting
         run: |

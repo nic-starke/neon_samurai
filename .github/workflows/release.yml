@@ -18,8 +18,13 @@ jobs:
     name: build and publish
     runs-on: ubuntu-latest
     steps:
+      # See the note in firmware.yml - cmake/utils is an SSH-URL submodule.
+      - name: Use HTTPS for submodules
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
       - uses: actions/checkout@v4
         with:
+          submodules: recursive
           ref: ${{ github.event.inputs.tag || github.ref }}
           # Release notes are assembled from the commits since the previous
           # tag, so the whole history has to be present.
@@ -55,7 +60,8 @@ jobs:
 
       - name: Build
         run: |
-          cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build/Release -G Ninja \
+            --toolchain=cmake/toolchain.cmake -DCMAKE_BUILD_TYPE=Release
           cmake --build build/Release
 
       - name: Collect artefacts
