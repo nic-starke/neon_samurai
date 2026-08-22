@@ -304,8 +304,20 @@ target_sources(neosam PRIVATE ${LUFA_SOURCES})
 # NEON SAMURAI Source Files
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# Add ENABLE_CONSOLE to the defines
-add_compile_definitions(neosam PRIVATE ENABLE_CONSOLE)
+# The USB CDC console (and the virtual serial transport behind it) is a
+# development aid only - Release builds omit it. Override with
+# -DENABLE_CONSOLE=ON/OFF at configure time.
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+	set(ENABLE_CONSOLE_DEFAULT OFF)
+else()
+	set(ENABLE_CONSOLE_DEFAULT ON)
+endif()
+
+option(ENABLE_CONSOLE "Build the USB CDC debug console" ${ENABLE_CONSOLE_DEFAULT})
+
+if(ENABLE_CONSOLE)
+	target_compile_definitions(neosam PRIVATE ENABLE_CONSOLE)
+endif()
 
 # Add post build commands for AVR-based platforms
 # See toolchain.cmake

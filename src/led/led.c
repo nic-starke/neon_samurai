@@ -26,11 +26,10 @@
 
 #define INDICATOR_MASK(n) (0x8000 >> ((n) - 1)) // Mask for indicator n (1-11)
 #define CENTER_INDICATOR	(6)
-
+#define CENTER_INDICATOR_MASK                                                  \
+INDICATOR_MASK(CENTER_INDICATOR) // Explicit mask for center
 // Minimum age of a pending update before it is drawn, in milliseconds.
 #define DISPLAY_UPDATE_MIN_MS (15)
-#define CENTER_INDICATOR_MASK                                                  \
-	INDICATOR_MASK(CENTER_INDICATOR) // Explicit mask for center
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
