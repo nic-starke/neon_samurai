@@ -102,9 +102,8 @@ piped into the task runner.
 
 ## Practical notes
 
-- Sign-off / co-author trailers: follow whatever the harness-level
-  instructions for this session say (e.g. appending a `Co-Authored-By`
-  trailer) — that's independent of this project-specific style guide.
+- Never sign-off or add a co-authored item, the commit must just be a
+  plainc commit message.
 - Don't commit or push unless the user asked for it. If working on `main`,
   branch first rather than committing straight to it.
 - Squash-merges from PRs in this history use `Squash merge <branch> into

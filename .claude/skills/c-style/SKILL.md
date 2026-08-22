@@ -125,3 +125,12 @@ memory-mapped I/O register — that's their whole purpose on this MCU.
   on nonobvious lines (see the `#include` block in console.c: `// Add ADC
   header for temperature reading`) rather than block comments restating
   what the code does. Match that density; don't over-comment.
+
+## Comments
+
+- Do not add comments regarding "changed" implementations, for example
+  if a factor changed in an algorithm, or the size of an array, or constant
+  which then impacts other parts of the code - these comments do not
+  provide anything meaningful. Do not add them.
+- In general, do not add comments, only add comments to explain complex
+  systems, designs, or modules.
