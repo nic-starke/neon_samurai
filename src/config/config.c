@@ -17,7 +17,9 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (u16)(15)
+#define EE_VERSION						(u16)(16)
+
+#define CFG_STORE_INTERVAL_MS (5000)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -166,8 +168,7 @@ int cfg_update(void) {
 	static uint32_t last_update = 0;
 	uint32_t				time_now		= systime_ms();
 
-	// Update every 1 second if something has changed
-	if ((time_now - last_update) > 5000) {
+	if ((time_now - last_update) > CFG_STORE_INTERVAL_MS) {
 		cfg_store();
 		last_update = time_now;
 	}
@@ -291,17 +292,9 @@ static int encode_proto_cfg(const struct proto_cfg* src,
 }
 
 static int init_eeprom(void) {
-	// Erase the eeprom
-	for (int i = 0; i < sizeof(struct eeprom); i++) {
-		eeprom_write_byte((uint8_t*)i, 0);
-	}
 
-	// Write the magic number
-	eeprom_write_word(&eeprom_data.version, EE_VERSION);
-
-	// Clear the reset pending flag
-	eeprom_write_byte(&eeprom_data.reset_pending,
-										0); // Use write_byte as EEPROM is already erased to 0xFF
+	eeprom_update_word(&eeprom_data.version, EE_VERSION);
+	eeprom_update_byte(&eeprom_data.reset_pending, 0);
 
 	// Write the initial state of the system to the eeprom
 	int ret = cfg_store();

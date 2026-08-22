@@ -83,7 +83,6 @@ static bool		 needs_prompt			 = true;
 static const char reset_command_name[] PROGMEM = "reset";
 static const char reset_command_help[] PROGMEM = "Resets the device";
 
-
 static const char bootloader_command_name[] PROGMEM = "bootloader";
 static const char bootloader_command_help[] PROGMEM =
 		"Reboot into DFU bootloader";
@@ -344,7 +343,7 @@ static void handle_help(const char* args __attribute__((unused))) {
 // New command handler for config reset
 static void handle_config_reset(const char* args __attribute__((unused))) {
 	console_puts_p(PSTR("Performing factory reset...\r\n"));
-	struct sys_event evt = {.type = EVT_SYS_REQ_CFG_RESET, .data = NULL};
+	struct sys_event evt = {.type = EVT_SYS_REQ_CFG_RESET, .data = {.ptr = NULL}};
 	event_post(EVENT_CHANNEL_SYS, &evt);
 }
 
@@ -555,9 +554,9 @@ static void handle_rng_seed(const char* args __attribute__((unused))) {
  * (0-1535)> <S (0-255)> <V (0-255)>
  */
 static void handle_set_vmap_hsv(const char* args) {
-	uint8_t	 bank, enc, vmap_idx;
-	uint16_t h;
-	uint8_t	 s, v;
+	uint8_t				 bank, enc, vmap_idx;
+	unsigned short h;
+	uint8_t				 s, v;
 
 	int parsed = sscanf(args, "%hhu %hhu %hhu %hu %hhu %hhu", &bank, &enc,
 											&vmap_idx, &h, &s, &v);

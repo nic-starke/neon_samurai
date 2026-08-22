@@ -5,14 +5,11 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Documentation ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#include <stdio.h>
-#include "console/console.h"
-#include "io/encoder.h"
-#include "event/event.h"
-#include "event/io.h"
-#include "system/time.h" // Include for systime_ms
 #include <stdint.h>
-#include <assert.h> // Include for assert
+#include <assert.h>
+
+#include "io/encoder.h"
+#include "system/time.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -35,9 +32,8 @@
 
 int encoder_movement_init(struct encoder_movement* enc) {
 	assert(enc);
-	enc->velocity		= 0;
-	enc->direction	= 0;
-	enc->accel_mode = 0;
+	enc->velocity	 = 0;
+	enc->direction = 0;
 
 	// Initialize time-based acceleration state
 	enc->last_update_time = systime_ms();
@@ -80,34 +76,16 @@ bool encoder_movement_update(struct encoder_movement* enc, int new_direction) {
 		current_accel_factor = FACTOR_BASE;
 	}
 
-	// Handle direction changes - Optional: Reset to base speed on change?
 	if (new_direction != enc->direction) {
 		enc->direction = (i8)new_direction;
-		// Option: uncomment below to force slow speed on direction change
-		// current_accel_factor = FACTOR_BASE;
 	}
 
 	// Store the decided factor
 	enc->accel_factor = current_accel_factor;
 
-	// Calculate velocity based on direction and the current acceleration factor
-	i16 base_velocity = enc->direction; // +1 or -1
-	enc->velocity			= base_velocity * enc->accel_factor;
+	// Signed, so the factor cannot be promoted to unsigned by the multiply.
+	enc->velocity = (i16)(enc->direction * (i16)enc->accel_factor);
 
-	// Apply velocity bounds
-	const i16 ENC_MAX_VELOCITY =
-			50; // Example max overall velocity change per update (adjust as needed)
-	if (enc->velocity > ENC_MAX_VELOCITY) {
-		enc->velocity = ENC_MAX_VELOCITY;
-	} else if (enc->velocity < -ENC_MAX_VELOCITY) {
-		enc->velocity = -ENC_MAX_VELOCITY;
-	}
-
-	// // Debug output
-	// static char buffer[40];
-	// snprintf(buffer, sizeof(buffer), "v:%d f:%u t:%lu d:%d\r\n", enc->velocity,
-	// 				 enc->accel_factor, time_delta, enc->direction);
-	// console_puts(buffer);
 	return true; // Encoder moved
 }
 
