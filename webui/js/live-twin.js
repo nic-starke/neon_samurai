@@ -203,16 +203,6 @@ function toast(kind, message) {
   setTimeout(() => t.remove(), 6000);
 }
 
-// Mirrors draw_bank_change_animation(): ease toward white, or toward off when
-// the encoder is already white, so the flash stays visible either way.
-function bankFadeCss(hsv, weight) {
-  const own = hsvToRgb(hsv.hue, hsv.sat, hsv.val);
-  const nearWhite = own.r >= 200 && own.g >= 200 && own.b >= 200;
-  const target = nearWhite ? 0 : 255;
-  const mix = (c) => Math.round(c + (target - c) * weight);
-  return `rgb(${mix(own.r)}, ${mix(own.g)}, ${mix(own.b)})`;
-}
-
 function visualPositionToFirmwareIndex(position) {
   return NUM_ENCODERS - 1 - position;
 }
@@ -272,11 +262,13 @@ function encoderPropsFor(position) {
     detent: enc.detent,
   };
 
-  const fadeWeight = bankFade.weight(i);
-  const rgbColor =
-    fadeWeight > 0
-      ? bankFadeCss(activeVmap.hsv, fadeWeight)
-      : hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val);
+  const faded = bankFade.sample(
+    i,
+    hsvToRgb(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val)
+  );
+  const rgbColor = faded
+    ? `rgb(${faded.r}, ${faded.g}, ${faded.b})`
+    : hsvToCss(activeVmap.hsv.hue, activeVmap.hsv.sat, activeVmap.hsv.val);
 
   return {
     ...ENCODER_GEOMETRY_PROPS,

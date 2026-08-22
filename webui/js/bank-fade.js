@@ -1,14 +1,14 @@
 // Reproduces the firmware's bank-change RGB fade (see
-// draw_bank_change_animation() in src/animation/animation.c): the target
-// encoder's RGB LED eases from its own colour to white and back over 250ms,
-// or to off instead when it is already white.
+// draw_bank_change_animation() in src/animation/animation.c): over 250ms the
+// target encoder's RGB LED runs off -> white -> off -> its own colour, in
+// three equal segments.
 //
 // Bank 0/1/2/3 map to firmware encoder index 3/2/1/0 (animation_start_bank_
 // change()) - neither vmap indexing nor visual grid position; live-twin.js
 // maps firmware index to visual position itself.
 //
 // The old implementation strobed white/off at ~16Hz, inside the range
-// associated with photosensitive seizures. A single 250ms ease is not a
+// associated with photosensitive seizures. A single 250ms sweep is not a
 // strobe, but reduced-motion is still honoured: the bank changes with no
 // transition at all.
 
@@ -70,12 +70,31 @@ export class BankFade {
     );
   }
 
-  // Triangle ramp matching the firmware's: 0 at both ends, 1 at the midpoint.
-  // 0 = the encoder's own colour, 1 = fully at the flash colour.
-  weight(firmwareEncoderIndex) {
-    if (!this.isFading(firmwareEncoderIndex)) return 0;
+  // Mirrors draw_bank_change_animation()'s three segments. Returns the RGB to
+  // show mid-fade, or null when this encoder is not fading.
+  sample(firmwareEncoderIndex, own) {
+    if (!this.isFading(firmwareEncoderIndex)) return null;
+
     const t = (performance.now() - this._startedAt) / DURATION_MS;
-    if (t <= 0 || t >= 1) return 0;
-    return t <= 0.5 ? t * 2 : (1 - t) * 2;
+    if (t <= 0 || t >= 1) return null;
+
+    const segment = 1 / 3;
+
+    if (t < segment) {
+      const w = Math.round((t / segment) * 255);
+      return { r: w, g: w, b: w };
+    }
+
+    if (t < 2 * segment) {
+      const w = Math.round((1 - (t - segment) / segment) * 255);
+      return { r: w, g: w, b: w };
+    }
+
+    const w = (t - 2 * segment) / segment;
+    return {
+      r: Math.round(own.r * w),
+      g: Math.round(own.g * w),
+      b: Math.round(own.b * w),
+    };
   }
 }
