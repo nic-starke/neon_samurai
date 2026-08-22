@@ -20,7 +20,7 @@
 void bootloader_check(void) __attribute__((used));
 
 /**
- * @brief Restarts the AVR and enters the bootloader.
+ * @brief Restarts the AVR and enters the bootloader. Does not return.
  */
-void bootloader_start(void);
+__attribute__((noreturn)) void bootloader_start(void);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

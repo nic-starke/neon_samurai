@@ -7,8 +7,10 @@
 
 #include <avr/io.h>
 #include <avr/wdt.h>
+#include <avr/pgmspace.h>
 
 #include "hal/boot.h"
+#include "hal/sys.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -46,6 +48,14 @@ void bootloader_check(void) {
 		// rather than leaving WDRF set for every subsequent boot.
 		RST.STATUS = RST_WDRF_bm;
 
+		// An erased boot section reads back as 0xFFFF. Jumping into it executes
+		// erased flash until the program counter wraps, which presents as the
+		// device hanging with no LEDs rather than as a missing bootloader, so
+		// fall through to the application instead.
+		if (pgm_read_word_far((uint32_t)BOOTLOADER_VECTOR * 2) == 0xFFFF) {
+			return;
+		}
+
 		/**
 		 * Copied from the GCC AVR options documentation -
 		 * https://gcc.gnu.org/onlinedocs/gcc-6.3.0/gcc/AVR-Options.html In
@@ -60,16 +70,12 @@ void bootloader_check(void) {
 }
 
 /*
-	This function starts the watchdog timer and then enters an infinite loop.
-	The watchdog timer will reset the AVR after 30ms as the system did not
-	"pet the dog". The bootloader_check function will then be called during
-	the system startup (after reset), and because the bootkey was set to
-	the required value, the bootloader will be executed.
+	Sets the key and resets. bootloader_check() runs from .init3 on the way back
+	up, sees the key plus the watchdog reset flag, and jumps to the bootloader.
 */
 void bootloader_start(void) {
 	boot_key = BOOTKEY;
-	wdt_enable(WDTO_30MS);
-	while (1) {}
+	hal_system_reset();
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
