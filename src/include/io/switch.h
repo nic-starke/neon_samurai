@@ -21,9 +21,6 @@
 			3. Call the switch_xN_state functions to get the state of the
 	 switch(es).
 
-
-	Note - The debounce should not be called every time you poll, that is a
-	 waste of cpu time.
 */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -47,7 +44,7 @@ struct switch_x8_ctx {
 	u8 index;												 // current buffer index
 	u8 current;											 // states bitfield (private)
 	u8 previous;										 // states bitfield (private)
-	u8 raw;													 // switch states bitfield (private)
+	u8 changed;											 // bits that moved on the last debounce
 };
 
 struct switch_x16_ctx {
@@ -55,7 +52,7 @@ struct switch_x16_ctx {
 	u8	index;												// current buffer index
 	u16 current;											// states bitfield (private)
 	u16 previous;											// states bitfield (private)
-	u16 raw;													// switch states bitfield (private)
+	u16 changed;											// bits that moved on the last debounce
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

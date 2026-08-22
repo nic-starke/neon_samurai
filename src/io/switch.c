@@ -8,7 +8,6 @@
 
 #include "io/switch.h"
 #include "system/types.h"
-#include "event/io.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -19,11 +18,11 @@
 
 // Get the state of a single switch
 enum switch_state switch_x16_state(struct switch_x16_ctx* ctx, u8 index) {
-	return (ctx->current & (1u << index));
+	return (ctx->current & (1u << index)) ? SWITCH_PRESSED : SWITCH_IDLE;
 }
 
 enum switch_state switch_x8_state(struct switch_x8_ctx* ctx, u8 index) {
-	return (ctx->current & (1u << index));
+	return (ctx->current & (1u << index)) ? SWITCH_PRESSED : SWITCH_IDLE;
 }
 
 // Get the state of all switches as a bitfield
@@ -36,51 +35,57 @@ u8 switch_x8_states(struct switch_x8_ctx* ctx) {
 }
 
 inline bool switchx16_was_pressed(struct switch_x16_ctx* ctx, u8 index) {
-	return (ctx->raw & ctx->current) & (1u << index);
+	return (ctx->changed & ctx->current) & (1u << index);
 }
 
 inline bool switchx16_was_released(struct switch_x16_ctx* ctx, u8 index) {
-	return (ctx->raw & ~ctx->current) & (1u << index);
+	return (ctx->changed & ~ctx->current) & (1u << index);
 }
 
 inline bool switchx8_was_pressed(struct switch_x8_ctx* ctx, u8 index) {
-	return (ctx->raw & ctx->current) & (1u << index);
+	return (ctx->changed & ctx->current) & (1u << index);
 }
 
 inline bool switchx8_was_released(struct switch_x8_ctx* ctx, u8 index) {
-	return (ctx->raw & ~ctx->current) & (1u << index);
+	return (ctx->changed & ~ctx->current) & (1u << index);
 }
 
-// Debounce algorithm for 8 switches (call before checking switch state)
+/*
+	A switch only changes state once every buffered sample agrees on the new
+	level - all-ones to set, all-zeroes to clear - and holds its previous level
+	while the samples disagree. Filtering both edges the same way means a lone
+	noise sample cannot fake a release while a switch is held down.
+*/
 void switch_x8_debounce(struct switch_x8_ctx* ctx) {
-	// Store the current state
-	ctx->previous = ctx->current;
-	ctx->current	= 0xFF;
+	u8 all = 0xFF;
+	u8 any = 0x00;
 
-	// AND the new state with EVERY debounce sample, if there was a glitch
-	// then the state of the switch will revert to 0.
 	for (int i = 0; i < SWITCH_DEBOUNCE_SAMPLES; ++i) {
-		ctx->current &= ctx->buf[i];
+		all &= ctx->buf[i];
+		any |= ctx->buf[i];
 	}
 
-	// Set the raw states to XOR of new and old
-	ctx->raw = ctx->current ^ ctx->previous;
+	const u8 held = ctx->current;
+
+	ctx->previous = held;
+	ctx->current	= (u8)((held & any) | all);
+	ctx->changed	= (u8)(ctx->current ^ ctx->previous);
 }
 
-// Debounce algorithm for 16 switches
 void switch_x16_debounce(struct switch_x16_ctx* ctx) {
-	// Store the current state
-	ctx->previous = ctx->current;
-	ctx->current	= 0xFFFF;
+	u16 all = 0xFFFF;
+	u16 any = 0x0000;
 
-	// AND the new state with EVERY debounce sample, if there was a glitch
-	// then the state of the switch will revert to 0.
 	for (int i = 0; i < SWITCH_DEBOUNCE_SAMPLES; ++i) {
-		ctx->current &= ctx->buf[i];
+		all &= ctx->buf[i];
+		any |= ctx->buf[i];
 	}
 
-	// Set the raw states to XOR of new and old
-	ctx->raw = ctx->current ^ ctx->previous;
+	const u16 held = ctx->current;
+
+	ctx->previous = held;
+	ctx->current	= (u16)((held & any) | all);
+	ctx->changed	= (u16)(ctx->current ^ ctx->previous);
 }
 
 void switch_x8_update(struct switch_x8_ctx* ctx, u8 gpio_state) {
@@ -104,31 +109,3 @@ void switch_x16_update(struct switch_x16_ctx* ctx, u16 gpio_state) {
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#if 0
-
-/**
- * @brief Check if a side switch was pressed.
- * This can check all side switches, or a specific set by using a mask.
- * @param Mask - Can be used to mask which side switch to check
- * @return u8 A bitfield of the current side switch states. Note - there
- * are only 6 side switches.
- */
-u8 SideSwitchWasPressed(u8 Mask) {
-  return (mSideSwitchStates.raw_state & mSideSwitchStates.debounces_states) &
-		 Mask;
-}
-
-/**
- * @brief Check if a side switch was released.
- * This can check all side switches, or a specific set by using a mask.
- * @param Mask - Can be used to mask which side switch to check
- * @return u8 A bitfield of the current side switch states. Note - there
- * are only 6 side switches.
- */
-u8 SideSwitchWasReleased(u8 Mask) {
-  return (mSideSwitchStates.raw_state & (~mSideSwitchStates.debounces_states)) &
-		 Mask;
-}
-
-#endif

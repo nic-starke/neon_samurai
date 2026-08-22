@@ -480,8 +480,6 @@ static int midi_in_handler(void* evt) {
 }
 
 static void sw_side_switch_init(void) {
-	// Initialize side switches with their default modes
-	// 0 is bottom left, increasing in clockwise direction
 	gSIDE_SWITCHES[1].mode = SIDE_SW_MODE_BANK_PREV;
 	gSIDE_SWITCHES[4].mode = SIDE_SW_MODE_BANK_NEXT;
 
