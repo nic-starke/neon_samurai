@@ -15,12 +15,14 @@
 			1. Poll the state of your switches and then add them to a bitfield.
 	 Then call the switch_xN_update() function and pass in the bitfield.
 
-			2. Call the debounce function once before you attempt to read the
-	 state of the switches.
+			2. Call the switch_xN_state functions to get the state of the
+	 switch(es), or switchxN_was_pressed/_was_released for the edges.
 
-			3. Call the switch_xN_state functions to get the state of the
-	 switch(es).
-
+	switch_xN_update() debounces the sample it is given, so there is no separate
+	debounce step to call. The switch_xN_debounce() functions are what it uses
+	to do that, and calling one directly after an update recomputes the edge
+	flags against the already-settled level, which discards them - a press or
+	release that happened on that update is then never reported.
 */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

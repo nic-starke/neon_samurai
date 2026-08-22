@@ -11,7 +11,7 @@
     <a href="#before-you-flash">Before You Flash</a> -
     <a href="#building">Building</a> -
     <a href="#flashing">Flashing</a> -
-    <a href="#wiki">Wiki</a> -
+    <a href="#documentation">Documentation</a> -
     <a href="#contributing">Contributing</a>
   </h4>
 
@@ -59,7 +59,7 @@ KEY:
 
 > **Warning:** Make sure your device has a working recovery path before
 > flashing custom firmware. NEON_SAMURAI can enter the bootloader via the
-> four-corner encoder gesture or the `bootloader` console command, but both
+> top-left encoder gesture or the `bootloader` console command, but both
 > depend on the ATxmega's boot section already containing a working DFU
 > bootloader. If that section is blank neither path works and the device requires a PDI
 > programmer (e.g. a JTAGICE3) to recover. See
@@ -69,7 +69,10 @@ KEY:
 
 ## Download
 
-Currently there are no releases available - "watch" the project for notification of future releases.
+Releases are published on the
+[releases page](https://github.com/nic-starke/neon_samurai/releases), each
+with a `.hex` to flash and a checksum. See the manual's
+[Installing](docs/manual/02-installing.md) page before you flash anything.
 
 ## Building
 
@@ -93,16 +96,50 @@ the bootloader itself, which is a separate, one-time operation per device.
 
 ### Configuring
 
-Coming soon.
+Settings are changed from the browser editor in [webui/](webui/README.md),
+which talks to the device over Web MIDI. It needs Chrome or Edge - Firefox
+does not implement Web MIDI.
 
-## Wiki
+## Documentation
 
-- [Wiki index](docs/index.md)
-- [Features](wiki/Features.md)
-- [Installation Guide](wiki/InstallationGuide.md)
-- [User Manual](wiki/UserManual.md)
-- [Technical](wiki/Technical.md)
-- [Bootloader Recovery](wiki/BootloaderRecovery.md)
+The **[user manual](docs/manual/)** is the place to start if you are using
+the device rather than working on the firmware. It is published as a site
+alongside the browser editor, and the same text appears as contextual help
+inside the editor itself - both are generated from `docs/manual/` by
+`tools/docs/build_manual.py`, so there is only ever one copy of it.
+
+To build and read it locally:
+
+```sh
+pip install markdown pyyaml
+python3 tools/docs/build_manual.py
+python3 -m http.server 8420        # then open site/index.html
+```
+
+Developer-facing notes live separately:
+
+- [Technical](wiki/Technical.md) - bootloader, memory layout
+- [Bootloader Recovery](wiki/BootloaderRecovery.md) - recovering a unit with a blank boot section
+- [XMega128A4U specs](wiki/XMega128A4U_Specs.md)
+- [Code structure](docs/Code%20Structure.md)
+
+## Testing
+
+```sh
+cmake -S tests/unit -B build/tests && cmake --build build/tests
+ctest --test-dir build/tests --output-on-failure
+```
+
+The unit suite builds the hardware-independent modules for the host with
+ASan and UBSan enabled. Hardware-in-the-loop tests, which need a real
+device attached, live in [tests/robot](tests/robot/README.md) and are run
+by hand rather than in CI.
+
+Static analysis:
+
+```sh
+tools/analysis/run-analyzer.sh
+```
 
 ## Contributing
 

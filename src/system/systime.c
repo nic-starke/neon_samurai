@@ -7,6 +7,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 
 #include "system/time.h"
 #include "system/print.h"
@@ -45,7 +46,22 @@ int systime_start(void) {
 }
 
 u32 systime_ms(void) {
-	return thetime;
+	/*
+		The counter is four bytes and the AVR loads one byte at a time, so a read
+		can be interrupted partway through by the tick below and come back with
+		bytes from either side of an increment. That is not a rounding error: a
+		carry out of the low byte read at the wrong moment shifts the result by
+		256 ms, and a value that appears to move backwards makes an unsigned
+		elapsed-time subtraction wrap to something enormous - enough to trip a
+		periodic settings write and put a needless erase cycle on the EEPROM.
+	*/
+	u32 now;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		now = thetime;
+	}
+
+	return now;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

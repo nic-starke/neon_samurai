@@ -12,7 +12,6 @@
 #include "system/error.h"
 #include "system/time.h"
 #include "system/hardware.h"
-#include "system/error.h"
 #include "led/led.h" // Added to access RGB bit definitions
 
 #include "event/event.h"

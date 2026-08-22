@@ -16,6 +16,7 @@
 #include "io/encoder.h"
 #include "led/led.h"
 #include "system/config.h"
+#include "system/diag.h"
 #include "system/error.h"
 #include "system/hardware.h"
 #include "system/time.h"
@@ -175,7 +176,7 @@ void display_update(void) {
 
 		if (enc->update_display != 0 &&
 				(time_now - enc->update_display) > DISPLAY_UPDATE_MIN_MS) {
-			mf_draw_encoder(enc);
+			DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 			enc->update_display = 0;
 		}
 
@@ -183,7 +184,9 @@ void display_update(void) {
 		// indicator ring stays live underneath and the rest of the panel keeps
 		// updating while one encoder is animating.
 		if (anim_active) {
-			animation_draw_encoder(e);
+			// ERR_NO_ANIMATION here just means this encoder had nothing to
+			// overlay, which is the usual case rather than a fault.
+			(void)animation_draw_encoder(e);
 		}
 	}
 }

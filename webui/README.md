@@ -172,7 +172,7 @@ webui/
                         (knob position, active vmap, active bank) - see
                         "How live tracking works" above
     encoder-signature.js - props -> short string, for the render diff
-    bank-flicker.js      - reproduces the firmware's bank-change LED
+    bank-fade.js         - reproduces the firmware's bank-change LED
                         flicker; suppressed under prefers-reduced-motion
     color.js              - HSV->RGB matching the firmware's color model
                          (src/led/hsv2rgb.c, src/led/color.c) - distinct

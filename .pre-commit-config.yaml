@@ -1,5 +1,5 @@
 fail_fast: false
-exclude: ^.devcontainer/|^.vscode/
+exclude: ^.devcontainer/|^.vscode/|^docs/other/
 repos:
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5

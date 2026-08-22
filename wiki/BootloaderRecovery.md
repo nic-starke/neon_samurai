@@ -1,7 +1,7 @@
 # Bootloader Recovery
 
 This page covers what to do if your device has no working DFU bootloader -
-the four-corner gesture and the `bootloader` console command both reset the
+the bootloader encoder gesture and the `bootloader` console command both reset the
 device instead of entering DFU mode, and there is no other software path
 back in.
 
@@ -44,7 +44,7 @@ device - there is no way to write the boot section over USB alone.
    section via `avrdude`. It does not touch the application section - your
    existing NEON_SAMURAI firmware is left as-is.
 3. Power-cycle the device.
-4. Test recovery: try the four-corner gesture or the `bootloader` console
+4. Test recovery: try the bootloader encoder gesture or the `bootloader` console
    command. The device should now enumerate as a DFU device and show the
    checkerboard LED pattern.
 

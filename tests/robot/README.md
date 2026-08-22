@@ -35,15 +35,31 @@ tests/robot/.venv/bin/python3 -m robot --outputdir tests/robot/results \
 ```
 
 This is fully automated, including device resets - no manual intervention
-needed. Suite Setup factory-resets the device (`Factory Reset Device`, over
-sysex - see below) before the first test runs, so every run starts from the
-same known state regardless of what a previous run or manual poking left
-behind. Individual tests that need a reboot mid-test (persistence, factory
-reset itself) trigger and reconnect automatically too. Expect the full run
-to take a few minutes - each factory reset alone can take up to ~30s (see
-`init_eeprom()`'s byte-by-byte EEPROM erase in `config.c`), and this suite
-triggers three resets total (one at Suite Setup, one each in `Vmap Range
-Survives Device Reset` and `Factory Reset Restores Defaults`).
+needed.
+
+**The suite leaves the device as it found it.** Suite Setup reads the whole
+configuration off the device before writing anything, and Suite Teardown
+writes it back and waits for the device to flush it to EEPROM. Teardown runs
+even when a test has failed, which is when it matters most. Two tests here
+factory-reset the device, so without the backup a run would destroy whatever
+the owner had configured.
+
+Each test also puts the bank/encoder/vmap elements it writes to into a fixed
+baseline before and after itself, so a value left behind by an earlier test
+cannot stand in for one the current test was supposed to write. That baseline
+is deliberately *not* the firmware's own defaults - otherwise
+`Factory Reset Restores Defaults` could not tell a real reset from the
+baseline.
+
+Individual tests that need a reboot mid-test (persistence, factory reset
+itself) trigger and reconnect automatically too.
+
+Expect the full run to take a couple of minutes. Most of that is the
+deliberate 6s waits in the persistence tests, which have to outlast
+`cfg_update()`'s 5s autosave window before resetting the device. Factory
+reset itself is quick now - it writes whole EEPROM pages and skips pages
+whose contents already match, rather than erasing byte by byte as an
+earlier version did.
 
 Results (`log.html`/`report.html`) land in `tests/robot/results/` (gitignored).
 
@@ -98,6 +114,31 @@ tests/robot/
   suites/
     sysex_protocol.robot - the actual test cases
 ```
+
+## What is covered
+
+The suite exercises the sysex protocol itself - GET/SET round trips, bounds
+checking, and persistence across a reboot - across all four banks. Notable
+cases:
+
+- every bank is separately addressable, and settings in all of them survive
+  a reset, which is where an off-by-one in the EEPROM layout shows up
+- range values above 127 round-trip intact, covering the two-byte packing
+  high-resolution CC needs
+- a descending range stays descending rather than being sorted
+- a zero-width range can be stored and leaves the device answering, which is
+  the observable half of the divide-by-zero guard in `convert_range_i16()`
+
+### A note on library scope
+
+`NeonSamuraiLibrary` is declared `@library(scope="SUITE")`. Robot instantiates
+a library once per test case by default, which would throw away the connection
+opened in Suite Setup and leave every test reporting "Not connected". If you
+see that, check the decorator is on the class and not on something above it.
+
+These are not run in CI - they need a real device attached. The host unit
+tests in `tests/unit/` cover the hardware-independent logic and are run on
+every push.
 
 ## Adding a new test
 

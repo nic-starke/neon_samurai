@@ -15,6 +15,7 @@
 #include "led/color.h"	// Add color header for HSV functions
 #include "system/rng.h" // Add RNG header for accessing seed value
 #include "system/hardware.h"
+#include "system/diag.h"
 #include "usb/usb.h"
 
 #include <LUFA/Drivers/USB/Class/Device/CDCClassDevice.h>
@@ -70,6 +71,7 @@ static void handle_signature(const char* args);
 static void handle_temperature(const char* args);
 static void handle_rng_seed(const char* args); // New RNG seed command handler
 static void handle_set_vmap_hsv(const char* args);
+static void handle_diag(const char* args);
 
 static int console_sys_event_handler(void* event);
 
@@ -107,6 +109,22 @@ static const char rng_seed_command_name[] PROGMEM = "rngseed";
 static const char rng_seed_command_help[] PROGMEM =
 		"Displays the current random number generator seed value";
 
+static const char diag_name_events[] PROGMEM	 = "events lost";
+static const char diag_name_redraws[] PROGMEM	 = "redraws lost";
+static const char diag_name_midi[] PROGMEM		 = "midi tx lost";
+static const char diag_name_settings[] PROGMEM = "settings lost";
+
+static const char* const diag_names[DIAG_NB] PROGMEM = {
+		diag_name_events,
+		diag_name_redraws,
+		diag_name_midi,
+		diag_name_settings,
+};
+
+static const char diag_command_name[] PROGMEM = "diag";
+static const char diag_command_help[] PROGMEM =
+		"Shows the fault counters, or 'diag reset' to clear them";
+
 // New command definitions for HSV color system
 static const char set_vmap_hsv_name[] PROGMEM = "set_vmap_hsv";
 static const char set_vmap_hsv_help[] PROGMEM =
@@ -138,6 +156,9 @@ static const console_command_t commands[] PROGMEM = {
 		{.name			= set_vmap_hsv_name,
 		 .handler		= handle_set_vmap_hsv,
 		 .help_text = set_vmap_hsv_help},
+		{.name			= diag_command_name,
+		 .handler		= handle_diag,
+		 .help_text = diag_command_help},
 };
 
 static const uint8_t num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -156,7 +177,11 @@ void console_init(void) {
 	line_buffer[0]		= '\0';
 	needs_prompt			= true;
 	// Subscribe to system events
-	event_channel_subscribe(EVENT_CHANNEL_SYS, &console_sys_evt_handler_def);
+	// The console is a development aid - if it cannot listen for system events
+	// it simply reports less, which is not worth stopping the device for.
+	DIAG_ON_ERR(
+			event_channel_subscribe(EVENT_CHANNEL_SYS, &console_sys_evt_handler_def),
+			DIAG_EVENT_DROPPED);
 }
 
 void console_update(void) {
@@ -348,7 +373,7 @@ static void handle_help(const char* args __attribute__((unused))) {
 static void handle_config_reset(const char* args __attribute__((unused))) {
 	console_puts_p(PSTR("Performing factory reset...\r\n"));
 	struct sys_event evt = {.type = EVT_SYS_REQ_CFG_RESET, .data = {.ptr = NULL}};
-	event_post(EVENT_CHANNEL_SYS, &evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_SYS, &evt), DIAG_EVENT_DROPPED);
 }
 
 // New command handler for signature row display
@@ -537,6 +562,31 @@ static void handle_temperature(const char* args __attribute__((unused))) {
  *
  * @param args Command arguments (unused)
  */
+static void handle_diag(const char* args) {
+	char buffer[CONSOLE_LINE_BUFFER_SIZE];
+	char name[16];
+
+	if (args != NULL && strcmp(args, "reset") == 0) {
+		diag_reset();
+		console_puts_p(PSTR("Fault counters cleared\r\n"));
+		return;
+	}
+
+	if (diag_total() == 0) {
+		console_puts_p(PSTR("No faults recorded\r\n"));
+		return;
+	}
+
+	for (u8 i = 0; i < (u8)DIAG_NB; i++) {
+		strncpy_P(name, (PGM_P)pgm_read_word(&diag_names[i]), sizeof(name));
+		name[sizeof(name) - 1] = '\0';
+
+		snprintf_P(buffer, sizeof(buffer), PSTR("  %-14s %u\r\n"), name,
+							 diag_get((enum diag_counter)i));
+		console_puts(buffer);
+	}
+}
+
 static void handle_rng_seed(const char* args __attribute__((unused))) {
 	char buffer[CONSOLE_LINE_BUFFER_SIZE];
 

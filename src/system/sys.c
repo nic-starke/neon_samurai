@@ -10,6 +10,7 @@
 #include "event/sys.h"
 #include "console/console.h"
 #include "system/hardware.h"
+#include "system/diag.h"
 #include "hal/sys.h" // Include header for sys_reset
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -56,13 +57,16 @@ static int event_handler(void* event) {
 			// event would never be drained and the response never sent.
 			struct sys_event res_evt = {.type			= EVT_SYS_RES_CFG_RESET,
 																	.data.ret = true};
-			event_post_rt(EVENT_CHANNEL_SYS, &res_evt);
+			DIAG_ON_ERR(event_post_rt(EVENT_CHANNEL_SYS, &res_evt),
+									DIAG_EVENT_DROPPED);
 
 			// Set the reset flag in EEPROM
-			mf_cfg_reset();
+			int ret = mf_cfg_reset();
 
-			// Code should not reach here after reset
-			return SUCCESS;
+			// mf_cfg_reset() resets the device, so reaching this point means the
+			// settings were never cleared and the host is owed the failure.
+			diag_count(DIAG_CFG_STORE_FAILED);
+			return (ret == SUCCESS) ? ERR_UNSUPPORTED : ret;
 		}
 
 		default: return ERR_BAD_PARAM;

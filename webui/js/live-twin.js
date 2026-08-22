@@ -14,6 +14,7 @@ import { LivePushTracker } from "./live-tracker.js";
 import { encoderSignature } from "./encoder-signature.js";
 import { BankFade } from "./bank-fade.js";
 import { GEOMETRY } from "../design-system/geometry.js";
+import { loadManual, helpIcon } from "../design-system/components/help.js";
 import {
   buildDeviceChassis,
   buildEncoder,
@@ -65,6 +66,10 @@ function init() {
   bankFade.onFrame = scheduleRender;
   buildChassisOnce();
   renderBankSelector();
+
+  // The manual is fetched rather than bundled, so the page is usable before
+  // it arrives - the help icons simply appear once it has.
+  loadManual().then(renderBankSelector);
 }
 
 function scheduleRender() {
@@ -329,7 +334,8 @@ function renderBankSelector() {
       active: viewingBank,
       pending: pendingBank,
       onSelect: connected ? switchBank : undefined,
-    })
+    }),
+    helpIcon("switching-bank")
   );
 }
 

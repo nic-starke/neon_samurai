@@ -14,6 +14,7 @@
 #include "event/event.h"
 #include "event/sys.h"
 #include "system/error.h"
+#include "system/diag.h"
 #include "system/hardware.h"
 #include "system/time.h"
 
@@ -178,7 +179,7 @@ int cfg_update(void) {
 	uint32_t				time_now		= systime_ms();
 
 	if ((time_now - last_update) > CFG_STORE_INTERVAL_MS) {
-		cfg_store();
+		DIAG_ON_ERR(cfg_store(), DIAG_CFG_STORE_FAILED);
 		last_update = time_now;
 	}
 
@@ -316,6 +317,6 @@ static int init_eeprom(void) {
 
 	// Send EVT_SYS_RES_CFG_RESET event
 	struct sys_event evt = {.type = EVT_SYS_RES_CFG_RESET, .data.ret = ret};
-	event_post(EVENT_CHANNEL_SYS, &evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_SYS, &evt), DIAG_EVENT_DROPPED);
 	return ret;
 }

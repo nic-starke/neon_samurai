@@ -4,20 +4,21 @@ Documentation     Hardware-in-the-loop tests for the neon_samurai sysex
 ...               real device connected and enumerated as a MIDI port -
 ...               these are not mocked, by design; see tests/robot/README.md.
 ...
-...               Suite Setup factory-resets the device (MF_SYSEX_PARAM_CONFIG_RESET)
-...               so every run starts from the same known state regardless of
-...               what a previous run (or manual poking) left behind, rather
-...               than tests silently depending on incidental leftover state.
-...               This runs once per suite, not per test - individual test
-...               cases already set every value they assert on rather than
-...               relying on the factory-reset defaults directly (except
-...               "Factory Reset Restores Defaults", which tests the reset
-...               itself), so per-test isolation doesn't require repeating
-...               the ~30s factory-reset EEPROM rewrite for every test case.
+...               Suite Setup reads the device's entire configuration and
+...               Suite Teardown writes it back, so a run leaves the device as
+...               it found it. Two tests here factory-reset the device, which
+...               would otherwise destroy whatever the owner had configured.
+...
+...               Every test starts and ends by putting the bank/encoder/vmap
+...               elements it writes to into a fixed baseline, so a value left
+...               behind by an earlier test cannot stand in for one this test
+...               was supposed to write.
 Library           ../lib/NeonSamuraiLibrary.py
 Library           Collections
-Suite Setup       Start With Known Good State
-Suite Teardown    Disconnect From Device
+Suite Setup       Begin Test Session
+Suite Teardown    End Test Session
+Test Setup        Set Elements Under Test To Baseline
+Test Teardown     Set Elements Under Test To Baseline
 
 *** Variables ***
 ${BANK}           0
@@ -25,9 +26,20 @@ ${ENCODER}        0
 ${VMAP}           0
 
 *** Keywords ***
-Start With Known Good State
+Begin Test Session
+    [Documentation]    Reads the device's whole configuration before anything
+    ...    is written to it. Two tests in this suite factory-reset the device,
+    ...    so without this a run would destroy whatever the owner had set up
+    ...    and leave the suite's own scratch values behind.
     Connect To Device
-    Factory Reset Device
+    Back Up Device Config
+
+End Test Session
+    [Documentation]    Puts the backed-up configuration back and waits for the
+    ...    device to flush it to EEPROM. Runs even when a test has failed,
+    ...    which is exactly when it matters most.
+    Restore Device Config
+    Disconnect From Device
 
 *** Test Cases ***
 Device Info Reports Expected Hardware Capability
@@ -36,7 +48,7 @@ Device Info Reports Expected Hardware Capability
     ...    which the web GUI uses to self-configure instead of hardcoding.
     ${info}=    Get Device Info
     Should Be Equal As Integers    ${info}[num_encoders]    16
-    Should Be Equal As Integers    ${info}[num_banks]    3
+    Should Be Equal As Integers    ${info}[num_banks]    4
     Should Be Equal As Integers    ${info}[num_vmaps_per_encoder]    2
     Should Be Equal As Integers    ${info}[num_side_switches]    6
 
@@ -147,3 +159,94 @@ Out Of Range Active Bank Is Rejected
     ...    allowed through.
     ${bad_payload}=    Build Active Bank Payload    99
     Expect No Response    SET    ACTIVE_BANK    ${bad_payload}
+
+Every Bank Is Independently Addressable
+    [Documentation]    The fourth bank was added after this suite was first
+    ...    written, and a bank that is counted by the device-info reply but
+    ...    not actually reachable would look identical from the outside. Writes
+    ...    a distinct value to the same encoder in every bank, then reads them
+    ...    all back - which fails both if a bank is unreachable and if two
+    ...    banks alias onto the same storage.
+    ${info}=    Get Device Info
+    FOR    ${bank}    IN RANGE    ${info}[num_banks]
+        ${lower}=    Evaluate    10 + ${bank}
+        ${upper}=    Evaluate    100 + ${bank}
+        Set Vmap Range    ${bank}    ${ENCODER}    ${VMAP}    ${lower}    ${upper}
+    END
+
+    FOR    ${bank}    IN RANGE    ${info}[num_banks]
+        ${lower}    ${upper}=    Get Vmap Range    ${bank}    ${ENCODER}    ${VMAP}
+        ${want_lower}=    Evaluate    10 + ${bank}
+        ${want_upper}=    Evaluate    100 + ${bank}
+        Should Be Equal As Integers    ${lower}    ${want_lower}
+        Should Be Equal As Integers    ${upper}    ${want_upper}
+    END
+
+Active Bank Accepts Every Bank The Device Reports
+    [Documentation]    Pairs with "Out Of Range Active Bank Is Rejected" -
+    ...    that one proves too high a value is refused, this one proves the
+    ...    boundary is in the right place and the last valid bank is not
+    ...    refused along with it.
+    ${info}=    Get Device Info
+    FOR    ${bank}    IN RANGE    ${info}[num_banks]
+        ${status}=    Set Active Bank    ${bank}
+        Should Be Equal As Integers    ${status}    0
+    END
+    Set Active Bank    0
+
+Fourteen Bit Range Survives The Wire
+    [Documentation]    High-resolution CC ranges do not fit in the 7 bits a
+    ...    sysex data byte carries, so range values are split across two bytes
+    ...    and reassembled. A value above 127 is the case that catches a
+    ...    regression in that packing - it round-trips as its low byte alone
+    ...    if the high byte is dropped anywhere along the path.
+    Set Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}    1000    16383
+    ${lower}    ${upper}=    Get Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}
+    Should Be Equal As Integers    ${lower}    1000
+    Should Be Equal As Integers    ${upper}    16383
+
+Descending Range Survives The Wire
+    [Documentation]    A range given high-to-low is how an inverted control is
+    ...    stored, so it must come back the same way round rather than being
+    ...    silently sorted.
+    Set Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}    120    20
+    ${lower}    ${upper}=    Get Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}
+    Should Be Equal As Integers    ${lower}    120
+    Should Be Equal As Integers    ${upper}    20
+
+Zero Width Range Leaves The Device Responsive
+    [Documentation]    A range whose ends are equal reaches a division by the
+    ...    span when the encoder is turned. That is guarded in
+    ...    convert_range_i16() (system/utility.h), but the guard is only
+    ...    meaningful if the value can actually be stored and the device keeps
+    ...    running afterwards - an unguarded divide would not return an error,
+    ...    it would take the firmware out. The GET after it is the real
+    ...    assertion: a device that still answers has not fallen over.
+    Set Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}    64    64
+    ${lower}    ${upper}=    Get Vmap Range    ${BANK}    ${ENCODER}    ${VMAP}
+    Should Be Equal As Integers    ${lower}    64
+    Should Be Equal As Integers    ${upper}    64
+
+    ${info}=    Get Device Info
+    Should Be Equal As Integers    ${info}[num_encoders]    16
+
+Settings In Every Bank Survive A Reset
+    [Documentation]    Extends the single-bank persistence test across all
+    ...    banks. Storage for the banks is one contiguous EEPROM structure, so
+    ...    an off-by-one in the layout shows up as the last bank failing to
+    ...    persist while the earlier ones look fine.
+    ${info}=    Get Device Info
+    FOR    ${bank}    IN RANGE    ${info}[num_banks]
+        ${upper}=    Evaluate    50 + ${bank}
+        Set Vmap Range    ${bank}    ${ENCODER}    ${VMAP}    5    ${upper}
+    END
+
+    Sleep    6s    waiting for cfg_update()'s 5s autosave window to flush the SETs to EEPROM
+    Reset Device
+
+    FOR    ${bank}    IN RANGE    ${info}[num_banks]
+        ${lower}    ${upper}=    Get Vmap Range    ${bank}    ${ENCODER}    ${VMAP}
+        ${want_upper}=    Evaluate    50 + ${bank}
+        Should Be Equal As Integers    ${lower}    5
+        Should Be Equal As Integers    ${upper}    ${want_upper}
+    END

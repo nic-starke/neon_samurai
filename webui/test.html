@@ -57,7 +57,7 @@
 			DisplayMode,
 			ENC_MID,
 			ENC_MAX,
-			NUM_PWM_FRAMES,
+			MAX_BRIGHTNESS,
 		} from "./design-system/components/led-mask.js";
 
 		let passed = 0;
@@ -318,7 +318,7 @@
 
 		check("brightness is full-scale for every lit LED outside MULTI_PWM", () => {
 			const b = computeLedBrightness({ position: ENC_MAX, displayMode: DisplayMode.MULTI, detent: false });
-			eq(b, new Array(11).fill(NUM_PWM_FRAMES - 1));
+			eq(b, new Array(11).fill(MAX_BRIGHTNESS));
 		});
 
 		check("MULTI_PWM brightness stays inside the BCM range", () => {
@@ -326,7 +326,7 @@
 				for (const detent of [false, true]) {
 					const b = computeLedBrightness({ position: pos, displayMode: DisplayMode.MULTI_PWM, detent });
 					for (const v of b) {
-						if (!Number.isInteger(v) || v < 0 || v > NUM_PWM_FRAMES - 1) {
+						if (!Number.isInteger(v) || v < 0 || v > MAX_BRIGHTNESS) {
 							throw new Error(`position ${pos} detent=${detent} produced ${v}`);
 						}
 					}

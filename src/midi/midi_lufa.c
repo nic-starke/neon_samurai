@@ -7,6 +7,7 @@
 
 #include "system/types.h"
 #include "system/error.h"
+#include "system/diag.h"
 #include "system/print.h"
 #include "event/midi.h"
 #include "midi/midi.h"
@@ -113,7 +114,7 @@ int midi_update(void) {
 				e.type		= MIDI_EVENT_CC;
 				e.data.cc = cc;
 
-				event_post(EVENT_CHANNEL_MIDI_IN, &e);
+				DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_IN, &e), DIAG_EVENT_DROPPED);
 				break;
 			}
 
@@ -132,7 +133,7 @@ int midi_update(void) {
 								},
 				};
 
-				event_post(EVENT_CHANNEL_MIDI_IN, &e);
+				DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_IN, &e), DIAG_EVENT_DROPPED);
 
 				// transmit back to host
 				// MIDI_Device_SendEventPacket(&lufa_usb_midi_device, &rx);
@@ -322,9 +323,11 @@ static int lufa_transmit(u8* data, u8 len) {
 
 	Endpoint_SelectEndpoint(lufa_usb_midi_device.Config.DataINEndpoint.Address);
 
-	if ((ErrorCode = Endpoint_Write_Stream_LE(data, len, NULL)) !=
-			ENDPOINT_RWSTREAM_NoError)
+	ErrorCode = Endpoint_Write_Stream_LE(data, len, NULL);
+
+	if (ErrorCode != ENDPOINT_RWSTREAM_NoError) {
 		return ErrorCode;
+	}
 
 	if (!(Endpoint_IsReadWriteAllowed()))
 		Endpoint_ClearIN();

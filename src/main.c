@@ -20,6 +20,7 @@
 #include "midi/sysex.h"
 #include "midi/webui_bridge.h"
 #include "system/hardware.h"
+#include "system/diag.h"
 #include "system/print.h"
 #include "system/rng.h"
 #include "system/time.h"
@@ -107,11 +108,11 @@ __attribute__((noreturn)) int main(void) {
 
 	while (1) {
 		input_update();
-		event_update();
+		DIAG_ON_ERR(event_update(), DIAG_EVENT_DROPPED);
 		display_update();
-		midi_update();
-		usb_update();
-		cfg_update();
+		DIAG_ON_ERR(midi_update(), DIAG_MIDI_TX_FAILED);
+		DIAG_ON_ERR(usb_update(), DIAG_MIDI_TX_FAILED);
+		DIAG_ON_ERR(cfg_update(), DIAG_CFG_STORE_FAILED);
 #ifdef ENABLE_CONSOLE
 		console_update();
 #endif

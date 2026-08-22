@@ -1,0 +1,140 @@
+name: firmware
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tests/unit/**'
+      - 'tools/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/firmware.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/unit/**'
+      - 'tools/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/firmware.yml'
+  workflow_dispatch:
+
+jobs:
+  # The unit suite needs no cross toolchain, so it runs first and on its own -
+  # a broken decoder or debouncer should be obvious without waiting for three
+  # firmware builds to finish.
+  unit:
+    name: unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build
+
+      - name: Configure
+        run: cmake -S tests/unit -B build/tests -G Ninja
+
+      - name: Build
+        run: cmake --build build/tests
+
+      # The suite is built with ASan and UBSan, so a latent out-of-bounds or
+      # overflow fails the run even when the assertions themselves pass.
+      - name: Run
+        run: ctest --test-dir build/tests --output-on-failure
+
+  build:
+    name: build (${{ matrix.build_type }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release, RelWithDebInfo]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install AVR toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-avr avr-libc binutils-avr cmake ninja-build
+
+      - name: Configure
+        run: |
+          cmake -S . -B build/${{ matrix.build_type }} -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      # The firmware builds without diagnostics today. Treating a new one as a
+      # failure is the only thing that keeps it that way.
+      - name: Build
+        run: |
+          set -o pipefail
+          cmake --build build/${{ matrix.build_type }} 2>&1 | tee build.log
+
+          if grep -q 'warning:' build.log; then
+            echo "::error::build produced warnings"
+            grep 'warning:' build.log
+            exit 1
+          fi
+
+      # The part has 128 KB of flash, 8 KB of SRAM and 2 KB of EEPROM, and the
+      # EEPROM in particular is nearly full, so the numbers are worth seeing on
+      # every run rather than discovering at link time later.
+      - name: Report size
+        run: |
+          avr-size -C --mcu=atxmega128a4u build/${{ matrix.build_type }}/neosam.elf \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: neosam-${{ matrix.build_type }}
+          path: |
+            build/${{ matrix.build_type }}/neosam.elf
+            build/${{ matrix.build_type }}/neosam.hex
+
+  analyse:
+    name: static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-avr avr-libc binutils-avr cmake ninja-build clang clang-tools
+
+      # The analyser needs the generated version header and the fetched LUFA
+      # sources, both of which only exist once the firmware has been configured.
+      - name: Configure firmware
+        run: cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Run clang static analyzer
+        run: tools/analysis/run-analyzer.sh
+
+  format:
+    name: formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang-format
+
+      - name: Check formatting
+        run: |
+          # docs/other holds generated compiler and assembler define dumps,
+          # which are captured tool output rather than source.
+          mapfile -t files < <(git ls-files '*.c' '*.h' \
+            | grep -v '^build/' \
+            | grep -v '^docs/other/')
+
+          if ! clang-format --dry-run --Werror "${files[@]}"; then
+            echo "::error::run clang-format over the files listed above"
+            exit 1
+          fi

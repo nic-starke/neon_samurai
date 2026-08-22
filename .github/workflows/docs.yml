@@ -1,0 +1,40 @@
+name: docs
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'tools/docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'tools/docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+jobs:
+  # The pages workflow only runs on main, so without this a manual that fails
+  # to build would not be noticed until it had already been merged.
+  manual:
+    name: manual builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install generator dependencies
+        run: pip install markdown pyyaml
+
+      # Fails on missing front matter, a duplicate help topic id, or an empty
+      # manual - all of which would otherwise publish silently broken.
+      - name: Build
+        run: python3 tools/docs/build_manual.py
+
+      # Every link the manual makes to another manual page, and every help
+      # topic anchor, has to point at something that exists.
+      - name: Check internal links
+        run: python3 tools/docs/check_links.py

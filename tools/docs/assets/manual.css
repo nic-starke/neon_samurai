@@ -1,0 +1,240 @@
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Styling for the generated manual site.                                     */
+/* Copyright 2024 - Nicolaus Starke                                           */
+/* SPDX-License-Identifier: MIT                                               */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/*
+	The palette is the editor's, from webui/design-system/tokens.css - the
+	manual and the editor are two halves of the same thing, so they should not
+	look like two different products. It commits to a dark design rather than
+	following the system scheme, because the editor does.
+*/
+:root {
+	--bg: #06090a;
+	--bg-raised: #0a1210;
+	--border: #163530;
+	--border-bright: #2a5c50;
+	--text: #cdf5e4;
+	--text-dim: #6f9c8c;
+	--accent: #4dffb0;
+	--accent-bright: #9dffdb;
+	--code-bg: #050807;
+	--max-measure: 68ch;
+	--radius: 6px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font: 16px/1.65 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+.skip {
+	position: absolute;
+	left: -9999px;
+}
+
+.skip:focus {
+	left: 1rem;
+	top: 1rem;
+	z-index: 10;
+	background: var(--accent);
+	color: var(--bg);
+	padding: 0.5rem 1rem;
+	border-radius: var(--radius);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Header ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.site-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+	padding: 0.9rem 1.5rem;
+	border-bottom: 1px solid var(--border);
+	background: var(--bg-raised);
+	position: sticky;
+	top: 0;
+	z-index: 5;
+}
+
+.site-header__brand {
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	color: var(--accent);
+	text-decoration: none;
+}
+
+.site-header__nav {
+	display: flex;
+	gap: 1.25rem;
+}
+
+.site-header__nav a {
+	color: var(--text-dim);
+	text-decoration: none;
+	font-size: 0.9rem;
+}
+
+.site-header__nav a:hover {
+	color: var(--text);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Layout ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.layout {
+	display: grid;
+	grid-template-columns: 15rem minmax(0, 1fr);
+	gap: 2.5rem;
+	max-width: 62rem;
+	margin: 0 auto;
+	padding: 2rem 1.5rem 4rem;
+}
+
+@media (max-width: 48rem) {
+	.layout {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1.5rem;
+	}
+}
+
+.sidebar__list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	position: sticky;
+	top: 5rem;
+}
+
+@media (max-width: 48rem) {
+	.sidebar__list {
+		position: static;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+}
+
+.sidebar__list a {
+	color: var(--text-dim);
+	text-decoration: none;
+	padding: 0.35rem 0.6rem;
+	border-radius: var(--radius);
+	font-size: 0.92rem;
+	border-left: 2px solid transparent;
+}
+
+.sidebar__list a:hover {
+	color: var(--text);
+	background: var(--bg-raised);
+	border-left-color: var(--accent);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Content ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.content {
+	min-width: 0;
+	max-width: var(--max-measure);
+}
+
+.content h1 {
+	font-size: 2rem;
+	line-height: 1.2;
+	margin: 0 0 0.5rem;
+}
+
+.content h2 {
+	font-size: 1.3rem;
+	margin: 2.5rem 0 0.75rem;
+	padding-top: 0.4rem;
+	border-top: 1px solid var(--border);
+}
+
+.content h3 {
+	font-size: 1.05rem;
+	margin: 1.75rem 0 0.5rem;
+}
+
+.lede {
+	color: var(--text-dim);
+	font-size: 1.1rem;
+	margin: 0 0 2rem;
+}
+
+.content a {
+	color: var(--accent);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 2px;
+}
+
+.content code {
+	background: var(--code-bg);
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	padding: 0.1em 0.35em;
+	font-size: 0.9em;
+	font-family: ui-monospace, "SF Mono", Consolas, monospace;
+}
+
+.content pre {
+	background: var(--code-bg);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 1rem;
+	overflow-x: auto;
+}
+
+.content pre code {
+	background: none;
+	border: 0;
+	padding: 0;
+}
+
+.content blockquote {
+	margin: 1.25rem 0;
+	padding: 0.6rem 1rem;
+	border-left: 3px solid var(--accent);
+	background: var(--bg-raised);
+	color: var(--text-dim);
+}
+
+/* Wide tables scroll inside their own box rather than the page. */
+.content table {
+	display: block;
+	overflow-x: auto;
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1.25rem 0;
+	font-size: 0.94rem;
+}
+
+.content th,
+.content td {
+	border: 1px solid var(--border);
+	padding: 0.45rem 0.7rem;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.content th {
+	background: var(--bg-raised);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Footer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.site-footer {
+	border-top: 1px solid var(--border);
+	padding: 1.5rem;
+	text-align: center;
+	color: var(--text-dim);
+	font-size: 0.85rem;
+}

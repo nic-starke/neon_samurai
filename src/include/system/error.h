@@ -12,63 +12,59 @@
 
 /**
  * @brief Checks the value of an error code, jumps to l if it is not == success.
- * @warning DO NOT PASS/CALL FUNCTIONS WITH THIS MACRO.
- * @param s Error/status code to check.
+ * @param s Error/status code, or a call returning one. Evaluated once.
  * @param l Label to goto.
  */
 #define EXIT_ON_ERR(s, l)                                                      \
 	do {                                                                         \
-		if (s != SUCCESS) {                                                        \
+		const int err_status_ = (s);                                               \
+		if (err_status_ != SUCCESS) {                                              \
 			goto l;                                                                  \
 		}                                                                          \
 	} while (0)
 
 /**
  * @brief Checks the value of an error code and returns if it is not == success.
- * @warning DO NOT PASS/CALL FUNCTIONS WITH THIS MACRO.
- * @param s Error/status code to check.
+ * @param s Error/status code, or a call returning one. Evaluated once.
  */
 #define RETURN_ON_ERR(s)                                                       \
 	do {                                                                         \
-		if (s != SUCCESS) {                                                        \
-			return s;                                                                \
+		const int err_status_ = (s);                                               \
+		if (err_status_ != SUCCESS) {                                              \
+			return err_status_;                                                      \
 		}                                                                          \
 	} while (0)
 
 /**
  * @brief Checks if a pointer is NULL, jumps to l if true.
- * @warning DO NOT PASS/CALL FUNCTIONS WITH THIS MACRO.
- * @param p Pointer to check against null.
+ * @param p Pointer to check against null. Evaluated once.
  * @param l Label to goto.
  */
 #define EXIT_IF_NULL(p, l)                                                     \
 	do {                                                                         \
-		if (p == NULL) {                                                           \
+		if ((p) == NULL) {                                                         \
 			goto l;                                                                  \
 		}                                                                          \
 	} while (0)
 
 /**
  * @brief Checks if a pointer is null, returns ERR_NULL_PTR if true.
- * @warning DO NOT PASS/CALL FUNCTIONS WITH THIS MACRO.
- * @param p Pointer to check against null.
- * @param l Label to goto.
+ * @param p Pointer to check against null. Evaluated once.
  */
 #define RETURN_ERR_IF_NULL(p)                                                  \
 	do {                                                                         \
-		if (p == NULL) {                                                           \
+		if ((p) == NULL) {                                                         \
 			return ERR_NULL_PTR;                                                     \
 		}                                                                          \
 	} while (0)
 
 /**
  * @brief Checks if a pointer is null, returns if true.
- * @warning DO NOT PASS/CALL FUNCTIONS WITH THIS MACRO.
- * @param p Pointer to check against null.
+ * @param p Pointer to check against null. Evaluated once.
  */
 #define RETURN_IF_NULL(p)                                                      \
 	do {                                                                         \
-		if (p == NULL) {                                                           \
+		if ((p) == NULL) {                                                         \
 			return;                                                                  \
 		}                                                                          \
 	} while (0)
@@ -87,7 +83,7 @@ enum return_code {
 	ERR_NOT_IMPLEMENTED = -7,
 	ERR_BAD_MSG					= -8,
 	ERR_NO_ANIMATION		= -9,
-	ERR_ANIMATION_BUSY		= -10,
+	ERR_ANIMATION_BUSY	= -10,
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

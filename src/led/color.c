@@ -80,21 +80,28 @@ static void						 update_encoder_display(uint8_t bank, uint8_t enc);
  *
  * @param vmap Pointer to the virtmap structure containing HSV color values
  */
-void color_update_vmap_rgb(struct virtmap* vmap) {
-	assert(vmap);
+void color_hsv_to_rgb(uint16_t hue, uint8_t sat, uint8_t val,
+											struct rgb_8* out) {
+	assert(out);
 
 	uint8_t r_linear, g_linear, b_linear; // Temp vars for 0-255 RGB values
 
 	// Convert HSV to linear RGB using the optimized HSV to RGB conversion
 	// The function expects hue in 0-1535 range, saturation and value in 0-255
 	// range
-	fast_hsv2rgb_8bit(vmap->hsv.hue, vmap->hsv.saturation, vmap->hsv.value,
-										&r_linear, &g_linear, &b_linear);
+	fast_hsv2rgb_8bit(hue, sat, val, &r_linear, &g_linear, &b_linear);
 
 	// Apply gamma correction using the lookup tables.
-	vmap->rgb.red		= pgm_read_byte(&gamma_lut[r_linear]);
-	vmap->rgb.green = pgm_read_byte(&gamma_lut[g_linear]);
-	vmap->rgb.blue	= pgm_read_byte(&gamma_lut[b_linear]);
+	out->red	 = pgm_read_byte(&gamma_lut[r_linear]);
+	out->green = pgm_read_byte(&gamma_lut[g_linear]);
+	out->blue	 = pgm_read_byte(&gamma_lut[b_linear]);
+}
+
+void color_update_vmap_rgb(struct virtmap* vmap) {
+	assert(vmap);
+
+	color_hsv_to_rgb(vmap->hsv.hue, vmap->hsv.saturation, vmap->hsv.value,
+									 &vmap->rgb);
 }
 
 /**
@@ -255,30 +262,6 @@ void color_set_vmap_rgb_bcm_by_index(uint8_t bank, uint8_t enc,
 
 	// Request display update
 	update_encoder_display(bank, enc);
-}
-
-/**
- * @brief Print the gamma lookup table for a specific color channel
- *
- * @param channel Color channel ('r', 'g', or 'b')
- */
-void color_print_gamma_lut(char channel) {
-	char					 buffer[32];
-	const uint8_t* lut = gamma_lut;
-
-	// Print header
-	console_puts_p(PSTR("Linear | Gamma | BCM\r\n"));
-	console_puts_p(PSTR("------+-------+-----\r\n"));
-
-	// Print values at regular intervals to avoid overwhelming the console
-	for (uint16_t i = 0; i <= 255; i += 16) {
-		uint8_t gamma_val = pgm_read_byte(&lut[i]);
-		uint8_t bcm_val		= gamma_val >> 3; // Scale to 0-31 for BCM
-
-		snprintf_P(buffer, sizeof(buffer), PSTR(" %3u  |  %3u  | %2u\r\n"), i,
-							 gamma_val, bcm_val);
-		console_puts(buffer);
-	}
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

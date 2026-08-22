@@ -253,6 +253,7 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/hal/boot_init.c
     ${CMAKE_SOURCE_DIR}/src/hal/dma.c
     ${CMAKE_SOURCE_DIR}/src/hal/eeprom.c
+    ${CMAKE_SOURCE_DIR}/src/system/diag.c
     ${CMAKE_SOURCE_DIR}/src/hal/gpio.c
     ${CMAKE_SOURCE_DIR}/src/hal/init.c
     ${CMAKE_SOURCE_DIR}/src/hal/signature.c

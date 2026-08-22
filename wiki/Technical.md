@@ -15,9 +15,13 @@ If the user does not like the new firmware, they can simply program the MFT with
 
 > **Warning:** Do not flash NEON_SAMURAI firmware unless you have a PDI programmer/debugger (e.g. a JTAGICE3, or similar) and are willing to open the device and reflash it directly, or have verified one of the software recovery paths below works on your unit first. Both paths depend on the ATxmega's boot section already containing a working bootloader - if it's blank, neither will work. See [Bootloader Recovery](BootloaderRecovery.md) if that's the case.
 
-On the official MFT firmware, holding the four corner encoder switches while plugging in the USB cable resets the device into bootloader mode. NEON_SAMURAI implements the same gesture (encoder indices 0, 3, 12, 15 - top-left, top-right, bottom-left, bottom-right), confirmed working on real hardware. See [issue #29](https://github.com/nic-starke/neon_samurai/issues/29) for background.
+On the official MFT firmware, holding the four corner encoder switches while plugging in the USB cable resets the device into bootloader mode.
 
-NEON_SAMURAI also provides a `bootloader` console command that calls into the bootloader on demand - this does not depend on the corner gesture and is the more reliable option if your console connection is working.
+NEON_SAMURAI uses a different gesture: encoder indices 0, 1 and 4 - the two leftmost encoders of the top row, and the one directly below the first. They form a triangle in the top-left corner, which can be held with one hand while the other handles the cable. See [issue #29](https://github.com/nic-starke/neon_samurai/issues/29) for background.
+
+The factory-reset gesture is the mirror of it in the opposite corner - indices 15, 14 and 11 - so the two cannot easily be confused.
+
+NEON_SAMURAI also provides a `bootloader` console command that calls into the bootloader on demand - this does not depend on the encoder gesture and is the more reliable option if your console connection is working.
 
 > **The encoders will be lit up in a checkerboard pattern when the bootloader is active.**
 

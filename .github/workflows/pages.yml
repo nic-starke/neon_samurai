@@ -1,0 +1,91 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/manual/**'
+      - 'tools/docs/**'
+      - 'webui/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# Deploying to Pages needs these; nothing else in the workflow writes anything.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# A queued deployment should wait for the one in flight rather than cancel it,
+# so the published site is always a complete build.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install generator dependencies
+        run: pip install markdown pyyaml
+
+      # Writes site/ and webui/manual.json from docs/manual/.
+      - name: Build the manual
+        run: python3 tools/docs/build_manual.py
+
+      # The editor imports its modules by relative path with no bundler, so a
+      # moved file or renamed export would only fail once someone loaded the
+      # published page.
+      - name: Check editor imports
+        working-directory: webui
+        run: python3 check-imports.py
+
+      # The deployed tree keeps site/ and webui/ as siblings, exactly as they
+      # sit in a checkout, so the relative links between the manual and the
+      # editor resolve the same way whether you are browsing the published
+      # site or serving the repository locally. The root is a redirect into
+      # the manual so the bare URL lands somewhere useful.
+      - name: Assemble
+        run: |
+          mkdir -p _site/site _site/webui
+          cp -r site/* _site/site/
+          cp -r webui/* _site/webui/
+
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en-GB">
+          <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=site/index.html">
+          <title>NEON_SAMURAI</title>
+          </head>
+          <body><p><a href="site/index.html">Continue to the manual</a></p></body>
+          </html>
+          HTML
+
+          # Pages otherwise runs the output through Jekyll, which strips
+          # directories beginning with an underscore.
+          touch _site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

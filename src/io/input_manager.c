@@ -19,6 +19,7 @@
 #include "event/animation.h" // Add animation event header
 #include "midi/sysex.h"
 
+#include "system/diag.h"
 #include "system/hardware.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -54,7 +55,9 @@ void input_init(void) {
 	hw_switch_init();
 	sw_encoder_init();
 	sw_side_switch_init();
-	event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi);
+	if (event_channel_subscribe(EVENT_CHANNEL_MIDI_IN, &evt_midi) != SUCCESS) {
+		hal_panic();
+	}
 }
 
 void input_update(void) {
@@ -95,7 +98,10 @@ static void sw_encoder_init(void) {
 		for (uint e = 0; e < NUM_ENCODERS; e++) {
 			struct encoder* enc = &gENCODERS[b][e];
 
-			encoder_movement_init(&enc->enc_ctx);
+			if (encoder_movement_init(&enc->enc_ctx) != SUCCESS) {
+				hal_panic();
+			}
+
 			enc->idx							= (u8)e;
 			enc->quad_ctx					= &gQUAD_ENC[e];
 			enc->display.mode			= DIS_MODE_MULTI_PWM;
@@ -187,7 +193,7 @@ static void sw_encoder_update(void) {
 				case SW_MODE_VMAP_CYCLE: {
 					set_vmap_active(enc, gRT.curr_bank,
 													(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
-					mf_draw_encoder(enc);
+					DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 					break;
 				}
 
@@ -195,7 +201,7 @@ static void sw_encoder_update(void) {
 					sw_prev_vmap[i] = enc->vmap_active;
 					set_vmap_active(enc, gRT.curr_bank,
 													(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
-					mf_draw_encoder(enc);
+					DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 					break;
 				}
 
@@ -239,7 +245,7 @@ static void sw_encoder_update(void) {
 
 				case SW_MODE_VMAP_HOLD: {
 					set_vmap_active(enc, gRT.curr_bank, sw_prev_vmap[i]);
-					mf_draw_encoder(enc);
+					DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 					break;
 				}
 
@@ -316,7 +322,7 @@ static void set_vmap_active(struct encoder* enc, u8 bank, u8 new_active) {
 			.field = IO_FIELD_VMAP_ACTIVE,
 			.value = new_active,
 	};
-	event_post(EVENT_CHANNEL_IO, &evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_IO, &evt), DIAG_EVENT_DROPPED);
 }
 
 // Choke point for every gRT.curr_bank mutation - posts the bank-change
@@ -333,7 +339,8 @@ void set_active_bank(u8 new_bank) {
 			.type							= ANIM_EVT_BANK_CHANGE,
 			.data.bank_change = {.prev_bank = prev_bank, .new_bank = new_bank},
 	};
-	event_post(EVENT_CHANNEL_ANIMATION, &anim_evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_ANIMATION, &anim_evt),
+							DIAG_EVENT_DROPPED);
 
 	for (u8 e = 0; e < NUM_ENCODERS; e++) {
 		gENCODERS[new_bank][e].update_display = 1;
@@ -349,7 +356,7 @@ void set_active_bank(u8 new_bank) {
 			.field = IO_FIELD_ACTIVE_BANK,
 			.value = new_bank,
 	};
-	event_post(EVENT_CHANNEL_IO, &io_evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_IO, &io_evt), DIAG_EVENT_DROPPED);
 }
 
 static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
@@ -381,7 +388,8 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 														 vmap->curr_pos},
 						},
 		};
-		event_post(EVENT_CHANNEL_MIDI_OUT, &live_pos_evt);
+		DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &live_pos_evt),
+								DIAG_EVENT_DROPPED);
 	}
 
 	switch (vmap->cfg.type) {
@@ -408,7 +416,8 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 					midi_evt.data.cc.channel = vmap->cfg.midi.channel;
 					midi_evt.data.cc.control = vmap->cfg.midi.cc;
 					midi_evt.data.cc.value	 = val & MIDI_CC_MAX;
-					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+					DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt),
+											DIAG_EVENT_DROPPED);
 					break;
 				}
 
@@ -429,12 +438,14 @@ static void vmap_update(struct encoder* enc, struct virtmap* vmap) {
 					midi_evt.data.cc.channel = vmap->cfg.midi.channel;
 					midi_evt.data.cc.control = vmap->cfg.midi.cc;
 					midi_evt.data.cc.value	 = (val >> 7) & 0x7F;
-					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+					DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt),
+											DIAG_EVENT_DROPPED);
 
 					// Then the LSB
 					midi_evt.data.cc.control = (u8)vmap->cfg.midi.cc + 32;
 					midi_evt.data.cc.value	 = val & 0x7F;
-					event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt);
+					DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &midi_evt),
+											DIAG_EVENT_DROPPED);
 					break;
 				}
 
@@ -524,7 +535,7 @@ static void sw_midi_send(const struct encoder* enc, u8 value) {
 							.value	 = value,
 					},
 	};
-	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &evt), DIAG_EVENT_DROPPED);
 }
 
 static void sw_side_switch_init(void) {
@@ -557,7 +568,7 @@ static void sw_side_switch_update(void) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 						set_vmap_active(enc, gRT.curr_bank,
 														(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
-						mf_draw_encoder(enc);
+						DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 					}
 					break;
 
@@ -568,7 +579,7 @@ static void sw_side_switch_update(void) {
 						gSIDE_SWITCHES[i].prev_vmap_active[e] = enc->vmap_active;
 						set_vmap_active(enc, gRT.curr_bank,
 														(enc->vmap_active + 1) % NUM_VMAPS_PER_ENC);
-						mf_draw_encoder(enc);
+						DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 					}
 					break;
 
@@ -596,7 +607,7 @@ static void sw_side_switch_update(void) {
 						struct encoder* enc = &gENCODERS[gRT.curr_bank][e];
 						set_vmap_active(enc, gRT.curr_bank,
 														gSIDE_SWITCHES[i].prev_vmap_active[e]);
-						mf_draw_encoder(enc);
+						DIAG_ON_ERR(mf_draw_encoder(enc), DIAG_DISPLAY_FAILED);
 					}
 					break;
 

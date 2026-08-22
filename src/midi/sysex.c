@@ -16,6 +16,7 @@
 #include "led/color.h"
 #include "midi/webui_bridge.h"
 #include "system/project.h"
+#include "system/diag.h"
 
 // Test sequence:
 // [sysex start] [mfid] [cmd] [param] [data] [sysex end]
@@ -178,7 +179,7 @@ void sysex_push_vmap_active(u8 bank, u8 enc, u8 active) {
 							.data			= {bank, enc, active},
 					},
 	};
-	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &evt), DIAG_EVENT_DROPPED);
 }
 
 void sysex_push_active_bank(u8 bank) {
@@ -196,7 +197,7 @@ void sysex_push_active_bank(u8 bank) {
 							.data			= {bank},
 					},
 	};
-	event_post(EVENT_CHANNEL_MIDI_OUT, &evt);
+	DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &evt), DIAG_EVENT_DROPPED);
 }
 
 // Standard MIDI 7-to-8-bit packing: sysex data bytes must be <= 0x7F (the
@@ -402,7 +403,7 @@ static int midi_in_handler(void* evt) {
 							.field = IO_FIELD_VMAP_ACTIVE,
 							.value = msg->param.enc.data.vmap_active,
 					};
-					event_post(EVENT_CHANNEL_IO, &evt);
+					DIAG_ON_ERR(event_post(EVENT_CHANNEL_IO, &evt), DIAG_EVENT_DROPPED);
 				}
 			}
 			break;
@@ -542,10 +543,12 @@ static int midi_in_handler(void* evt) {
 									.data			= {SUCCESS},
 							},
 			};
-			event_post_rt(EVENT_CHANNEL_MIDI_OUT, &reply);
+			DIAG_ON_ERR(event_post_rt(EVENT_CHANNEL_MIDI_OUT, &reply),
+									DIAG_EVENT_DROPPED);
 
 			if (msg->param_enum == MF_SYSEX_PARAM_CONFIG_RESET) {
-				mf_cfg_reset(); // Does not return
+				// Reaching the next line means the settings were never cleared.
+				DIAG_ON_ERR(mf_cfg_reset(), DIAG_CFG_STORE_FAILED);
 			} else {
 				hal_system_reset(); // Does not return
 			}
@@ -581,7 +584,8 @@ static int midi_in_handler(void* evt) {
 							},
 			};
 			memcpy(reply.data.sysex_out.data, param, param_len);
-			event_post(EVENT_CHANNEL_MIDI_OUT, &reply);
+			DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &reply),
+									DIAG_EVENT_DROPPED);
 			break;
 		}
 
@@ -596,7 +600,8 @@ static int midi_in_handler(void* evt) {
 									.data			= {ret},
 							},
 			};
-			event_post(EVENT_CHANNEL_MIDI_OUT, &reply);
+			DIAG_ON_ERR(event_post(EVENT_CHANNEL_MIDI_OUT, &reply),
+									DIAG_EVENT_DROPPED);
 			break;
 		}
 

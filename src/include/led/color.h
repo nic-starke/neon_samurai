@@ -18,6 +18,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/types.h"
+#include "led/rgb.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -67,6 +68,21 @@ void color_update_vmap_rgb(struct virtmap* vmap);
  * @param s Saturation (0-255)
  * @param v Value (0-255)
  */
+/**
+ * @brief Convert an HSV colour to the gamma-corrected RGB the LEDs need.
+ *
+ * The correction is what makes a value halfway up the scale look halfway
+ * bright rather than measure halfway, so anything driving the RGB LEDs
+ * directly should come through here rather than writing linear values.
+ *
+ * @param hue Hue, 0-1535.
+ * @param sat Saturation, 0-255.
+ * @param val Value, 0-255.
+ * @param out Receives the gamma-corrected result.
+ */
+void color_hsv_to_rgb(uint16_t hue, uint8_t sat, uint8_t val,
+											struct rgb_8* out);
+
 void color_set_vmap_hsv(uint8_t bank, uint8_t enc, uint8_t vmap_idx, uint16_t h,
 												uint8_t s, uint8_t v);
 
@@ -125,13 +141,6 @@ void color_set_vmap_rgb_bcm_by_index(uint8_t bank, uint8_t enc,
  */
 void color_set_vmap_rgb_bcm(struct virtmap* vmap, uint8_t r_bcm, uint8_t g_bcm,
 														uint8_t b_bcm);
-
-/**
- * @brief Print the gamma lookup table for a specific color channel
- *
- * @param channel Color channel ('r', 'g', or 'b')
- */
-void color_print_gamma_lut(char channel);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

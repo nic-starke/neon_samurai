@@ -38,7 +38,7 @@ struct io_event {
 	u8 type; // enum events_io
 	u8 bank;
 	u8 enc;
-	u8 vmap; // 0xFF if not applicable
+	u8 vmap;	// 0xFF if not applicable
 	u8 field; // enum io_event_field
 	u8 value;
 };

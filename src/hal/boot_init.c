@@ -16,5 +16,5 @@
 extern void bootloader_check(void);
 
 __asm__(".section .init3,\"ax\",@progbits\n\t"
-        "call bootloader_check\n\t"
-        ".section .text\n");
+				"call bootloader_check\n\t"
+				".section .text\n");

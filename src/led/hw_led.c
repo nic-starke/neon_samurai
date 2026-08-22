@@ -39,6 +39,7 @@
 #include <util/atomic.h>
 
 #include "system/types.h"
+#include "system/error.h"
 
 #include "hal/gpio.h"
 #include "hal/dma.h"
@@ -87,8 +88,19 @@ _Static_assert(TIMER_TOP + 1 == ((1 << NUM_BCM_PLANES) - 1) * SLOT_UNIT_TICKS,
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-// LED frame buffer - one bit-plane per row, written by led.c and animation.c,
-// read by the DMA controller.
+/*
+	LED frame buffer - one bit-plane per row, written by led.c and animation.c,
+	read by the DMA controller.
+
+	There is no lock between the two. A redraw can land while the DMA is
+	clocking out the same plane, so that plane can go to the shift registers
+	with one encoder's low byte from before the write and its high byte from
+	after. That costs at most one plane of one encoder for one display cycle
+	(~8 ms), the next cycle sends the settled value, and the largest error a
+	single plane can contribute is invisible at that duration. Double buffering
+	would remove it at the cost of another 256 bytes of SRAM, which is not a
+	good trade for a glitch nobody can see.
+*/
 volatile u16 gFRAME_BUFFER[NUM_BCM_PLANES][NUM_ENCODERS];
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -193,8 +205,15 @@ void hw_led_init(void) {
 	TIMER_LED.INTCTRLB = (u8)((TIMER_LED.INTCTRLB & (u8)~TC0_CCBINTLVL_gm) |
 														(u8)(PRIORITY_MED << TC0_CCBINTLVL_gp));
 
-	dma_channel_init(&DMA_CH_LED, &dma_cfg);
-	usart_module_init(&USART_LED, &usart_cfg);
+	// Nothing can be shown without these two, and the panic path bit-bangs the
+	// shift registers directly, so it still works when they have failed.
+	if (dma_channel_init(&DMA_CH_LED, &dma_cfg) != SUCCESS) {
+		hal_panic();
+	}
+
+	if (usart_module_init(&USART_LED, &usart_cfg) != SUCCESS) {
+		hal_panic();
+	}
 
 	// Wait for that first plane to reach the shift registers (~16 us), latch
 	// it, and only then enable the outputs. The guard bounds the spin so a

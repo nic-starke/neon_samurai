@@ -1,0 +1,121 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build a release from'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          # Release notes are assembled from the commits since the previous
+          # tag, so the whole history has to be present.
+          fetch-depth: 0
+
+      - name: Install AVR toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-avr avr-libc binutils-avr cmake ninja-build
+
+      # The version in CMakeLists.txt is what the firmware reports over sysex,
+      # so a tag that disagrees with it would ship a build that misidentifies
+      # itself. Refuse rather than publish something misleading.
+      - name: Check the tag matches the project version
+        run: |
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
+          tag_version="${tag#v}"
+
+          project_version=$(sed -n 's/^[[:space:]]*VERSION[[:space:]]\+\([0-9.]\+\).*/\1/p' \
+            CMakeLists.txt | head -1)
+
+          echo "tag      $tag_version"
+          echo "project  $project_version"
+
+          if [ "$tag_version" != "$project_version" ]; then
+            echo "::error::tag $tag does not match the project version $project_version in CMakeLists.txt"
+            exit 1
+          fi
+
+          echo "VERSION=$tag_version" >> "$GITHUB_ENV"
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/Release
+
+      - name: Collect artefacts
+        run: |
+          mkdir -p dist
+          cp build/Release/neosam.hex "dist/neosam-${VERSION}.hex"
+          cp build/Release/neosam.elf "dist/neosam-${VERSION}.elf"
+          cp build/Release/neosam.eep "dist/neosam-${VERSION}.eep"
+
+          cd dist
+          sha256sum ./* > "neosam-${VERSION}.sha256"
+          cd ..
+
+          avr-size -C --mcu=atxmega128a4u build/Release/neosam.elf | tee size.txt
+
+      - name: Write release notes
+        run: |
+          previous=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+
+          {
+            echo "## NEON_SAMURAI ${VERSION}"
+            echo
+            echo "Firmware for the DJ Tech Tools Midi Fighter Twister."
+            echo
+            echo "### Installing"
+            echo
+            echo "Flash \`neosam-${VERSION}.hex\` with the web editor, or with avrdude:"
+            echo
+            echo '```'
+            echo "avrdude -c flip2 -p x128a4u -U flash:w:neosam-${VERSION}.hex:i"
+            echo '```'
+            echo
+            echo "To reach the bootloader, hold the top two left-hand encoders and the one directly beneath them while plugging the unit in."
+            echo
+            echo "### Changes"
+            echo
+
+            if [ -n "$previous" ]; then
+              git log --no-merges --pretty='- %s' "${previous}..${TAG}"
+              echo
+              echo "[Full changelog](${{ github.server_url }}/${{ github.repository }}/compare/${previous}...${TAG})"
+            else
+              echo "First tagged release."
+            fi
+
+            echo
+            echo "### Size"
+            echo
+            echo '```'
+            cat size.txt
+            echo '```'
+          } > notes.md
+
+          cat notes.md
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$TAG" \
+            --title "NEON_SAMURAI $VERSION" \
+            --notes-file notes.md \
+            dist/*

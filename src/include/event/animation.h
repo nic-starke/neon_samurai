@@ -7,15 +7,14 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "system/types.h"
+#include "system/error.h"
 #include "event/event.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define ANIMATION_MAX_FRAMES 8
+#define ANIMATION_MAX_FRAMES					8
 #define ANIMATION_DEFAULT_DURATION_MS 250
-#define ANIMATION_MAX_CONCURRENT 4
-
-#define ERR_NO_ANIMATION -100  // Error code for when no animation is found
+#define ANIMATION_MAX_CONCURRENT			4
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -24,32 +23,32 @@ extern struct event_channel animation_event_ch;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum animation_event_type {
-    ANIM_EVT_BANK_CHANGE,
-    ANIM_EVT_ENCODER_RESET,
+	ANIM_EVT_BANK_CHANGE,
+	ANIM_EVT_ENCODER_RESET,
 
-    ANIM_EVT_NB,
+	ANIM_EVT_NB,
 };
 
 // Animation type definitions
 enum animation_type {
-    ANIM_TYPE_NONE,
-    ANIM_TYPE_BANK_CHANGE,
+	ANIM_TYPE_NONE,
+	ANIM_TYPE_BANK_CHANGE,
 
-    ANIM_TYPE_NB,
+	ANIM_TYPE_NB,
 };
 
 // Animation event data structure
 struct animation_event {
-    u8 type;
-    union {
-        struct {
-            u8 prev_bank;
-            u8 new_bank;
-        } bank_change;
-        struct {
-            u8 encoder_idx;
-        } encoder_reset;
-    } data;
+	u8 type;
+	union {
+		struct {
+			u8 prev_bank;
+			u8 new_bank;
+		} bank_change;
+		struct {
+			u8 encoder_idx;
+		} encoder_reset;
+	} data;
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -118,7 +117,8 @@ u8 animation_get_active_count(void);
  * @param frames Number of frames in the animation
  * @return int Animation slot index if successful, negative error code otherwise
  */
-int animation_start_custom(enum animation_type type, u8 encoder_idx, u32 duration_ms, u8 frames);
+int animation_start_custom(enum animation_type type, u8 encoder_idx,
+													 u32 duration_ms, u8 frames);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Variables ~~~~~~~~~~~~~~~~~~~~~~~~~ */

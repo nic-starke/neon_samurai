@@ -36,7 +36,7 @@
 
 extern USB_ClassInfo_MIDI_Device_t lufa_usb_midi_device;
 #ifdef ENABLE_CONSOLE
-	extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
+extern USB_ClassInfo_CDC_Device_t lufa_usb_cdc_device;
 #endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -317,7 +317,7 @@ PROGMEM static const struct usb_descriptor desc_cfg = {
 										.EndpointAddress =
 												(ENDPOINT_DIR_OUT | USB_EP_MIDI_STREAM_OUT),
 										.Attributes				 = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
-																		ENDPOINT_USAGE_DATA),
+																					ENDPOINT_USAGE_DATA),
 										.EndpointSize			 = USB_MIDI_STREAM_EPSIZE,
 										.PollingIntervalMS = USB_MIDI_POLLING_INTERVAL,
 								},
@@ -348,7 +348,7 @@ PROGMEM static const struct usb_descriptor desc_cfg = {
 										.EndpointAddress =
 												(ENDPOINT_DIR_IN | USB_EP_MIDI_STREAM_IN),
 										.Attributes				 = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC |
-																		ENDPOINT_USAGE_DATA),
+																					ENDPOINT_USAGE_DATA),
 										.EndpointSize			 = USB_MIDI_STREAM_EPSIZE,
 										.PollingIntervalMS = USB_MIDI_POLLING_INTERVAL,
 								},
@@ -528,6 +528,8 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t		 wValue,
 					Address = &desc_str_ser;
 					Size		= pgm_read_byte(&desc_str_ser.Header.Size);
 					break;
+
+				default: break;
 			}
 
 			break;
@@ -542,6 +544,7 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t		 wValue,
 
 					break;
 #endif
+				default: break;
 			}
 
 			break;
@@ -555,9 +558,15 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t		 wValue,
 
 					break;
 #endif
+				default: break;
 			}
 
 			break;
+
+		// An unrecognised descriptor type leaves the address null and the size
+		// at NO_DESCRIPTOR, which is how the stack is told there is nothing to
+		// send.
+		default: break;
 	}
 
 	*DescriptorAddress = Address;

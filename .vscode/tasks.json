@@ -19,6 +19,17 @@
 				"Release",
 				"RelWithDebInfo"
 			]
+		},
+		{
+			"id": "version_bump",
+			"type": "pickString",
+			"description": "Which part of the version to raise",
+			"default": "patch",
+			"options": [
+				"patch",
+				"minor",
+				"major"
+			]
 		}
 	],
 
@@ -324,10 +335,7 @@
 			"label": "Test: Robot Framework (hardware)",
 			"detail": "Runs the sysex protocol test suite against a connected device (see tests/robot/README.md). Fully automated, including device resets - takes a few minutes.",
 			"type": "shell",
-			"group": {
-				"kind": "test",
-				"isDefault": true
-			},
+			"group": "test",
 			"command": "tests/robot/.venv/bin/python3",
 			"args": [
 				"-m",
@@ -335,6 +343,173 @@
 				"--outputdir",
 				"tests/robot/results",
 				"tests/robot/suites/sysex_protocol.robot"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": []
+		},
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Host unit tests ~~~~~~~~~~~~~~~~~~~~~~~~ //
+		// A separate CMake project root from the firmware - it builds the
+		// hardware-independent modules for the host, so it must not pick up the
+		// AVR toolchain file the firmware tasks pass.
+		{
+			"label": "Test: Unit (configure)",
+			"detail": "Generates the host unit-test build (tests/unit). Only needed once, or after adding a test.",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-S",
+				"tests/unit",
+				"-B",
+				"${config:app.build_dir}/tests",
+				"-G",
+				"Ninja"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "Test: Unit",
+			"detail": "Builds and runs the host unit tests with ASan and UBSan. Needs no hardware, runs in well under a second.",
+			"type": "shell",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"command": "cmake --build ${config:app.build_dir}/tests && ctest --test-dir ${config:app.build_dir}/tests --output-on-failure",
+			"dependsOn": "Test: Unit (configure)",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": [
+				"$gcc"
+			]
+		},
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Analysis ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+		{
+			"label": "Analyse: Static Analyzer",
+			"detail": "Runs the clang static analyzer over src/. Needs the firmware configured first (it reads the generated version header and the fetched LUFA sources).",
+			"type": "shell",
+			"command": "${workspaceFolder}/tools/analysis/run-analyzer.sh",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": [
+				"$gcc"
+			]
+		},
+		{
+			"label": "Analyse: Formatting",
+			"detail": "Checks every tracked C source against .clang-format without modifying anything. This is what CI enforces.",
+			"type": "shell",
+			"command": "git ls-files '*.c' '*.h' | grep -v '^docs/other/' | xargs clang-format --dry-run --Werror",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": [
+				"$gcc"
+			]
+		},
+		{
+			"label": "Analyse: Format In Place",
+			"detail": "Reformats every tracked C source. The same thing the pre-commit hook does.",
+			"type": "shell",
+			"command": "git ls-files '*.c' '*.h' | grep -v '^docs/other/' | xargs clang-format -i",
+			"problemMatcher": []
+		},
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Manual and site ~~~~~~~~~~~~~~~~~~~~~~~~ //
+		// build_manual.py writes site/ and webui/manual.json from docs/manual/.
+		// Both are generated and gitignored, so the editor's contextual help is
+		// missing until this has been run at least once.
+		{
+			"label": "Docs: Build Manual",
+			"detail": "Generates the manual site and the editor's help index from docs/manual/. Needs 'pip install markdown pyyaml'.",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"tools/docs/build_manual.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "Docs: Check Links",
+			"detail": "Verifies every manual cross-reference, heading anchor, and help topic id the editor asks for actually resolves.",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"tools/docs/check_links.py"
+			],
+			"dependsOn": "Docs: Build Manual",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Docs: Serve Site",
+			"detail": "Builds the manual and serves the repository root on :8420, so site/ and webui/ resolve the same relative paths they do when published.",
+			"type": "shell",
+			"command": "echo 'Manual: http://127.0.0.1:8420/site/  Editor: http://127.0.0.1:8420/webui/' && python3 -m http.server 8420 --bind 127.0.0.1",
+			"dependsOn": "Docs: Build Manual",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"problemMatcher": []
+		},
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Web UI ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+		{
+			"label": "Web UI: Check Imports",
+			"detail": "There is no bundler here, so a moved file or renamed export otherwise fails only at runtime in a browser.",
+			"type": "shell",
+			"options": {
+				"cwd": "${workspaceFolder}/webui"
+			},
+			"command": "python3",
+			"args": [
+				"check-imports.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "Web UI: Self Test",
+			"detail": "Runs webui/test.html headless and reports PASS or FAIL. Needs chromium or google-chrome on PATH.",
+			"type": "shell",
+			"options": {
+				"cwd": "${workspaceFolder}/webui"
+			},
+			"command": "python3 -m http.server 8421 --bind 127.0.0.1 >/dev/null 2>&1 & SERVER=$!; sleep 2; (chromium || google-chrome) --headless --disable-gpu --no-sandbox --virtual-time-budget=30000 --dump-dom http://127.0.0.1:8421/test.html 2>/dev/null | grep -oE '<title>[^<]*'; kill $SERVER",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
+			"problemMatcher": []
+		},
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Releasing ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+		{
+			"label": "Release: Tag Version",
+			"detail": "Raises the version in CMakeLists.txt, commits it, and tags. Stops short of pushing - the push is what publishes the release.",
+			"type": "shell",
+			"command": "${workspaceFolder}/tools/release.sh",
+			"args": [
+				"${input:version_bump}"
 			],
 			"presentation": {
 				"reveal": "always",

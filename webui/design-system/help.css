@@ -1,0 +1,83 @@
+/* help.css - contextual help, paired with design-system/components/help.js.
+   Uses the tokens from tokens.css so the popover reads as part of the same
+   surface as the rest of the chrome. */
+
+.help-icon {
+	appearance: none;
+	width: 1.15rem;
+	height: 1.15rem;
+	padding: 0;
+	margin-inline-start: 0.4em;
+	border: 1px solid var(--ds-border-bright);
+	border-radius: 50%;
+	background: var(--ds-bg-raised);
+	color: var(--ds-text-dim);
+	font: 600 0.72rem/1 var(--ds-font);
+	cursor: help;
+	vertical-align: middle;
+	flex: none;
+}
+
+.help-icon:hover,
+.help-icon[aria-expanded="true"] {
+	color: var(--ds-accent);
+	border-color: var(--ds-accent-dim);
+	box-shadow: var(--ds-glow-soft);
+}
+
+.help-icon:focus-visible {
+	outline: none;
+	box-shadow: var(--ds-focus-ring);
+}
+
+.has-help {
+	cursor: help;
+	border-bottom: 1px dotted var(--ds-text-faint);
+}
+
+.has-help:hover {
+	color: var(--ds-accent);
+	border-bottom-color: var(--ds-accent-dim);
+}
+
+.help-popover {
+	position: absolute;
+	z-index: 50;
+	max-width: min(22rem, calc(100vw - 1rem));
+	padding: 0.85rem 1rem;
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius);
+	background: var(--ds-bg-panel);
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), var(--ds-glow-soft);
+	color: var(--ds-text);
+	font: 0.88rem/1.55 var(--ds-font);
+}
+
+.help-popover[hidden] {
+	display: none;
+}
+
+.help-popover__title {
+	margin: 0 0 0.35rem;
+	font-size: 0.82rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--ds-accent);
+}
+
+.help-popover__body {
+	margin: 0 0 0.6rem;
+	color: var(--ds-text-dim);
+}
+
+.help-popover__link {
+	color: var(--ds-accent);
+	font-size: 0.82rem;
+	text-decoration: none;
+	border-bottom: 1px solid var(--ds-accent-faint);
+}
+
+.help-popover__link:hover {
+	border-bottom-color: var(--ds-accent);
+}
