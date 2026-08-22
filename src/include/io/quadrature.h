@@ -10,9 +10,16 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+enum encoder_dir {
+	DIR_ST	= 0, // Stationary
+	DIR_CW	= 1, // Clockwise
+	DIR_CCW = 2, // Counter-clockwise
+};
+
 struct quadrature {
-	u8 dir; // Current direction
-	u8 rot; // Rotational state
+	u8 dir;		// enum encoder_dir, result of the last update
+	u8 rot;		// Last sampled channel state, (ch_b << 1) | ch_a
+	i8 accum; // Sub-steps banked toward the next detent
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
