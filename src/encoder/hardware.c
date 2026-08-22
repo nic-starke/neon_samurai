@@ -11,7 +11,6 @@
 #include "hal/gpio.h"
 #include "io/quadrature.h"
 #include "io/switch.h"
-#include "lfo/lfo.h"
 
 #include "system/hardware.h"
 

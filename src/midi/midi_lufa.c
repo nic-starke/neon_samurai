@@ -200,6 +200,13 @@ static int midi_out_handler(void* event) {
 			// packed.
 			u8 packed_data[MIDI_SYSEX_OUT_DATA_LEN_MAX +
 										 ((MIDI_SYSEX_OUT_DATA_LEN_MAX + 6) / 7)];
+
+			// data_len comes from whoever posted the event; sysex_pack7() would
+			// happily read past data[] and write past packed_data[].
+			if (sysex->data_len > MIDI_SYSEX_OUT_DATA_LEN_MAX) {
+				break;
+			}
+
 			u8 packed_data_len =
 					sysex_pack7(sysex->data, sysex->data_len, packed_data);
 
@@ -248,18 +255,18 @@ static int midi_out_handler(void* event) {
 					MIDI_COMMAND_SYSEX_END_1BYTE, // 0 data bytes - packet is just F7
 					MIDI_COMMAND_SYSEX_END_2BYTE, // 1 data byte + F7
 					MIDI_COMMAND_SYSEX_END_3BYTE, // 2 data bytes + F7
-					0,														 // unused (3 full data bytes -> not a terminal packet)
+					0, // unused (3 full data bytes -> not a terminal packet)
 			};
 
 			// Bytes still to place in this packet: data_len (only in the
 			// first packet) plus whatever remains of the data payload.
 			while (!done) {
-				u8 pending				 = (first ? 1 : 0) + remaining;
-				u8 in_this_packet = (pending < 3) ? pending : 3;
-				bool is_last			 = (in_this_packet < 3);
+				u8	 pending				= (first ? 1 : 0) + remaining;
+				u8	 in_this_packet = (pending < 3) ? pending : 3;
+				bool is_last				= (in_this_packet < 3);
 
 				tx_buf[0] = MIDI_EVENT(0, is_last ? end_event[in_this_packet]
-																					 : MIDI_COMMAND_SYSEX_START_3BYTE);
+																					: MIDI_COMMAND_SYSEX_START_3BYTE);
 
 				u8 slot = 1;
 				if (first) {
@@ -269,7 +276,7 @@ static int midi_out_handler(void* event) {
 					// expect after unpacking, not how many wire bytes it
 					// took to carry them.
 					tx_buf[slot++] = sysex->data_len;
-					first						= false;
+					first					 = false;
 				}
 				while (slot <= in_this_packet) {
 					tx_buf[slot++] = *payload++;

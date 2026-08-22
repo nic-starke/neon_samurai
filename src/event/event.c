@@ -39,12 +39,17 @@ int event_init(void) {
 
 int event_update(void) {
 
+	int result = 0;
+
 	for (uint i = 0; i < EVENT_CHANNEL_NB; i++) {
 		int ret = event_channel_process(i);
-		RETURN_ON_ERR(ret);
+
+		if (ret != 0) {
+			result = ret; // Report it, but keep draining the other channels
+		}
 	}
 
-	return 0;
+	return result;
 }
 
 int event_channel_register(enum event_ch ch, struct event_channel* def) {
@@ -70,8 +75,11 @@ int event_channel_register(enum event_ch ch, struct event_channel* def) {
 int event_channel_process(enum event_ch ch) {
 	struct event_channel* channel = channels[ch];
 
-	// Check if the channel is registered
-	assert(channel);
+	// Nothing registered here - asserts are compiled out of release builds, so
+	// this has to be a runtime check or event_update() dereferences NULL.
+	if (channel == NULL) {
+		return 0;
+	}
 
 	// Process all events in the queue
 	for (uint i = 0; i < channel->head; ++i) {
@@ -97,7 +105,10 @@ int event_channel_subscribe(enum event_ch						 ch,
 	assert(ch < EVENT_CHANNEL_NB);
 
 	struct event_channel* channel = channels[ch];
-	assert(channel);
+
+	if (channel == NULL) {
+		return ERR_BAD_PARAM;
+	}
 
 	// If the channel is configured for only one subscriber
 	// return an error.
@@ -152,7 +163,10 @@ int event_channel_unsubscribe(enum event_ch ch, struct event_ch_handler* h) {
 	assert(ch < EVENT_CHANNEL_NB);
 
 	struct event_channel* channel = channels[ch];
-	assert(channel);
+
+	if (channel == NULL) {
+		return ERR_BAD_PARAM;
+	}
 
 	if (channel->onehandler) {
 		return ERR_UNSUPPORTED;
@@ -188,10 +202,12 @@ int event_post(enum event_ch ch, void* event) {
 	assert(ch < EVENT_CHANNEL_NB);
 
 	struct event_channel* channel = channels[ch];
-	assert(channel);
 
-	// Check there is space in the channel event queue
-	if (channel->head >= (channel->queue_size - 1)) {
+	if (channel == NULL) {
+		return ERR_BAD_PARAM;
+	}
+
+	if (channel->head >= channel->queue_size) {
 		return ERR_NO_MEM;
 	}
 
@@ -208,7 +224,10 @@ int event_post_rt(enum event_ch ch, void* event) {
 	assert(ch < EVENT_CHANNEL_NB);
 
 	struct event_channel* channel = channels[ch];
-	assert(channel);
+
+	if (channel == NULL) {
+		return ERR_BAD_PARAM;
+	}
 
 	// Call the event handlers directly
 	struct event_ch_handler* handler = channel->handlers;

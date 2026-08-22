@@ -24,7 +24,7 @@ static int event_handler(void* event);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Variables ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static struct sys_event sys_event_queue[8];
+static struct sys_event sys_event_queue[SYS_EVENT_QUEUE_SIZE];
 
 static struct event_ch_handler sys_event_handler = {
 		.handler	= &event_handler,
@@ -52,10 +52,11 @@ static int event_handler(void* event) {
 		case EVT_SYS_REQ_CFG_SAVE: return ERR_NOT_IMPLEMENTED;
 
 		case EVT_SYS_REQ_CFG_RESET: {
-			// Post the response event FIRST
+			// Synchronous: mf_cfg_reset() below does not return, so a queued
+			// event would never be drained and the response never sent.
 			struct sys_event res_evt = {.type			= EVT_SYS_RES_CFG_RESET,
 																	.data.ret = true};
-			event_post(EVENT_CHANNEL_SYS, &res_evt);
+			event_post_rt(EVENT_CHANNEL_SYS, &res_evt);
 
 			// Set the reset flag in EEPROM
 			mf_cfg_reset();

@@ -143,7 +143,19 @@ static enum stream_state stream_state = STREAM_IDLE;
 // for the *packed* wire form (see 7-bit packing note below), which is
 // larger than the raw struct data it decodes to.
 static u8								 buffer[MF_SYSEX_PACKED_MAX_PKT_SIZE + 2];
-static u8								 buffer_idx = 0;
+
+/*
+	sysex_unpack7() writes into a MF_SYSEX_MAX_DATA_SIZE scratch buffer without
+	bounds checking, so the largest packet the streaming buffer can accept must
+	not unpack to more than that. It currently fits exactly, with no slack.
+*/
+#define SYSEX_MAX_PACKED_PAYLOAD (sizeof(buffer) - MF_SYSEX_MIN_PKT_SIZE - 2)
+
+_Static_assert(SYSEX_MAX_PACKED_PAYLOAD -
+											 ((SYSEX_MAX_PACKED_PAYLOAD + 7) / 8) <=
+									 MF_SYSEX_MAX_DATA_SIZE,
+							 "a max-length packet would overrun unpacked_payload[]");
+static u8 buffer_idx = 0;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -551,6 +563,11 @@ static int midi_in_handler(void* evt) {
 
 	switch (msg->cmd) {
 		case MF_SYSEX_GET: {
+			if (param_len > MIDI_SYSEX_OUT_DATA_LEN_MAX) {
+				ret = ERR_BAD_PARAM;
+				goto cleanup;
+			}
+
 			midi_event_s reply = {
 					.type = MIDI_EVENT_SYSEX,
 					.data.sysex_out =

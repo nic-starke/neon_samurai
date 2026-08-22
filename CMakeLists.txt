@@ -241,7 +241,6 @@ target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/led/hw_led.c
     ${CMAKE_SOURCE_DIR}/src/led/hsv2rgb.c
     ${CMAKE_SOURCE_DIR}/src/led/led.c
-    ${CMAKE_SOURCE_DIR}/src/lfo/lfo.c
     ${CMAKE_SOURCE_DIR}/src/midi/midi_lufa.c
     ${CMAKE_SOURCE_DIR}/src/midi/sysex.c
     ${CMAKE_SOURCE_DIR}/src/midi/webui_bridge.c
