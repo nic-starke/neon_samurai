@@ -12,7 +12,8 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define BOOTKEY 0x99C0FFEE
+#define BOOTKEY						0x99C0FFEE
+#define BOOTLOADER_VECTOR ((BOOT_SECTION_START + 0x1FC) / 2)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -27,10 +28,6 @@
 // bootloader execution will jump to the bootloader.
 __attribute__((section(".noinit"))) static uint32_t boot_key;
 
-// This is a pointer to the reset interrupt vector of the bootloader, which is
-// located at this specific location (as per the Atmel application note.)
-void (*bootloader)(void) = (void (*)(void))(BOOT_SECTION_START / 2 + 0x1FC / 2);
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 void bootloader_check(void) {
@@ -38,6 +35,16 @@ void bootloader_check(void) {
 	// is valid.
 	if (((RST.STATUS & RST_WDRF_bm)) && (boot_key == BOOTKEY)) {
 		boot_key = 0; // Reset the bootkey to stop a bootloader loop.
+
+		// The watchdog that produced this reset is still running - an xmega
+		// watchdog reset does not clear WDT.CTRL. Left enabled it resets the
+		// device again ~30ms after the jump below, long before the bootloader
+		// can enumerate as a USB DFU device.
+		wdt_disable();
+
+		// RST.STATUS flags are sticky until written back, so clear the source
+		// rather than leaving WDRF set for every subsequent boot.
+		RST.STATUS = RST_WDRF_bm;
 
 		/**
 		 * Copied from the GCC AVR options documentation -
@@ -47,8 +54,8 @@ void bootloader_check(void) {
 		 * called EIND that serves as most significant part of the target
 		 * address when EICALL or EIJMP instructions are used.
 		 * */
-		EIND = BOOT_SECTION_START >> 17;
-		bootloader();
+		EIND = (uint8_t)(BOOTLOADER_VECTOR >> 16);
+		((void (*)(void))(uint16_t)BOOTLOADER_VECTOR)();
 	}
 }
 
@@ -60,8 +67,6 @@ void bootloader_check(void) {
 	the required value, the bootloader will be executed.
 */
 void bootloader_start(void) {
-	// USB_Disable();
-	// IRQ_DisableInterrupts();
 	boot_key = BOOTKEY;
 	wdt_enable(WDTO_30MS);
 	while (1) {}

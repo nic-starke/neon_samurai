@@ -59,28 +59,26 @@ void input_update(void) {
 	sw_side_switch_update();
 }
 
-// Corner indices in the 4x4 encoder grid (row-major, idx = row * 4 + col).
-// NOTE: this mapping is inferred from the row layout documented in
-// sw_encoder_init() below and has not been verified against physical
-// hardware - confirm on a real device before relying on it.
-#define ENC_IDX_TOP_LEFT	(0)
-#define ENC_IDX_TOP_RIGHT (3)
-#define ENC_IDX_BOT_LEFT	(12)
-#define ENC_IDX_BOT_RIGHT (15)
+// Encoder-switch holds for the two boot-time gestures. The two sets share no
+// encoder, so neither gesture can satisfy the other.
+#define ENC_IDX_RESET_A			 (15)
+#define ENC_IDX_RESET_B			 (14)
+#define ENC_IDX_RESET_C			 (11)
 
-#define ENC_IDX_RESET_A		(2)
-#define ENC_IDX_RESET_B		(3)
+#define ENC_IDX_BOOTLOADER_A (0)
+#define ENC_IDX_BOOTLOADER_B (1)
+#define ENC_IDX_BOOTLOADER_C (4)
 
 bool is_reset_pressed(void) {
 	return hw_enc_switch_held(ENC_IDX_RESET_A) &&
-				 hw_enc_switch_held(ENC_IDX_RESET_B);
+				 hw_enc_switch_held(ENC_IDX_RESET_B) &&
+				 hw_enc_switch_held(ENC_IDX_RESET_C);
 }
 
 bool is_bootloader_gesture_pressed(void) {
-	return hw_enc_switch_held(ENC_IDX_TOP_LEFT) &&
-				 hw_enc_switch_held(ENC_IDX_TOP_RIGHT) &&
-				 hw_enc_switch_held(ENC_IDX_BOT_LEFT) &&
-				 hw_enc_switch_held(ENC_IDX_BOT_RIGHT);
+	return hw_enc_switch_held(ENC_IDX_BOOTLOADER_A) &&
+				 hw_enc_switch_held(ENC_IDX_BOOTLOADER_B) &&
+				 hw_enc_switch_held(ENC_IDX_BOOTLOADER_C);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
