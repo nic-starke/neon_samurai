@@ -58,7 +58,9 @@ typedef struct {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+#ifdef ENABLE_CONSOLE
 static void process_line(const char* line);
+#endif
 
 static void handle_reset(const char* args);
 static void handle_bootloader(const char* args);
@@ -243,6 +245,7 @@ void console_puts_p(const char* str_p) {
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+#ifdef ENABLE_CONSOLE
 static void process_line(const char* line) {
 	char				command_name[CONSOLE_LINE_BUFFER_SIZE];
 	const char* args = "";
@@ -302,6 +305,7 @@ static void process_line(const char* line) {
 	console_puts_p(PSTR("\r\n"));
 	handle_help(NULL); // Show help on unknown command
 }
+#endif // ENABLE_CONSOLE
 
 // --- Command Handlers ---
 
@@ -334,8 +338,8 @@ static void handle_help(const char* args __attribute__((unused))) {
 		help_text_pgm[sizeof(help_text_pgm) - 1] = '\0';
 
 		// Format and print using snprintf (safer than sprintf)
-		snprintf(buffer, sizeof(buffer), "  %-10s - %s\r\n", command_name_pgm,
-						 help_text_pgm);
+		(void)snprintf(buffer, sizeof(buffer), "  %-10s - %s\r\n", command_name_pgm,
+									 help_text_pgm);
 		console_puts(buffer);
 	}
 }

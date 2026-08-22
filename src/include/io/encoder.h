@@ -11,9 +11,9 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define ENC_MAX		(UINT8_MAX)		// Maximum encoder value
-#define ENC_MIN		(0)						// Minimum encoder value
-#define ENC_MID		(ENC_MAX / 2) // Mid position encoder value
+#define ENC_MAX		((i16)UINT8_MAX) // Maximum encoder value
+#define ENC_MIN		(0)							 // Minimum encoder value
+#define ENC_MID		(ENC_MAX / 2)		 // Mid position encoder value
 #define ENC_RANGE (u8)(ENC_MAX - ENC_MIN)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

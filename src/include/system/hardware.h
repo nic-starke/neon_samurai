@@ -39,6 +39,21 @@
 #define RGB_WHITE									(0x32DF) // red = max, blue = 12, green = 22
 #define RGB_MAX_VAL								(MAX_BRIGHTNESS)
 
+_Static_assert(NUM_LEDS == NUM_ENCODERS * NUM_LEDS_PER_ENCODER,
+							 "the LED index maths assumes a fixed ring per encoder");
+_Static_assert(NUM_LEDS == NUM_LED_SHIFT_REGISTERS * 8,
+							 "the shift register chain must cover every LED exactly once");
+_Static_assert(NUM_LEDS_PER_ENCODER == 8 * sizeof(u16),
+							 "a frame buffer row holds one bit per LED of one encoder");
+_Static_assert(
+		NUM_INDICATOR_LEDS < NUM_LEDS_PER_ENCODER,
+		"the indicator ring shares its ring with the RGB and detent LEDs");
+_Static_assert(NUM_ENCODER_SWITCHES + NUM_SIDE_SWITCHES <=
+									 NUM_INPUT_SHIFT_REGISTERS * 8,
+							 "every switch must land in the input shift register chain");
+_Static_assert(MAX_BRIGHTNESS <= UINT8_MAX,
+							 "brightness is carried in u8 fields");
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 enum display_mode {

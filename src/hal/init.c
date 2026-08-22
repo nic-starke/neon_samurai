@@ -17,6 +17,7 @@
 #include "hal/dma.h"
 #include "hal/init.h"
 
+#include "hal/sys.h"
 #include "system/hardware.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -43,12 +44,7 @@ void avr_xmega128a4u_init(void) {
 			!XMEGACLK_SetCPUClockSource(CLOCK_SRC_PLL) ||
 			!XMEGACLK_StartInternalOscillator(CLOCK_SRC_INT_RC32MHZ) ||
 			!XMEGACLK_StartDFLL(CLOCK_SRC_INT_RC32MHZ, DFLL_REF_INT_USBSOF, F_USB)) {
-		hw_led_panic_red();
-
-		cli();
-		while (1) {
-			;
-		}
+		hal_panic();
 	}
 
 	// Configure interrupt controller

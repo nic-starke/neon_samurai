@@ -23,9 +23,9 @@
  */
 #include "led/hsv2rgb.h"
 
-#if defined(HSV_USE_ASSEMBLY) && !defined(__AVR_ARCH__)
-#warning "Only AVR assembly is implemented. Other architectures use C fallback."
-#undef HSV_USE_ASSEMBLY
+#if defined(HSV_USE_ASSEMBLY)
+#error                                                                         \
+		"the asm variant takes its arguments in fixed registers per the AVR calling convention, and declares neither them nor a memory clobber - it is only correct while the compiler refrains from inlining it, which -flto does not guarantee"
 #endif
 
 void fast_hsv2rgb_8bit(uint16_t h, uint8_t s, uint8_t v, uint8_t* r, uint8_t* g,
@@ -125,75 +125,75 @@ void fast_hsv2rgb_8bit(uint16_t h, uint8_t s, uint8_t v, uint8_t* r, uint8_t* g,
 			".Linrange%=:\n\t"
 
 			"sbrs	r25, 1\n\t" // if(sextant & 2) swapptr(r, b);
-			"rjmp	.Lsextno1%=\n\t" MOVW("r19", "r18", "r27", "r26") MOVW("r27", "r26",
-																																	 "r31", "r30")
-					MOVW("r31", "r30", "r19",
-							 "r18") "\n"
-											".Lsextno1%=:\n\t"
+			"rjmp	.Lsextno1%=\n\t" MOVW("r19", "r18", "r27", "r26")
+					MOVW("r27", "r26", "r31", "r30") MOVW(
+							"r31", "r30", "r19",
+							"r18") "\n"
+										 ".Lsextno1%=:\n\t"
 
-											"sbrs	r25, 2\n\t" // if(sextant & 4) swapptr(g, b);
-											"rjmp	.Lsextno2%=\n\t" MOVW("r19", "r18", "r29", "r28")
-													MOVW("r29", "r28", "r31", "r30") MOVW(
-															"r31", "r30", "r19",
-															"r18") "\n"
-																		 ".Lsextno2%=:\n\t"
+										 "sbrs	r25, 2\n\t" // if(sextant & 4) swapptr(g, b);
+										 "rjmp	.Lsextno2%=\n\t" MOVW("r19", "r18", "r29", "r28")
+												 MOVW("r29", "r28", "r31", "r30") MOVW(
+														 "r31", "r30", "r19",
+														 "r18") "\n"
+																		".Lsextno2%=:\n\t"
 
-																		 "ldi	r18, lo8(6)\n\t"
-																		 "and	r18, r25\n\t" // if(!(sextant & 6))
-																		 "brne	.Lsext2345%=\n\t"
+																		"ldi	r18, lo8(6)\n\t"
+																		"and	r18, r25\n\t" // if(!(sextant & 6))
+																		"brne	.Lsext2345%=\n\t"
 
-																		 "sbrc	r25, 0\n\t" // if(!(sextant & 6) &&
-																												// !(sextant & 1)) -->
-																												// doswasp
-																		 "rjmp	.Ldoneswap%=\n"
-																		 ".Lsext0%=:\n\t" MOVW("r19", "r18", "r27",
-																													 "r26")
-																				 MOVW("r27", "r26", "r29", "r28") MOVW(
-																						 "r29", "r28", "r19",
-																						 "r18") "rjmp	.Ldoneswap%=\n"
+																		"sbrc	r25, 0\n\t" // if(!(sextant & 6) &&
+																											// !(sextant & 1)) -->
+																											// doswasp
+																		"rjmp	.Ldoneswap%=\n"
+																		".Lsext0%=:\n\t" MOVW("r19", "r18", "r27",
+																													"r26")
+																				MOVW("r27", "r26", "r29", "r28") MOVW(
+																						"r29", "r28", "r19",
+																						"r18") "rjmp	.Ldoneswap%=\n"
 
-																										".Lsext2345%=:\n\t"
-																										"sbrc	r25, 0\n\t" // if((sextant
+																									 ".Lsext2345%=:\n\t"
+																									 "sbrc	r25, 0\n\t" // if((sextant
 																																			// & 6) &&
 																																			// (sextant
 																																			// & 1))
 																																			// -->
 																																			// doswap
-																										"rjmp	.Lsext0%=\n"
-																										".Ldoneswap%=:\n\t"
+																									 "rjmp	.Lsext0%=\n"
+																									 ".Ldoneswap%=:\n\t"
 
-																										/* Top level assignment
-																											 first to free up Y
-																											 register (r29:r28) */
-																										"st	Y, r20\n\t" // *g = v
+																									 /* Top level assignment
+																											first to free up Y
+																											register (r29:r28) */
+																									 "st	Y, r20\n\t" // *g = v
 
-																										"ldi	r18, 0\n\t" // Temporary
-																																			// zero
-																																			// reg (r1
-																																			// is used
-																																			// by mul)
-																										"ldi	r19, 1\n\t" // Temporary
-																																			// one reg
+																									 "ldi	r18, 0\n\t" // Temporary
+																																		// zero
+																																		// reg (r1
+																																		// is used
+																																		// by mul)
+																									 "ldi	r19, 1\n\t" // Temporary
+																																		// one reg
 
-																										/*
-																										 * Do bottom level next so
-																										 *we may use Z register
-																										 *(r31:r30).
-																										 *
-																										 *	Bottom level: v * (1.0 -
-																										 *s)
-																										 *	--> (v * (255 - s) +
-																										 *error_corr + 1) / 256 1 bb
-																										 *= ~s; 2 ww = v * bb; 3 ww
-																										 *+= 1; 4 ww += ww >> 8;	//
-																										 *error_corr for division
-																										 *1/256 instead of 1/255 5
-																										 **b = ww >> 8;
-																										 */
-																										"mov	r23, r22\n\t" // 1 use
-																																				// copy
-																																				// of s
-																										"com	r23\n\t"			// 1
+																									 /*
+																										* Do bottom level next so
+																										*we may use Z register
+																										*(r31:r30).
+																										*
+																										*	Bottom level: v * (1.0 -
+																										*s)
+																										*	--> (v * (255 - s) +
+																										*error_corr + 1) / 256 1 bb
+																										*= ~s; 2 ww = v * bb; 3 ww
+																										*+= 1; 4 ww += ww >> 8;	//
+																										*error_corr for division
+																										*1/256 instead of 1/255 5
+																										**b = ww >> 8;
+																										*/
+																									 "mov	r23, r22\n\t" // 1 use
+																																			// copy
+																																			// of s
+																									 "com	r23\n\t"			// 1
 			MUL("r23", "r20", "a") // 2 r1:r0 = v *  ~s
 			"add	r0, r19\n\t"		 // 3 r1:r0 += 1
 			"adc	r1, r18\n\t"		 // 3

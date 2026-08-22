@@ -14,6 +14,7 @@
 #include "event/animation.h"
 #include "hal/boot.h"
 #include "hal/init.h"
+#include "hal/sys.h"
 #include "led/led.h"
 #include "midi/midi.h"
 #include "midi/sysex.h"
@@ -25,6 +26,13 @@
 #include "usb/usb.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define INIT_OR_PANIC(call)                                                    \
+	do {                                                                         \
+		if ((call) != SUCCESS) {                                                   \
+			hal_panic();                                                             \
+		}                                                                          \
+	} while (0)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -44,19 +52,28 @@ struct sys_config gCONFIG = {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Entry point
-__attribute__((noreturn)) void main(void) {
+__attribute__((noreturn)) int main(void) {
 	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
 
 	rng_init();
-	event_init();
-	midi_init();
-	animation_init();
-	display_init();
+
+	/*
+		None of these have a degraded mode - a failed event channel registration
+		or an unstarted systick leaves the firmware unable to do its job at all,
+		so stop with the panel lit rather than run in a state that looks alive
+		but silently does nothing.
+	*/
+	INIT_OR_PANIC(event_init());
+	INIT_OR_PANIC(midi_init());
+	INIT_OR_PANIC(animation_init());
+	INIT_OR_PANIC(display_init());
+
 	input_init();
-	mf_sysex_init();
-	webui_bridge_init();
-	systime_start();
-	usb_init();
+
+	INIT_OR_PANIC(mf_sysex_init());
+	INIT_OR_PANIC(webui_bridge_init());
+	INIT_OR_PANIC(systime_start());
+	INIT_OR_PANIC(usb_init());
 #ifdef ENABLE_CONSOLE
 	console_init();
 #endif
@@ -81,9 +98,8 @@ __attribute__((noreturn)) void main(void) {
 		bootloader_start(); // Does not return - resets into DFU bootloader
 	}
 
-
-	cfg_init(reset);
-	cfg_load();
+	INIT_OR_PANIC(cfg_init(reset));
+	INIT_OR_PANIC(cfg_load());
 
 	hw_led_init();
 

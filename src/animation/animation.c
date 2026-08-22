@@ -27,6 +27,9 @@
 // off/white/off/colour segments divide evenly.
 #define ANIM_BANK_CHANGE_FRAMES		 33
 
+_Static_assert((ANIM_BANK_CHANGE_FRAMES % 3) == 0,
+							 "the off/white/off/colour segments must divide evenly");
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -323,10 +326,6 @@ static int draw_bank_change_animation(u8											encoder_idx,
 	u8			 r;
 	u8			 g;
 	u8			 b;
-
-	if (segment == 0) {
-		return SUCCESS;
-	}
 
 	if (frame < segment) {
 		// Off to white.

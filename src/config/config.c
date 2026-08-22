@@ -120,6 +120,9 @@ static int init_eeprom(void);
 	the appropriate eeprom_read/write/update functions with this variable
 	as the source/destination.
 */
+_Static_assert(sizeof(struct eeprom) <= EEPROM_SIZE,
+							 "config no longer fits the EEPROM");
+
 EEMEM struct eeprom eeprom_data;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */

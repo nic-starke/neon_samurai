@@ -563,7 +563,10 @@ static int midi_in_handler(void* evt) {
 
 	switch (msg->cmd) {
 		case MF_SYSEX_GET: {
-			if (param_len > MIDI_SYSEX_OUT_DATA_LEN_MAX) {
+			// Every case above either sets param or sets ret, and ret is checked
+			// just above - but that invariant is spread over the whole switch,
+			// so state it here rather than leave it to be re-derived.
+			if (param == NULL || param_len > MIDI_SYSEX_OUT_DATA_LEN_MAX) {
 				ret = ERR_BAD_PARAM;
 				goto cleanup;
 			}

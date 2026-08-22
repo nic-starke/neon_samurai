@@ -6,6 +6,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Includes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include "hal/sys.h"
+#include "system/hardware.h"
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <util/atomic.h>
@@ -33,3 +34,12 @@ __attribute__((noreturn)) void hal_system_reset(void) {
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+__attribute__((noreturn)) void hal_panic(void) {
+	cli();
+	hw_led_panic_red();
+
+	while (1) {
+		;
+	}
+}

@@ -61,10 +61,7 @@ bool encoder_movement_update(struct encoder_movement* enc, int new_direction) {
 	// Determine the base acceleration factor based on time delta
 	u16 current_accel_factor = 1; // Default factor
 
-	if (time_delta == 0) {
-		// Assign max acceleration if delta is zero (very fast)
-		current_accel_factor = FACTOR_VERY_FAST;
-	} else if (time_delta < THR_FAST) { // < 10ms
+	if (time_delta < THR_FAST) { // < 10ms, including 0
 		current_accel_factor = FACTOR_VERY_FAST;
 	} else if (time_delta < THR_MEDIUM) { // 10ms to 29ms
 		current_accel_factor = FACTOR_FAST;

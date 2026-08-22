@@ -25,6 +25,15 @@ extern "C" {
  */
 __attribute__((noreturn)) void hal_system_reset(void);
 
+/**
+ * @brief Stop dead with every RGB LED lit red. Does not return.
+ *
+ * For conditions the firmware cannot run through. assert() is not usable for
+ * this: NDEBUG is set in both release build types, and avr-libc's assert()
+ * calls abort(), which spins silently with no indication on the panel.
+ */
+__attribute__((noreturn)) void hal_panic(void);
+
 #ifdef __cplusplus
 }
 #endif

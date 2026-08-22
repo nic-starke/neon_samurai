@@ -17,6 +17,12 @@
 
 #define EE_MAPPED(addr) ((volatile u8*)(MAPPED_EEPROM_START + (addr)))
 
+// page_update() masks the address with EEPROM_PAGE_SIZE - 1 and carries the
+// chunk length in a u8.
+_Static_assert((EEPROM_PAGE_SIZE & (EEPROM_PAGE_SIZE - 1)) == 0,
+							 "EEPROM page size must be a power of two");
+_Static_assert(EEPROM_PAGE_SIZE <= 255, "a page must fit a u8 chunk length");
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

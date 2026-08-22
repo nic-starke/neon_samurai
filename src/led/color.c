@@ -37,6 +37,10 @@ extern struct encoder gENCODERS[NUM_ENC_BANKS][NUM_ENCODERS];
 // Gamma brightness lookup table
 // <https://victornpb.github.io/gamma-table-generator> gamma = 2.20 steps = 256
 // range = 0-255
+_Static_assert(MAX_BRIGHTNESS == UINT8_MAX,
+							 "the gamma LUT is a u8 table indexed by a u8 - it can only span "
+							 "the BCM range if that range is exactly a u8");
+
 const uint8_t gamma_lut[256] PROGMEM = {
 		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,	 0,		0,
 		1,	 1,		1,	 1,		1,	 1,		1,	 1,		1,	 1,		2,	 2,		2,	 2,		2,
@@ -91,11 +95,6 @@ void color_update_vmap_rgb(struct virtmap* vmap) {
 	vmap->rgb.red		= pgm_read_byte(&gamma_lut[r_linear]);
 	vmap->rgb.green = pgm_read_byte(&gamma_lut[g_linear]);
 	vmap->rgb.blue	= pgm_read_byte(&gamma_lut[b_linear]);
-
-	// Ensure values are within the valid BCM range (0-31)
-	vmap->rgb.red		= CLAMP(vmap->rgb.red, 0, MAX_BRIGHTNESS);
-	vmap->rgb.green = CLAMP(vmap->rgb.green, 0, MAX_BRIGHTNESS);
-	vmap->rgb.blue	= CLAMP(vmap->rgb.blue, 0, MAX_BRIGHTNESS);
 }
 
 /**
@@ -194,10 +193,7 @@ void color_set_vmap_hsv(uint8_t bank, uint8_t enc, uint8_t vmap_idx, uint16_t h,
 	if (!vmap)
 		return;
 
-	// Clamp input values to valid ranges
-	h = CLAMP(h, 0, HSV_HUE_STEPS - 1); // 0-1535
-	s = CLAMP(s, 0, 255);								// 0-255
-	v = CLAMP(v, 0, 255);								// 0-255
+	h = MIN(h, (u16)(HSV_HUE_STEPS - 1));
 
 	// Set the HSV values
 	vmap->hsv.hue				 = h;

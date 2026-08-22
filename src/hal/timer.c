@@ -213,7 +213,7 @@ int timer_get_parameters(u32 freq, TC_CLKSEL_t* clk_sel, u16* period) {
 	u8				best_idx				= 0;
 	bool			found						= false;
 
-	for (u8 i = 0; i < NUM_PRESCALERS; ++i) {
+	for (u8 i = 0; i < (u8)NUM_PRESCALERS; ++i) {
 		const u32 prescaler = pgm_read_dword(&prescalers[i]);
 		const u32 ticks			= clocks_per_tick / prescaler;
 

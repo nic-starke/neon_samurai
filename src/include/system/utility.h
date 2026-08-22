@@ -21,13 +21,17 @@
 #define CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
 
 // Get the min value of two values
-#define MIN(a, b)					 ((a) < (b) ? (a) : (b))
+#if !defined(MIN)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 // Get the max value of two values
-#define MAX(a, b)					 ((a) > (b) ? (a) : (b))
+#if !defined(MAX)
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
 
 // Get the number of elements in an array
-#define COUNTOF(a)				 (sizeof(a) / sizeof(*(a)))
+#define COUNTOF(a) (sizeof(a) / sizeof(*(a)))
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

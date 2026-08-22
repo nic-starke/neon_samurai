@@ -77,6 +77,11 @@
 
 _Static_assert(NUM_BCM_PLANES == 8, "the BCM schedule is built for 8 planes");
 
+// The schedule's weights must still sum to a full binary cycle, and the timer
+// period must match, or planes get the wrong share of the cycle.
+_Static_assert(TIMER_TOP + 1 == ((1 << NUM_BCM_PLANES) - 1) * SLOT_UNIT_TICKS,
+							 "TIMER_TOP does not match the slot schedule");
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Extern ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
