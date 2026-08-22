@@ -36,6 +36,10 @@ struct usart_config {
 	enum spi_mode mode;
 	u32						baudrate;
 	enum endian		endian;
+
+	// Master SPI always drives the transmitter; the receiver is optional and
+	// only needed when the bus actually reads data back (AU manual 23.10).
+	bool rx_enable;
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Prototypes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -43,7 +47,14 @@ struct usart_config {
 /**
  * @brief Initialise a USART peripheral (such as USARTC0) in Master SPI Mode
  * IMPORTANT!! Only call this after the CPU clock is configured to run at F_CPU.
- * Does not start UART tx/rx.
+ * Enables the transmitter before returning, and the receiver if the config
+ * asks for it.
+ *
+ * The baud rate must be reachable by the master SPI generator:
+ * f_BAUD = f_PER / (2 * (BSEL + 1)) with BSEL in 0..4095, so at F_CPU it spans
+ * F_CPU/8192 to F_CPU/2. The nearest rate at or below the request is chosen.
+ *
+ * @return int SUCCESS, or ERR_BAD_PARAM.
  * GPIO will be configured based on the port and PORT.REMAP
  *
  * Default pinout is:
@@ -58,7 +69,7 @@ struct usart_config {
  *
  * @param config A pointer to a USART config.
  */
-void usart_module_init(USART_t* usart, const struct usart_config* config);
+int usart_module_init(USART_t* usart, const struct usart_config* config);
 
 // Enable or disable USART module transmission.
 void usart_set_tx(USART_t* usart, bool enable);

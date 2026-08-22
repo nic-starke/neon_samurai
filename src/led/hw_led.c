@@ -131,9 +131,10 @@ void hw_led_init(void) {
 
 	// Configure USART (SPI) for LED shift registers
 	struct usart_config usart_cfg = {
-			.baudrate = USART_BAUD,
-			.endian		= ENDIAN_LSB,
-			.mode			= SPI_MODE_CLK_LO_PHA_LO,
+			.baudrate	 = USART_BAUD,
+			.endian		 = ENDIAN_LSB,
+			.mode			 = SPI_MODE_CLK_LO_PHA_LO,
+			.rx_enable = false,
 	};
 
 	// Configure DMA to transfer one bit-plane to the USARTs 1-byte tx buffer.

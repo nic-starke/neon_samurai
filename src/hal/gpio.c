@@ -27,7 +27,20 @@ void gpio_mode(PORT_t* port, u8 pin, PORT_OPC_t mode) {
 	volatile u8* ctrl = &port->PIN0CTRL + pin;
 
 	*ctrl &= (u8)~PORT_OPC_gm; // Clear all OPC bits
-	*ctrl |= (u8)mode;         // Set the new mode
+	*ctrl |= (u8)mode;				 // Set the new mode
+}
+
+void gpio_invert(PORT_t* port, u8 pin, bool invert) {
+	assert(port);
+	assert(pin < 8);
+
+	volatile u8* ctrl = &port->PIN0CTRL + pin;
+
+	if (invert) {
+		*ctrl |= PORT_INVEN_bm;
+	} else {
+		*ctrl &= (u8)~PORT_INVEN_bm;
+	}
 }
 
 void gpio_dir(PORT_t* port, u8 pin, enum gpio_dir dir) {
