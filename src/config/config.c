@@ -9,6 +9,8 @@
 #include <string.h>
 #include <avr/eeprom.h>
 
+#include "hal/eeprom.h"
+
 #include "event/event.h"
 #include "event/sys.h"
 #include "system/error.h"
@@ -125,8 +127,12 @@ EEMEM struct eeprom eeprom_data;
 int cfg_init(bool reset_cfg) {
 	// Check if the eeprom is initialised (the first word == EE_VERSION), if not
 	// initialise the eeprom with default values
-	u16 version		 = eeprom_read_word(&eeprom_data.version);
-	u8	reset_flag = eeprom_read_byte(&eeprom_data.reset_pending);
+	u16 version;
+	u8	reset_flag;
+
+	hal_eeprom_read(EE_ADDR(eeprom_data.version), &version, sizeof(version));
+	hal_eeprom_read(EE_ADDR(eeprom_data.reset_pending), &reset_flag,
+									sizeof(reset_flag));
 
 	if (reset_flag == 1 || reset_cfg == 1 || version != EE_VERSION) {
 		return init_eeprom(); // This will also clear the reset_pending flag
@@ -140,8 +146,8 @@ int cfg_load(void) {
 	for (int i = 0; i < NUM_ENC_BANKS; i++) {
 		for (int j = 0; j < NUM_ENCODERS; j++) {
 			struct eeprom_encoder ee_enc = {0};
-			eeprom_read_block(&ee_enc, &eeprom_data.encoders[i][j],
-												sizeof(struct eeprom_encoder));
+			hal_eeprom_read(EE_ADDR(eeprom_data.encoders[i][j]), &ee_enc,
+											sizeof(struct eeprom_encoder));
 			decode_encoder(&ee_enc, &gENCODERS[i][j]);
 		}
 	}
@@ -156,8 +162,8 @@ int cfg_store(void) {
 		for (int j = 0; j < NUM_ENCODERS; j++) {
 			struct eeprom_encoder enc = {0};
 			encode_encoder(&gENCODERS[i][j], &enc);
-			eeprom_update_block(&enc, &eeprom_data.encoders[i][j],
-													sizeof(struct eeprom_encoder));
+			hal_eeprom_update(EE_ADDR(eeprom_data.encoders[i][j]), &enc,
+												sizeof(struct eeprom_encoder));
 		}
 	}
 
@@ -179,7 +185,9 @@ int cfg_update(void) {
 int mf_cfg_reset(void) {
 	// Set the reset pending flag in EEPROM. The actual data reset happens on next
 	// boot.
-	eeprom_update_byte(&eeprom_data.reset_pending, 1);
+	const u8 pending = 1;
+	hal_eeprom_update(EE_ADDR(eeprom_data.reset_pending), &pending,
+										sizeof(pending));
 	hal_system_reset(); // This function does not return
 	return SUCCESS;
 }
@@ -293,8 +301,12 @@ static int encode_proto_cfg(const struct proto_cfg* src,
 
 static int init_eeprom(void) {
 
-	eeprom_update_word(&eeprom_data.version, EE_VERSION);
-	eeprom_update_byte(&eeprom_data.reset_pending, 0);
+	const u16 version = EE_VERSION;
+	const u8	cleared = 0;
+
+	hal_eeprom_update(EE_ADDR(eeprom_data.version), &version, sizeof(version));
+	hal_eeprom_update(EE_ADDR(eeprom_data.reset_pending), &cleared,
+										sizeof(cleared));
 
 	// Write the initial state of the system to the eeprom
 	int ret = cfg_store();
