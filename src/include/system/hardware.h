@@ -32,7 +32,7 @@
 #define MAX_BRIGHTNESS						(NUM_PWM_LEVELS - 1)
 #define MIN_BRIGHTNESS						(0)
 
-#define NUM_ENC_BANKS							(3)
+#define NUM_ENC_BANKS							(4)
 #define NUM_ENC_PER_BANK					(NUM_ENCODERS)
 #define NUM_VMAPS_PER_ENC					(2)
 

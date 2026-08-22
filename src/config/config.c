@@ -17,7 +17,7 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define EE_VERSION (u16)(13)
+#define EE_VERSION (u16)(14)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -54,9 +54,6 @@ struct eeprom_encoder {
 
 	struct {
 		eeprom_proto_cfg_s cfg;
-		u8								 rgb_r;
-		u8								 rgb_g;
-		u8								 rgb_b;
 		uint16_t					 hsv_h; // Hue (0-1535)
 		u8								 hsv_s; // Saturation (0-255)
 		u8								 hsv_v; // Value (0-255)
@@ -198,12 +195,6 @@ static int encode_encoder(const struct encoder*	 src,
 	dst->vmap_active	= src->vmap_active;
 
 	for (int i = 0; i < NUM_VMAPS_PER_ENC; i++) {
-		// Save RGB and HSV color values
-		dst->vmap[i].rgb_r = src->vmaps[i].rgb.red;
-		dst->vmap[i].rgb_g = src->vmaps[i].rgb.green;
-		dst->vmap[i].rgb_b = src->vmaps[i].rgb.blue;
-
-		// Add saving of HSV values
 		dst->vmap[i].hsv_h = src->vmaps[i].hsv.hue;
 		dst->vmap[i].hsv_s = src->vmaps[i].hsv.saturation;
 		dst->vmap[i].hsv_v = src->vmaps[i].hsv.value;
@@ -234,12 +225,6 @@ static int decode_encoder(const struct eeprom_encoder* src,
 	dst->vmap_active			= src->vmap_active;
 
 	for (int i = 0; i < NUM_VMAPS_PER_ENC; i++) {
-		// Load RGB values
-		dst->vmaps[i].rgb.red		= src->vmap[i].rgb_r;
-		dst->vmaps[i].rgb.green = src->vmap[i].rgb_g;
-		dst->vmaps[i].rgb.blue	= src->vmap[i].rgb_b;
-
-		// Load HSV values
 		dst->vmaps[i].hsv.hue				 = src->vmap[i].hsv_h;
 		dst->vmaps[i].hsv.saturation = src->vmap[i].hsv_s;
 		dst->vmaps[i].hsv.value			 = src->vmap[i].hsv_v;

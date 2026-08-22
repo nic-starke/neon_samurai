@@ -14,7 +14,7 @@
 
 import { Param } from "./sysex.js";
 
-export const NUM_BANKS = 3;
+export const NUM_BANKS = 4;
 export const NUM_ENCODERS = 16;
 export const NUM_VMAPS_PER_ENCODER = 2;
 export const NUM_SIDE_SWITCHES = 6;
