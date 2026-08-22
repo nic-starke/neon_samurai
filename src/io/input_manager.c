@@ -20,6 +20,7 @@
 #include "midi/sysex.h"
 
 #include "system/diag.h"
+#include "animation/idle.h"
 #include "system/hardware.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -183,6 +184,10 @@ static void sw_encoder_update(void) {
 
 		const enum switch_state edge = hw_enc_switch_state(enc->idx);
 
+		if (edge != SWITCH_IDLE) {
+			idle_notify_activity();
+		}
+
 		if (edge == SWITCH_PRESSED) {
 			enc->sw_state = SWITCH_PRESSED;
 			switch (enc->sw_mode) {
@@ -301,6 +306,8 @@ static void sw_encoder_update(void) {
 			to update the display.
 			The
 		*/
+
+		idle_notify_activity();
 
 		if (enc->update_display == 0) {
 			enc->update_display = systime_ms();
@@ -555,6 +562,10 @@ static void sw_side_switch_update(void) {
 	for (u8 i = 0; i < NUM_SIDE_SWITCHES; i++) {
 
 		enum switch_state state = hw_side_switch_state(i);
+
+		if (state != SWITCH_IDLE) {
+			idle_notify_activity();
+		}
 
 		if (state == SWITCH_PRESSED) {
 			switch (gSIDE_SWITCHES[i].mode) {

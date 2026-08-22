@@ -17,6 +17,7 @@
 #include "led/led.h"
 #include "system/config.h"
 #include "system/diag.h"
+#include "animation/idle.h"
 #include "system/error.h"
 #include "system/hardware.h"
 #include "system/time.h"
@@ -164,6 +165,14 @@ int display_init(void) {
 
 void display_update(void) {
 	u32 time_now = systime_ms();
+
+	idle_update();
+
+	// The idle display owns every LED while it runs, so nothing else may draw
+	// over it. Touching anything stops it and queues a full redraw.
+	if (idle_is_active()) {
+		return;
+	}
 
 	const bool anim_active = animation_is_active();
 

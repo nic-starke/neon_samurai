@@ -76,6 +76,10 @@ endfunction()
 ns_add_test(test_quadrature SOURCES ${NS_SRC_DIR}/encoder/quadrature.c)
 ns_add_test(test_switch     SOURCES ${NS_SRC_DIR}/io/switch.c)
 ns_add_test(test_utility)
+# idle_wave.c reads its envelope table from program space, which a host does
+# not have - shim/ stands in for that one header. See shim/avr/pgmspace.h.
+ns_add_test(test_idle_wave SOURCES ${NS_SRC_DIR}/animation/idle_wave.c)
+target_include_directories(test_idle_wave PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/shim)
 ns_add_test(test_diag      SOURCES ${NS_SRC_DIR}/system/diag.c)
 ns_add_test(test_hsv2rgb   SOURCES ${NS_SRC_DIR}/led/hsv2rgb.c)
 ns_add_test(test_event      SOURCES ${NS_SRC_DIR}/event/event.c

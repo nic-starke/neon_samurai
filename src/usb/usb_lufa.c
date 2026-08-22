@@ -657,4 +657,10 @@ void printbuf(u8* buf, uint len) {
 
 #endif
 
+// Outside the console's conditional on purpose: the idle display asks this
+// in every build, whether or not the debug console was compiled in.
+bool usb_is_configured(void) {
+	return (USB_DeviceState == DEVICE_STATE_Configured);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Local Functions ~~~~~~~~~~~~~~~~~~~~~~~~~ */

@@ -48,6 +48,12 @@ the bottom.
 The practical result is that a setting halfway up the scale looks about
 halfway bright.
 
+## When the device is left alone {: #idle-display }
+
+When nothing is connected that could be using the device - a charger, a dead
+hub, a computer that has not enumerated it - and nothing has been touched for
+ten seconds, the panel fades out to an idle animation.
+
 ## The detent lights {: #detent-lights }
 
 The two detent LEDs light when a detented encoder is sitting exactly on its

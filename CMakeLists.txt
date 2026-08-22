@@ -226,6 +226,8 @@ set_target_properties(neosam PROPERTIES
 target_sources(neosam PRIVATE
     ${CMAKE_SOURCE_DIR}/src/main.c
     ${CMAKE_SOURCE_DIR}/src/animation/animation.c
+    ${CMAKE_SOURCE_DIR}/src/animation/idle.c
+    ${CMAKE_SOURCE_DIR}/src/animation/idle_wave.c
     ${CMAKE_SOURCE_DIR}/src/config/config.c
     ${CMAKE_SOURCE_DIR}/src/console/console.c
     ${CMAKE_SOURCE_DIR}/src/encoder/encoder.c
