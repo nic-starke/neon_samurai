@@ -96,13 +96,35 @@ jobs:
           avr-size -C --mcu=atxmega128a4u build/${{ matrix.build_type }}/neosam.elf \
             | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # A bare neosam.hex says nothing about what it was built from. Naming it
+      # for the version and the commit means a file that has been downloaded,
+      # renamed or passed to somebody else can still be traced back to a
+      # build, which matters most for the ones handed round for testing.
+      #
+      # Release builds are named for the version alone - see release.yml.
+      - name: Name the artefacts
+        id: name
+        run: |
+          version=$(tools/version.sh)
+          short=$(git rev-parse --short HEAD)
+          stem="neosam-${version}+${short}-${{ matrix.build_type }}"
+
+          mkdir -p dist
+          for ext in elf hex eep; do
+            src="build/${{ matrix.build_type }}/neosam.${ext}"
+            [ -f "$src" ] && cp "$src" "dist/${stem}.${ext}"
+          done
+
+          (cd dist && sha256sum ./* > "${stem}.sha256")
+
+          echo "stem=$stem" >> "$GITHUB_OUTPUT"
+          echo "Built \`$stem\`" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: neosam-${{ matrix.build_type }}
-          path: |
-            build/${{ matrix.build_type }}/neosam.elf
-            build/${{ matrix.build_type }}/neosam.hex
+          name: ${{ steps.name.outputs.stem }}
+          path: dist/
 
   analyse:
     name: static analysis

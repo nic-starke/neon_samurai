@@ -46,8 +46,7 @@ jobs:
           tag="${{ github.event.inputs.tag || github.ref_name }}"
           tag_version="${tag#v}"
 
-          project_version=$(sed -n 's/^[[:space:]]*VERSION[[:space:]]\+\([0-9.]\+\).*/\1/p' \
-            CMakeLists.txt | head -1)
+          project_version=$(tools/version.sh)
 
           echo "tag      $tag_version"
           echo "project  $project_version"
