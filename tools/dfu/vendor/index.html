@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+            }
+        }
+    </script>
+
+    <h1>Flash on Web for AVR USB DFU</h1>
+
+    <div id="app">
+      Message: {{ FlashOnWeb.message }}
+      <h3>
+        <button @click="FlashOnWeb.programFlash">Flash on Web</button>
+        <input type="file" ref="hex-file" id="hexFile" name="hexFile" accept=".hex" />
+      </h3>
+
+      More Operations: <button @click="moreOp = !moreOp" id="toggle">&#9660;</button>
+      <div id="more" v-show="moreOp" style="display:none">
+        Device: {{ FlashOnWeb.device }}
+        <h3>
+          <button @click="FlashOnWeb.selectDevice">Select Device</button>
+        </h3>
+        <h3>
+          <button @click="FlashOnWeb.eraseChip">Erase Chip</button>
+          <button @click="FlashOnWeb.checkBlank">Check Blank</button>
+        </h3>
+        <h3>
+          <button @click="FlashOnWeb.writeFlash">Write Flash</button>
+          <input type="file" id="flashFile" accept=".hex" />
+        </h3>
+        <h3>
+          <button @click="FlashOnWeb.readFlash">Read Flash</button>
+          <button id="flash-download" disabled>Download File</button>
+          <a id="flash-link" style="display:none">Download File</a>
+        </h3>
+    
+        <h3>
+          <button @click="FlashOnWeb.clearEEPROM">Clear EEPROM</button>
+        </h3>
+        <h3>
+          <button @click="FlashOnWeb.writeEEPROM">Write EEPROM</button>
+          <input type="file" id="eepromFile" accept=".hex" />
+        </h3>
+        <h3>
+          <button @click="FlashOnWeb.readEEPROM">Read EEPROM</button>
+          <button id="eeprom-download" disabled>Download File</button>
+          <a id="eeprom-link" style="display:none">Download File</a>
+        </h3>
+    
+        <h3>
+          <button @click="FlashOnWeb.startApp">Start App</button>
+          <button @click="FlashOnWeb.recoverError">Recover Error</button>
+        </h3>
+    
+        <h3>
+          <button @click="FlashOnWeb.checkStatus">Check Status</button>
+        </h3>
+          Status: {{ FlashOnWeb.status }}
+      </div>
+    </div>
+    
+    <script type="module">
+        import { createApp, ref } from 'vue'
+        import * as FlashOnWeb from './FlashOnWeb.js'
+    
+        const moreOp = ref(false);
+
+        createApp({
+          setup() {
+            return {
+              FlashOnWeb, moreOp
+            }
+          }
+        }).mount('#app')
+    </script>
+
+</body>
+</html>

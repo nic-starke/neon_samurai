@@ -17,3 +17,7 @@ __pycache__
 # docs/manual/, and both of these are built from them.
 /site/
 /webui/manual.json
+
+# Reference PDFs fetched by tools/dfu/fetch-docs.sh. They are Microchip's and
+# the USB-IF's, and are not ours to redistribute - see docs/reference/README.md.
+/docs/reference/*.pdf
