@@ -21,6 +21,7 @@ platform-agnostic.
 
 from __future__ import annotations
 
+import errno
 import time
 
 import sysex as sx
@@ -470,6 +471,44 @@ class NeonSamuraiLibrary:
         return self._device_info["num_banks"]
 
     # --- Params the backup needs that had no keyword yet -----------------
+
+    @keyword("Enter Bootloader")
+    def enter_bootloader(self, timeout_s: float = DEFAULT_TIMEOUT_S) -> None:
+        """Send the guarded bootloader command and wait for the ack.
+
+        The device acknowledges before it reboots - the ack goes out
+        synchronously for exactly that reason - and then leaves the MIDI bus
+        entirely, so unlike Reset Device there is nothing to reconnect to
+        afterwards. It has to be flashed, or power-cycled, to come back.
+        """
+        try:
+            reply = self.send_and_wait(
+                sx.Cmd.SET, sx.Param.BOOTLOADER, sx.bootloader_payload(), timeout_s
+            )
+            status = reply.data[0] if reply.data else -1
+            if status != 0:
+                raise AssertionError(
+                    f"Device refused the bootloader command: {status}"
+                )
+        except OSError as e:
+            # ENODEV while waiting for the ack. The firmware sends it
+            # synchronously before rebooting, but the device can be off the bus
+            # before the read completes - observed on real hardware. Leaving
+            # is what was asked for, so it is the success case, not a failure.
+            if e.errno != errno.ENODEV:
+                raise
+
+        # The handle is dead either way once the device has gone.
+        self.disconnect()
+
+    @keyword("Expect Bootloader Refused")
+    def expect_bootloader_refused(self, key: bytes, timeout_s: float = 1.0) -> None:
+        """Assert the device does not act on a bootloader command carrying the
+        wrong key. Being wrong here means the device disappears, so this is
+        worth checking before trusting the guard."""
+        self.expect_no_response(
+            sx.Cmd.SET, sx.Param.BOOTLOADER, sx.bootloader_payload(key), timeout_s
+        )
 
     @keyword("Get Active Bank")
     def get_active_bank(self, timeout_s: float = DEFAULT_TIMEOUT_S) -> int:

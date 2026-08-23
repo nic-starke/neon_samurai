@@ -74,6 +74,10 @@ class Param(IntEnum):
     ENCODER_LIVE_POSITION_STREAM = 18
     SYSTEM_RESET = 19
     CONFIG_RESET = 20
+    # Guarded: the payload must carry BOOTLOADER_KEY exactly, or the firmware
+    # rejects it. See MF_SYSEX_PARAM_BOOTLOADER in sysex.h for why this one is
+    # guarded when the two above are not.
+    BOOTLOADER = 21
 
 
 def pack7(data: bytes) -> bytes:
@@ -211,6 +215,17 @@ def vmap_curr_pos_payload(bank: int, enc: int, vmap: int, curr_pos: int) -> byte
 
 def live_position_stream_payload(enabled: bool) -> bytes:
     return bytes([1 if enabled else 0])
+
+
+# Spells "BOOT". Sysex data bytes carry seven bits, so every byte stays below
+# 0x80 - see MF_SYSEX_BOOTLOADER_KEY_* in sysex.h.
+BOOTLOADER_KEY = bytes((0x42, 0x4F, 0x4F, 0x54))
+
+
+def bootloader_payload(key: bytes = BOOTLOADER_KEY) -> bytes:
+    """Payload for Param.BOOTLOADER. The default is the key the firmware
+    accepts; pass something else to check that it is actually rejected."""
+    return bytes(key)
 
 
 def index_payload(*indices: int) -> bytes:

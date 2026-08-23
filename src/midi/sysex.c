@@ -13,6 +13,7 @@
 #include "event/io.h"
 #include "event/midi.h"
 #include "hal/sys.h"
+#include "hal/boot.h"
 #include "led/color.h"
 #include "midi/webui_bridge.h"
 #include "system/project.h"
@@ -133,6 +134,10 @@ static const struct sysex_item_data_info sysex_data_info[MF_SYSEX_PARAM_NB] = {
 	[MF_SYSEX_PARAM_DEVICE_INFO] = {0, sizeof(mf_sysex_device_info_s), 0},
 	// SYSTEM_RESET/CONFIG_RESET carry no payload at all (not even an index
 	// prefix) - SET with zero data bytes fires them.
+	// Nothing in memory to read or write - the payload is the guard key, and
+	// the wire length is what makes a message of the wrong size get rejected
+	// before it reaches the handler.
+	[MF_SYSEX_PARAM_BOOTLOADER] = {0, 0, MF_SYSEX_BOOTLOADER_KEY_LEN},
 	[MF_SYSEX_PARAM_SYSTEM_RESET] = {0, 0, 0},
 	[MF_SYSEX_PARAM_CONFIG_RESET] = {0, 0, 0},
 };
@@ -552,6 +557,50 @@ static int midi_in_handler(void* evt) {
 			} else {
 				hal_system_reset(); // Does not return
 			}
+			break;
+		}
+
+		/*
+			Same synchronous-ack shape as the two above, but guarded. The device
+			leaves the bus entirely and stays in DFU until something flashes it
+			or it is power-cycled, so a malformed message must not be able to
+			reach it.
+		*/
+		case MF_SYSEX_PARAM_BOOTLOADER: {
+			if (msg->cmd != MF_SYSEX_SET) {
+				ret = ERR_UNSUPPORTED;
+				break;
+			}
+
+			static const u8 key[MF_SYSEX_BOOTLOADER_KEY_LEN] = {
+					MF_SYSEX_BOOTLOADER_KEY_0,
+					MF_SYSEX_BOOTLOADER_KEY_1,
+					MF_SYSEX_BOOTLOADER_KEY_2,
+					MF_SYSEX_BOOTLOADER_KEY_3,
+			};
+
+			// The payload length was already checked against the wire length
+			// declared above, so a message this far along carries exactly the
+			// key's worth of bytes.
+			if (memcmp(&msg->param, key, sizeof(key)) != 0) {
+				ret = ERR_BAD_PARAM;
+				break;
+			}
+
+			midi_event_s ack = {
+					.type = MIDI_EVENT_SYSEX,
+					.data.sysex_out =
+							{
+									.cmd			= MF_SYSEX_SET_RESPONSE,
+									.param		= msg->param_enum,
+									.data_len = 1,
+									.data			= {SUCCESS},
+							},
+			};
+			DIAG_ON_ERR(event_post_rt(EVENT_CHANNEL_MIDI_OUT, &ack),
+									DIAG_EVENT_DROPPED);
+
+			bootloader_start(); // Does not return
 			break;
 		}
 

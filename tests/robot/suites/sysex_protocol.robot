@@ -250,3 +250,23 @@ Settings In Every Bank Survive A Reset
         Should Be Equal As Integers    ${lower}    5
         Should Be Equal As Integers    ${upper}    ${want_upper}
     END
+
+Bootloader Command Is Refused Without The Key
+    [Documentation]    The bootloader command takes the device off the MIDI bus
+    ...    entirely until something flashes it or it is power-cycled, so unlike
+    ...    the reset commands a malformed message must not be able to reach it.
+    ...    Verified on hardware: the device stays up and answers afterwards.
+    ...
+    ...    Deliberately placed before any test that uses the command for real -
+    ...    if the guard is broken, this is the test that should find out.
+    Expect Bootloader Refused    ABCD
+    ${info}=    Get Device Info
+    Should Be Equal As Integers    ${info}[num_encoders]    16
+
+Bootloader Command Is Refused With A Malformed Key
+    [Documentation]    A payload of the wrong length is rejected by the
+    ...    declared wire length before the handler ever compares the key.
+    Expect Bootloader Refused    BOO
+    Expect Bootloader Refused    BOOTT
+    ${info}=    Get Device Info
+    Should Be Equal As Integers    ${info}[num_encoders]    16

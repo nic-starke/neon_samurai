@@ -15,6 +15,17 @@
 #define MF_SYSEX_MIN_PKT_SIZE	 (sizeof(mf_sysex_msg_s) - MF_SYSEX_MAX_DATA_SIZE)
 #define MF_SYSEX_MAX_DATA_SIZE (sizeof(mf_sysex_param_s))
 
+/*
+	Guard for MF_SYSEX_PARAM_BOOTLOADER. Sysex data bytes carry seven bits, so
+	every byte here has to stay below 0x80 - these spell "BOOT", which also
+	makes a capture readable when something goes wrong.
+*/
+#define MF_SYSEX_BOOTLOADER_KEY_LEN (4u)
+#define MF_SYSEX_BOOTLOADER_KEY_0		(0x42u) // 'B'
+#define MF_SYSEX_BOOTLOADER_KEY_1		(0x4Fu) // 'O'
+#define MF_SYSEX_BOOTLOADER_KEY_2		(0x4Fu) // 'O'
+#define MF_SYSEX_BOOTLOADER_KEY_3		(0x54u) // 'T'
+
 // mf_id/cmd/param_enum + the largest param's data, 7-bit packed (see
 // sysex_pack7()/sysex_unpack7() in sysex.c): every 7 raw data bytes need an
 // extra header byte on the wire, so the packed form is larger than the
@@ -106,6 +117,22 @@ enum mf_sysex_param {
 	// serial console) just to reboot or factory-reset the device.
 	MF_SYSEX_PARAM_SYSTEM_RESET, // Soft reboot, config unchanged
 	MF_SYSEX_PARAM_CONFIG_RESET, // Factory reset (wipes EEPROM) + reboot
+
+	/*
+		Reboot into the DFU bootloader, so a host tool can flash new firmware
+		without the user holding the encoder gesture at power-on.
+
+		Unlike the two above, this one is guarded: the SET payload has to carry
+		MF_SYSEX_BOOTLOADER_KEY exactly, or the message is rejected. The others
+		cost a reboot if they fire by accident; this one takes the device off
+		the bus entirely and leaves it sitting in DFU until something flashes it
+		or it is power-cycled, which is a far worse thing to have happen in the
+		middle of a set because of a malformed message.
+
+		The original DJ Tech Tools firmware exposes the same action unguarded,
+		as sub-command 1 of its SYSEX_COMMAND_SYSTEM.
+	*/
+	MF_SYSEX_PARAM_BOOTLOADER,
 
 	MF_SYSEX_PARAM_NB,
 };

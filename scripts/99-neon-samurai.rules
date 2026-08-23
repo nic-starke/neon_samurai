@@ -1,0 +1,31 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# udev rules for NEON_SAMURAI firmware updates.
+# Copyright 2024 - Nicolaus Starke
+# SPDX-License-Identifier: MIT
+#
+# https://github.com/nic-starke/neon_samurai
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+#
+# The device in normal use is a class-compliant MIDI device and needs no rule
+# at all - ALSA claims it and the permissions come for free. In DFU mode it is
+# a plain USB device owned by root, which is why "dfu-programmer: no device
+# present" is what you get without this, even though lsusb shows it.
+#
+# Install with:
+#
+#   sudo cp scripts/99-neon-samurai.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# uaccess hands the device to whoever is logged in at the seat, which is what
+# lets a browser reach it for a WebUSB update. The plugdev group is listed as
+# well for systems that do not use uaccess.
+
+# ATxmega128A4U DFU bootloader - what the device becomes during an update.
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fde", \
+  TAG+="uaccess", MODE="0660", GROUP="plugdev"
+
+# Atmel debug probes, for flashing over PDI rather than USB.
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2140", \
+  TAG+="uaccess", MODE="0660", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2141", \
+  TAG+="uaccess", MODE="0660", GROUP="plugdev"
