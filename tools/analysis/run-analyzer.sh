@@ -60,11 +60,22 @@ flags=(
   -isystem "$lufa"
 
   -std=gnu11
-
-  # Every memory-mapped peripheral register is a fixed address, so this check
-  # fires on correct hardware access and reports nothing useful here.
-  -Xclang -analyzer-disable-checker -Xclang core.FixedAddressDereference
 )
+
+# Every memory-mapped peripheral register is a fixed address, so this check
+# fires on correct hardware access and reports nothing useful here.
+#
+# It is only turned off when it exists. Naming a checker this clang has never
+# heard of is a hard error rather than something it ignores, and the name has
+# not been the same across releases - clang 18 rejects it outright. Probing
+# first keeps the script working on whatever clang is to hand rather than
+# tying it to one release.
+FIXED_ADDRESS_CHECKER="core.FixedAddressDereference"
+
+if clang -cc1 -analyzer-checker-help 2>/dev/null |
+     grep -q "$FIXED_ADDRESS_CHECKER"; then
+  flags+=(-Xclang -analyzer-disable-checker -Xclang "$FIXED_ADDRESS_CHECKER")
+fi
 
 status=0
 files=0

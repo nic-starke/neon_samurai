@@ -53,7 +53,16 @@ struct sys_config gCONFIG = {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Global Functions ~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Entry point
-__attribute__((noreturn)) int main(void) {
+/*
+	Declared int, and without a noreturn attribute, deliberately.
+
+	GCC treats main specially and appends an implicit return to it whatever the
+	declared type, so noreturn on main is a contradiction some versions of the
+	compiler warn about and others quietly accept. The attribute buys nothing
+	here anyway - the loop at the end never exits, and the compiler can see
+	that for itself.
+*/
+int main(void) {
 	avr_xmega128a4u_init(); // Init the AVR xmega peripherals
 
 	rng_init();
