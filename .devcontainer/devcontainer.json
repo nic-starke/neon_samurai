@@ -1,0 +1,28 @@
+{
+	"name": "neon_samurai",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+
+	// The point of sharing this image with CI is that a build here and a build
+	// there use the same compiler. Building locally with a distribution's own
+	// avr-gcc instead puts the drift straight back.
+	"workspaceFolder": "/workspace",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.cpptools",
+				"ms-vscode.cmake-tools",
+				"xaver.clang-format"
+			]
+		}
+	},
+
+	// The USB devices a probe or the board itself appears on are not visible
+	// from inside a container by default. Debugging and flashing are done from
+	// the host; this image is for building, checking and testing.
+	"runArgs": []
+}

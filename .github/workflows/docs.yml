@@ -19,15 +19,13 @@ jobs:
   manual:
     name: manual builds
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Install generator dependencies
-        run: pip install markdown pyyaml
 
       # Fails on missing front matter, a duplicate help topic id, or an empty
       # manual - all of which would otherwise publish silently broken.

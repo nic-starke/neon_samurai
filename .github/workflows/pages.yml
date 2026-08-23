@@ -27,15 +27,13 @@ jobs:
   build:
     name: build site
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Install generator dependencies
-        run: pip install markdown pyyaml
 
       # Writes site/ and webui/manual.json from docs/manual/.
       - name: Build the manual

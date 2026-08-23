@@ -17,6 +17,11 @@ jobs:
   release:
     name: build and publish
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       # See the note in firmware.yml - cmake/utils is an SSH-URL submodule.
       - name: Use HTTPS for submodules
@@ -29,12 +34,6 @@ jobs:
           # Release notes are assembled from the commits since the previous
           # tag, so the whole history has to be present.
           fetch-depth: 0
-
-      - name: Install AVR toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            gcc-avr avr-libc binutils-avr cmake ninja-build
 
       # The version in CMakeLists.txt is what the firmware reports over sysex,
       # so a tag that disagrees with it would ship a build that misidentifies
