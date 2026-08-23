@@ -12,6 +12,9 @@ on:
 
 permissions:
   contents: write
+  # Needed to pull the build image published by ci-image - a declared
+  # permissions block drops everything it does not list.
+  packages: read
 
 jobs:
   release:

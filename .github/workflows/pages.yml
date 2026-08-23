@@ -16,6 +16,9 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # The build job runs in the image published by ci-image, and a declared
+  # permissions block drops everything it does not list.
+  packages: read
 
 # A queued deployment should wait for the one in flight rather than cancel it,
 # so the published site is always a complete build.
