@@ -70,7 +70,7 @@ KEY:
 > depend on the ATxmega's boot section already containing a working DFU
 > bootloader. If that section is blank neither path works and the device requires a PDI
 > programmer (e.g. a JTAGICE3) to recover. See
-> [wiki/BootloaderRecovery.md](wiki/BootloaderRecovery.md) if you hit this.
+> [Bootloader recovery](https://nic-starke.github.io/neon_samurai/site/bootloader-recovery.html) if you hit this.
 
 <i>Using this firmware will void your warranty, the software is provided "as is", without warranty of any kind. Please refer to the license.</i>
 
@@ -98,7 +98,7 @@ scripts/flash.sh [Debug|Release|RelWithDebInfo]
 ```
 
 Defaults to `RelWithDebInfo`. This only writes the application section -
-see [wiki/BootloaderRecovery.md](wiki/BootloaderRecovery.md) for flashing
+see [Bootloader recovery](https://nic-starke.github.io/neon_samurai/site/bootloader-recovery.html) for flashing
 the bootloader itself, which is a separate, one-time operation per device.
 
 ### Configuring
@@ -127,9 +127,9 @@ python3 -m http.server 8420        # then open site/index.html
 
 Developer-facing notes live separately:
 
-- [Technical](wiki/Technical.md) - bootloader, memory layout
-- [Bootloader Recovery](wiki/BootloaderRecovery.md) - recovering a unit with a blank boot section
-- [XMega128A4U specs](wiki/XMega128A4U_Specs.md)
+- [Technical reference](https://nic-starke.github.io/neon_samurai/site/technical.html) - bootloader, memory layout
+- [Bootloader recovery](https://nic-starke.github.io/neon_samurai/site/bootloader-recovery.html) - recovering a unit with a blank boot section
+- [Chip specifications](https://nic-starke.github.io/neon_samurai/site/specifications.html)
 - [Code structure](docs/Code%20Structure.md)
 
 ## Testing

@@ -37,8 +37,8 @@ python3 tools/docs/build_manual.py
 ## For people working on the firmware
 
 - [Code structure](Code%20Structure.md)
-- [Technical](../wiki/Technical.md) - bootloader and memory layout
-- [Bootloader recovery](../wiki/BootloaderRecovery.md) - recovering a unit with a blank boot section
-- [XMega128A4U specs](../wiki/XMega128A4U_Specs.md)
+- [Technical reference](manual/12-technical.md) - bootloader and memory layout
+- [Bootloader recovery](manual/11-bootloader-recovery.md) - recovering a unit with a blank boot section
+- [Chip specifications](manual/13-specifications.md)
 - [Assembly](Assembly.md)
 - [Binary analysis](Binary%20Analysis.md)

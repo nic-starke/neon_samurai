@@ -1,4 +1,9 @@
-# Xmega Specs
+---
+id: specifications
+title: Chip specifications
+summary: The ATxmega128A4U at the centre of the device, and the limits it sets.
+order: 13
+---
 
     XMEGA128A4U
 

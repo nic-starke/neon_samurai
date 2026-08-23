@@ -6,7 +6,7 @@
 #
 # Only run this if the device has no working bootloader: the four-corner
 # gesture or the `bootloader` console command resets the device instead of
-# entering DFU mode. See wiki/BootloaderRecovery.md for background.
+# entering DFU mode. See docs/manual/11-bootloader-recovery.md for background.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -88,7 +88,7 @@ Never flash `firmware/bootloader_xmega_twister.hex` via
 device is confirmed to have a blank/missing boot section (four-corner
 gesture and the `bootloader` console command both just reset the device
 instead of entering DFU mode). This is a one-time, PDI-only, no-recovery-if-
-wrong operation — read [wiki/BootloaderRecovery.md](wiki/BootloaderRecovery.md)
+wrong operation — read [docs/manual/11-bootloader-recovery.md](docs/manual/11-bootloader-recovery.md)
 before running it, and always confirm with the user first; it's the one
 truly destructive operation in this project's tooling. Normal firmware
 updates (`scripts/flash.sh`) never need it and don't touch the boot
