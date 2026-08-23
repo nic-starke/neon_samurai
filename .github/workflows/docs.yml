@@ -2,6 +2,11 @@ name: docs
 
 on:
   push:
+    # A tag push carries the same commit as the branch push that preceded it,
+    # so without this every workflow here runs twice for one release - once
+    # for the branch and again for the tag. Only release.yml wants tags.
+    tags-ignore:
+      - '**'
     paths:
       - 'docs/**'
       - 'tools/docs/**'

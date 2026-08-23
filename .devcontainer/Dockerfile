@@ -33,6 +33,7 @@ RUN pacman -Syu --noconfirm --needed \
       clang \
       cmake \
       git \
+      github-cli \
       ninja \
       python \
       python-markdown \
@@ -68,6 +69,7 @@ RUN { \
       echo "cmake        $(cmake --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
       echo "ninja        $(ninja --version)"; \
       echo "python       $(python3 --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
+      echo "gh           $(gh --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
     } > /etc/neon-samurai-toolchain
 
 # The runner checks out into a directory it owns; git refuses to operate in a
