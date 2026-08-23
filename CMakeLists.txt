@@ -40,7 +40,7 @@ file(CREATE_LINK
 # Project Definition / Settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 project(NEON_SAMURAI
-  VERSION 1.1.0
+  VERSION 0.1.0
   DESCRIPTION "An alternative firmware for the DJ Tech Tools Midifighter Twister"
   HOMEPAGE_URL "https://github.com/nic-starke/neon_samurai"
   LANGUAGES C CXX ASM
