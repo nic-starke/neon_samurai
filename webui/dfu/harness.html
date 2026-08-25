@@ -46,7 +46,7 @@ document.getElementById('connect').onclick = async () => {
   const info = dfu.identify(dev);
   say(`${dev.productName}  ${dev.vendorId.toString(16)}:${dev.productId.toString(16)}`, 'ok');
   if (!info) { say('not a device this port knows — refusing to flash it', 'bad'); dev = null; return; }
-  say(`recognised as ${info.name}: ${info.flashSize/1024} KB flash, ${info.bootSize/1024} KB boot`);
+  say(`recognised as ${info.name}: ${info.appSize/1024} KB application, ${info.bootSize/1024} KB boot`);
 
   const st = dfu.parseStatus((await dfu.getStatus(dev)).data);
   say(`status ${st.bStatus}, state ${st.bState}${st.bState === dfu.bState.dfuERROR ? ' (dfuERROR — clearing)' : ''}`);
@@ -67,7 +67,7 @@ document.getElementById('flash').onclick = async () => {
   const btn = document.getElementById('flash'); btn.disabled = true;
   try {
     const info = dfu.identify(dev);
-    if (image.end >= info.flashSize - info.bootSize) {
+    if (image.end >= info.appSize) {
       throw new Error(`image reaches 0x${image.end.toString(16)}, past the application section`);
     }
 
