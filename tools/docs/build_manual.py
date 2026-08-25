@@ -28,6 +28,7 @@ import html
 import json
 import pathlib
 import re
+import subprocess
 import sys
 
 try:
@@ -176,9 +177,19 @@ def page_template(meta, content, nav, version):
 
 
 def project_version():
-    text = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
-    match = re.search(r"^\s*VERSION\s+([0-9.]+)", text, re.M)
-    return match.group(1) if match else "unknown"
+    # tools/version.sh is the only thing that reads the version out of
+    # CMakeLists.txt. A copy of the expression here is how the manual ends up
+    # stating a version nothing else agrees with.
+    result = subprocess.run(
+        [str(ROOT / "tools" / "version.sh")],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        sys.exit(f"error: could not read the project version: {result.stderr.strip()}")
+
+    return result.stdout.strip()
 
 
 def main():

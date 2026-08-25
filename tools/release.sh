@@ -25,12 +25,10 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-current=$(sed -n 's/^[[:space:]]*VERSION[[:space:]]\+\([0-9.]\+\).*/\1/p' CMakeLists.txt | head -1)
-
-if [ -z "$current" ]; then
-  echo "error: could not read the version from CMakeLists.txt" >&2
-  exit 1
-fi
+# tools/version.sh is the one place that knows how to read the version, and it
+# fails loudly if there is not one. Duplicating the expression here is how the
+# two drift apart.
+current=$(tools/version.sh)
 
 IFS=. read -r major minor patch <<<"$current"
 
@@ -60,7 +58,7 @@ echo "$current -> $next"
 
 sed -i "0,/^\([[:space:]]*VERSION[[:space:]]\+\)${current}/s//\1${next}/" CMakeLists.txt
 
-confirm=$(sed -n 's/^[[:space:]]*VERSION[[:space:]]\+\([0-9.]\+\).*/\1/p' CMakeLists.txt | head -1)
+confirm=$(tools/version.sh || true)
 if [ "$confirm" != "$next" ]; then
   echo "error: the version in CMakeLists.txt did not update cleanly" >&2
   git checkout -- CMakeLists.txt
