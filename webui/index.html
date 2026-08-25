@@ -7,6 +7,7 @@
 	<link rel="stylesheet" href="design-system/tokens.css" />
 	<link rel="stylesheet" href="live-twin.css" />
 	<link rel="stylesheet" href="design-system/help.css" />
+	<link rel="stylesheet" href="design-system/firmware-update.css" />
 </head>
 <body>
 	<div id="unsupported-banner" class="banner banner--error" hidden>
@@ -23,7 +24,9 @@
 			<span id="fw-version" class="fw-version"></span>
 		</div>
 		<a id="manual-link" href="../site/index.html" target="_blank" rel="noopener">Manual</a>
+		<button id="btn-update" class="fw-update-btn" type="button" disabled>Update</button>
 		<button id="btn-connect" type="button">Connect</button>
+		<button id="btn-disconnect" type="button" disabled>Disconnect</button>
 	</header>
 
 	<!-- Each toast carries its own role (alert for errors, status otherwise),

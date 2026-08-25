@@ -54,7 +54,19 @@ export const Param = Object.freeze({
   ENCODER_LIVE_POSITION_STREAM: 18,
   SYSTEM_RESET: 19,
   CONFIG_RESET: 20,
+  // Guarded: the payload must be BOOTLOADER_KEY exactly. The two above cost a
+  // reboot if they fire by accident; this one takes the device off the bus
+  // until something flashes it or it is power-cycled.
+  BOOTLOADER: 21,
 });
+
+// Spells "BOOT". Sysex data bytes carry seven bits, so every byte is under
+// 0x80 - see MF_SYSEX_BOOTLOADER_KEY_* in src/include/midi/sysex.h.
+export const BOOTLOADER_KEY = Object.freeze([0x42, 0x4f, 0x4f, 0x54]);
+
+export function bootloaderPayload() {
+  return Uint8Array.from(BOOTLOADER_KEY);
+}
 
 const PARAM_NAMES = Object.fromEntries(
   Object.entries(Param).map(([name, value]) => [value, name])

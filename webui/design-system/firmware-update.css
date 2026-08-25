@@ -1,0 +1,217 @@
+/* Firmware update: the button in the header, and the dialog.
+   Uses the tokens from tokens.css so it reads as part of the same surface. */
+
+.fw-update-btn {
+	background: var(--ds-bg-raised);
+	color: var(--ds-text-dim);
+	border: 1px solid var(--ds-border);
+	border-radius: var(--ds-radius);
+	padding: 0.45rem 0.9rem;
+	font: inherit;
+	font-size: 0.88rem;
+	cursor: default;
+}
+
+/* Only looks clickable when it is. An enabled-looking button that does
+   nothing is worse than one that plainly says it has nothing to offer. */
+.fw-update-btn--available {
+	color: var(--ds-accent);
+	border-color: var(--ds-accent-dim);
+	cursor: pointer;
+}
+
+.fw-update-btn--available:hover {
+	box-shadow: var(--ds-glow-soft);
+}
+
+.fw-update-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--ds-focus-ring);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Dialog ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.fw-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+	background: rgba(0, 0, 0, 0.7);
+}
+
+.fw-dialog {
+	width: min(34rem, 100%);
+	max-height: min(90vh, 40rem);
+	overflow-y: auto;
+	padding: 1.4rem 1.6rem;
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius-lg);
+	background: var(--ds-bg-panel);
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), var(--ds-glow-soft);
+	color: var(--ds-text);
+	font: 0.94rem/1.6 var(--ds-font);
+}
+
+.fw-dialog__title {
+	margin: 0 0 0.9rem;
+	font-size: 0.9rem;
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: var(--ds-accent);
+}
+
+.fw-dialog__body p {
+	margin: 0 0 0.8rem;
+}
+
+.fw-dialog__actions {
+	display: flex;
+	gap: 0.6rem;
+	justify-content: flex-end;
+	margin-top: 1.2rem;
+}
+
+.fw-btn {
+	background: var(--ds-bg-raised);
+	color: var(--ds-text);
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius);
+	padding: 0.5rem 1.1rem;
+	font: inherit;
+	cursor: pointer;
+}
+
+.fw-btn:hover:not(:disabled) {
+	border-color: var(--ds-accent-dim);
+}
+
+.fw-btn:disabled {
+	color: var(--ds-text-faint);
+	cursor: not-allowed;
+}
+
+.fw-btn--primary {
+	color: var(--ds-accent);
+	border-color: var(--ds-accent-dim);
+}
+
+.fw-warnings {
+	margin: 0 0 0.8rem;
+	padding-left: 1.1rem;
+	color: var(--ds-text-dim);
+}
+
+.fw-warnings li {
+	margin-bottom: 0.35rem;
+}
+
+.fw-dim {
+	color: var(--ds-text-dim);
+}
+
+.fw-error {
+	color: var(--ds-danger);
+}
+
+.fw-prompt {
+	margin-top: 1rem;
+	color: var(--ds-text-dim);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Steps ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.fw-steps {
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+	counter-reset: fw-step;
+}
+
+.fw-step {
+	display: flex;
+	align-items: baseline;
+	gap: 0.6rem;
+	padding: 0.3rem 0 0.3rem 1.7rem;
+	position: relative;
+	color: var(--ds-text-faint);
+	counter-increment: fw-step;
+}
+
+/* A marker per state, so the list reads at a glance rather than needing the
+   colours to be distinguished. */
+.fw-step::before {
+	content: "○";
+	position: absolute;
+	left: 0;
+	width: 1.2rem;
+	text-align: center;
+}
+
+.fw-step--active {
+	color: var(--ds-text);
+}
+
+.fw-step--active::before {
+	content: "▸";
+	color: var(--ds-accent);
+}
+
+.fw-step--done {
+	color: var(--ds-text-dim);
+}
+
+.fw-step--done::before {
+	content: "✓";
+	color: var(--ds-accent);
+}
+
+.fw-step--failed {
+	color: var(--ds-danger);
+}
+
+.fw-step--failed::before {
+	content: "✕";
+	color: var(--ds-danger);
+}
+
+.fw-step__detail {
+	margin-left: auto;
+	font-size: 0.84rem;
+	color: var(--ds-text-faint);
+	text-align: right;
+}
+
+.fw-progress {
+	width: 100%;
+	height: 0.4rem;
+	accent-color: var(--ds-accent);
+}
+
+/* The one step that cannot proceed without the user. It sits below a list of
+   steps that move on their own, so without something drawing the eye it reads
+   as another line of status rather than a thing to press. */
+.fw-btn--waiting {
+	animation: fw-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes fw-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(77, 255, 176, 0);
+	}
+	50% {
+		box-shadow: 0 0 14px 2px rgba(77, 255, 176, 0.45);
+	}
+}
+
+/* Respect a preference for less movement - the emphasis is still needed, so
+   it becomes a steady glow rather than none at all. */
+@media (prefers-reduced-motion: reduce) {
+	.fw-btn--waiting {
+		animation: none;
+		box-shadow: 0 0 12px 1px rgba(77, 255, 176, 0.4);
+	}
+}
