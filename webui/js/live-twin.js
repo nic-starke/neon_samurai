@@ -21,6 +21,7 @@ import {
   checkForUpdate,
   runUpdate,
   watchForBootloader,
+  inspectBootloader,
 } from "./firmware-update.js";
 import * as dfu from "../dfu/xmega-dfu.js";
 import {
@@ -237,7 +238,7 @@ function isForced() {
  * it - or the device is sitting in DFU from an interrupted attempt or the
  * encoder gesture, and the user is offered a way to finish.
  */
-async function onBootloaderPresent() {
+async function onBootloaderPresent(dev) {
   bootloaderPresent = true;
   if (updateRunning) return;
 
@@ -250,11 +251,32 @@ async function onBootloaderPresent() {
   pendingUpdate = { available: true, version: manifest.version, manifest };
   setUpdateButton(`Finish update: v${manifest.version}`, true);
   setStatus("connecting", "Device is in bootloader mode");
+
+  // A device in DFU has no MIDI interface to ask, so the only way to say what
+  // is on it is to read the record the firmware leaves in flash.
+  const info = dev ? await inspectBootloader(dev) : null;
+  if (bootloaderPresent && !updateRunning) describeBootloader(info);
+}
+
+function describeBootloader(info) {
+  if (!info) {
+    setStatus("connecting", "Device is in bootloader mode - its firmware is not recognised");
+    el.fwVersion.textContent = "";
+    el.fwVersion.title = "";
+    return;
+  }
+
+  const build = info.dirty ? `${info.version}, modified build` : info.version;
+  setStatus("connecting", `Device is in bootloader mode - it has ${info.id} ${build}`);
+  el.fwVersion.textContent = `fw ${info.version}`;
+  el.fwVersion.title = info.commit ? `built from ${info.commit}${info.dirty ? " with uncommitted changes" : ""}` : "";
 }
 
 function onBootloaderGone() {
   bootloaderPresent = false;
   if (updateRunning) return;
+
+  el.fwVersion.title = "";
 
   // Leave the normal connected/disconnected handling to say what is true now.
   if (!connected) setUpdateButton("Update", false);

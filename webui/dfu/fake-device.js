@@ -37,6 +37,37 @@ export class FakeDfuDevice {
 		this.memory = new Uint8Array(options.memorySize ?? 0x20000).fill(0xff);
 		this._selectedPage = 0;
 		this._pendingRead = null;
+
+		// USB device lifecycle, so callers that open and release the device can
+		// be checked for leaving it as they found it.
+		this.opened = options.opened ?? false;
+		this.claimed = false;
+	}
+
+	async open() {
+		if (this.opened) throw new Error("already open");
+		this.opened = true;
+	}
+
+	async close() {
+		if (!this.opened) throw new Error("not open");
+		this.opened = false;
+	}
+
+	async selectConfiguration(value) {
+		this.configuration = { configurationValue: value };
+	}
+
+	async claimInterface(n) {
+		if (!this.opened) throw new Error("claim on a closed device");
+		if (this.claimed) throw new Error("interface already claimed");
+		this.claimed = true;
+		this.claimedInterface = n;
+	}
+
+	async releaseInterface() {
+		if (!this.claimed) throw new Error("release without claim");
+		this.claimed = false;
 	}
 
 	async controlTransferOut(setup, data) {

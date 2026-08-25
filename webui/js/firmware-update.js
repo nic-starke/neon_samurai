@@ -8,6 +8,7 @@
 // claim it.
 
 import * as dfu from "../dfu/xmega-dfu.js";
+import { parseFirmwareInfo, LIKELY_WITHIN } from "./fwinfo.js";
 import { parseIntelHex } from "../dfu/intel-hex.js";
 
 // Where the deployed site keeps the firmware it offers. Same origin on
@@ -161,7 +162,45 @@ export async function probeFlash(dev, length = PROBE_LENGTH) {
 		blank: false,
 		usedBytes: used,
 		digest: await sha256(bytes.slice(0, used)),
+		// Free: these are bytes we have already read.
+		info: parseFirmwareInfo(bytes),
 	};
+}
+
+/**
+ * Ask a device in the bootloader what firmware is on it.
+ *
+ * Reads only far enough to find the record, rather than the whole probe
+ * length, because this runs on detection - before the user has asked for
+ * anything - and a 32 KB read over control transfers is slow enough to notice.
+ *
+ * Returns null when there is nothing to report: firmware built before the
+ * record existed, someone else's firmware, or a blank device. That is an
+ * answer, not a failure, so this never throws.
+ */
+export async function inspectBootloader(dev) {
+	const opened = dev.opened;
+
+	try {
+		if (!opened) await dev.open();
+		if (dev.configuration === null) await dev.selectConfiguration(1);
+		await dev.claimInterface(0);
+
+		const status = dfu.parseStatus((await dfu.getStatus(dev)).data);
+		if (status.bState === dfu.bState.dfuERROR) await dfu.clearStatus(dev);
+
+		return parseFirmwareInfo(await dfu.readMemory(dev, 0, LIKELY_WITHIN - 1));
+	} catch {
+		return null;
+	} finally {
+		// Leave the device as it was found, so the update can claim it.
+		try {
+			await dev.releaseInterface(0);
+			if (!opened) await dev.close();
+		} catch {
+			/* the device may have gone; nothing to release */
+		}
+	}
 }
 
 /**

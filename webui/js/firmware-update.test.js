@@ -15,6 +15,7 @@ import {
 	findBootloader,
 	probeFlash,
 	identifyFlash,
+	inspectBootloader,
 	digestImage,
 	Step,
 	STEP_ORDER,
@@ -422,4 +423,75 @@ Deno.test("the digest of an image matches the digest read back from flash", asyn
 	const probe = await probeFlash(dev, 0x1000);
 	const expected = await digestImage(parseIntelHexForTest(tinyHex(512, 0x5a)));
 	assertEquals(probe.digest, expected);
+});
+
+/* ~~~~~~~~~~~~~~~~~ Identifying a device in the bootloader ~~~~~~~~~~~~~~~~~ */
+
+// The record the firmware leaves in flash - see src/system/fwinfo.c.
+function plantRecord(dev, { id = "NEON_SAMURAI", version = [0, 1, 0], commit = "" } = {}, at = 0x1fc) {
+	const enc = (s, n) => new TextEncoder().encode(s).slice(0, n);
+	const rec = new Uint8Array(32);
+	rec[0] = 1;
+	rec.set(enc(id, 16), 1);
+	rec.set(enc(commit, 12), 17);
+	rec[29] = version[0];
+	rec[30] = version[1];
+	rec[31] = version[2];
+	dev.memory.set(rec, at);
+	return dev;
+}
+
+Deno.test("a device in the bootloader reports what firmware is on it", async () => {
+	const dev = plantRecord(new FakeDfuDevice(), { version: [1, 4, 2], commit: "abc12345" });
+
+	const info = await inspectBootloader(dev);
+	assertEquals(info.id, "NEON_SAMURAI");
+	assertEquals(info.version, "1.4.2");
+	assertEquals(info.commit, "abc12345");
+});
+
+Deno.test("a modified build is reported as such", async () => {
+	const dev = plantRecord(new FakeDfuDevice(), { commit: "abc12345+" });
+	assertEquals((await inspectBootloader(dev)).dirty, true);
+});
+
+Deno.test("firmware without a record is not an error", async () => {
+	// Anything built before the record existed, or somebody else's firmware.
+	assertEquals(await inspectBootloader(new FakeDfuDevice()), null);
+});
+
+Deno.test("the device is left as it was found", async () => {
+	// The update claims interface 0 straight afterwards, so inspecting must not
+	// leave it held open.
+	const dev = plantRecord(new FakeDfuDevice());
+
+	await inspectBootloader(dev);
+	assertEquals(dev.opened, false, "should have been closed again");
+	assertEquals(dev.claimed, false, "should have released the interface");
+});
+
+Deno.test("a device already open is left open", async () => {
+	const dev = plantRecord(new FakeDfuDevice({ opened: true }));
+
+	await inspectBootloader(dev);
+	assertEquals(dev.opened, true, "closing it would break the caller that opened it");
+	assertEquals(dev.claimed, false);
+});
+
+Deno.test("a device that fails mid-read reports nothing rather than throwing", async () => {
+	// This runs on detection, before the user has asked for anything, so a
+	// failure here must not surface as an error.
+	const dev = plantRecord(new FakeDfuDevice());
+	dev.controlTransferIn = () => Promise.reject(new Error("device went away"));
+
+	assertEquals(await inspectBootloader(dev), null);
+	assertEquals(dev.opened, false, "should still have tidied up");
+});
+
+Deno.test("probing flash also reports the firmware it finds", async () => {
+	const dev = plantRecord(new FakeDfuDevice(), { version: [9, 9, 9] });
+	dev.memory.set([0x12, 0x34], 0);
+
+	const probe = await probeFlash(dev, 0x1000);
+	assertEquals(probe.info.version, "9.9.9");
 });
