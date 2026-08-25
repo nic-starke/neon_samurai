@@ -262,8 +262,10 @@
 			eq(values, values.map((_, i) => i), "contiguous range");
 		});
 
+		// Update this alongside mf_sysex_param. It is a hand-copied number
+		// because the page is served from webui/ and cannot read the header.
 		check("the param count matches the firmware enum", () => {
-			eq(Object.keys(Param).length, 21, "MF_SYSEX_PARAM_NB");
+			eq(Object.keys(Param).length, 22, "MF_SYSEX_PARAM_NB");
 		});
 
 		check("cmd values match enum mf_sysex_cmd", () => {
