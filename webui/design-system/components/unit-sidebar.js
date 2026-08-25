@@ -1,4 +1,4 @@
-// The list of connected units, down the left of the editor.
+// The list of connected devices, down the left of the editor.
 //
 // One row per Twister, each showing a thumbnail of its current bank so a unit
 // can be told apart at a glance without selecting it. Only one unit can be
@@ -103,7 +103,7 @@ function emptyState() {
 		style:
 			"margin:0; padding:18px 4px; font:400 11px/1.7 var(--ds-font); " +
 			"color:var(--ds-text-faint); text-align:left;",
-		text: "No unit connected.",
+		text: "No devices connected.",
 	});
 }
 
@@ -123,7 +123,7 @@ export function buildUnitSidebar(p) {
 			elc("span", {
 				style:
 					"font:600 10px/1 var(--ds-font-mono); letter-spacing:0.16em; color:var(--ds-text-dim);",
-				text: "UNITS",
+				text: "DEVICES",
 			}),
 			elc("span", {
 				style: "font:400 10px/1 var(--ds-font-mono); color:var(--ds-text-faint);",

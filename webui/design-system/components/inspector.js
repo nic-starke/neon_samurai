@@ -1,9 +1,12 @@
 // The properties panel down the right of the editor.
 //
 // It has nothing to edit yet - the protocol is read-only - so it shows the
-// device's own description of itself and the guidance the empty state calls
-// for. Controls arrive with the write path; until then the panel says what is
-// true rather than showing fields that cannot be changed.
+// device's own description of itself. Controls arrive with the write path;
+// until then the panel says what is true rather than showing fields that
+// cannot be changed.
+//
+// With nothing attached it renders nothing at all: the sidebar already says
+// there are no devices, and saying it twice on one screen is noise.
 
 import { elc } from "./dom.js";
 
@@ -43,34 +46,24 @@ function paragraph(text) {
 	});
 }
 
-function guidance(connected) {
-	const title = elc("div", {
-		style:
-			"font:600 11px/1.4 var(--ds-font-mono); letter-spacing:0.1em; color:var(--ds-text-dim);",
-		text: connected ? "NOTHING SELECTED" : "NOT CONNECTED",
-	});
-
-	const body = connected
-		? [
-				paragraph(
-					"The grid shows what the unit is doing right now - turn an encoder and " +
-						"it moves here too.",
-				),
-				paragraph(
-					"Selecting and editing are not wired up yet, so nothing here can be " +
-						"changed from the editor.",
-				),
-			]
-		: [
-				paragraph(
-					"Connect a Midi Fighter Twister to read its configuration. The editor " +
-						"needs Chrome or Edge - Firefox has no Web MIDI.",
-				),
-			];
-
+function guidance() {
 	return elc("div", {
 		style: "padding:26px 6px;",
-		children: [title, ...body],
+		children: [
+			elc("div", {
+				style:
+					"font:600 11px/1.4 var(--ds-font-mono); letter-spacing:0.1em; color:var(--ds-text-dim);",
+				text: "NOTHING SELECTED",
+			}),
+			paragraph(
+				"The grid shows what the device is doing right now - turn an encoder and " +
+					"it moves here too.",
+			),
+			paragraph(
+				"Selecting and editing are not wired up yet, so nothing here can be " +
+					"changed from the editor.",
+			),
+		],
 	});
 }
 
@@ -80,12 +73,7 @@ function guidance(connected) {
  * @param p.bank        zero-based bank being viewed
  */
 export function buildInspector(p) {
-	if (!p.connected || !p.deviceInfo) {
-		return elc("div", {
-			style: "padding:15px 13px 24px;",
-			children: [guidance(false)],
-		});
-	}
+	if (!p.connected || !p.deviceInfo) return elc("div");
 
 	const info = p.deviceInfo;
 
@@ -103,6 +91,6 @@ export function buildInspector(p) {
 
 	return elc("div", {
 		style: "padding:15px 13px 24px;",
-		children: [heading("UNIT"), elc("div", { style: "margin-top:9px;", children: [summary] }), guidance(true)],
+		children: [heading("DEVICE"), elc("div", { style: "margin-top:9px;", children: [summary] }), guidance()],
 	});
 }

@@ -13,6 +13,12 @@
 	box-sizing: border-box;
 }
 
+:root {
+	/* The sidebar's link bar and the canvas bar share this so their separator
+	   lines align across the column boundary. */
+	--editor-footer-h: 43px;
+}
+
 html,
 body {
 	margin: 0;
@@ -101,11 +107,16 @@ button:focus-visible {
 
 /* --- Sidebar chrome --- */
 
+/* Height is shared with #canvas-bar so the two separator lines meet across
+   the sidebar boundary. Both are the last child of their column and both are
+   border-box, so equal heights put the borders on the same row. */
 .sidebar__links {
 	flex: none;
 	display: flex;
+	align-items: center;
 	gap: 14px;
-	padding: 10px 13px 12px;
+	height: var(--editor-footer-h);
+	padding: 0 13px;
 	border-top: 1px solid var(--ds-border);
 }
 
@@ -254,15 +265,22 @@ button:focus-visible {
 	gap: 8px;
 }
 
+/* Beneath the device rather than above it - it acts on what is drawn there,
+   and the device should be the first thing the eye lands on. */
+#canvas-bar[hidden] {
+	display: none;
+}
+
 #canvas-bar {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 14px;
 	flex: none;
-	padding: 11px 18px;
+	height: var(--editor-footer-h);
+	padding: 0 18px;
 	background: var(--ds-bg-raised);
-	border-bottom: 1px solid var(--ds-border);
+	border-top: 1px solid var(--ds-border);
 }
 
 /* The device is a fixed 888px square. Rather than let it overflow or clip, a
@@ -282,13 +300,10 @@ button:focus-visible {
 	transform-origin: center center;
 }
 
-#canvas-hint {
-	flex: none;
+#canvas-empty {
 	margin: 0;
-	padding: 0 18px 14px;
-	text-align: center;
 	font-family: var(--ds-font-mono);
-	font-size: 10px;
+	font-size: 12px;
 	letter-spacing: 0.07em;
 	color: var(--ds-text-faint);
 }

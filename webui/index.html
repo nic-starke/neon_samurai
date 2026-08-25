@@ -27,8 +27,8 @@
 	<div id="toast-container"></div>
 
 	<div id="workspace">
-		<aside id="unit-sidebar" aria-label="Units">
-			<!-- The unit list is rendered by design-system/components/unit-sidebar.js.
+		<aside id="unit-sidebar" aria-label="Devices">
+			<!-- The device list is rendered by design-system/components/unit-sidebar.js.
 			     Connection, firmware version and the update action are not here yet -
 			     they become one device component in this sidebar rather than the
 			     loose buttons they used to be. js/editor.js tolerates their absence. -->
@@ -41,19 +41,20 @@
 		</aside>
 
 		<main id="canvas">
+			<!-- The device renders at a fixed 888px and is scaled to whatever
+			     room the canvas has - see fitDevice() in js/editor.js. It is
+			     hidden until a device is attached; there is nothing truthful to
+			     draw before that. -->
+			<div id="device-viewport">
+				<div id="device-scaler" hidden>
+					<div id="twin-chassis"></div>
+				</div>
+				<p id="canvas-empty">No device connected...</p>
+			</div>
+
 			<div id="canvas-bar">
 				<div id="bank-selector"></div>
 			</div>
-
-			<!-- The device renders at a fixed 888px and is scaled to whatever
-			     room the canvas has - see fitDevice() in js/editor.js. -->
-			<div id="device-viewport">
-				<div id="device-scaler">
-					<div id="twin-chassis"></div>
-				</div>
-			</div>
-
-			<p id="canvas-hint">Live view - the grid follows the unit. Editing arrives with the write path.</p>
 		</main>
 
 		<aside id="inspector" aria-label="Properties"></aside>

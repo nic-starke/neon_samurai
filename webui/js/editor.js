@@ -17,7 +17,6 @@ import { LivePushTracker } from "./live-tracker.js";
 import { encoderSignature } from "./encoder-signature.js";
 import { BankFade } from "./bank-fade.js";
 import { GEOMETRY } from "../design-system/geometry.js";
-import { loadManual, helpIcon } from "../design-system/components/help.js";
 import { UpdateDialog } from "../design-system/components/update-dialog.js";
 import {
   fetchManifest,
@@ -72,6 +71,8 @@ const el = {
   inspector: byId("inspector"),
   deviceViewport: byId("device-viewport"),
   deviceScaler: byId("device-scaler"),
+  canvasEmpty: byId("canvas-empty"),
+  canvasBar: byId("canvas-bar"),
   toastContainer: byId("toast-container"),
 };
 
@@ -92,10 +93,6 @@ function init() {
   renderShell();
   fitDevice();
   new ResizeObserver(fitDevice).observe(el.deviceViewport);
-
-  // The manual is fetched rather than bundled, so the page is usable before
-  // it arrives - the help icons simply appear once it has.
-  loadManual().then(renderShell);
 
   watchForBootloader({
     onPresent: onBootloaderPresent,
@@ -619,15 +616,36 @@ function renderChassis() {
 }
 
 function renderBankSelector() {
+  if (!connected) {
+    el.bankSelector.replaceChildren();
+    return;
+  }
+
   el.bankSelector.replaceChildren(
     buildBankSelector({
       count: NUM_BANKS,
       active: viewingBank,
       pending: pendingBank,
-      onSelect: connected ? switchBank : undefined,
-    }),
-    helpIcon("switching-bank")
+      onSelect: switchBank,
+    })
   );
+}
+
+/**
+ * The device is only drawn once there is one to draw.
+ *
+ * An unpowered chassis looks like a connected device with every light off,
+ * which is a worse answer than saying there is nothing here.
+ */
+function renderDevicePresence() {
+  el.deviceScaler.hidden = !connected;
+  el.canvasEmpty.hidden = connected;
+
+  // The bar holds the bank selector and nothing else, so with no device it
+  // would be an empty bordered strip - which reads as a bug, not a blank.
+  el.canvasBar.hidden = !connected;
+
+  if (connected) fitDevice();
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -734,6 +752,7 @@ function fitDevice() {
 }
 
 function renderShell() {
+  renderDevicePresence();
   renderBankSelector();
   renderSidebar();
   renderInspector();
