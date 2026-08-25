@@ -79,33 +79,37 @@ button:focus-visible {
 
 /* --- Header --- */
 
+/* The header is a masthead and nothing else. Connection, firmware and links
+   all sit in the sidebar, beside the units they act on. */
 #header {
 	display: flex;
 	align-items: center;
-	gap: 16px;
 	flex: none;
-	height: 54px;
+	height: 76px;
 	padding: 0 16px;
 	background: var(--ds-bg-panel);
 	border-bottom: 1px solid var(--ds-border);
 }
 
 .header__wordmark {
-	flex: none;
 	font-family: var(--ds-font-mono);
-	font-size: 17px;
+	font-size: 34px;
 	font-weight: 600;
 	letter-spacing: 0.16em;
 	color: var(--ds-text);
 }
 
-.header__links {
+/* --- Sidebar chrome --- */
+
+.sidebar__links {
+	flex: none;
 	display: flex;
 	gap: 14px;
-	flex: none;
+	padding: 10px 13px 12px;
+	border-top: 1px solid var(--ds-border);
 }
 
-.header__links a {
+.sidebar__links a {
 	font-family: var(--ds-font-mono);
 	font-size: 10px;
 	letter-spacing: 0.09em;
@@ -113,24 +117,8 @@ button:focus-visible {
 	text-decoration: none;
 }
 
-.header__links a:hover {
+.sidebar__links a:hover {
 	color: var(--ds-accent-bright);
-}
-
-/* Pushed right, so the status reads next to the controls that change it. */
-.header__status {
-	display: flex;
-	align-items: center;
-	gap: 0.5em;
-	margin-left: auto;
-	min-width: 0;
-}
-
-.header__actions {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex: none;
 }
 
 .status-dot {
@@ -171,17 +159,20 @@ button:focus-visible {
 }
 
 .fw-version {
-	color: var(--ds-text-dim);
+	color: var(--ds-text-faint);
 	font-family: var(--ds-font-mono);
-	font-size: 0.9em;
+	font-size: 11px;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
+
 
 /* --- Toasts --- */
 
 #toast-container {
 	position: fixed;
-	top: 66px;
+	top: 88px;
 	right: 1em;
 	display: flex;
 	flex-direction: column;
@@ -225,8 +216,18 @@ button:focus-visible {
 #unit-sidebar {
 	width: 224px;
 	flex: none;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
 	background: var(--ds-bg-raised);
 	border-right: 1px solid var(--ds-border);
+}
+
+/* Takes the slack so the actions and links sit at the bottom. */
+#unit-list {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 }
 
 #inspector {

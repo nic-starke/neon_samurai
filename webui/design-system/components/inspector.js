@@ -63,8 +63,8 @@ function guidance(connected) {
 			]
 		: [
 				paragraph(
-					"Press Connect to read the configuration off a Midi Fighter Twister. " +
-						"The editor needs Chrome or Edge - Firefox has no Web MIDI.",
+					"Connect a Midi Fighter Twister to read its configuration. The editor " +
+						"needs Chrome or Edge - Firefox has no Web MIDI.",
 				),
 			];
 

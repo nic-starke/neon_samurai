@@ -54,19 +54,21 @@ let viewingBank = 0;
 let pendingBank = null;
 let chassis = null;
 let renderPending = false;
+let fwLabel = "";
 const signatures = new Array(NUM_ENCODERS).fill(null);
 
 const el = {
   unsupportedBanner: byId("unsupported-banner"),
+  chassis: byId("twin-chassis"),
+  // Absent until the device component is built - see setStatus() below.
   statusDot: byId("status-dot"),
   statusText: byId("status-text"),
   fwVersion: byId("fw-version"),
   btnConnect: byId("btn-connect"),
   btnUpdate: byId("btn-update"),
   btnDisconnect: byId("btn-disconnect"),
-  chassis: byId("twin-chassis"),
   bankSelector: byId("bank-selector"),
-  unitSidebar: byId("unit-sidebar"),
+  unitList: byId("unit-list"),
   inspector: byId("inspector"),
   deviceViewport: byId("device-viewport"),
   deviceScaler: byId("device-scaler"),
@@ -80,11 +82,11 @@ function byId(id) {
 function init() {
   if (!midi.isSupported()) {
     el.unsupportedBanner.hidden = false;
-    el.btnConnect.disabled = true;
+    setConnectButtons({ canConnect: false });
   }
-  el.btnConnect.addEventListener("click", onConnectClick);
-  el.btnUpdate.addEventListener("click", onUpdateClick);
-  el.btnDisconnect.addEventListener("click", onDisconnectClick);
+  el.btnConnect?.addEventListener("click", onConnectClick);
+  el.btnUpdate?.addEventListener("click", onUpdateClick);
+  el.btnDisconnect?.addEventListener("click", onDisconnectClick);
   bankFade.onFrame = scheduleRender;
   buildChassisOnce();
   renderShell();
@@ -112,7 +114,7 @@ function scheduleRender() {
 
 async function onConnectClick() {
   setStatus("connecting", "Connecting…");
-  el.btnConnect.disabled = true;
+  setConnectButtons({ canConnect: false });
   if (device) device.destroy();
   try {
     device = await midi.connect();
@@ -121,7 +123,7 @@ async function onConnectClick() {
 
     const info = await protocol.getDeviceInfo();
     model.deviceInfo = info;
-    el.fwVersion.textContent = `fw ${info.fwVersion}`;
+    setFirmwareVersion(`fw ${info.fwVersion}`);
     setStatus("connecting", "Loading configuration…");
 
     await model.loadFromDevice(protocol, (done, total) => {
@@ -141,9 +143,8 @@ async function onConnectClick() {
     await protocol.setLivePositionStreaming(true);
 
     connected = true;
-    el.btnDisconnect.disabled = false;
     setStatus("connected", `Connected: ${device.name}`);
-    el.btnConnect.textContent = "Reconnect";
+    setConnectButtons({ connected: true, label: "Reconnect" });
 
     refreshUpdateButton(info.fwVersion);
 
@@ -159,7 +160,7 @@ async function onConnectClick() {
     setStatus("error", "Connection failed");
     toast("error", e.message);
   } finally {
-    el.btnConnect.disabled = false;
+    setConnectButtons({ connected });
     scheduleRender();
     renderShell();
   }
@@ -174,7 +175,7 @@ async function onConnectClick() {
  * releases it.
  */
 async function onDisconnectClick() {
-  el.btnDisconnect.disabled = true;
+  setConnectButtons({ connected: false });
 
   if (protocol) {
     // Stop the device streaming to a page that is no longer listening.
@@ -193,8 +194,8 @@ async function onDisconnectClick() {
   protocol = null;
 
   setStatus("disconnected", "Not connected");
-  el.btnConnect.textContent = "Connect";
-  el.fwVersion.textContent = "";
+  setConnectButtons({ connected: false, label: "Connect" });
+  setFirmwareVersion("");
   setUpdateButton("Update", false);
 
   scheduleRender();
@@ -203,7 +204,7 @@ async function onDisconnectClick() {
 
 function onDeviceDisconnected(reason) {
   connected = false;
-  el.btnDisconnect.disabled = true;
+  setConnectButtons({ connected: false });
   setUpdateButton("Update", false);
   pendingBank = null;
   livePosition.detach();
@@ -272,28 +273,31 @@ async function onBootloaderPresent(dev) {
 function describeBootloader(info) {
   if (!info) {
     setStatus("connecting", "Device is in bootloader mode - its firmware is not recognised");
-    el.fwVersion.textContent = "";
-    el.fwVersion.title = "";
+    setFirmwareVersion("");
     return;
   }
 
   const build = info.dirty ? `${info.version}, modified build` : info.version;
   setStatus("connecting", `Device is in bootloader mode - it has ${info.id} ${build}`);
-  el.fwVersion.textContent = `fw ${info.version}`;
-  el.fwVersion.title = info.commit ? `built from ${info.commit}${info.dirty ? " with uncommitted changes" : ""}` : "";
+  setFirmwareVersion(
+    `fw ${info.version}`,
+    info.commit ? `built from ${info.commit}${info.dirty ? " with uncommitted changes" : ""}` : ""
+  );
 }
 
 function onBootloaderGone() {
   bootloaderPresent = false;
   if (updateRunning) return;
 
-  el.fwVersion.title = "";
+  // The build tooltip described the bootloader, which has gone.
+  setFirmwareVersion(fwLabel);
 
   // Leave the normal connected/disconnected handling to say what is true now.
   if (!connected) setUpdateButton("Update", false);
 }
 
 function setUpdateButton(text, available) {
+  if (!el.btnUpdate) return;
   el.btnUpdate.textContent = text;
   el.btnUpdate.disabled = !available;
   el.btnUpdate.classList.toggle("fw-update-btn--available", available);
@@ -452,9 +456,38 @@ async function switchBank(bank) {
   }
 }
 
+/*
+  The connection chrome lives behind these four functions.
+
+  The loose buttons that used to carry it have been taken out of the sidebar,
+  and one device component replaces them. Until it exists the elements are
+  absent, so each of these does nothing rather than throwing - and when the
+  component arrives it is these four that get rewired, not the call sites.
+*/
+
 function setStatus(state, text) {
-  el.statusDot.className = `status-dot status-dot--${state}`;
-  el.statusText.textContent = text;
+  if (el.statusDot) el.statusDot.className = `status-dot status-dot--${state}`;
+  if (el.statusText) el.statusText.textContent = text;
+}
+
+function setFirmwareVersion(text, title = "") {
+  fwLabel = text;
+  if (!el.fwVersion) return;
+  el.fwVersion.textContent = text;
+  el.fwVersion.title = title;
+}
+
+/**
+ * @param p.canConnect  whether connecting is possible right now
+ * @param p.connected   whether a unit is attached
+ * @param p.label       text for the connect action
+ */
+function setConnectButtons(p) {
+  if (el.btnConnect) {
+    el.btnConnect.disabled = p.canConnect === false;
+    if (p.label) el.btnConnect.textContent = p.label;
+  }
+  if (el.btnDisconnect) el.btnDisconnect.disabled = !p.connected;
 }
 
 function toast(kind, message) {
@@ -645,12 +678,8 @@ function currentUnits() {
 
 function renderSidebar() {
   const units = currentUnits();
-  el.unitSidebar.replaceChildren(
-    buildUnitSidebar({
-      units,
-      selected: units[0]?.id ?? null,
-      onScan: onConnectClick,
-    })
+  el.unitList.replaceChildren(
+    buildUnitSidebar({ units, selected: units[0]?.id ?? null })
   );
 }
 

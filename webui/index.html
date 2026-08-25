@@ -19,23 +19,6 @@
 
 	<header id="header">
 		<span class="header__wordmark">NEON_SAMURAI</span>
-
-		<nav class="header__links">
-			<a id="manual-link" href="../site/index.html" target="_blank" rel="noopener">MANUAL</a>
-			<a href="https://github.com/nic-starke/neon_samurai" target="_blank" rel="noopener">GITHUB ↗</a>
-		</nav>
-
-		<div class="header__status">
-			<span id="status-dot" class="status-dot status-dot--disconnected" aria-hidden="true"></span>
-			<span id="status-text">Not connected</span>
-			<span id="fw-version" class="fw-version"></span>
-		</div>
-
-		<div class="header__actions">
-			<button id="btn-update" class="fw-update-btn" type="button" disabled>Update</button>
-			<button id="btn-connect" type="button">Connect</button>
-			<button id="btn-disconnect" type="button" disabled>Disconnect</button>
-		</div>
 	</header>
 
 	<!-- Each toast carries its own role (alert for errors, status otherwise),
@@ -44,7 +27,18 @@
 	<div id="toast-container"></div>
 
 	<div id="workspace">
-		<aside id="unit-sidebar" aria-label="Connected units"></aside>
+		<aside id="unit-sidebar" aria-label="Units">
+			<!-- The unit list is rendered by design-system/components/unit-sidebar.js.
+			     Connection, firmware version and the update action are not here yet -
+			     they become one device component in this sidebar rather than the
+			     loose buttons they used to be. js/editor.js tolerates their absence. -->
+			<div id="unit-list"></div>
+
+			<nav class="sidebar__links">
+				<a id="manual-link" href="../site/index.html" target="_blank" rel="noopener">MANUAL</a>
+				<a href="https://github.com/nic-starke/neon_samurai" target="_blank" rel="noopener">GITHUB ↗</a>
+			</nav>
+		</aside>
 
 		<main id="canvas">
 			<div id="canvas-bar">

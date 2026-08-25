@@ -5,6 +5,10 @@
 // attached at a time today; the region exists because the layout is built
 // around it, and because a device in the bootloader has to stay visible here -
 // a half-flashed unit must not vanish from the tool that recovers it.
+//
+// This builds the list only. The connect, firmware and link chrome below it in
+// the sidebar lives in index.html, because it acts on the editor rather than on
+// any one row.
 
 import { elc } from "./dom.js";
 
@@ -99,9 +103,7 @@ function emptyState() {
 		style:
 			"margin:0; padding:18px 4px; font:400 11px/1.7 var(--ds-font); " +
 			"color:var(--ds-text-faint); text-align:left;",
-		text:
-			"No unit connected. Plug in a Midi Fighter Twister and press Connect - " +
-			"it should be found on its own.",
+		text: "No unit connected.",
 	});
 }
 
@@ -109,7 +111,6 @@ function emptyState() {
  * @param p.units     [{id, nickname, meta, state, colors}]
  * @param p.selected  id of the selected unit, or null
  * @param p.onSelect  called with a unit id
- * @param p.onScan    called when the user asks for a rescan
  */
 export function buildUnitSidebar(p) {
 	const units = p.units ?? [];
@@ -138,24 +139,13 @@ export function buildUnitSidebar(p) {
 			: [emptyState()],
 	});
 
-	const scan = elc("button", {
-		class: "ds-scan",
-		attrs: { type: "button" },
-		style:
-			"width:100%; margin-top:9px; padding:9px; border:1px dashed var(--ds-border-bright); " +
-			"border-radius:6px; background:transparent; color:var(--ds-text-dim); " +
-			"font:400 10px/1 var(--ds-font-mono); letter-spacing:0.1em; cursor:pointer;",
-		text: "+ SCAN",
-		onClick: p.onScan,
-	});
-
 	return elc("div", {
-		style: "display:flex; flex-direction:column; height:100%; min-height:0;",
+		style: "display:flex; flex-direction:column; min-height:0;",
 		children: [
 			heading,
 			elc("div", {
-				style: "flex:1; min-height:0; overflow-y:auto; padding:0 8px 12px;",
-				children: [list, scan],
+				style: "min-height:0; overflow-y:auto; padding:0 8px 12px;",
+				children: [list],
 			}),
 		],
 	});
