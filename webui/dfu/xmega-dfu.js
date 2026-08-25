@@ -29,7 +29,6 @@ import {
 	selectPage,
 	chipErase,
 	readBlock,
-	readMemory,
 	launch,
 	clearStatus,
 	abort,
@@ -44,7 +43,6 @@ export {
 	selectPage,
 	chipErase,
 	readBlock,
-	readMemory,
 	launch,
 	clearStatus,
 	abort,
@@ -66,13 +64,30 @@ export const SELECT_PAGE_SIZE = 0x10000;
 export const FLASH_PAGE_SIZE = 0x200;
 export const EEPROM_PAGE_SIZE = 0x20;
 
+// Every block after the first begins where the last one ended, so a transfer
+// that is not a whole number of pages leaves the next one misaligned.
+if (TRANSFER_SIZE % FLASH_PAGE_SIZE !== 0) {
+	throw new Error("TRANSFER_SIZE must be a whole number of flash pages");
+}
+
+/*
+	Sections as the part actually lays them out.
+
+	Named appSize rather than flashSize on purpose. The vendored table uses
+	flashSize with the boot section carved out of its top, which is how the
+	AT90USB and ATmega parts are arranged. XMEGA is not: BOOT_SECTION_START is
+	0x20000 and APP_SECTION_SIZE is the whole 0x20000 below it, so subtracting
+	the boot size from the flash size - as the AT90USB convention would - wrongly
+	rejects the top 8 KB of perfectly valid application space.
+*/
 export const deviceInfo = [
 	{
 		name: "atxmega128a4u",
 		vendorId: 0x03eb,
 		productId: 0x2fde,
-		flashSize: 0x20000,
-		bootSize: 0x2000,
+		appSize: 0x20000, // APP_SECTION_SIZE
+		bootStart: 0x20000, // BOOT_SECTION_START
+		bootSize: 0x2000, // BOOT_SECTION_SIZE
 		eepromSize: 0x800,
 	},
 ];
@@ -186,11 +201,18 @@ export async function writeMemory(
 		let last = at + TRANSFER_SIZE - 1;
 		if (last > end) last = end;
 
-		// A block may not straddle a 64 KB page, since the addresses in the
-		// command are relative to whichever one is selected.
-		if (last > (page + 1) * SELECT_PAGE_SIZE) {
-			last = (page + 1) * SELECT_PAGE_SIZE;
-		}
+		/*
+			A block may not straddle a 64 KB page, since the addresses in the
+			command are relative to whichever one is selected.
+
+			The last byte of a page is one below where the next one starts.
+			Clamping to the boundary itself lands on offset zero of the *next*
+			page, which masks back to 0 and produces a block running from
+			0xFE00 to 0x0000 - a reversed range the device cannot honour, and
+			every block after it misaligned by the leftover byte.
+		*/
+		const pageEnd = (page + 1) * SELECT_PAGE_SIZE - 1;
+		if (last > pageEnd) last = pageEnd;
 
 		const chunk = data.slice(at - start, last - start + 1);
 		const result = await writeBlock(
@@ -222,4 +244,56 @@ export async function writeMemory(
 	}
 
 	return written;
+}
+
+/**
+ * Read a range of memory back.
+ *
+ * Ported rather than re-exported for the same reason as writeMemory: the
+ * vendored version clamps a block to the page boundary itself rather than to
+ * the last byte below it, which produces a reversed range. Verifying with a
+ * broken reader would report a good write as a mismatch.
+ *
+ * @returns {Uint8Array} The bytes read.
+ */
+export async function readMemory(dev, start, end, eeprom = false) {
+	if (start > end) throw new Error("Memory range error");
+
+	const buf = new Uint8Array(end - start + 1);
+	let page = -1;
+	let at = start;
+
+	while (at < end) {
+		if (page !== Math.floor(at / SELECT_PAGE_SIZE)) {
+			page = Math.floor(at / SELECT_PAGE_SIZE);
+
+			const selected = await selectPage(dev, page);
+			if (selected.status !== "ok") {
+				throw new Error(`selectPage(${page}) failed: ${selected.status}`);
+			}
+			await getStatus(dev);
+		}
+
+		let last = at + TRANSFER_SIZE - 1;
+		if (last > end) last = end;
+
+		const pageEnd = (page + 1) * SELECT_PAGE_SIZE - 1;
+		if (last > pageEnd) last = pageEnd;
+
+		const result = await readBlock(
+			dev,
+			at % SELECT_PAGE_SIZE,
+			last % SELECT_PAGE_SIZE,
+			eeprom,
+		);
+
+		if (result.status !== "ok") {
+			throw new Error(`readBlock at ${at} failed: ${result.status}`);
+		}
+
+		buf.set(new Uint8Array(result.data.buffer), at - start);
+		at = last + 1;
+	}
+
+	return buf;
 }

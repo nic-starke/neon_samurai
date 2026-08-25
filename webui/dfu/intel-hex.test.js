@@ -6,7 +6,7 @@
 // flashed. So most of these check that bad input is refused rather than
 // quietly producing something short or full of holes.
 
-import { assertEquals, assertThrows } from "jsr:@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 import { parseIntelHex } from "./intel-hex.js";
 
 // ':' LL AAAA TT <data> CC, checksum being the two's complement byte sum.
