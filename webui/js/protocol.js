@@ -15,6 +15,7 @@ import {
   Cmd,
   Param,
   activeBankPayload,
+  bootloaderPayload,
   encoderPayload,
   livePositionStreamPayload,
   sideSwitchPayload,
@@ -160,6 +161,38 @@ export class Protocol {
       livePositionStreamPayload(enabled)
     );
     return reply.data[0];
+  }
+
+  /**
+   * Reboot the device into its DFU bootloader.
+   *
+   * The firmware acknowledges before rebooting, but the device can be off the
+   * bus before that reply arrives - which is not a failure, it is the thing
+   * that was asked for. So a request that never gets an answer is treated as
+   * success, and only an explicit refusal counts as one.
+   */
+  async enterBootloader() {
+    try {
+      const reply = await this.device.request(
+        Cmd.SET,
+        Param.BOOTLOADER,
+        bootloaderPayload()
+      );
+
+      const status = reply.data?.[0];
+      if (status !== 0 && status !== undefined) {
+        throw new Error(`the device refused the bootloader command (${status})`);
+      }
+    } catch (e) {
+      /*
+        Only a reply that never arrives is expected. Anything else - the device
+        already gone, a transport error, a refusal - is a real failure, and
+        swallowing it would let the update march on to wait for a bootloader
+        that is never going to appear, then blame the timeout.
+      */
+      const noReply = /No sysex reply/i.test(e.message);
+      if (!noReply) throw e;
+    }
   }
 }
 

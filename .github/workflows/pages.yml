@@ -1,14 +1,21 @@
 name: pages
 
+# The site is not published while the project is in development. Nothing here
+# runs on its own: no push, no release, no schedule. Re-enabling it means
+# restoring the push and release triggers below, and turning Pages back on in
+# the repository settings - the site is deleted, not merely unpublished.
+#
+#  push:
+#    branches: [main]
+#    paths:
+#      - 'docs/manual/**'
+#      - 'tools/docs/**'
+#      - 'webui/**'
+#      - 'CMakeLists.txt'
+#      - '.github/workflows/pages.yml'
+#  release:
+#    types: [published]
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'docs/manual/**'
-      - 'tools/docs/**'
-      - 'webui/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 # Deploying to Pages needs these; nothing else in the workflow writes anything.
@@ -54,11 +61,63 @@ jobs:
       # editor resolve the same way whether you are browsing the published
       # site or serving the repository locally. The root is a redirect into
       # the manual so the bare URL lands somewhere useful.
+      # The editor offers firmware from this site rather than from the release
+      # page, because GitHub's asset downloads send no CORS headers - a browser
+      # cannot read one however the request is framed. The API does allow it,
+      # which is why the version can be looked up but the image cannot be
+      # fetched from there.
+      - name: Publish the latest firmware for the editor
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p firmware
+
+          # --exclude-drafts only; a pre-release is still something a user can
+          # be offered, and early on it is all there is.
+          tag=$(gh release list --limit 1 --exclude-drafts \
+                  --json tagName --jq '.[0].tagName // empty')
+
+          if [ -z "$tag" ]; then
+            echo "No release published yet - the editor will say so."
+            echo '{}' > firmware/index.json
+            exit 0
+          fi
+
+          version="${tag#v}"
+
+          # The release's asset list is the authority on what the firmware is
+          # called. Globbing the directory instead would match the recovery
+          # bootloader that ships in the repo, and offer it to users as an
+          # application image.
+          hex=$(gh release view "$tag" --json assets \
+                  --jq '[.assets[].name | select(endswith(".hex"))] | first // empty')
+
+          if [ -z "$hex" ]; then
+            echo "::warning::release $tag has no .hex asset"
+            echo '{}' > firmware/index.json
+            exit 0
+          fi
+
+          gh release download "$tag" --pattern "$hex" --dir firmware --clobber
+
+          cat > firmware/index.json <<JSON
+          {
+            "version": "$version",
+            "tag": "$tag",
+            "file": "../firmware/$hex",
+            "sha256": "$(sha256sum "firmware/$hex" | cut -d' ' -f1)",
+            "size": $(stat -c%s "firmware/$hex")
+          }
+          JSON
+
+          cat firmware/index.json
+
       - name: Assemble
         run: |
-          mkdir -p _site/site _site/webui
+          mkdir -p _site/site _site/webui _site/firmware
           cp -r site/* _site/site/
           cp -r webui/* _site/webui/
+          cp -r firmware/* _site/firmware/
 
           cat > _site/index.html <<'HTML'
           <!doctype html>

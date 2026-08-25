@@ -15,6 +15,15 @@ import { encoderSignature } from "./encoder-signature.js";
 import { BankFade } from "./bank-fade.js";
 import { GEOMETRY } from "../design-system/geometry.js";
 import { loadManual, helpIcon } from "../design-system/components/help.js";
+import { UpdateDialog } from "../design-system/components/update-dialog.js";
+import {
+  fetchManifest,
+  checkForUpdate,
+  runUpdate,
+  watchForBootloader,
+  inspectBootloader,
+} from "./firmware-update.js";
+import * as dfu from "../dfu/xmega-dfu.js";
 import {
   buildDeviceChassis,
   buildEncoder,
@@ -48,6 +57,8 @@ const el = {
   statusText: byId("status-text"),
   fwVersion: byId("fw-version"),
   btnConnect: byId("btn-connect"),
+  btnUpdate: byId("btn-update"),
+  btnDisconnect: byId("btn-disconnect"),
   chassis: byId("twin-chassis"),
   bankSelector: byId("twin-bank-selector"),
   toastContainer: byId("toast-container"),
@@ -63,6 +74,8 @@ function init() {
     el.btnConnect.disabled = true;
   }
   el.btnConnect.addEventListener("click", onConnectClick);
+  el.btnUpdate.addEventListener("click", onUpdateClick);
+  el.btnDisconnect.addEventListener("click", onDisconnectClick);
   bankFade.onFrame = scheduleRender;
   buildChassisOnce();
   renderBankSelector();
@@ -70,6 +83,11 @@ function init() {
   // The manual is fetched rather than bundled, so the page is usable before
   // it arrives - the help icons simply appear once it has.
   loadManual().then(renderBankSelector);
+
+  watchForBootloader({
+    onPresent: onBootloaderPresent,
+    onGone: onBootloaderGone,
+  });
 }
 
 function scheduleRender() {
@@ -112,8 +130,11 @@ async function onConnectClick() {
     await protocol.setLivePositionStreaming(true);
 
     connected = true;
+    el.btnDisconnect.disabled = false;
     setStatus("connected", `Connected: ${device.name}`);
     el.btnConnect.textContent = "Reconnect";
+
+    refreshUpdateButton(info.fwVersion);
 
     if (info.numEncoders !== NUM_ENCODERS || info.numBanks !== NUM_BANKS) {
       toast(
@@ -133,8 +154,46 @@ async function onConnectClick() {
   }
 }
 
+/**
+ * Let go of the device.
+ *
+ * Worth having a button for beyond tidiness: a rawmidi node has a single
+ * opener, so anything else that wants the device - another application, or
+ * the browser claiming it as a DFU device - cannot have it until this page
+ * releases it.
+ */
+async function onDisconnectClick() {
+  el.btnDisconnect.disabled = true;
+
+  if (protocol) {
+    // Stop the device streaming to a page that is no longer listening.
+    await protocol.setLivePositionStreaming(false).catch(() => {});
+  }
+
+  connected = false;
+  pendingBank = null;
+  livePosition.detach();
+  liveVmapActive.detach();
+  liveActiveBank.detach();
+  bankFade.stop();
+
+  if (device) device.destroy();
+  device = null;
+  protocol = null;
+
+  setStatus("disconnected", "Not connected");
+  el.btnConnect.textContent = "Connect";
+  el.fwVersion.textContent = "";
+  setUpdateButton("Update", false);
+
+  scheduleRender();
+  renderBankSelector();
+}
+
 function onDeviceDisconnected(reason) {
   connected = false;
+  el.btnDisconnect.disabled = true;
+  setUpdateButton("Update", false);
   pendingBank = null;
   livePosition.detach();
   liveVmapActive.detach();
@@ -151,6 +210,194 @@ window.addEventListener("beforeunload", () => {
     protocol.setLivePositionStreaming(false).catch(() => {});
   }
 });
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Firmware updates ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+let pendingUpdate = null;
+
+// Set while a bootloader this origin can talk to is attached. Only ever true
+// after the user has granted the device once - see watchForBootloader().
+let bootloaderPresent = false;
+let updateRunning = false;
+
+/*
+	Offer the update whatever the device is running.
+
+	For testing the flow without building a higher version every time. A URL
+	flag rather than a constant, so it cannot be left switched on by accident
+	in what gets published.
+*/
+function isForced() {
+	return new URLSearchParams(location.search).has("forceUpdate");
+}
+
+/**
+ * A bootloader turned up.
+ *
+ * Either an update is running - in which case the update itself is handling
+ * it - or the device is sitting in DFU from an interrupted attempt or the
+ * encoder gesture, and the user is offered a way to finish.
+ */
+async function onBootloaderPresent(dev) {
+  bootloaderPresent = true;
+  if (updateRunning) return;
+
+  const manifest = await fetchManifest();
+  if (!manifest?.version) {
+    setUpdateButton("Bootloader mode - no firmware available", false);
+    return;
+  }
+
+  pendingUpdate = { available: true, version: manifest.version, manifest };
+  setUpdateButton(`Finish update: v${manifest.version}`, true);
+  setStatus("connecting", "Device is in bootloader mode");
+
+  // A device in DFU has no MIDI interface to ask, so the only way to say what
+  // is on it is to read the record the firmware leaves in flash.
+  const info = dev ? await inspectBootloader(dev) : null;
+  if (bootloaderPresent && !updateRunning) describeBootloader(info);
+}
+
+function describeBootloader(info) {
+  if (!info) {
+    setStatus("connecting", "Device is in bootloader mode - its firmware is not recognised");
+    el.fwVersion.textContent = "";
+    el.fwVersion.title = "";
+    return;
+  }
+
+  const build = info.dirty ? `${info.version}, modified build` : info.version;
+  setStatus("connecting", `Device is in bootloader mode - it has ${info.id} ${build}`);
+  el.fwVersion.textContent = `fw ${info.version}`;
+  el.fwVersion.title = info.commit ? `built from ${info.commit}${info.dirty ? " with uncommitted changes" : ""}` : "";
+}
+
+function onBootloaderGone() {
+  bootloaderPresent = false;
+  if (updateRunning) return;
+
+  el.fwVersion.title = "";
+
+  // Leave the normal connected/disconnected handling to say what is true now.
+  if (!connected) setUpdateButton("Update", false);
+}
+
+function setUpdateButton(text, available) {
+  el.btnUpdate.textContent = text;
+  el.btnUpdate.disabled = !available;
+  el.btnUpdate.classList.toggle("fw-update-btn--available", available);
+}
+
+/**
+ * Work out whether the firmware this site carries is newer than the device's.
+ *
+ * The manifest is fetched from this origin rather than from GitHub: release
+ * asset downloads carry no CORS headers, so a browser cannot read one however
+ * the request is framed.
+ */
+async function refreshUpdateButton(deviceVersion) {
+  setUpdateButton("Checking…", false);
+
+  const manifest = await fetchManifest();
+  const result = checkForUpdate(deviceVersion, manifest, { force: isForced() });
+
+  if (result.available) {
+    pendingUpdate = result;
+    setUpdateButton(
+      result.forced
+        ? `Reflash v${result.version}`
+        : `Firmware update: v${result.version}`,
+      true
+    );
+  } else {
+    pendingUpdate = null;
+    setUpdateButton(
+      result.reason === "no-manifest" ? "No firmware available" : "Firmware up to date",
+      false
+    );
+  }
+}
+
+async function onUpdateClick() {
+  if (!pendingUpdate) return;
+
+  const dialog = new UpdateDialog({
+    version: pendingUpdate.version,
+    onConfirm: () => startUpdate(dialog),
+  });
+
+  dialog.open();
+}
+
+async function startUpdate(dialog) {
+  updateRunning = true;
+  try {
+    const response = await fetch(pendingUpdate.manifest.file, { cache: "no-store" });
+    if (!response.ok) throw new Error(`could not fetch the firmware (${response.status})`);
+    const hexText = await response.text();
+
+    const version = await runUpdate({
+      hexText,
+
+      // Nothing to send a sysex command to if it is already there.
+      skipBootloader: bootloaderPresent,
+
+      /*
+        The device has to be off the MIDI bus before the browser can claim its
+        DFU interface - a rawmidi node has a single opener, and Web MIDI is
+        holding it. So streaming is stopped, the command sent, and the handle
+        dropped, in that order.
+      */
+      enterBootloader: async () => {
+        await protocol.setLivePositionStreaming(false).catch(() => {});
+        await protocol.enterBootloader();
+
+        connected = false;
+        livePosition.detach();
+        liveVmapActive.detach();
+        liveActiveBank.detach();
+        if (device) device.destroy();
+        device = null;
+        protocol = null;
+
+        setStatus("connecting", "Device is in bootloader mode…");
+        scheduleRender();
+      },
+
+      // requestDevice() only works inside a user gesture, so the dialog puts
+      // a button in front of the picker rather than calling it from here.
+      requestDevice: () => dialog.requestDevicePrompt(() => dfu.requestDevice()),
+
+      reconnect: async () => {
+        // The device re-enumerates, which takes a moment, and Web MIDI needs
+        // to notice before a port can be opened.
+        for (let attempt = 0; attempt < 20; attempt++) {
+          try {
+            device = await midi.connect();
+            protocol = new Protocol(device);
+            return await protocol.getDeviceInfo();
+          } catch {
+            await new Promise((r) => setTimeout(r, 500));
+          }
+        }
+        throw new Error("the device did not come back - unplug it and plug it in again");
+      },
+
+      onStep: (step, state, detail) => dialog.setStep(step, state, detail),
+      onProgress: (done, total) => dialog.setProgress(done, total),
+    });
+
+    dialog.showComplete(version);
+
+    // Reload the configuration from the device now it is running again.
+    await onConnectClick();
+  } catch (e) {
+    dialog.showFailure(e.message);
+    setStatus("error", "Firmware update failed");
+  } finally {
+    updateRunning = false;
+  }
+}
 
 function seedTrackers() {
   livePosition.reset();

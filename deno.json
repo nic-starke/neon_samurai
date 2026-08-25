@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.19"
+  },
+  "tasks": {
+    "test": "deno test --allow-read webui/"
+  },
+  "exclude": ["webui/dfu/vendor"]
+}

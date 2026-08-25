@@ -1,0 +1,106 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>NEON_SAMURAI firmware update</title>
+<style>
+ :root{--bg:#06090a;--panel:#0a1210;--line:#163530;--text:#cdf5e4;--dim:#6f9c8c;--accent:#4dffb0;--bad:#ff5f5f}
+ body{background:var(--bg);color:var(--text);font:15px/1.6 ui-sans-serif,system-ui,sans-serif;margin:0;padding:2rem;max-width:70ch}
+ h1{color:var(--accent);font-size:1.1rem;letter-spacing:.08em;text-transform:uppercase}
+ button{background:var(--panel);color:var(--accent);border:1px solid #2a5c50;border-radius:6px;padding:.55rem 1.1rem;font:inherit;cursor:pointer}
+ button:disabled{color:var(--dim);border-color:var(--line);cursor:not-allowed}
+ button:not(:disabled):hover{box-shadow:0 0 10px rgba(77,255,176,.3)}
+ pre{background:#050807;border:1px solid var(--line);border-radius:6px;padding:1rem;white-space:pre-wrap;min-height:9rem}
+ .row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.8rem 0}
+ .ok{color:var(--accent)}.bad{color:var(--bad)}.dim{color:var(--dim)}
+ progress{width:100%;height:.5rem;accent-color:var(--accent)}
+</style>
+<h1>Firmware update</h1>
+<p class="dim">Test harness for the XMEGA DFU port. The device must already be in
+DFU mode — send the guarded sysex bootloader command, or hold the top-left
+encoder gesture while plugging in.</p>
+
+<div class="row">
+  <button id="connect">Connect</button>
+  <input id="file" type="file" accept=".hex">
+  <button id="flash" disabled>Erase, flash and verify</button>
+</div>
+<progress id="bar" value="0" max="1"></progress>
+<pre id="log">idle</pre>
+
+<script type="module">
+import * as dfu from './xmega-dfu.js';
+import { parseIntelHex } from './intel-hex.js';
+
+const log = document.getElementById('log');
+const bar = document.getElementById('bar');
+let out = '', dev = null, image = null;
+
+const say = (s, cls='') => { out += cls ? `<span class="${cls}">${s}</span>\n` : s+'\n'; log.innerHTML = out; log.scrollTop = 1e9; };
+const ready = () => { document.getElementById('flash').disabled = !(dev && image); };
+
+document.getElementById('connect').onclick = async () => {
+  out=''; log.innerHTML='';
+  try {
+    dev = await dfu.requestDevice();
+  } catch (e) { say('connect failed: ' + e.message, 'bad'); return; }
+
+  const info = dfu.identify(dev);
+  say(`${dev.productName}  ${dev.vendorId.toString(16)}:${dev.productId.toString(16)}`, 'ok');
+  if (!info) { say('not a device this port knows — refusing to flash it', 'bad'); dev = null; return; }
+  say(`recognised as ${info.name}: ${info.appSize/1024} KB application, ${info.bootSize/1024} KB boot`);
+
+  const st = dfu.parseStatus((await dfu.getStatus(dev)).data);
+  say(`status ${st.bStatus}, state ${st.bState}${st.bState === dfu.bState.dfuERROR ? ' (dfuERROR — clearing)' : ''}`);
+  if (st.bState === dfu.bState.dfuERROR) { await dfu.clearStatus(dev); say('cleared'); }
+  ready();
+};
+
+document.getElementById('file').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    image = parseIntelHex(await f.text());
+    say(`${f.name}: ${image.data.length} bytes, 0x${image.start.toString(16)}–0x${image.end.toString(16)}`, 'ok');
+  } catch (err) { image = null; say('hex parse failed: ' + err.message, 'bad'); }
+  ready();
+};
+
+document.getElementById('flash').onclick = async () => {
+  const btn = document.getElementById('flash'); btn.disabled = true;
+  try {
+    const info = dfu.identify(dev);
+    if (image.end >= info.appSize) {
+      throw new Error(`image reaches 0x${image.end.toString(16)}, past the application section`);
+    }
+
+    // Mandatory: with security bits set, erase is the only command the
+    // bootloader will accept until one has run (AVR1916 §5.3).
+    say('\nerasing…');
+    await dfu.chipErase(dev);
+    let st;
+    do { st = dfu.parseStatus((await dfu.getStatus(dev)).data); } while (st.bState === 4);
+    if (st.bStatus !== dfu.bStatus.OK) throw new Error(`erase reported status ${st.bStatus}`);
+    say('erased', 'ok');
+
+    say('writing…');
+    const t0 = performance.now();
+    await dfu.writeMemory(dev, image.start, image.end, image.data, false,
+      (done, total) => { bar.value = done / total; });
+    say(`written in ${((performance.now()-t0)/1000).toFixed(1)}s`, 'ok');
+
+    say('verifying…');
+    const back = await dfu.readMemory(dev, image.start, image.end);
+    const got = new Uint8Array(back.data ? back.data.buffer : back);
+    let bad = -1;
+    for (let i = 0; i < image.data.length; i++) if (got[i] !== image.data[i]) { bad = i; break; }
+    if (bad >= 0) throw new Error(`mismatch at 0x${bad.toString(16)}: wrote ${image.data[bad]}, read ${got[bad]}`);
+    say(`verified ${image.data.length} bytes`, 'ok');
+
+    say('launching…');
+    await dfu.launch(dev);
+    say('\ndone — the device should re-enumerate as MIDI', 'ok');
+  } catch (e) {
+    say('FAILED: ' + e.message, 'bad');
+    try { await dfu.clearStatus(dev); say('status cleared; the bootloader is still there, so retry is safe', 'dim'); } catch {}
+  }
+  btn.disabled = false;
+};
+</script>

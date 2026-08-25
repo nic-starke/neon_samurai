@@ -1,0 +1,79 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>WebUSB DFU probe</title>
+<style>
+ body{background:#06090a;color:#cdf5e4;font:15px/1.6 ui-sans-serif,system-ui,sans-serif;margin:0;padding:2rem}
+ h1{color:#4dffb0;font-size:1.2rem;letter-spacing:.06em;text-transform:uppercase}
+ button{background:#0a1210;color:#4dffb0;border:1px solid #2a5c50;border-radius:6px;padding:.6rem 1.2rem;font:inherit;cursor:pointer}
+ button:hover{box-shadow:0 0 10px rgba(77,255,176,.3)}
+ pre{background:#050807;border:1px solid #163530;border-radius:6px;padding:1rem;white-space:pre-wrap;max-width:80ch}
+ .ok{color:#4dffb0}.bad{color:#ff5f5f}.dim{color:#6f9c8c}
+</style>
+<h1>WebUSB DFU probe</h1>
+<p class="dim">Answers one question: can this browser claim the ATxmega DFU interface?<br>
+The device must already be in DFU mode - see tools/dfu/README.md.<br>
+Reads only; it writes nothing to the device.</p>
+<p><button id="go">Connect to DFU device</button></p>
+<pre id="log">waiting…</pre>
+<script>
+const el = document.getElementById('log');
+let out = '';
+const say  = (s, cls='') => { out += cls ? `<span class="${cls}">${s}</span>\n` : s + '\n'; el.innerHTML = out; };
+const hex  = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join(' ');
+
+// Standard DFU class requests. Atmel's variant rides on the control endpoint
+// only, so GETSTATUS is enough to prove real two-way communication.
+const DFU_GETSTATUS = 3, DFU_GETSTATE = 5;
+const STATE = {0:'appIDLE',1:'appDETACH',2:'dfuIDLE',3:'dfuDNLOAD-SYNC',4:'dfuDNBUSY',
+  5:'dfuDNLOAD-IDLE',6:'dfuMANIFEST-SYNC',7:'dfuMANIFEST',8:'dfuMANIFEST-WAIT-RESET',
+  9:'dfuUPLOAD-IDLE',10:'dfuERROR'};
+
+document.getElementById('go').onclick = async () => {
+  out = ''; el.innerHTML = '';
+  if (!navigator.usb) { say('navigator.usb missing — WebUSB unsupported in this browser', 'bad'); return; }
+
+  let dev;
+  try {
+    dev = await navigator.usb.requestDevice({ filters: [{ vendorId: 0x03eb }] });
+  } catch (e) { say('requestDevice failed: ' + e.message, 'bad'); return; }
+
+  say(`device  ${dev.manufacturerName || '?'} / ${dev.productName || '?'}`, 'ok');
+  say(`ids     ${dev.vendorId.toString(16).padStart(4,'0')}:${dev.productId.toString(16).padStart(4,'0')}`);
+  say(`usb     ${dev.deviceVersionMajor}.${dev.deviceVersionMinor}  class ${dev.deviceClass}`);
+
+  try { await dev.open(); say('open()            ok', 'ok'); }
+  catch (e) { say('open() FAILED: ' + e.message, 'bad');
+              say('\nThis is the driver-binding wall. On Linux it means udev; on Windows,\nWinUSB/Zadig.', 'dim'); return; }
+
+  try {
+    if (dev.configuration === null) await dev.selectConfiguration(1);
+    say(`configuration     ${dev.configuration.configurationValue}`, 'ok');
+  } catch (e) { say('selectConfiguration FAILED: ' + e.message, 'bad'); return; }
+
+  for (const itf of dev.configuration.interfaces) {
+    for (const alt of itf.alternates) {
+      say(`interface ${itf.interfaceNumber} alt ${alt.alternateSetting}: class ${alt.interfaceClass} sub ${alt.interfaceSubclass} proto ${alt.interfaceProtocol}, ${alt.endpoints.length} endpoint(s)`);
+    }
+  }
+
+  const itfNum = dev.configuration.interfaces[0].interfaceNumber;
+  try { await dev.claimInterface(itfNum); say(`claimInterface(${itfNum})  ok`, 'ok'); }
+  catch (e) { say(`claimInterface(${itfNum}) FAILED: ` + e.message, 'bad');
+              say('\nThe kernel or another driver holds it.', 'dim'); return; }
+
+  // Real traffic, not just claiming.
+  try {
+    const r = await dev.controlTransferIn(
+      { requestType:'class', recipient:'interface', request:DFU_GETSTATUS, value:0, index:itfNum }, 6);
+    if (r.status !== 'ok') { say('GETSTATUS status: ' + r.status, 'bad'); }
+    else {
+      const d = new Uint8Array(r.data.buffer);
+      say(`DFU_GETSTATUS     ${hex(r.data.buffer)}`, 'ok');
+      say(`  bStatus ${d[0]}   bState ${d[4]} (${STATE[d[4]] ?? '?'})`);
+      say('\nThe browser can talk to this bootloader. Flashing is a protocol problem now,\nnot an access problem.', 'ok');
+    }
+  } catch (e) { say('GETSTATUS FAILED: ' + e.message, 'bad'); }
+
+  try { await dev.close(); } catch {}
+};
+</script>

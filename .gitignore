@@ -17,3 +17,14 @@ __pycache__
 # docs/manual/, and both of these are built from them.
 /site/
 /webui/manual.json
+
+# Reference PDFs fetched by tools/dfu/fetch-docs.sh. They are Microchip's and
+# the USB-IF's, and are not ours to redistribute - see docs/reference/README.md.
+/docs/reference/*.pdf
+
+# Firmware the editor offers, fetched from the latest release at deploy time by
+# .github/workflows/pages.yml or built locally for testing. Deliberately not
+# the whole directory - firmware/bootloader_xmega_twister.hex is tracked, and
+# is what recovers a device that will not boot.
+/firmware/index.json
+/firmware/neosam-*.hex
