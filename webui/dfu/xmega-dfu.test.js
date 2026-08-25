@@ -84,19 +84,18 @@ Deno.test("the DFU suffix follows the data", async () => {
 Deno.test("a misaligned flash write is refused", () => {
 	const dev = new FakeDfuDevice();
 	assertThrows(
-		() => dfu.writeBlock(dev, 0x100, 0x2ff, image(0x200)),
+		() => dfu.writeBlock(dev, 0x80, 0x17f, image(0x100)),
 		Error,
 		"page aligned",
 	);
 });
 
-Deno.test("flash alignment is the page size, not the vendored 256", () => {
-	// 0x100 is a legal start for the parts the vendored code targets and not
-	// for this one. If this ever stops throwing, the port has regressed to
-	// upstream's assumption.
-	assertEquals(dfu.FLASH_PAGE_SIZE, 0x200);
-	const dev = new FakeDfuDevice();
-	assertThrows(() => dfu.writeBlock(dev, 0x100, 0x1ff, image(0x100)), Error);
+Deno.test("the flash page size is the one the part documents", () => {
+	// XMEGA A4U datasheet (8387) table 7-2: a 128-word page, so 256 bytes,
+	// and table 7-3 for the EEPROM. This read 0x200 for a while, which
+	// rejected legal page starts - see the boundary test below.
+	assertEquals(dfu.FLASH_PAGE_SIZE, 0x100);
+	assertEquals(dfu.EEPROM_PAGE_SIZE, 0x20);
 });
 
 Deno.test("eeprom alignment is its own page size", () => {
@@ -264,4 +263,11 @@ Deno.test("another Atmel device is not mistaken for it", () => {
 	// The picker filters on Atmel's vendor id, so an unsupported Atmel
 	// bootloader can reach us. Flashing an XMEGA image into one would be bad.
 	assertEquals(dfu.identify(new FakeDfuDevice({ productId: 0x2ff4 })), null);
+});
+
+Deno.test("a write starting on a real page boundary is accepted", () => {
+	// 0x100 is a page boundary on this part. While FLASH_PAGE_SIZE was 0x200
+	// this threw, so an image not starting at zero could not be flashed.
+	// Nothing hit it because images start at 0 and step by TRANSFER_SIZE.
+	dfu.writeBlock(new FakeDfuDevice(), 0x100, 0x1ff, image(0x100));
 });

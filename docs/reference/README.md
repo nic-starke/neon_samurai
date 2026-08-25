@@ -1,22 +1,18 @@
 # Reference documents
 
 Datasheets, application notes and specifications the firmware is written
-against. Fetch them with:
-
-```sh
-tools/dfu/fetch-docs.sh
-```
+against. Download them into this directory by hand - the table below gives the
+document number for each, which is what Microchip's search takes.
 
 ## Why these are not in the repository
 
 They belong to Microchip and the USB-IF, and neither licenses them for
 redistribution. Committing them into an MIT-licensed public repository would
 be the same mistake as vendoring GPL code into it. The PDFs are gitignored;
-this page and the fetch script are what is tracked.
+this page is what is tracked.
 
-Two of them Microchip now serves only through its own search - a direct
-request returns 403 whatever the path - so the script names them by document
-number instead of downloading them.
+Microchip returns 403 to a direct request for most of these whatever the path
+and whatever the user agent, so they have to come through its search.
 
 ## What each one is for
 
@@ -29,10 +25,21 @@ number instead of downloading them.
 | XMEGA AU Manual | 8331 | Family reference for the peripherals. The NVM and flash chapters are the ones this work needs. |
 | XMEGA A4U Datasheet | 8387 | Flash geometry for this exact part - page size, section boundaries, addressing. |
 
-## The one number that matters most
+## What the port actually had to change
 
-The vendored flasher assumes 256-byte flash pages, which is right for the
-AT90USB and ATmega parts it was written for. The ATxmega128A4U does not use
-that page size, and its 128 KB of flash needs the 64 KB page-select command to
-reach the upper half. Those two differences are the substance of the port -
-confirm both against the datasheet rather than by experiment.
+Two things differ from the AT90USB and ATmega parts the vendored flasher was
+written for, and both are worth confirming in the documents rather than by
+experiment:
+
+- **The command packet is padded to 64 bytes**, not 32. `bMaxPacketSize0` on
+  this device is 64, and the write command's data has to begin after a full
+  packet of header.
+- **128 KB of flash needs the 64 KB page-select command** to reach the upper
+  half, because the command's address fields are only 16 bits wide.
+
+The flash page size is *not* one of the differences. This page previously said
+the ATxmega128A4U did not use the vendored 256-byte page, and that was wrong:
+table 7-2 of the datasheet gives it a 128-word page, which is 256 bytes, and
+128 KB in 512 application pages agrees. Acting on the claim set the flasher's
+page size to 512, which made its alignment check stricter than the hardware
+and would have refused to write an image that did not begin at zero.

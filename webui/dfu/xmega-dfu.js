@@ -59,9 +59,11 @@ export const TRANSFER_SIZE = 0x400;
 // the command's address fields are 16 bits. 128 KB of flash is two of them.
 export const SELECT_PAGE_SIZE = 0x10000;
 
-// Flash page for this part. Writes here start at zero in TRANSFER_SIZE steps,
-// so alignment holds regardless, but a partial write would depend on it.
-export const FLASH_PAGE_SIZE = 0x200;
+// Page sizes for this part. XMEGA A4U datasheet (8387) table 7-2 gives the
+// ATxmega128A4U a 128-word flash page - words, so 256 bytes - and table 7-3
+// gives 32-byte EEPROM pages. 128K in 512 application pages agrees.
+// Only writeBlock uses them, to reject a start the bootloader would refuse.
+export const FLASH_PAGE_SIZE = 0x100;
 export const EEPROM_PAGE_SIZE = 0x20;
 
 // Every block after the first begins where the last one ended, so a transfer
