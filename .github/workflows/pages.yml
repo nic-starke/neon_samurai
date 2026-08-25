@@ -1,21 +1,21 @@
 name: pages
 
+# The site is not published while the project is in development. Nothing here
+# runs on its own: no push, no release, no schedule. Re-enabling it means
+# restoring the push and release triggers below, and turning Pages back on in
+# the repository settings - the site is deleted, not merely unpublished.
+#
+#  push:
+#    branches: [main]
+#    paths:
+#      - 'docs/manual/**'
+#      - 'tools/docs/**'
+#      - 'webui/**'
+#      - 'CMakeLists.txt'
+#      - '.github/workflows/pages.yml'
+#  release:
+#    types: [published]
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'docs/manual/**'
-      - 'tools/docs/**'
-      - 'webui/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/pages.yml'
-
-  # The site serves the firmware the editor offers, copied from the latest
-  # release at deploy time. Without this a new release would sit unpublished
-  # until something else happened to touch one of the paths above.
-  release:
-    types: [published]
-
   workflow_dispatch:
 
 # Deploying to Pages needs these; nothing else in the workflow writes anything.
