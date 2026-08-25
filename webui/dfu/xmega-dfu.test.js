@@ -1,6 +1,6 @@
 // Tests for the XMEGA DFU layer.
 //
-//   deno test --allow-read tools/dfu/xmega-dfu.test.js
+//   deno test --allow-read webui/dfu/xmega-dfu.test.js
 //
 // These assert on the bytes that go out, not on whether a flash succeeded.
 // A device can accept a malformed write and end up holding a broken image,

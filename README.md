@@ -5,19 +5,13 @@
 
 <i>An alternative firmware for the Midifighter Twister</i>
 
-  <p>
-    <a href="https://nic-starke.github.io/neon_samurai/"><b>📖 Read the manual</b></a>
-    &nbsp;·&nbsp;
-    <a href="https://nic-starke.github.io/neon_samurai/webui/"><b>🎛 Open the editor</b></a>
-  </p>
-
   <h4 align="center">
     <a href="#introduction">Introduction</a> -
     <a href="#features">Features</a> -
     <a href="#before-you-flash">Before You Flash</a> -
     <a href="#building">Building</a> -
     <a href="#flashing">Flashing</a> -
-    <a href="https://nic-starke.github.io/neon_samurai/">Manual</a> -
+    <a href="#documentation">Manual</a> -
     <a href="#documentation">Documentation</a> -
     <a href="#contributing">Contributing</a>
   </h4>
@@ -70,7 +64,7 @@ KEY:
 > depend on the ATxmega's boot section already containing a working DFU
 > bootloader. If that section is blank neither path works and the device requires a PDI
 > programmer (e.g. a JTAGICE3) to recover. See
-> [Bootloader recovery](https://nic-starke.github.io/neon_samurai/site/bootloader-recovery.html) if you hit this.
+> [Bootloader recovery](docs/manual/11-bootloader-recovery.md) if you hit this.
 
 <i>Using this firmware will void your warranty, the software is provided "as is", without warranty of any kind. Please refer to the license.</i>
 
@@ -98,7 +92,7 @@ scripts/flash.sh [Debug|Release|RelWithDebInfo]
 ```
 
 Defaults to `RelWithDebInfo`. This only writes the application section -
-see [Bootloader recovery](https://nic-starke.github.io/neon_samurai/site/bootloader-recovery.html) for flashing
+see [Bootloader recovery](docs/manual/11-bootloader-recovery.md) for flashing
 the bootloader itself, which is a separate, one-time operation per device.
 
 ### Configuring
@@ -109,27 +103,29 @@ does not implement Web MIDI.
 
 ## Documentation
 
-The **[user manual](https://nic-starke.github.io/neon_samurai/)** is the place
-to start if you are using the device rather than working on the firmware. The
-browser **[editor](https://nic-starke.github.io/neon_samurai/webui/)** is
-published alongside it. It is published as a site
-alongside the browser editor, and the same text appears as contextual help
-inside the editor itself - both are generated from `docs/manual/` by
+The **[user manual](docs/manual/)** is the place to start if you are using the
+device rather than working on the firmware. The same text appears as contextual
+help inside the browser editor - both are generated from `docs/manual/` by
 `tools/docs/build_manual.py`, so there is only ever one copy of it.
 
-To build and read it locally:
+The manual and the editor are not currently published anywhere; build and read
+them locally:
 
 ```sh
 pip install markdown pyyaml
 python3 tools/docs/build_manual.py
-python3 -m http.server 8420        # then open site/index.html
+python3 -m http.server 8420
 ```
+
+Then open `http://127.0.0.1:8420/site/` for the manual, or
+`http://127.0.0.1:8420/webui/` for the editor. Serve from the repository root -
+the editor reads paths above `webui/`.
 
 Developer-facing notes live separately:
 
-- [Technical reference](https://nic-starke.github.io/neon_samurai/site/technical.html) - bootloader, memory layout
-- [Bootloader recovery](https://nic-starke.github.io/neon_samurai/site/bootloader-recovery.html) - recovering a unit with a blank boot section
-- [Chip specifications](https://nic-starke.github.io/neon_samurai/site/specifications.html)
+- [Technical reference](docs/manual/12-technical.md) - bootloader, memory layout
+- [Bootloader recovery](docs/manual/11-bootloader-recovery.md) - recovering a unit with a blank boot section
+- [Chip specifications](docs/manual/13-specifications.md)
 - [Code structure](docs/Code%20Structure.md)
 
 ## Testing

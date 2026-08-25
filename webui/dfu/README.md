@@ -4,10 +4,17 @@ Porting browser-based Atmel DFU flashing to the ATxmega128A4U, so the editor
 can update firmware without a command-line tool.
 
 ```
-tools/dfu/
-  vendor/          tmk/AVRFlashOnWeb, unmodified. MIT, (c) 2025 Jun Wako.
-  fetch-docs.sh    downloads the reference documents (gitignored)
+webui/dfu/
+  vendor/            tmk/AVRFlashOnWeb, unmodified. MIT, (c) 2025 Jun Wako.
+  xmega-dfu.js       the XMEGA port - what the editor flashes with
+  intel-hex.js       parses the .hex an image arrives as
+  fake-device.js     a DFU device that models flash, for the tests
+  harness.html       manual flashing harness, for trying things by hand
+  probe.html         reports what a device in DFU actually exposes
 ```
+
+Reference documents are not in the repository - see docs/reference/README.md
+for what they are and how to get them.
 
 ## Why this is possible
 

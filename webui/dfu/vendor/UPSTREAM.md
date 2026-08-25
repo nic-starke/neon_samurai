@@ -18,4 +18,4 @@ differs in how flash is addressed and paged.
 
 Keeping the copy pristine is what makes it possible to diff against upstream
 and see exactly what the XMEGA port changed. The port lives one directory up,
-in `tools/dfu/`, and imports from here.
+in `webui/dfu/`, and imports from here.

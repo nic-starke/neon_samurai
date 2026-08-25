@@ -1,6 +1,6 @@
 // Tests for the Intel HEX parser.
 //
-//   deno test --allow-read tools/dfu/intel-hex.test.js
+//   deno test --allow-read webui/dfu/intel-hex.test.js
 //
 // A malformed image that parses is worse than one that does not: it gets
 // flashed. So most of these check that bad input is refused rather than
