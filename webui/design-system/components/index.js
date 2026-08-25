@@ -14,6 +14,8 @@ export { buildLedRing } from "./led-ring.js";
 export { buildRgbArc } from "./rgb-arc.js";
 export { buildVmapPill } from "./vmap-pill.js";
 export { buildBankSelector } from "./bank-selector.js";
+export { buildUnitSidebar } from "./unit-sidebar.js";
+export { buildInspector } from "./inspector.js";
 export { buildSideSwitch } from "./side-switch.js";
 export {
   computeLitMask,

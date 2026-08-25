@@ -5,7 +5,7 @@
 // Each number is a real <button> with aria-pressed, so the one interactive
 // control on the live page is keyboard-reachable and announces its state.
 // `pending` marks a bank the user has selected but the device has not yet
-// confirmed - see live-twin.js's switchBank().
+// confirmed - see editor.js's switchBank().
 
 import { elc } from "./dom.js";
 

@@ -1,5 +1,5 @@
 // Compact fingerprint of the visually-significant parts of a buildEncoder()
-// prop object. live-twin.js compares this per frame and only rebuilds the
+// prop object. editor.js compares this per frame and only rebuilds the
 // encoders whose signature actually changed.
 
 export function encoderSignature(p) {

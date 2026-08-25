@@ -1,7 +1,7 @@
 // Faceplate/bevel are real hardware materials, not UI chrome - they stay
 // neutral black/grey, not the Matrix palette tokens.css defines
 // elsewhere. Only the page background around the device carries the
-// green gradient (see live-twin.css/twin.css's `main`).
+// green gradient (see editor.css/twin.css's `main`).
 
 import { elc } from "./dom.js";
 

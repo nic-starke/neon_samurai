@@ -3,7 +3,7 @@
 A small, dependency-free component library for rendering the Midi Fighter
 Twister chassis in the browser - used by both `webui/twin.html` (the
 standalone geometry-tuning tool) and the live device view in
-`webui/index.html`/`js/live-twin.js`. Same "no framework, no build step,
+`webui/index.html`/`js/editor.js`. Same "no framework, no build step,
 no `npm`/`node_modules`" constraint as the rest of `webui/` - see the
 top-level [../README.md](../README.md).
 
@@ -32,7 +32,7 @@ What's here instead:
   it. ~1.2kB, MIT-licensed, vendored locally rather than CDN-imported so
   the app keeps working fully offline.
 
-  Note that only `twin.js` uses signals; `live-twin.js` does not. The live
+  Note that only `twin.js` uses signals; `editor.js` does not. The live
   page coalesces renders to an animation frame and then diffs per encoder
   (see `webui/README.md`'s "Rendering"), which is where its update
   granularity comes from - not from a state library. Components stay pure
@@ -59,7 +59,7 @@ There are three LED brightness tiers, not two - see `tokens.css`:
   live/connected (e.g. a colour layer with no colour configured, or an
   indicator outside the current bar-graph fill).
 - **Powered off** (`--ds-led-powered-off`, dimmer still) - the *whole
-  device* has no power/connection at all (see `live-twin.js`'s
+  device* has no power/connection at all (see `editor.js`'s
   disconnected render). Deliberately distinct from "off" so a
   disconnected twin doesn't read as "every LED happens to be unlit" -
   see `rgb-arc.js`/`led-ring.js`/`encoder.js`'s `powered` prop.
@@ -69,7 +69,7 @@ There are three LED brightness tiers, not two - see `tokens.css`:
 | Module | Renders | Notable props |
 |---|---|---|
 | `chassis.js` | Plastic faceplate + rubber bevel. Static - no colour/on-off state, only geometry. | `size`, `cornerRadius`, `bevelWidth` |
-| `device-chassis.js` | The full assembled device: `chassis.js` + the 4x4 encoder grid + 6 side switches + the two-light knurl-shading system, composed together. Shared by `twin.js` and `live-twin.js` so the grid/lighting geometry lives in one place. Returns `encoderCells` and `knurlLights` so a caller can replace one encoder without rebuilding the rest - see `webui/README.md`'s "Rendering". | `encoderProps(i, knurlLight)` and `sideSwitchProps(side, i)` callbacks |
+| `device-chassis.js` | The full assembled device: `chassis.js` + the 4x4 encoder grid + 6 side switches + the two-light knurl-shading system, composed together. Shared by `twin.js` and `editor.js` so the grid/lighting geometry lives in one place. Returns `encoderCells` and `knurlLights` so a caller can replace one encoder without rebuilding the rest - see `webui/README.md`'s "Rendering". | `encoderProps(i, knurlLight)` and `sideSwitchProps(side, i)` callbacks |
 | `encoder.js` | One full encoder assembly: body, RGB arc, LED ring, cap, and vmap pill, composed together. | `rgbColor`/`rgbOff`, `litMask` (or `value`/`max`), `ledBrightness`, `ledColorOverride`, `knobRotation`, `capColor`, `selected`, `powered`, `vmapCount`/`vmapActive` |
 | `cap.js` | The knurled cap top-view only (used internally by `encoder.js`, but also usable standalone for a cap-only preview). | `color`, `ribCount`, `lightAngle`/`lightOffset`, `reflectionColor` (subtle coloured bounce from the nearby lit RGB LED) |
 | `led-ring.js` | The ring of discrete indicator LEDs (11 on real hardware). | `count`, `arcSpan`, `litMask`, `brightness` (per-LED BCM 0-31, for `DIS_MODE_MULTI_PWM`'s smooth fade - takes priority over `litMask`), `colorOverride` (recolors one LED - used for the detent red/blue LEDs, which share the center indicator's physical slot), `powered` |
@@ -89,7 +89,7 @@ them into separate top-level components would mean threading the same
 position/colour/detent state through four call sites for every render.
 `encoder.js` composes the finer-grained `cap.js`/`led-ring.js`/
 `rgb-arc.js` internally so those pieces stay independently testable/
-reusable, but the thing callers (`twin.js`, `live-twin.js`) instantiate
+reusable, but the thing callers (`twin.js`, `editor.js`) instantiate
 per physical encoder is the one composed unit.
 
 ### Firmware-accurate rendering vs. demo/geometry preview
@@ -100,7 +100,7 @@ JSON preset, or a slider in the tuning sidebar. Two current callers:
 
 - `webui/twin.html`/`js/twin.js` - standalone geometry/colour tuning tool,
   demo data only (no device connection).
-- `webui/index.html`/`js/live-twin.js` - the live device view, which
+- `webui/index.html`/`js/editor.js` - the live device view, which
   renders these components from `DeviceModel`'s real per-encoder HSV/
   detent/display-mode state (pulled from a connected Twister over sysex
   immediately on connect) plus `live-tracker.js`'s live knob rotation

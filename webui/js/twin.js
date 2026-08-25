@@ -1,6 +1,6 @@
 // State and control panel for webui/twin.html, the standalone geometry-
 // tuning preview - demo/design tool, doesn't talk to a real device. See
-// js/live-twin.js for the real-device render using the same components.
+// js/editor.js for the real-device render using the same components.
 
 import { signal, effect, batch } from "./vendor/signals-core.js";
 import { GEOMETRY } from "../design-system/geometry.js";
@@ -65,7 +65,7 @@ for (const [k, v] of Object.entries({
   selSide: -1,
   // Demo indicator/rotation state - shared across all 16 encoders in
   // this preview (the live twin drives these per-encoder from real
-  // device state instead - see js/live-twin.js).
+  // device state instead - see js/editor.js).
   demoPosition: 160,
   demoDisplayMode: LedDisplayMode.SINGLE,
   demoDetent: false,
@@ -197,7 +197,7 @@ function renderStage() {
 
   // All 16 encoders in this demo share one position/mode/detent, driven
   // by the sidebar controls - the live twin drives these per-encoder
-  // from real device state instead (see js/live-twin.js).
+  // from real device state instead (see js/editor.js).
   const maskArgs = {
     position: s.demoPosition,
     displayMode: s.demoDisplayMode,
@@ -373,7 +373,7 @@ function renderSidebar() {
   );
 
   // RGB colour (demo only - the real config GUI drives this per-encoder
-  // from the device's own vmap HSV, see webui/js/live-twin.js).
+  // from the device's own vmap HSV, see webui/js/editor.js).
   sidebar.appendChild(
     elc("div", {
       style: "display:flex; flex-direction:column; gap:8px;",

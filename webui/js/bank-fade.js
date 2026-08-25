@@ -4,7 +4,7 @@
 // three equal segments.
 //
 // Bank 0/1/2/3 map to firmware encoder index 3/2/1/0 (animation_start_bank_
-// change()) - neither vmap indexing nor visual grid position; live-twin.js
+// change()) - neither vmap indexing nor visual grid position; editor.js
 // maps firmware index to visual position itself.
 //
 // The old implementation strobed white/off at ~16Hz, inside the range

@@ -86,7 +86,7 @@ export function checkForUpdate(currentVersion, manifest, { force = false } = {})
 	// Testing affordance: offer the firmware whatever the device is running,
 	// so the flow can be exercised without building a higher version each
 	// time. Reached only from an explicit URL flag, never by default - see
-	// isForced() in live-twin.js.
+	// isForced() in editor.js.
 	if (force) {
 		return { available: true, version: manifest.version, manifest, forced: true };
 	}

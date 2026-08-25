@@ -1,5 +1,8 @@
-// Live device view for index.html. Connect, and watch the physical Twister's
-// state render as the digital twin. Read-only apart from the bank selector.
+// The editor - index.html's application shell and everything wired into it.
+//
+// Regions follow webui/spec.md 3.1: header, unit sidebar, canvas, inspector.
+// The configuration protocol is still read-only, so the canvas shows the
+// device live and the inspector describes it; nothing here writes config.
 //
 // Renders are coalesced to one animation frame and only encoders whose props
 // actually changed are rebuilt, so a knob turn touches one encoder per frame
@@ -28,6 +31,8 @@ import {
   buildDeviceChassis,
   buildEncoder,
   buildBankSelector,
+  buildUnitSidebar,
+  buildInspector,
   computeLitMask,
   computeLedBrightness,
   computeDetentColorOverride,
@@ -60,7 +65,11 @@ const el = {
   btnUpdate: byId("btn-update"),
   btnDisconnect: byId("btn-disconnect"),
   chassis: byId("twin-chassis"),
-  bankSelector: byId("twin-bank-selector"),
+  bankSelector: byId("bank-selector"),
+  unitSidebar: byId("unit-sidebar"),
+  inspector: byId("inspector"),
+  deviceViewport: byId("device-viewport"),
+  deviceScaler: byId("device-scaler"),
   toastContainer: byId("toast-container"),
 };
 
@@ -78,11 +87,13 @@ function init() {
   el.btnDisconnect.addEventListener("click", onDisconnectClick);
   bankFade.onFrame = scheduleRender;
   buildChassisOnce();
-  renderBankSelector();
+  renderShell();
+  fitDevice();
+  new ResizeObserver(fitDevice).observe(el.deviceViewport);
 
   // The manual is fetched rather than bundled, so the page is usable before
   // it arrives - the help icons simply appear once it has.
-  loadManual().then(renderBankSelector);
+  loadManual().then(renderShell);
 
   watchForBootloader({
     onPresent: onBootloaderPresent,
@@ -150,7 +161,7 @@ async function onConnectClick() {
   } finally {
     el.btnConnect.disabled = false;
     scheduleRender();
-    renderBankSelector();
+    renderShell();
   }
 }
 
@@ -187,7 +198,7 @@ async function onDisconnectClick() {
   setUpdateButton("Update", false);
 
   scheduleRender();
-  renderBankSelector();
+  renderShell();
 }
 
 function onDeviceDisconnected(reason) {
@@ -202,7 +213,7 @@ function onDeviceDisconnected(reason) {
   setStatus("error", "Disconnected");
   toast("error", `Device disconnected (${reason}). Reconnect to resume.`);
   scheduleRender();
-  renderBankSelector();
+  renderShell();
 }
 
 window.addEventListener("beforeunload", () => {
@@ -417,7 +428,7 @@ function onBankChanged(newBank) {
   model.activeBank = newBank;
   pendingBank = null;
   bankFade.start(newBank);
-  renderBankSelector();
+  renderShell();
 }
 
 async function switchBank(bank) {
@@ -437,7 +448,7 @@ async function switchBank(bank) {
   } catch (e) {
     pendingBank = null;
     toast("error", `Could not switch to bank ${bank + 1}: ${e.message}`);
-    renderBankSelector();
+    renderShell();
   }
 }
 
@@ -584,6 +595,119 @@ function renderBankSelector() {
     }),
     helpIcon("switching-bank")
   );
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/**
+ * The colours of the bank being viewed, in the order the grid draws them, for
+ * the sidebar thumbnail.
+ */
+function bankColors() {
+  if (!connected) return null;
+
+  return Array.from({ length: NUM_ENCODERS }, (_, position) => {
+    const enc = model.banks[viewingBank].encoders[visualPositionToFirmwareIndex(position)];
+    const vmap = enc.vmaps[enc.vmapActive] ?? enc.vmaps[0];
+    return hsvToCss(vmap.hsv.hue, vmap.hsv.sat, vmap.hsv.val);
+  });
+}
+
+/**
+ * The units to list.
+ *
+ * A device in the bootloader has no MIDI interface, so it cannot be the
+ * connected unit - but it still has to appear, because this is the tool that
+ * recovers it.
+ */
+function currentUnits() {
+  if (connected && device) {
+    return [{
+      id: "device",
+      nickname: device.name,
+      meta: model.deviceInfo?.fwVersion ? `fw ${model.deviceInfo.fwVersion}` : "connected",
+      state: "connected",
+      colors: bankColors(),
+    }];
+  }
+
+  if (bootloaderPresent) {
+    return [{
+      id: "bootloader",
+      nickname: "Unrecognised device",
+      meta: "bootloader",
+      state: "bootloader",
+    }];
+  }
+
+  return [];
+}
+
+function renderSidebar() {
+  const units = currentUnits();
+  el.unitSidebar.replaceChildren(
+    buildUnitSidebar({
+      units,
+      selected: units[0]?.id ?? null,
+      onScan: onConnectClick,
+    })
+  );
+}
+
+function renderInspector() {
+  el.inspector.replaceChildren(
+    buildInspector({
+      connected,
+      deviceInfo: model.deviceInfo,
+      bank: viewingBank,
+    })
+  );
+}
+
+/**
+ * Scale the device to the room the canvas has.
+ *
+ * It renders at a fixed 888px because that is what the geometry describes, and
+ * with 600px of the viewport spent on the two side panels it will not fit on a
+ * 1440px screen. Scaling here keeps every component ignorant of it. Never
+ * scaled up past 1 - the artwork has no more detail to show.
+ */
+function fitDevice() {
+  if (!chassis) return;
+
+  const box = el.deviceViewport.getBoundingClientRect();
+  const padding = 32;
+
+  // The side switches sit at left/right -sideBtnW, so the device draws wider
+  // than the chassis square it is measured by.
+  const drawnWidth = chassis.chassisSize + 2 * GEOMETRY.sideBtnW;
+  const drawnHeight = chassis.chassisSize;
+
+  const scale = Math.max(
+    0.35,
+    Math.min(
+      1,
+      (box.width - padding) / drawnWidth,
+      (box.height - padding) / drawnHeight
+    )
+  );
+
+  // A transform does not affect layout, so the wrapper is given the drawn
+  // size explicitly - otherwise the centring grid still reserves 888px.
+  el.chassis.style.transformOrigin = "top left";
+
+  // Scaling from the top-left would put the left switch at -sideBtnW * scale,
+  // outside the wrapper and under its overflow clip, so it is shifted back in.
+  el.chassis.style.transform =
+    `translateX(${GEOMETRY.sideBtnW * scale}px) scale(${scale})`;
+  el.deviceScaler.style.width = `${drawnWidth * scale}px`;
+  el.deviceScaler.style.height = `${drawnHeight * scale}px`;
+}
+
+function renderShell() {
+  renderBankSelector();
+  renderSidebar();
+  renderInspector();
 }
 
 init();

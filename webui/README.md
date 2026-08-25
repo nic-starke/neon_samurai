@@ -66,7 +66,7 @@ Two different kinds of "live" are involved, from two different sources:
 
 - **Configuration** (colour, detent, display mode, side-switch modes,
   active bank) - pulled via sysex `GET` immediately on connect (see
-  `js/live-twin.js`'s `onConnectClick()`). This is a snapshot, not
+  `js/editor.js`'s `onConnectClick()`). This is a snapshot, not
   continuously polled - if you change the device's configuration through
   some other tool while this page is connected, reconnect to see it.
 - **Knob rotation** - `MF_SYSEX_PARAM_VMAP_CURR_POS` is read explicitly
@@ -78,7 +78,7 @@ Two different kinds of "live" are involved, from two different sources:
   `{bank, enc, vmap, curr_pos}` message on every subsequent encoder
   movement, but only while streaming is enabled
   (`MF_SYSEX_PARAM_ENCODER_LIVE_POSITION_STREAM`, a `SET`-only trigger -
-  see `sysex.h`). `js/live-twin.js` seeds its `LivePushTracker` instances
+  see `sysex.h`). `js/editor.js` seeds its `LivePushTracker` instances
   from the just-loaded model and then enables streaming right after the
   initial config pull; the trackers listen for the pushed messages via
   `Device.onSysex()` (see `midi.js`) rather than polling or inferring
@@ -87,7 +87,7 @@ Two different kinds of "live" are involved, from two different sources:
   on every device reboot, so a device that's never had a web client
   connect emits zero extra sysex traffic; this page also makes a
   best-effort attempt to disable it again on page unload (see
-  `live-twin.js`'s `beforeunload` handler). Only an encoder that moves
+  `editor.js`'s `beforeunload` handler). Only an encoder that moves
   *between* connecting and streaming actually being enabled (a narrow
   window) could show a briefly stale position; anything else is exact
   from the moment the page connects.
@@ -113,7 +113,7 @@ read as one lit surface rather than 16 identical stickers).
 
 Two pages use it:
 
-- **`index.html`** (`js/live-twin.js`) - the live device view described
+- **`index.html`** (`js/editor.js`) - the live device view described
   above.
 - **`twin.html`** (`js/twin.js`) - a standalone geometry/colour tuning
   tool, open directly with no connection involved. Renders demo state (a
@@ -128,7 +128,7 @@ Two pages use it:
 ```text
 webui/
   index.html            - live device view page markup
-  live-twin.css          - chrome styling for index.html (header/toast/
+  editor.css          - chrome styling for index.html (header/toast/
                           banner - the chassis itself is styled inline
                           by design-system/components/*)
   twin.html              - standalone digital-twin geometry/colour tuning tool
@@ -149,7 +149,7 @@ webui/
                                   grid + side switches + two-light knurl
                                   system (composes chassis.js/encoder.js/
                                   side-switch.js) - shared by twin.js and
-                                  live-twin.js
+                                  editor.js
       encoder.js                  - composed encoder assembly (see below)
       cap.js                        - knurled cap top-view SVG, incl. the
                                   subtle coloured knurl-reflection effect
@@ -178,7 +178,7 @@ webui/
                          (src/led/hsv2rgb.c, src/led/color.c) - distinct
                          from design-system/components/color-utils.js's
                          cosmetic HSV, see that file's header comment
-    live-twin.js         - connect flow + state + render orchestration
+    editor.js         - connect flow + state + render orchestration
                          for index.html
     twin.js               - state and control panel for twin.html
     vendor/
@@ -191,7 +191,7 @@ webui/
 
 ## Rendering
 
-`live-twin.js` builds the chassis once, then updates it in two stages:
+`editor.js` builds the chassis once, then updates it in two stages:
 
 1. **Frame coalescing.** Every live data source calls `scheduleRender()`,
    never `renderChassis()` directly. The firmware pushes `curr_pos` on every
@@ -258,7 +258,7 @@ test" section for the same principle applied to the test suite.
    test" section.
 4. Wire it into `device-model.js` (the field itself, plus
    `loadFromDevice()`) and, if it should affect the live render,
-   `live-twin.js`'s `renderChassis()`.
+   `editor.js`'s `renderChassis()`.
 
 If the param is *pushed unsolicited* rather than only read on request
 (like `VMAP_CURR_POS`/`ENCODER_VMAP_ACTIVE`), the firmware side needs

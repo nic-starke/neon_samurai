@@ -1,6 +1,6 @@
 // The full assembled device: faceplate/bevel, 4x4 encoder grid, 6 side
 // switches, and the two-light knurl shading. Shared by twin.js and
-// live-twin.js so the grid and lighting geometry live in one place.
+// editor.js so the grid and lighting geometry live in one place.
 //
 // Each encoder sits in its own cell wrapper, returned as `encoderCells`, so a
 // caller can replace one encoder without rebuilding the other fifteen.

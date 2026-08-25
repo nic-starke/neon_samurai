@@ -1,0 +1,303 @@
+/* editor.css - chrome and layout for index.html.
+
+   Colours come from design-system/tokens.css (loaded first). The rendered
+   device is styled inline by design-system/components/*, not here; this file
+   covers the application shell around it - header, the three columns, and the
+   toast and banner chrome.
+
+   Regions follow the layout in webui/spec.md 3.1: header, unit sidebar,
+   canvas, inspector, with the utility drawer slotting into the canvas column
+   when it is built. */
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background: var(--ds-bg);
+	color: var(--ds-text);
+	font-family: var(--ds-font);
+
+	/* The shell is dense and sets its own sizes; this is only the base the
+	   em-based chrome (buttons, toasts) is measured from. It was 21px when
+	   the page held nothing but one device at rest. */
+	font-size: 14px;
+}
+
+/* The shell owns the viewport - each region scrolls on its own rather than
+   the page scrolling as a whole, so the header and the device stay put. */
+body {
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+	background: var(--ds-bg-raised);
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius);
+	padding: 0.5em 1.1em;
+	cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+	border-color: var(--ds-accent);
+}
+
+button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+button:focus-visible {
+	outline: none;
+	box-shadow: var(--ds-focus-ring);
+}
+
+/* --- Banner (unsupported browser) --- */
+
+.banner {
+	flex: none;
+	padding: 0.75em 1em;
+	text-align: center;
+}
+
+.banner--error {
+	background: color-mix(in srgb, var(--ds-danger) 18%, var(--ds-bg));
+	color: var(--ds-danger);
+}
+
+.banner--error a {
+	color: inherit;
+}
+
+/* --- Header --- */
+
+#header {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex: none;
+	height: 54px;
+	padding: 0 16px;
+	background: var(--ds-bg-panel);
+	border-bottom: 1px solid var(--ds-border);
+}
+
+.header__wordmark {
+	flex: none;
+	font-family: var(--ds-font-mono);
+	font-size: 17px;
+	font-weight: 600;
+	letter-spacing: 0.16em;
+	color: var(--ds-text);
+}
+
+.header__links {
+	display: flex;
+	gap: 14px;
+	flex: none;
+}
+
+.header__links a {
+	font-family: var(--ds-font-mono);
+	font-size: 10px;
+	letter-spacing: 0.09em;
+	color: var(--ds-text-faint);
+	text-decoration: none;
+}
+
+.header__links a:hover {
+	color: var(--ds-accent-bright);
+}
+
+/* Pushed right, so the status reads next to the controls that change it. */
+.header__status {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	margin-left: auto;
+	min-width: 0;
+}
+
+.header__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: none;
+}
+
+.status-dot {
+	width: 0.7em;
+	height: 0.7em;
+	border-radius: 50%;
+	display: inline-block;
+	flex: none;
+}
+
+.status-dot--disconnected {
+	background: var(--ds-text-faint);
+}
+
+/* Connecting is a multi-second, ~205-round-trip state. It gets its own
+   colour rather than reusing "disconnected", which was previously showing
+   a dead-looking dot for the whole of a successful connect. */
+.status-dot--connecting {
+	background: var(--ds-warning);
+	box-shadow: 0 0 6px var(--ds-warning);
+	animation: status-pulse 1.2s ease-in-out infinite;
+}
+
+.status-dot--connected {
+	background: var(--ds-accent);
+	box-shadow: var(--ds-glow);
+}
+
+.status-dot--error {
+	background: var(--ds-danger);
+	box-shadow: 0 0 6px var(--ds-danger);
+}
+
+@keyframes status-pulse {
+	50% {
+		opacity: 0.35;
+	}
+}
+
+.fw-version {
+	color: var(--ds-text-dim);
+	font-family: var(--ds-font-mono);
+	font-size: 0.9em;
+	white-space: nowrap;
+}
+
+/* --- Toasts --- */
+
+#toast-container {
+	position: fixed;
+	top: 66px;
+	right: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	z-index: 100;
+}
+
+.toast {
+	background: var(--ds-bg-raised);
+	border: 1px solid var(--ds-border-bright);
+	border-radius: var(--ds-radius);
+	padding: 0.6em 1em;
+	max-width: 24em;
+	box-shadow: 0 4px 16px rgb(0 0 0 / 0.4);
+}
+
+.toast--error {
+	border-color: var(--ds-danger);
+	color: var(--ds-danger);
+}
+
+.toast--warn {
+	border-color: var(--ds-warning);
+	color: var(--ds-warning);
+}
+
+.toast--success {
+	border-color: var(--ds-accent);
+}
+
+/* --- Workspace --- */
+
+#workspace {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+}
+
+/* Fixed widths. The manual and tablet layouts are out of scope (spec 1.3):
+   desktop-first, degrade rather than optimise. */
+#unit-sidebar {
+	width: 224px;
+	flex: none;
+	background: var(--ds-bg-raised);
+	border-right: 1px solid var(--ds-border);
+}
+
+#inspector {
+	width: 376px;
+	flex: none;
+	overflow-y: auto;
+	background: var(--ds-bg-raised);
+	border-left: 1px solid var(--ds-border);
+}
+
+#canvas {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	background: radial-gradient(circle at 50% -10%, #0f2a22 0%, #0a1210 45%, var(--ds-bg) 100%);
+}
+
+/* The selector and its help icon are separate children; without this they
+   stack and the icon drops onto a second line. */
+#bank-selector {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+#canvas-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	flex: none;
+	padding: 11px 18px;
+	background: var(--ds-bg-raised);
+	border-bottom: 1px solid var(--ds-border);
+}
+
+/* The device is a fixed 888px square. Rather than let it overflow or clip, a
+   transform on #device-scaler shrinks it to whatever room is left once the
+   two side panels have taken theirs - see fitDevice() in js/editor.js.
+   Geometry stays authoritative at 888px and no component knows about it. */
+#device-viewport {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	place-items: center;
+	overflow: hidden;
+	padding: 16px;
+}
+
+#device-scaler {
+	transform-origin: center center;
+}
+
+#canvas-hint {
+	flex: none;
+	margin: 0;
+	padding: 0 18px 14px;
+	text-align: center;
+	font-family: var(--ds-font-mono);
+	font-size: 10px;
+	letter-spacing: 0.07em;
+	color: var(--ds-text-faint);
+}
+
+/* The bank-change flicker reproduces the firmware's animation: a full-white
+   RGB LED toggling every ~31ms, which is a ~16Hz flash - inside the range
+   associated with photosensitive seizures. Suppressed entirely under
+   reduced-motion, along with the status pulse. */
+@media (prefers-reduced-motion: reduce) {
+	.status-dot--connecting {
+		animation: none;
+	}
+}

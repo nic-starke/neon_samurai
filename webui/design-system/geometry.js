@@ -1,5 +1,5 @@
 // Physical geometry of the rendered chassis, shared by the live view
-// (js/live-twin.js) and the tuning tool (js/twin.js). Previously duplicated
+// (js/editor.js) and the tuning tool (js/twin.js). Previously duplicated
 // in both as GEOMETRY/SPEC and kept in step by a comment.
 //
 // All size fields - not counts, angles, or percentages - are 1.5x the

@@ -3,9 +3,9 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>NEON_SAMURAI — Digital Twin</title>
+	<title>NEON_SAMURAI — Editor</title>
 	<link rel="stylesheet" href="design-system/tokens.css" />
-	<link rel="stylesheet" href="live-twin.css" />
+	<link rel="stylesheet" href="editor.css" />
 	<link rel="stylesheet" href="design-system/help.css" />
 	<link rel="stylesheet" href="design-system/firmware-update.css" />
 </head>
@@ -18,15 +18,24 @@
 	</div>
 
 	<header id="header">
+		<span class="header__wordmark">NEON_SAMURAI</span>
+
+		<nav class="header__links">
+			<a id="manual-link" href="../site/index.html" target="_blank" rel="noopener">MANUAL</a>
+			<a href="https://github.com/nic-starke/neon_samurai" target="_blank" rel="noopener">GITHUB ↗</a>
+		</nav>
+
 		<div class="header__status">
 			<span id="status-dot" class="status-dot status-dot--disconnected" aria-hidden="true"></span>
 			<span id="status-text">Not connected</span>
 			<span id="fw-version" class="fw-version"></span>
 		</div>
-		<a id="manual-link" href="../site/index.html" target="_blank" rel="noopener">Manual</a>
-		<button id="btn-update" class="fw-update-btn" type="button" disabled>Update</button>
-		<button id="btn-connect" type="button">Connect</button>
-		<button id="btn-disconnect" type="button" disabled>Disconnect</button>
+
+		<div class="header__actions">
+			<button id="btn-update" class="fw-update-btn" type="button" disabled>Update</button>
+			<button id="btn-connect" type="button">Connect</button>
+			<button id="btn-disconnect" type="button" disabled>Disconnect</button>
+		</div>
 	</header>
 
 	<!-- Each toast carries its own role (alert for errors, status otherwise),
@@ -34,11 +43,28 @@
 	     nested live regions would announce twice. -->
 	<div id="toast-container"></div>
 
-	<main>
-		<div id="twin-bank-selector"></div>
-		<div id="twin-chassis" class="twin-chassis-wrap"></div>
-	</main>
+	<div id="workspace">
+		<aside id="unit-sidebar" aria-label="Connected units"></aside>
 
-	<script type="module" src="js/live-twin.js"></script>
+		<main id="canvas">
+			<div id="canvas-bar">
+				<div id="bank-selector"></div>
+			</div>
+
+			<!-- The device renders at a fixed 888px and is scaled to whatever
+			     room the canvas has - see fitDevice() in js/editor.js. -->
+			<div id="device-viewport">
+				<div id="device-scaler">
+					<div id="twin-chassis"></div>
+				</div>
+			</div>
+
+			<p id="canvas-hint">Live view - the grid follows the unit. Editing arrives with the write path.</p>
+		</main>
+
+		<aside id="inspector" aria-label="Properties"></aside>
+	</div>
+
+	<script type="module" src="js/editor.js"></script>
 </body>
 </html>
