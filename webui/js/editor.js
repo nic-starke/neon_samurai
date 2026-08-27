@@ -765,9 +765,28 @@ function renderDevicePresence() {
 }
 
 /** Drives the connecting row's progress bar - see currentDevices(). */
+/**
+ * Drives the connecting row's progress bar - see currentDevices().
+ *
+ * loadFromDevice() reports progress once per request - easily 100+ times
+ * over one connect - and a full renderSidebar() on every tick was tearing
+ * the fill element down and rebuilding it each time, which restarted its
+ * CSS stripe animation from frame zero before a single cycle could
+ * complete. The element persists across ticks instead, and only its width
+ * changes; renderSidebar() still runs when there is nothing to update
+ * directly, such as the very first tick of a connect.
+ */
 function setConnectFraction(fraction) {
   connectFraction = fraction;
-  renderSidebar();
+
+  const id = registry.selectedId;
+  const fill = id && el.deviceList.querySelector(`[data-progress="${CSS.escape(id)}"]`);
+  if (!fill) {
+    renderSidebar();
+    return;
+  }
+
+  fill.style.width = fraction === null ? "0" : `${Math.round(fraction * 100)}%`;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

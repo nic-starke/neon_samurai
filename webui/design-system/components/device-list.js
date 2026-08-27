@@ -140,12 +140,18 @@ function unitRow(unit, selected, onSelect) {
 	});
 
 	const label = elc("span", {
-		style: "flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; text-align:left;",
+		style: "display:flex; flex-direction:column; gap:4px; text-align:left;",
 		children: [name, meta],
 	});
 
+	// Keyed so the editor can update its width directly while connecting,
+	// instead of rebuilding the row on every progress tick - loadFromDevice()
+	// reports progress once per request, easily 100+ times over one connect,
+	// which was tearing this element down and restarting its stripe
+	// animation from frame zero before a single cycle could complete.
 	const progressFill = elc("span", {
 		class: "ds-unit-progress__fill",
+		attrs: { "data-progress": unit.id },
 		style:
 			unit.progress === null || unit.progress === undefined
 				? "width:0;"
@@ -153,23 +159,36 @@ function unitRow(unit, selected, onSelect) {
 	});
 	const progress = elc("span", { class: "ds-unit-progress", children: [progressFill] });
 
-	const mini = elc("span", {
-		class: "ds-unit-mini",
-		// Selection is already the row's own border; a second accent stroke
-		// this close to it read as a clash, not emphasis, so the mini device
-		// keeps its plain border regardless of state.
-		children: [buildMiniDevice({ size: MINI_SIZE, key: unit.id, encoders: unit.encoders })],
+	// name/meta at the top, the bar pushed to the bottom by margin-top:auto -
+	// both confined to this column, which is also all the banner below
+	// covers, so neither ever draws over the mini device.
+	const right = elc("span", {
+		class: "ds-unit-right",
+		style: "flex:1; min-width:0; align-self:stretch; display:flex; flex-direction:column; position:relative;",
+		children: [label, progress],
 	});
 
-	// A row-level element, not the mini's - it sits under the name/meta text
-	// on the right, flush with the row's own bottom edge, not the mini's.
-	const children = [mini, label, statusDot(state), progress];
+	// Not shown mid-connect: the bar already says that, and a row cannot
+	// usefully be clicked or held while it is still identifying.
+	if (connectable) right.appendChild(rowBanner("CONNECT", "var(--ds-accent)"));
+	else if (isConnected) right.appendChild(rowBanner("HOLD TO DISCONNECT", "var(--ds-danger)"));
+	else if (unit.state !== "identifying") right.appendChild(rowBanner(state.label, DOT_COLOR[state.dot]));
 
-	// Not shown mid-connect: the bar under the mini already says that, and a
-	// row cannot usefully be clicked or held while it is still identifying.
-	if (connectable) children.push(rowBanner("CONNECT", "var(--ds-accent)"));
-	else if (isConnected) children.push(rowBanner("HOLD TO DISCONNECT", "var(--ds-danger)"));
-	else if (unit.state !== "identifying") children.push(rowBanner(state.label, DOT_COLOR[state.dot]));
+	const mini = elc("span", {
+		class: "ds-unit-mini",
+		children: [
+			buildMiniDevice({
+				size: MINI_SIZE,
+				key: unit.id,
+				encoders: unit.encoders,
+				// A light neutral ring, not the accent, and drawn outside the
+				// mini's own edge rather than straddling it - see mini-device.js.
+				outerStroke: isConnected ? "var(--ds-mini-connected-ring)" : undefined,
+			}),
+		],
+	});
+
+	const children = [mini, right, statusDot(state)];
 
 	const row = elc("button", {
 		class: `ds-unit-row${connectable ? " ds-unit-row--connectable" : ""}`,
@@ -201,7 +220,7 @@ function emptyState() {
 		style:
 			"margin:0; padding:18px 4px; font:400 11px/1.7 var(--ds-font); " +
 			"color:var(--ds-text-faint); text-align:left;",
-		text: "No devices connected.",
+		text: "No devices detected.",
 	});
 }
 

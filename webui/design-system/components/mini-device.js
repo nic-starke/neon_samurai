@@ -102,20 +102,49 @@ function encoder(cx, cy, props) {
  * @param p.size      width in pixels; height matches
  * @param p.encoders  16 prop objects in grid order, as buildEncoder() takes.
  *                    Null or absent renders an unpowered device.
- * @param p.accent    border colour, for showing selection or state
+ * @param p.outerStroke  colour for a ring drawn outside the chassis edge -
+ *                         e.g. to mark the row it belongs to as connected.
+ *                         Absent by default; the chassis's own border is
+ *                         always drawn regardless.
  * @param p.key       marks the element so a caller can find and replace it
  */
 export function buildMiniDevice(p = {}) {
 	const size = p.size ?? 56;
 
+	// The ring sits outside 0..CHASSIS, which the SVG's own viewport would
+	// otherwise clip - overflow:visible on the root is what lets it (and any
+	// stroke straddling the true edge) draw past that boundary uncropped.
 	const svg = svgEl("svg", {
 		width: size,
 		height: size,
 		viewBox: `0 0 ${CHASSIS} ${CHASSIS}`,
-		style: "flex:none; display:block;",
+		style: "flex:none; display:block; overflow:visible;",
 		"aria-hidden": "true",
 		...(p.key ? { "data-mini": p.key } : {}),
 	});
+
+	if (p.outerStroke) {
+		// Drawn in the same 0..CHASSIS space as everything else, but a fixed
+		// number of device-space units shrinks to a fraction of a real pixel
+		// at this element's actual display size and disappears - a ring meant
+		// to read as a crisp couple of pixels has to be sized from the real
+		// display size instead, not the coordinate space.
+		const displayScale = size / CHASSIS;
+		const gap = 3 / displayScale;
+		const width = 2.5 / displayScale;
+		svg.appendChild(
+			svgEl("rect", {
+				x: -gap,
+				y: -gap,
+				width: CHASSIS + gap * 2,
+				height: CHASSIS + gap * 2,
+				rx: G.cornerRadius + gap,
+				fill: "none",
+				stroke: p.outerStroke,
+				"stroke-width": width,
+			}),
+		);
+	}
 
 	svg.appendChild(
 		svgEl("rect", {
@@ -125,7 +154,7 @@ export function buildMiniDevice(p = {}) {
 			height: CHASSIS,
 			rx: G.cornerRadius,
 			fill: "#1b1d21",
-			stroke: p.accent ?? "var(--ds-border)",
+			stroke: "var(--ds-border)",
 			"stroke-width": 6,
 		}),
 	);

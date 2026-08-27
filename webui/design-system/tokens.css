@@ -49,6 +49,11 @@
 	--ds-font-mono: ui-monospace, "SF Mono", Consolas, monospace;
 
 	--ds-focus-ring: 0 0 0 2px var(--ds-bg), 0 0 0 4px var(--ds-accent);
+
+	/* A light neutral ring for the mini device when its row is connected -
+	   deliberately not the accent, which read as a second selection colour
+	   sitting right next to the row's own. */
+	--ds-mini-connected-ring: #b0bdb8;
 }
 
 /* Components build their own inline styles, so the one thing that cannot
@@ -177,11 +182,13 @@
    centre. Replaces what used to be two different popups - a pill by the
    status dot and a circle over the mini device - each only telling half of
    what the row could say. */
+/* Confined to .ds-unit-right, its parent - never draws over the mini
+   device, which shows live state a banner would otherwise obscure. */
 .ds-unit-row__banner {
 	position: absolute;
 	top: 50%;
-	left: 10px;
-	right: 10px;
+	left: 0;
+	right: 0;
 	transform: translateY(-50%) translateY(4px);
 	display: flex;
 	justify-content: center;
@@ -232,9 +239,14 @@
 	height: 100%;
 	width: 0;
 	background-color: var(--ds-accent);
+	/* Darkening the stripe rather than lightening it: the accent fill is
+	   already close to white, so a light overlay barely shows against it even
+	   though the same overlay reads clearly against the darker danger red -
+	   the exact mismatch reported. Darkening drops the luma of both fills by
+	   a comparable amount, so the stripe reads the same way on either. */
 	background-image: repeating-linear-gradient(
 		-45deg,
-		rgba(255, 255, 255, 0.3) 0 4px,
+		rgba(0, 0, 0, 0.3) 0 4px,
 		transparent 4px 8px
 	);
 	background-size: 11.3px 11.3px;
