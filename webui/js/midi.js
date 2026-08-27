@@ -188,7 +188,29 @@ export class Device {
 	}
 }
 
-export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
+/**
+ * Raised when the ports exist but cannot be opened.
+ *
+ * On Linux a rawmidi node has a single opener, so a DAW or Mixxx holding the
+ * device blocks the editor entirely. That is a different situation from the
+ * device being absent and has to be said differently - see spec 4.4.
+ */
+export class PortBusyError extends Error {
+	constructor(name) {
+		super(
+			`Another application is using ${name}. Close it and scan again.`,
+		);
+		this.name = "PortBusyError";
+	}
+}
+
+/**
+ * Ask for MIDI access.
+ *
+ * Chrome prompts the first time and remembers the answer for the origin.
+ * Nothing here opens a port or sends a byte.
+ */
+export async function requestAccess() {
 	if (!isSupported()) {
 		throw new Error(
 			"Web MIDI is not available in this browser. Use Chrome or Edge - " +
@@ -197,9 +219,8 @@ export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
 		);
 	}
 
-	let access;
 	try {
-		access = await navigator.requestMIDIAccess({ sysex: true });
+		return await navigator.requestMIDIAccess({ sysex: true });
 	} catch (e) {
 		throw new Error(
 			`Web MIDI access was denied or failed: ${e.message}. This page must ` +
@@ -207,10 +228,66 @@ export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
 				"file:// URL can block sysex permission in some Chromium versions.",
 		);
 	}
+}
 
-	const input = findPort(access.inputs, portSubstring);
-	const output = findPort(access.outputs, portSubstring);
-	if (!input || !output) {
+/**
+ * Every attached device whose ports match, paired input to output.
+ *
+ * Enumeration only - no port is opened and no MIDI is sent, so this is safe to
+ * run on load and on every hot-plug. Identity comes from the output port's id,
+ * which is stable for as long as the device is attached.
+ *
+ * @returns [{id, name, input, output}]
+ */
+export function listDevices(access, portSubstring = DEFAULT_PORT_SUBSTRING) {
+	const needle = portSubstring.toLowerCase();
+	const matches = (port) => (port?.name ?? "").toLowerCase().includes(needle);
+
+	const inputs = [...access.inputs.values()].filter(matches);
+	const found = [];
+
+	for (const output of access.outputs.values()) {
+		if (!matches(output) || output.state !== "connected") continue;
+
+		// Ports are paired by name. Two identical Twisters would be
+		// indistinguishable here; telling them apart needs a serial from the
+		// firmware, which it does not report yet.
+		const input =
+			inputs.find((i) => i.name === output.name && i.state === "connected") ??
+			inputs.find((i) => i.state === "connected");
+
+		if (input) found.push({ id: output.id, name: output.name, input, output });
+	}
+
+	return found;
+}
+
+/**
+ * Open a detected device's ports and start talking to it.
+ *
+ * This is the first thing with side effects: the ports become exclusively
+ * ours, and Device begins its heartbeat.
+ */
+export async function openDevice(entry) {
+	// port.state is presence; port.connection is whether it is open. Testing
+	// the former skips open() for any attached device, which left the port to
+	// be opened implicitly by the first send - and hid a busy port until
+	// something failed later for a different-looking reason.
+	try {
+		if (entry.input.connection !== "open") await entry.input.open();
+		if (entry.output.connection !== "open") await entry.output.open();
+	} catch {
+		throw new PortBusyError(entry.name);
+	}
+
+	return new Device(entry.input, entry.output);
+}
+
+export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
+	const access = await requestAccess();
+	const [entry] = listDevices(access, portSubstring);
+
+	if (!entry) {
 		const available = [...access.outputs.values()].map((p) => p.name).join(", ") || "(none)";
 		throw new Error(
 			`No MIDI device matching "${portSubstring}" found. ` +
@@ -218,24 +295,7 @@ export async function connect(portSubstring = DEFAULT_PORT_SUBSTRING) {
 		);
 	}
 
-	if (input.state !== "connected") {
-		await input.open();
-	}
-	if (output.state !== "connected") {
-		await output.open();
-	}
-
-	return new Device(input, output);
-}
-
-function findPort(portMap, substring) {
-	const needle = substring.toLowerCase();
-	for (const port of portMap.values()) {
-		if ((port.name ?? "").toLowerCase().includes(needle)) {
-			return port;
-		}
-	}
-	return null;
+	return openDevice(entry);
 }
 
 export { Param };
