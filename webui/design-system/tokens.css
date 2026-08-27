@@ -40,6 +40,7 @@
 	--ds-led-powered-off: #28302e;
 	--ds-glow: 0 0 6px rgba(77, 255, 176, 0.55);
 	--ds-glow-soft: 0 0 10px rgba(77, 255, 176, 0.3);
+	--ds-glow-amber: 0 0 6px rgba(232, 184, 77, 0.55);
 
 	--ds-radius: 6px;
 	--ds-radius-lg: 14px;
@@ -120,5 +121,144 @@
 	.ds-toggle__track,
 	.ds-toggle__knob {
 		transition: none;
+	}
+}
+
+/* --- Device row status dot (components/device-list.js) --- */
+
+.ds-status-dot {
+	position: absolute;
+	top: 7px;
+	right: 7px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	font: 700 8px/1 var(--ds-font-mono);
+	color: var(--ds-bg);
+}
+
+/* Flat grey: nothing connected, nothing to report yet. */
+.ds-status-dot--off {
+	background: var(--ds-text-faint);
+}
+
+/* A steady glow would read as "on"; a live MIDI connection is a process, not
+   a fixed state, so it breathes instead - the one animation on this dot that
+   is not a one-off transition. */
+.ds-status-dot--ok {
+	background: var(--ds-accent);
+	animation: ds-dot-live 2.4s ease-in-out infinite;
+}
+
+.ds-status-dot--warn {
+	background: var(--ds-amber);
+	box-shadow: var(--ds-glow-amber);
+}
+
+@keyframes ds-dot-live {
+	0%, 100% { box-shadow: var(--ds-glow); }
+	50% { box-shadow: 0 0 2px rgba(77, 255, 176, 0.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ds-status-dot--ok {
+		animation: none;
+		box-shadow: var(--ds-glow);
+	}
+}
+
+/* --- Row banner (components/device-list.js) --- */
+
+/* One message at a time, in one place: a rounded bar across the row's own
+   centre. Replaces what used to be two different popups - a pill by the
+   status dot and a circle over the mini device - each only telling half of
+   what the row could say. */
+.ds-unit-row__banner {
+	position: absolute;
+	top: 50%;
+	left: 10px;
+	right: 10px;
+	transform: translateY(-50%) translateY(4px);
+	display: flex;
+	justify-content: center;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.12s ease, transform 0.12s ease;
+	pointer-events: none;
+	z-index: 5;
+}
+
+.ds-unit-row__banner .ds-tooltip {
+	width: 100%;
+	justify-content: center;
+	background: color-mix(in srgb, var(--ds-bg-panel) 88%, transparent);
+}
+
+.ds-unit-row:hover .ds-unit-row__banner {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(-50%);
+}
+
+/* --- Mini device + per-row progress bar (components/device-list.js) --- */
+
+.ds-unit-mini {
+	position: relative;
+	display: inline-flex;
+}
+
+/* A row-level footer strip, not the mini device's: it runs under the
+   name/meta text on the right, flush with the row's own bottom edge. The
+   left offset is the row's own left padding plus the mini's width plus the
+   flex gap between them, so the bar's left edge lines up with where the
+   name and meta text already start. */
+.ds-unit-progress {
+	position: absolute;
+	left: 96px;
+	right: 9px;
+	bottom: 3px;
+	height: 4px;
+	overflow: hidden;
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--ds-bg-inset) 80%, transparent);
+}
+
+.ds-unit-progress__fill {
+	display: block;
+	height: 100%;
+	width: 0;
+	background-color: var(--ds-accent);
+	background-image: repeating-linear-gradient(
+		-45deg,
+		rgba(255, 255, 255, 0.3) 0 4px,
+		transparent 4px 8px
+	);
+	background-size: 11.3px 11.3px;
+	animation: ds-progress-stripes 0.6s linear infinite;
+	transition: width 0.2s ease;
+}
+
+/* The hold-to-disconnect gesture times itself against this transition rather
+   than a poll, so its duration has to match HOLD_TO_DISCONNECT_MS exactly. */
+.ds-unit-progress__fill--hold {
+	transition: width 500ms linear;
+}
+
+.ds-unit-progress__fill--danger {
+	background-color: var(--ds-danger);
+}
+
+@keyframes ds-progress-stripes {
+	from { background-position: 0 0; }
+	to { background-position: 11.3px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ds-unit-progress__fill {
+		animation: none;
 	}
 }

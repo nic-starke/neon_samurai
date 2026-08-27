@@ -12,31 +12,117 @@
 
 import { elc } from "./dom.js";
 import { buildMiniDevice } from "./mini-device.js";
+import { buildTooltip } from "./tooltip.js";
 
 /** Shared with the editor, which replaces this element as the device moves. */
 export const MINI_SIZE = 78;
 
-// State determines the row's accent and its trailing glyph. Anything the
-// editor cannot configure reads as amber, so "needs attention" is one colour.
-// `label` is the accessible name and tooltip; `meta` is the row's second line,
-// used when the device has nothing better to say there (a connected one shows
-// its firmware version instead).
+// How long a connected row must be held before it releases. Long enough that
+// brushing the row does not disconnect it by accident; short enough that
+// doing it on purpose does not feel like a fight with the UI.
+const HOLD_TO_DISCONNECT_MS = 500;
+
+// `label` is the accessible name and the native title (a plain-text fallback
+// for anything the custom banner below cannot reach - screen readers, a
+// browser tooltip on long hover). `meta` is the row's second line, used when
+// the device has nothing better to say there (a connected one shows its
+// firmware version instead). `dot` is the connection-status glyph in the
+// corner - "ok" (green, pulsing: a live connection), "warn" (amber, marked
+// "!"), or "off" (grey, flat: nothing yet to report).
 const STATES = {
-	detected: { color: "var(--ds-border)", icon: "", label: "Detected - click to connect", meta: "not connected" },
-	identifying: { color: "var(--ds-warning)", icon: "…", label: "Connecting", meta: "connecting…" },
-	connected: { color: "var(--ds-accent)", icon: "", label: "Connected - click to release", meta: "connected" },
+	detected: { dot: "off", label: "click to connect", meta: "click to connect..." },
+	identifying: { dot: "off", label: "Connecting", meta: "connecting…" },
+	connected: { dot: "ok", label: "Connected - hold to release", meta: "connected" },
 	// The device is there and something else is holding its port. Distinct
 	// from an error: nothing is broken and the fix is elsewhere.
-	busy: { color: "var(--ds-amber)", icon: "⊘", label: "In use by another application", meta: "in use elsewhere" },
-	failed: { color: "var(--ds-danger)", icon: "✕", label: "Could not be opened", meta: "could not be opened" },
-	bootloader: { color: "var(--ds-amber)", icon: "⚑", label: "Bootloader", meta: "bootloader" },
-	djtt: { color: "var(--ds-text-dim)", icon: "◈", label: "Stock DJTT firmware", meta: "stock firmware" },
-	incompatible: { color: "var(--ds-amber)", icon: "!", label: "Incompatible firmware", meta: "incompatible" },
+	busy: { dot: "warn", label: "In use by another application", meta: "in use elsewhere" },
+	failed: { dot: "warn", label: "Could not be opened", meta: "could not be opened" },
+	bootloader: { dot: "warn", label: "Bootloader", meta: "bootloader" },
+	djtt: { dot: "warn", label: "Stock DJTT firmware", meta: "stock firmware" },
+	incompatible: { dot: "warn", label: "Incompatible firmware", meta: "incompatible" },
 };
+
+// A single click retries the same connect a fresh device would get -
+// registry.connect() does not care what the previous state was. Bootloader
+// and DJTT need their own flows (spec 4.2, 8), not implemented yet, so they
+// get the status dot and the informational banner but not a click.
+const CONNECTABLE = new Set(["detected", "busy", "failed"]);
+
+const DOT_COLOR = {
+	ok: "var(--ds-accent)",
+	warn: "var(--ds-amber)",
+	off: "var(--ds-text-faint)",
+};
+
+function statusDot(state) {
+	return elc("span", {
+		class: `ds-status-dot ds-status-dot--${state.dot}`,
+		attrs: { "aria-hidden": "true" },
+		text: state.dot === "warn" ? "!" : "",
+	});
+}
+
+/**
+ * The one banner style used for everything a row has to say when hovered or
+ * held - a rounded bar across the row's centre, not a small popup pinned to
+ * whichever glyph triggered it. There used to be two of these (a pill by the
+ * status dot, a circle over the mini device); a row only ever needs one
+ * message at a time, so now there is only one banner.
+ */
+function rowBanner(text, color) {
+	return elc("span", {
+		class: "ds-unit-row__banner",
+		attrs: { "aria-hidden": "true" },
+		children: [buildTooltip({ text, color })],
+	});
+}
+
+/**
+ * Wire up press-and-hold-to-disconnect on a connected row.
+ *
+ * A plain click no longer disconnects - releasing a device is easy to do by
+ * accident otherwise, sitting right next to selecting one. Holding uses the
+ * same bar a connect fills, coloured for a destructive action instead, driven
+ * by a CSS transition timed to match the real timeout exactly rather than by
+ * polling.
+ */
+function attachHold(row, fill, onComplete) {
+	let timer = null;
+
+	const start = (ev) => {
+		if (ev.button !== undefined && ev.button !== 0) return;
+		fill.classList.add("ds-unit-progress__fill--danger", "ds-unit-progress__fill--hold");
+		// Forces the 0% state to paint before the transition to 100% is
+		// requested, so the bar always fills from empty rather than from
+		// wherever a previous, released hold left it.
+		fill.style.width = "0%";
+		void fill.offsetWidth;
+		fill.style.width = "100%";
+		timer = setTimeout(() => {
+			timer = null;
+			onComplete();
+		}, HOLD_TO_DISCONNECT_MS);
+	};
+
+	const cancel = () => {
+		if (timer === null) return;
+		clearTimeout(timer);
+		timer = null;
+		fill.classList.remove("ds-unit-progress__fill--hold");
+		fill.style.width = "0%";
+	};
+
+	row.addEventListener("pointerdown", start);
+	row.addEventListener("pointerup", cancel);
+	row.addEventListener("pointerleave", cancel);
+	row.addEventListener("pointercancel", cancel);
+}
 
 function unitRow(unit, selected, onSelect) {
 	const state = STATES[unit.state] ?? STATES.detected;
 	const isSelected = selected === unit.id;
+	const connectable = CONNECTABLE.has(unit.state);
+	const isConnected = unit.state === "connected";
 
 	const name = elc("span", {
 		style:
@@ -58,28 +144,35 @@ function unitRow(unit, selected, onSelect) {
 		children: [name, meta],
 	});
 
-	const children = [
-		buildMiniDevice({
-			size: MINI_SIZE,
-			key: unit.id,
-			encoders: unit.encoders,
-			accent: isSelected ? state.color : undefined,
-		}),
-		label,
-	];
+	const progressFill = elc("span", {
+		class: "ds-unit-progress__fill",
+		style:
+			unit.progress === null || unit.progress === undefined
+				? "width:0;"
+				: `width:${Math.round(unit.progress * 100)}%;`,
+	});
+	const progress = elc("span", { class: "ds-unit-progress", children: [progressFill] });
 
-	if (state.icon) {
-		children.push(
-			elc("span", {
-				style: `flex:none; font:400 12px/1 var(--ds-font-mono); color:${state.color};`,
-				text: state.icon,
-				attrs: { "aria-hidden": "true" },
-			}),
-		);
-	}
+	const mini = elc("span", {
+		class: "ds-unit-mini",
+		// Selection is already the row's own border; a second accent stroke
+		// this close to it read as a clash, not emphasis, so the mini device
+		// keeps its plain border regardless of state.
+		children: [buildMiniDevice({ size: MINI_SIZE, key: unit.id, encoders: unit.encoders })],
+	});
 
-	return elc("button", {
-		class: "ds-unit-row",
+	// A row-level element, not the mini's - it sits under the name/meta text
+	// on the right, flush with the row's own bottom edge, not the mini's.
+	const children = [mini, label, statusDot(state), progress];
+
+	// Not shown mid-connect: the bar under the mini already says that, and a
+	// row cannot usefully be clicked or held while it is still identifying.
+	if (connectable) children.push(rowBanner("CONNECT", "var(--ds-accent)"));
+	else if (isConnected) children.push(rowBanner("HOLD TO DISCONNECT", "var(--ds-danger)"));
+	else if (unit.state !== "identifying") children.push(rowBanner(state.label, DOT_COLOR[state.dot]));
+
+	const row = elc("button", {
+		class: `ds-unit-row${connectable ? " ds-unit-row--connectable" : ""}`,
 		title: state.label,
 		attrs: {
 			type: "button",
@@ -87,13 +180,20 @@ function unitRow(unit, selected, onSelect) {
 			"aria-label": `${unit.name} - ${state.label}`,
 		},
 		style:
-			"display:flex; align-items:center; gap:9px; width:100%; padding:8px 9px; " +
+			"position:relative; display:flex; align-items:center; gap:9px; width:100%; padding:10px 9px 12px; " +
 			"border-radius:6px; cursor:pointer; text-align:left; font:inherit; " +
-			`border:1px solid ${isSelected ? state.color : "var(--ds-border)"}; ` +
+			`border:1px solid ${isSelected ? DOT_COLOR[state.dot] : "var(--ds-border)"}; ` +
 			`background:${isSelected ? "var(--ds-bg-panel)" : "var(--ds-bg-raised)"};`,
-		onClick: onSelect ? () => onSelect(unit.id) : undefined,
+		// A connected row disconnects only via the hold gesture wired below -
+		// see attachHold(). Every other clickable state still connects on a
+		// plain click, unchanged.
+		onClick: connectable && onSelect ? () => onSelect(unit.id) : undefined,
 		children,
 	});
+
+	if (isConnected && onSelect) attachHold(row, progressFill, () => onSelect(unit.id));
+
+	return row;
 }
 
 function emptyState() {
@@ -106,9 +206,11 @@ function emptyState() {
 }
 
 /**
- * @param p.units     [{id, name, state, meta, encoders}]
+ * @param p.units     [{id, name, state, meta, encoders, progress}]
+ *                     progress is 0-1 while connecting, otherwise null.
  * @param p.selected  id of the selected unit, or null
- * @param p.onSelect  called with a unit id
+ * @param p.onSelect  called with a unit id - on click to connect, or once a
+ *                     connected row's hold-to-disconnect gesture completes
  */
 export function buildDeviceList(p) {
 	const units = p.units ?? [];

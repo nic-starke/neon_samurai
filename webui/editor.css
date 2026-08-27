@@ -300,9 +300,13 @@ button:focus-visible {
 	transform-origin: center center;
 }
 
+/* The connecting state used to show here too - a canvas-wide label and bar.
+   It now lives per-row in the sidebar (components/device-list.js), next to
+   the device it actually describes, and can show more than one at once. */
 #canvas-empty {
 	max-width: 30em;
 	color: var(--ds-text-dim);
+	text-align: center;
 }
 
 #canvas-empty h2 {

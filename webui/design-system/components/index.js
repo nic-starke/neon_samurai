@@ -18,6 +18,7 @@ export { buildMiniDevice } from "./mini-device.js";
 export { buildDeviceList, MINI_SIZE } from "./device-list.js";
 export { buildInspector } from "./inspector.js";
 export { buildToggle } from "./toggle.js";
+export { buildTooltip } from "./tooltip.js";
 export { buildSideSwitch } from "./side-switch.js";
 export {
   computeLitMask,

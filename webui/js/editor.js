@@ -60,6 +60,12 @@ let chassis = null;
 let renderPending = false;
 let fwLabel = "";
 let inspectorTab = "device";
+// 0-1 while the selected device is connecting, otherwise null. Shown as the
+// progress bar under that device's row in the sidebar - see currentDevices().
+// Monotonic by construction: each stage below owns a fixed slice of the
+// range, so the bar only ever moves right, never jumps back to restart at
+// the top of the next stage.
+let connectFraction = null;
 const signatures = new Array(NUM_ENCODERS).fill(null);
 
 const el = {
@@ -150,14 +156,19 @@ async function onDeviceRowClick(id) {
     return;
   }
 
-  setStatus("connecting", "Connecting…");
+  // registry.connect() releases a previously-open device on its own, but the
+  // trackers and module state below are tied to that Device object and would
+  // otherwise go on pointing at it after it is destroyed.
+  if (connected) await releaseCurrentDevice();
+
+  setConnectFraction(0.05);
 
   try {
     const dev = await registry.connect(id);
     if (dev) await loadDevice(dev);
   } catch (e) {
     connected = false;
-    setStatus("error", "Connection failed");
+    setConnectFraction(null);
     toast("error", e.message);
     renderShell();
   }
@@ -175,16 +186,18 @@ async function loadDevice(dev) {
     protocol = new Protocol(device);
     device.onDisconnect(onDeviceDisconnected);
 
+    setConnectFraction(0.15);
     const info = await protocol.getDeviceInfo();
     model.deviceInfo = info;
     setFirmwareVersion(`fw ${info.fwVersion}`);
-    setStatus("connecting", "Loading configuration…");
 
+    // Config loading gets the rest of the bar - it is the one stage with a
+    // real, reportable length.
+    const LOAD_START = 0.2;
+    const LOAD_SPAN = 0.75;
+    setConnectFraction(LOAD_START);
     await model.loadFromDevice(protocol, (done, total) => {
-      setStatus(
-        "connecting",
-        `Loading configuration… ${Math.round((done / total) * 100)}%`
-      );
+      setConnectFraction(LOAD_START + (done / total) * LOAD_SPAN);
     });
     model.activeBank = await protocol.getActiveBank();
     viewingBank = model.activeBank;
@@ -210,10 +223,16 @@ async function loadDevice(dev) {
       );
     }
   } catch (e) {
-    connected = false;
+    // The port opened fine - registry still thinks the device is connected -
+    // but reading its configuration failed partway through. Left tracking a
+    // half-loaded device, a retry would call registry.connect() again on
+    // ports already open, leaving the previous Device's listeners and
+    // heartbeat orphaned on the same port rather than replaced.
+    await releaseCurrentDevice();
     setStatus("error", "Could not read the configuration");
     toast("error", e.message);
   } finally {
+    setConnectFraction(null);
     setConnectButtons({ connected });
     scheduleRender();
     renderShell();
@@ -230,22 +249,7 @@ async function loadDevice(dev) {
  */
 async function onDisconnectClick() {
   setConnectButtons({ connected: false });
-
-  if (protocol) {
-    // Stop the device streaming to a page that is no longer listening.
-    await protocol.setLivePositionStreaming(false).catch(() => {});
-  }
-
-  connected = false;
-  pendingBank = null;
-  livePosition.detach();
-  liveVmapActive.detach();
-  liveActiveBank.detach();
-  bankFade.stop();
-
-  await registry.disconnect();
-  device = null;
-  protocol = null;
+  await releaseCurrentDevice();
 
   setStatus("disconnected", "Not connected");
   setConnectButtons({ connected: false, label: "Connect" });
@@ -269,6 +273,29 @@ function onDeviceDisconnected(reason) {
   toast("error", `Device disconnected (${reason}). Reconnect to resume.`);
   scheduleRender();
   renderShell();
+}
+
+/**
+ * Let go of whatever device the editor is tracking, without touching the
+ * chrome around it - onDisconnectClick() and the "connect to a different
+ * device" path in onDeviceRowClick() want that part done differently.
+ */
+async function releaseCurrentDevice() {
+  if (protocol) {
+    // Stop the device streaming to a page that is no longer listening.
+    await protocol.setLivePositionStreaming(false).catch(() => {});
+  }
+
+  connected = false;
+  pendingBank = null;
+  livePosition.detach();
+  liveVmapActive.detach();
+  liveActiveBank.detach();
+  bankFade.stop();
+
+  await registry.disconnect();
+  device = null;
+  protocol = null;
 }
 
 window.addEventListener("beforeunload", () => {
@@ -737,6 +764,12 @@ function renderDevicePresence() {
   if (connected) fitDevice();
 }
 
+/** Drives the connecting row's progress bar - see currentDevices(). */
+function setConnectFraction(fraction) {
+  connectFraction = fraction;
+  renderSidebar();
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /**
@@ -759,16 +792,31 @@ function bankEncoders() {
  * because this is the tool that recovers it and it must not vanish from it.
  */
 function currentDevices() {
-  const rows = registry.list().map((d) => ({
-    id: d.id,
-    name: d.name,
-    state: d.state,
-    meta:
-      d.state === DeviceState.CONNECTED && model.deviceInfo?.fwVersion
-        ? `fw ${model.deviceInfo.fwVersion}`
-        : undefined,
-    encoders: d.state === DeviceState.CONNECTED ? bankEncoders() : null,
-  }));
+  const rows = registry.list().map((d) => {
+    const isSelected = d.id === registry.selectedId;
+
+    // registry marks a device CONNECTED as soon as its MIDI port opens - long
+    // before loadDevice() has actually read the configuration off it. Left
+    // alone, the row would jump to "connected" for the whole of that real
+    // work, and the progress bar below would never see a state to attach to.
+    // The editor's own `connected` flag only goes true once loading has
+    // actually finished, so it - not the registry's state - decides whether
+    // the row still reads as busy.
+    const stillLoading = isSelected && !connected && d.state === DeviceState.CONNECTED;
+    const state = stillLoading ? DeviceState.IDENTIFYING : d.state;
+
+    return {
+      id: d.id,
+      name: d.name,
+      state,
+      meta:
+        state === DeviceState.CONNECTED && model.deviceInfo?.fwVersion
+          ? `fw ${model.deviceInfo.fwVersion}`
+          : undefined,
+      encoders: state === DeviceState.CONNECTED ? bankEncoders() : null,
+      progress: isSelected && state === DeviceState.IDENTIFYING ? connectFraction : null,
+    };
+  });
 
   if (bootloaderPresent) {
     rows.push({
