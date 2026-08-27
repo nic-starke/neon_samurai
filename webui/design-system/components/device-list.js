@@ -91,6 +91,7 @@ function attachHold(row, fill, onComplete) {
 
 	const start = (ev) => {
 		if (ev.button !== undefined && ev.button !== 0) return;
+		fill.parentElement.classList.add("ds-unit-progress--active");
 		fill.classList.add("ds-unit-progress__fill--danger", "ds-unit-progress__fill--hold");
 		// Forces the 0% state to paint before the transition to 100% is
 		// requested, so the bar always fills from empty rather than from
@@ -108,6 +109,7 @@ function attachHold(row, fill, onComplete) {
 		if (timer === null) return;
 		clearTimeout(timer);
 		timer = null;
+		fill.parentElement.classList.remove("ds-unit-progress--active");
 		fill.classList.remove("ds-unit-progress__fill--hold");
 		fill.style.width = "0%";
 	};
@@ -157,7 +159,15 @@ function unitRow(unit, selected, onSelect) {
 				? "width:0;"
 				: `width:${Math.round(unit.progress * 100)}%;`,
 	});
-	const progress = elc("span", { class: "ds-unit-progress", children: [progressFill] });
+	// Visible only while something is actually happening - either connecting
+	// (unit.progress is set) or mid hold-to-disconnect, toggled directly by
+	// attachHold() below. An always-on empty track under every idle row read
+	// as clutter.
+	const progressActive = unit.progress !== null && unit.progress !== undefined;
+	const progress = elc("span", {
+		class: `ds-unit-progress${progressActive ? " ds-unit-progress--active" : ""}`,
+		children: [progressFill],
+	});
 
 	// name/meta at the top, the bar pushed to the bottom by margin-top:auto -
 	// both confined to this column, which is also all the banner below

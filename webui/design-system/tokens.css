@@ -218,19 +218,22 @@
 	display: inline-flex;
 }
 
-/* A row-level footer strip, not the mini device's: it runs under the
-   name/meta text on the right, flush with the row's own bottom edge. The
-   left offset is the row's own left padding plus the mini's width plus the
-   flex gap between them, so the bar's left edge lines up with where the
-   name and meta text already start. */
+/* A normal flex child of .ds-unit-right's column - stretches to the full
+   column width under the column's default align-items:stretch, and sits at
+   the column's bottom via margin-top:auto on the fill's own rule below.
+   The track has no background of its own: an always-visible empty strip
+   under every row when nothing is happening looked like clutter, so the
+   track is only ever as visible as its fill - see .ds-unit-progress--active. */
 .ds-unit-progress {
-	position: absolute;
-	left: 96px;
-	right: 9px;
-	bottom: 3px;
+	width: 100%;
+	margin-top: auto;
 	height: 4px;
 	overflow: hidden;
 	border-radius: 4px;
+	background: transparent;
+}
+
+.ds-unit-progress--active {
 	background: color-mix(in srgb, var(--ds-bg-inset) 80%, transparent);
 }
 

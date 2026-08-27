@@ -787,6 +787,7 @@ function setConnectFraction(fraction) {
   }
 
   fill.style.width = fraction === null ? "0" : `${Math.round(fraction * 100)}%`;
+  fill.parentElement.classList.toggle("ds-unit-progress--active", fraction !== null);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
