@@ -23,8 +23,19 @@ const CHASSIS = 4 * G.bodySize + 3 * GRID_GAP + 2 * (G.edgeFirst - G.bodySize / 
 
 const rad = (deg) => (deg * Math.PI) / 180;
 
-function ledColor(props, index) {
-	if (!props?.powered) return "var(--ds-led-powered-off)";
+// No props at all is not the same as a props object with no `powered` field.
+// The former is the placeholder for a device with no data yet - detected but
+// not connected - and has to render unlit. The latter is a live encoder from
+// a connected device, which never sets `powered` at all and is always
+// powered - only the explicit disconnected chassis sets it to false. Getting
+// this backwards either leaves every indicator dark on real hardware, or
+// crashes reading a field off a null placeholder - it has been both.
+export function isPowered(props) {
+	return props ? (props.powered ?? true) : false;
+}
+
+export function ledColor(props, index) {
+	if (!isPowered(props)) return "var(--ds-led-powered-off)";
 
 	if (props.ledColorOverride?.index === index) return props.ledColorOverride.color;
 
@@ -54,9 +65,9 @@ function encoder(cx, cy, props) {
 			r: G.arcRadius,
 			fill: "none",
 			stroke: off
-				? props?.powered === false
-					? "var(--ds-led-powered-off)"
-					: "var(--ds-led-off)"
+				? isPowered(props)
+					? "var(--ds-led-off)"
+					: "var(--ds-led-powered-off)"
 				: (props.rgbColor ?? "var(--ds-accent)"),
 			"stroke-width": G.arcWidth,
 			"stroke-linecap": "round",
