@@ -11,42 +11,28 @@
 // any one row.
 
 import { elc } from "./dom.js";
+import { buildMiniDevice } from "./mini-device.js";
 
 // State determines the row's accent and its trailing glyph. Anything the
 // editor cannot configure reads as amber, so "needs attention" is one colour.
+// `label` is the accessible name and tooltip; `meta` is the row's second line,
+// used when the device has nothing better to say there (a connected one shows
+// its firmware version instead).
 const STATES = {
-	connected: { color: "var(--ds-accent)", icon: "", label: "Connected" },
-	bootloader: { color: "var(--ds-amber)", icon: "⚑", label: "Bootloader" },
-	djtt: { color: "var(--ds-text-dim)", icon: "◈", label: "Stock DJTT firmware" },
-	incompatible: { color: "var(--ds-amber)", icon: "!", label: "Incompatible firmware" },
-	unavailable: { color: "var(--ds-danger)", icon: "✕", label: "Port unavailable" },
+	detected: { color: "var(--ds-border)", icon: "", label: "Detected - click to connect", meta: "not connected" },
+	identifying: { color: "var(--ds-warning)", icon: "…", label: "Connecting", meta: "connecting…" },
+	connected: { color: "var(--ds-accent)", icon: "", label: "Connected - click to release", meta: "connected" },
+	// The device is there and something else is holding its port. Distinct
+	// from an error: nothing is broken and the fix is elsewhere.
+	busy: { color: "var(--ds-amber)", icon: "⊘", label: "In use by another application", meta: "in use elsewhere" },
+	failed: { color: "var(--ds-danger)", icon: "✕", label: "Could not be opened", meta: "could not be opened" },
+	bootloader: { color: "var(--ds-amber)", icon: "⚑", label: "Bootloader", meta: "bootloader" },
+	djtt: { color: "var(--ds-text-dim)", icon: "◈", label: "Stock DJTT firmware", meta: "stock firmware" },
+	incompatible: { color: "var(--ds-amber)", icon: "!", label: "Incompatible firmware", meta: "incompatible" },
 };
 
-function thumbnail(colors) {
-	const wrap = elc("div", {
-		style:
-			"flex:none; display:grid; grid-template-columns:repeat(4,1fr); gap:2px; " +
-			"width:34px; height:34px; padding:3px; border-radius:5px; " +
-			"background:var(--ds-bg-inset); border:1px solid var(--ds-border);",
-	});
-
-	// Sixteen dots in bank order. Without a connection there is nothing to
-	// show, so they sit at the unlit colour rather than being hidden - the
-	// shape of the device is the point.
-	for (let i = 0; i < 16; i++) {
-		wrap.appendChild(
-			elc("span", {
-				style:
-					`border-radius:50%; background:${colors?.[i] ?? "var(--ds-led-powered-off)"};`,
-			}),
-		);
-	}
-
-	return wrap;
-}
-
 function unitRow(unit, selected, onSelect) {
-	const state = STATES[unit.state] ?? STATES.connected;
+	const state = STATES[unit.state] ?? STATES.detected;
 	const isSelected = selected === unit.id;
 
 	const name = elc("span", {
@@ -54,14 +40,14 @@ function unitRow(unit, selected, onSelect) {
 			"font:600 12px/1 var(--ds-font-mono); letter-spacing:0.04em; " +
 			`color:${isSelected ? "var(--ds-text)" : "var(--ds-text-dim)"}; ` +
 			"overflow:hidden; text-overflow:ellipsis; white-space:nowrap;",
-		text: unit.nickname,
+		text: unit.name,
 	});
 
 	const meta = elc("span", {
 		style:
 			"font:400 10px/1 var(--ds-font-mono); letter-spacing:0.05em; " +
 			"color:var(--ds-text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;",
-		text: unit.meta,
+		text: unit.meta ?? state.meta,
 	});
 
 	const label = elc("span", {
@@ -69,7 +55,14 @@ function unitRow(unit, selected, onSelect) {
 		children: [name, meta],
 	});
 
-	const children = [thumbnail(unit.colors), label];
+	const children = [
+		buildMiniDevice({
+			size: 52,
+			encoders: unit.encoders,
+			accent: isSelected ? state.color : undefined,
+		}),
+		label,
+	];
 
 	if (state.icon) {
 		children.push(
@@ -83,10 +76,11 @@ function unitRow(unit, selected, onSelect) {
 
 	return elc("button", {
 		class: "ds-unit-row",
+		title: state.label,
 		attrs: {
 			type: "button",
 			"aria-pressed": String(isSelected),
-			"aria-label": `${unit.nickname} - ${state.label}`,
+			"aria-label": `${unit.name} - ${state.label}`,
 		},
 		style:
 			"display:flex; align-items:center; gap:9px; width:100%; padding:8px 9px; " +
@@ -108,11 +102,11 @@ function emptyState() {
 }
 
 /**
- * @param p.units     [{id, nickname, meta, state, colors}]
+ * @param p.units     [{id, name, state, meta, encoders}]
  * @param p.selected  id of the selected unit, or null
  * @param p.onSelect  called with a unit id
  */
-export function buildUnitSidebar(p) {
+export function buildDeviceList(p) {
 	const units = p.units ?? [];
 
 	const heading = elc("div", {

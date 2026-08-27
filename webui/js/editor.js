@@ -11,6 +11,8 @@
 import { hsvToCss, hsvToRgb } from "./color.js";
 import { DeviceModel, NUM_BANKS, NUM_ENCODERS } from "./device-model.js";
 import * as midi from "./midi.js";
+import * as settings from "./settings.js";
+import { DeviceRegistry, DeviceState } from "./devices.js";
 import { Param } from "./sysex.js";
 import { Protocol } from "./protocol.js";
 import { LivePushTracker } from "./live-tracker.js";
@@ -30,7 +32,7 @@ import {
   buildDeviceChassis,
   buildEncoder,
   buildBankSelector,
-  buildUnitSidebar,
+  buildDeviceList,
   buildInspector,
   computeLitMask,
   computeLedBrightness,
@@ -45,6 +47,7 @@ const livePosition = new LivePushTracker(Param.VMAP_CURR_POS, 3);
 const liveVmapActive = new LivePushTracker(Param.ENCODER_VMAP_ACTIVE, 2);
 const liveActiveBank = new LivePushTracker(Param.ACTIVE_BANK, 0);
 const bankFade = new BankFade();
+const registry = new DeviceRegistry();
 
 let device = null;
 let protocol = null;
@@ -54,6 +57,7 @@ let pendingBank = null;
 let chassis = null;
 let renderPending = false;
 let fwLabel = "";
+let inspectorTab = "device";
 const signatures = new Array(NUM_ENCODERS).fill(null);
 
 const el = {
@@ -67,7 +71,7 @@ const el = {
   btnUpdate: byId("btn-update"),
   btnDisconnect: byId("btn-disconnect"),
   bankSelector: byId("bank-selector"),
-  unitList: byId("unit-list"),
+  deviceList: byId("device-list"),
   inspector: byId("inspector"),
   deviceViewport: byId("device-viewport"),
   deviceScaler: byId("device-scaler"),
@@ -80,7 +84,7 @@ function byId(id) {
   return document.getElementById(id);
 }
 
-function init() {
+async function init() {
   if (!midi.isSupported()) {
     el.unsupportedBanner.hidden = false;
     setConnectButtons({ canConnect: false });
@@ -98,6 +102,28 @@ function init() {
     onPresent: onBootloaderPresent,
     onGone: onBootloaderGone,
   });
+
+  // The list redraws itself as devices come and go; nothing here opens a port.
+  registry.onChange(renderShell);
+
+  if (!midi.isSupported()) return;
+
+  // Asks for MIDI permission, which prompts the first time. Enumeration after
+  // that is free, so hot-plug costs nothing.
+  await registry.start();
+
+  if (settings.get("autoConnect")) await autoConnect();
+}
+
+/**
+ * Open the only attached device, if the user has asked for that.
+ *
+ * Kept quiet on failure - the row shows why, and someone who turned this on
+ * did not ask to be interrupted when it does not work.
+ */
+async function autoConnect() {
+  const dev = await registry.autoConnect();
+  if (dev) await loadDevice(dev);
 }
 
 function scheduleRender() {
@@ -109,12 +135,41 @@ function scheduleRender() {
   });
 }
 
-async function onConnectClick() {
+/**
+ * Clicking a row connects it, or releases it if it is the one already open.
+ *
+ * Releasing matters beyond tidiness: a rawmidi node has a single opener, so
+ * nothing else - another application, or the browser claiming the device for
+ * DFU - can have it until this page lets go.
+ */
+async function onDeviceRowClick(id) {
+  if (connected && registry.selectedId === id) {
+    await onDisconnectClick();
+    return;
+  }
+
   setStatus("connecting", "Connecting…");
-  setConnectButtons({ canConnect: false });
-  if (device) device.destroy();
+
   try {
-    device = await midi.connect();
+    const dev = await registry.connect(id);
+    if (dev) await loadDevice(dev);
+  } catch (e) {
+    connected = false;
+    setStatus("error", "Connection failed");
+    toast("error", e.message);
+    renderShell();
+  }
+}
+
+async function onConnectClick() {
+  const [first] = registry.list();
+  if (first) await onDeviceRowClick(first.id);
+}
+
+/** Read the configuration off a freshly opened device and start tracking it. */
+async function loadDevice(dev) {
+  try {
+    device = dev;
     protocol = new Protocol(device);
     device.onDisconnect(onDeviceDisconnected);
 
@@ -154,7 +209,7 @@ async function onConnectClick() {
     }
   } catch (e) {
     connected = false;
-    setStatus("error", "Connection failed");
+    setStatus("error", "Could not read the configuration");
     toast("error", e.message);
   } finally {
     setConnectButtons({ connected });
@@ -186,7 +241,7 @@ async function onDisconnectClick() {
   liveActiveBank.detach();
   bankFade.stop();
 
-  if (device) device.destroy();
+  await registry.disconnect();
   device = null;
   protocol = null;
 
@@ -651,64 +706,82 @@ function renderDevicePresence() {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /**
- * The colours of the bank being viewed, in the order the grid draws them, for
- * the sidebar thumbnail.
+ * Encoder props for the bank being viewed, in grid order.
+ *
+ * The same objects the chassis is built from, so the miniature in the sidebar
+ * shows the same LED pattern, arc colour and knob angle as the big one rather
+ * than an approximation of them.
  */
-function bankColors() {
+function bankEncoders() {
   if (!connected) return null;
-
-  return Array.from({ length: NUM_ENCODERS }, (_, position) => {
-    const enc = model.banks[viewingBank].encoders[visualPositionToFirmwareIndex(position)];
-    const vmap = enc.vmaps[enc.vmapActive] ?? enc.vmaps[0];
-    return hsvToCss(vmap.hsv.hue, vmap.hsv.sat, vmap.hsv.val);
-  });
+  return Array.from({ length: NUM_ENCODERS }, (_, position) => encoderPropsFor(position));
 }
 
 /**
- * The units to list.
+ * The devices to list.
  *
- * A device in the bootloader has no MIDI interface, so it cannot be the
- * connected unit - but it still has to appear, because this is the tool that
- * recovers it.
+ * Everything detected appears, connected or not. A device in the bootloader
+ * has no MIDI interface so it never shows up here - it is added separately,
+ * because this is the tool that recovers it and it must not vanish from it.
  */
-function currentUnits() {
-  if (connected && device) {
-    return [{
-      id: "device",
-      nickname: device.name,
-      meta: model.deviceInfo?.fwVersion ? `fw ${model.deviceInfo.fwVersion}` : "connected",
-      state: "connected",
-      colors: bankColors(),
-    }];
-  }
+function currentDevices() {
+  const rows = registry.list().map((d) => ({
+    id: d.id,
+    name: d.name,
+    state: d.state,
+    meta:
+      d.state === DeviceState.CONNECTED && model.deviceInfo?.fwVersion
+        ? `fw ${model.deviceInfo.fwVersion}`
+        : undefined,
+    encoders: d.state === DeviceState.CONNECTED ? bankEncoders() : null,
+  }));
 
   if (bootloaderPresent) {
-    return [{
+    rows.push({
       id: "bootloader",
-      nickname: "Unrecognised device",
-      meta: "bootloader",
+      name: "Unrecognised device",
       state: "bootloader",
-    }];
+      meta: "bootloader",
+    });
   }
 
-  return [];
+  return rows;
 }
 
 function renderSidebar() {
-  const units = currentUnits();
-  el.unitList.replaceChildren(
-    buildUnitSidebar({ units, selected: units[0]?.id ?? null })
+  el.deviceList.replaceChildren(
+    buildDeviceList({
+      units: currentDevices(),
+      selected: registry.selectedId,
+      onSelect: onDeviceRowClick,
+    })
   );
 }
 
 function renderInspector() {
   el.inspector.replaceChildren(
     buildInspector({
+      tab: inspectorTab,
+      onTab: (id) => {
+        inspectorTab = id;
+        renderInspector();
+      },
       connected,
       deviceInfo: model.deviceInfo,
       bank: viewingBank,
+      settings: { autoConnect: settings.get("autoConnect") },
+      onSetting: onSettingChanged,
     })
   );
+}
+
+/**
+ * Turning auto-connect on acts immediately, rather than waiting for the next
+ * page load - otherwise the switch appears to do nothing.
+ */
+async function onSettingChanged(name, value) {
+  settings.set(name, value);
+  if (name === "autoConnect" && value) await autoConnect();
 }
 
 /**

@@ -224,7 +224,7 @@ button:focus-visible {
 
 /* Fixed widths. The manual and tablet layouts are out of scope (spec 1.3):
    desktop-first, degrade rather than optimise. */
-#unit-sidebar {
+#device-sidebar {
 	width: 224px;
 	flex: none;
 	display: flex;
@@ -235,7 +235,7 @@ button:focus-visible {
 }
 
 /* Takes the slack so the actions and links sit at the bottom. */
-#unit-list {
+#device-list {
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
@@ -301,10 +301,30 @@ button:focus-visible {
 }
 
 #canvas-empty {
+	max-width: 30em;
+	color: var(--ds-text-dim);
+}
+
+#canvas-empty h2 {
 	margin: 0;
 	font-family: var(--ds-font-mono);
-	font-size: 12px;
-	letter-spacing: 0.07em;
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	color: var(--ds-text-dim);
+}
+
+#canvas-empty ol {
+	margin: 14px 0 0;
+	padding-left: 1.4em;
+	font-size: 12.5px;
+	line-height: 1.9;
+}
+
+#canvas-empty p {
+	margin: 14px 0 0;
+	font-size: 11.5px;
+	line-height: 1.7;
 	color: var(--ds-text-faint);
 }
 
