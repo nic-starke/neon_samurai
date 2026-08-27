@@ -15,7 +15,7 @@ export { buildRgbArc } from "./rgb-arc.js";
 export { buildVmapPill } from "./vmap-pill.js";
 export { buildBankSelector } from "./bank-selector.js";
 export { buildMiniDevice } from "./mini-device.js";
-export { buildDeviceList } from "./device-list.js";
+export { buildDeviceList, MINI_SIZE } from "./device-list.js";
 export { buildInspector } from "./inspector.js";
 export { buildToggle } from "./toggle.js";
 export { buildSideSwitch } from "./side-switch.js";

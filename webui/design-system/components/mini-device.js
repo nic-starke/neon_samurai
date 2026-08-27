@@ -2,10 +2,10 @@
 // device picker, a preset card.
 //
 // Accurate, not decorative: the encoder positions, the eleven indicator LEDs
-// and their lit state, the RGB arc colour and the knob angle are all the real
-// values, taken from the same props buildEncoder() is given. What it drops is
-// everything that only reads at full size - cap knurling, bevels, gradients,
-// glow and shadow. Flat shapes, right positions.
+// and their lit state and the RGB arc colour are all the real values, taken
+// from the same props buildEncoder() is given. What it drops is everything
+// that only reads at full size - cap knurling, bevels, gradients, glow,
+// shadow, and the knob's angle. Flat shapes, right positions.
 //
 // It draws in the device's own coordinate system and lets the SVG viewBox do
 // the scaling, so nothing here re-derives a proportion that could drift from
@@ -80,23 +80,9 @@ function encoder(cx, cy, props) {
 		);
 	}
 
-	const knobR = G.knobSize / 2;
-	g.appendChild(svgEl("circle", { cx, cy, r: knobR, fill: "#26282b" }));
-
-	// A plain circle cannot show which way it is turned, so the indicator the
-	// knurling would otherwise imply is drawn explicitly.
-	const turn = rad(props?.knobRotation ?? 0);
-	g.appendChild(
-		svgEl("line", {
-			x1: cx + Math.sin(turn) * (knobR * 0.35),
-			y1: cy - Math.cos(turn) * (knobR * 0.35),
-			x2: cx + Math.sin(turn) * (knobR * 0.85),
-			y2: cy - Math.cos(turn) * (knobR * 0.85),
-			stroke: props?.powered === false ? "#3a3d42" : "#6e747c",
-			"stroke-width": G.ledSize * 0.55,
-			"stroke-linecap": "round",
-		}),
-	);
+	// Flat, unmarked. The knob's angle is not drawn - the LED ring already
+	// says where the encoder is, and a pointer at this size reads as clutter.
+	g.appendChild(svgEl("circle", { cx, cy, r: G.knobSize / 2, fill: "#26282b" }));
 
 	return g;
 }
@@ -106,6 +92,7 @@ function encoder(cx, cy, props) {
  * @param p.encoders  16 prop objects in grid order, as buildEncoder() takes.
  *                    Null or absent renders an unpowered device.
  * @param p.accent    border colour, for showing selection or state
+ * @param p.key       marks the element so a caller can find and replace it
  */
 export function buildMiniDevice(p = {}) {
 	const size = p.size ?? 56;
@@ -116,6 +103,7 @@ export function buildMiniDevice(p = {}) {
 		viewBox: `0 0 ${CHASSIS} ${CHASSIS}`,
 		style: "flex:none; display:block;",
 		"aria-hidden": "true",
+		...(p.key ? { "data-mini": p.key } : {}),
 	});
 
 	svg.appendChild(

@@ -13,6 +13,9 @@
 import { elc } from "./dom.js";
 import { buildMiniDevice } from "./mini-device.js";
 
+/** Shared with the editor, which replaces this element as the device moves. */
+export const MINI_SIZE = 78;
+
 // State determines the row's accent and its trailing glyph. Anything the
 // editor cannot configure reads as amber, so "needs attention" is one colour.
 // `label` is the accessible name and tooltip; `meta` is the row's second line,
@@ -57,7 +60,8 @@ function unitRow(unit, selected, onSelect) {
 
 	const children = [
 		buildMiniDevice({
-			size: 52,
+			size: MINI_SIZE,
+			key: unit.id,
 			encoders: unit.encoders,
 			accent: isSelected ? state.color : undefined,
 		}),

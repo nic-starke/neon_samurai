@@ -34,6 +34,8 @@ import {
   buildBankSelector,
   buildDeviceList,
   buildInspector,
+  buildMiniDevice,
+  MINI_SIZE,
   computeLitMask,
   computeLedBrightness,
   computeDetentColorOverride,
@@ -653,11 +655,14 @@ function buildChassisOnce() {
 }
 
 function renderChassis() {
+  let moved = false;
+
   for (let position = 0; position < NUM_ENCODERS; position++) {
     const props = encoderPropsFor(position);
     const signature = encoderSignature(props);
     if (signature === signatures[position]) continue;
     signatures[position] = signature;
+    moved = true;
     const light = chassis.knurlLights[position];
     chassis.encoderCells[position].replaceChildren(
       buildEncoder({
@@ -668,6 +673,35 @@ function renderChassis() {
       })
     );
   }
+
+  if (moved) renderMiniDevice();
+}
+
+/**
+ * Keep the sidebar's miniature in step with the hardware.
+ *
+ * It shows the same LED state as the big device, so it has to be redrawn on
+ * the same frames. Rebuilding the whole list that often would throw away and
+ * recreate every row, so only the one element is replaced - and only when an
+ * encoder actually changed, which renderChassis() already knows.
+ */
+function renderMiniDevice() {
+  const id = registry.selectedId;
+  if (!connected || !id) return;
+
+  const current = el.deviceList.querySelector(`[data-mini="${CSS.escape(id)}"]`);
+  if (!current) return;
+
+  current.replaceWith(
+    buildMiniDevice({
+      size: MINI_SIZE,
+      key: id,
+      encoders: bankEncoders(),
+      // The only device with a live miniature is the connected one, and a
+      // connected row is always the selected row.
+      accent: "var(--ds-accent)",
+    })
+  );
 }
 
 function renderBankSelector() {
