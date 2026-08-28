@@ -67,6 +67,31 @@
 	margin: 0 0 0.8rem;
 }
 
+.fw-dialog__body ul {
+	margin: 0 0 0.8rem;
+	padding-left: 1.2rem;
+}
+
+.fw-dialog__body li {
+	margin: 0.25rem 0;
+}
+
+/* --- Firmware update notice (components/firmware-update-notice.js) --- */
+
+/* Confined to the canvas, not the viewport: position:fixed like .fw-backdrop
+   would dim the sidebar and inspector too, and this is an announcement, not
+   a blocking step in a flash - the rest of the editor stays usable under it. */
+.fw-update-notice-backdrop {
+	position: absolute;
+	inset: 0;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba(0, 0, 0, 0.65);
+}
+
 .fw-dialog__actions {
 	display: flex;
 	gap: 0.6rem;

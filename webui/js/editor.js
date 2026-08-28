@@ -20,6 +20,7 @@ import { encoderSignature } from "./encoder-signature.js";
 import { BankFade } from "./bank-fade.js";
 import { GEOMETRY } from "../design-system/geometry.js";
 import { UpdateDialog } from "../design-system/components/update-dialog.js";
+import { buildFirmwareUpdateNotice } from "../design-system/components/firmware-update-notice.js";
 import {
   fetchManifest,
   checkForUpdate,
@@ -81,6 +82,7 @@ const el = {
   bankSelector: byId("bank-selector"),
   deviceList: byId("device-list"),
   inspector: byId("inspector"),
+  canvas: byId("canvas"),
   deviceViewport: byId("device-viewport"),
   deviceScaler: byId("device-scaler"),
   canvasEmpty: byId("canvas-empty"),
@@ -213,7 +215,8 @@ async function loadDevice(dev) {
     setStatus("connected", `Connected: ${device.name}`);
     setConnectButtons({ connected: true, label: "Reconnect" });
 
-    refreshUpdateButton(info.fwVersion);
+    await refreshUpdateButton(info.fwVersion);
+    scheduleUpdateNotice();
 
     if (info.numEncoders !== NUM_ENCODERS || info.numBanks !== NUM_BANKS) {
       toast(
@@ -264,6 +267,7 @@ function onDeviceDisconnected(reason) {
   connected = false;
   setConnectButtons({ connected: false });
   setUpdateButton("Update", false);
+  dismissUpdateNotice();
   pendingBank = null;
   livePosition.detach();
   liveVmapActive.detach();
@@ -287,6 +291,7 @@ async function releaseCurrentDevice() {
   }
 
   connected = false;
+  dismissUpdateNotice();
   pendingBank = null;
   livePosition.detach();
   liveVmapActive.detach();
@@ -312,6 +317,51 @@ let pendingUpdate = null;
 // after the user has granted the device once - see watchForBootloader().
 let bootloaderPresent = false;
 let updateRunning = false;
+
+// How long after a successful connect the update notice appears, if there is
+// one to show - long enough that it reads as "by the way", not as something
+// that ambushes a device the moment it comes online.
+const UPDATE_NOTICE_DELAY_MS = 3000;
+let updateNoticeTimer = null;
+let updateNoticeEl = null;
+
+/**
+ * Announce an available update a few seconds after connecting, if
+ * refreshUpdateButton() found one.
+ *
+ * Not wired to the real flash flow yet - both buttons on the notice just
+ * close it. That flow is its own piece of work; this is the UI that leads
+ * into it.
+ */
+function scheduleUpdateNotice() {
+  clearTimeout(updateNoticeTimer);
+  updateNoticeTimer = null;
+  if (!pendingUpdate?.available) return;
+
+  updateNoticeTimer = setTimeout(() => {
+    updateNoticeTimer = null;
+    showUpdateNotice();
+  }, UPDATE_NOTICE_DELAY_MS);
+}
+
+function showUpdateNotice() {
+  if (updateNoticeEl || !pendingUpdate?.available) return;
+
+  updateNoticeEl = buildFirmwareUpdateNotice({
+    version: pendingUpdate.version,
+    changelog: pendingUpdate.manifest?.changelog,
+    onUpdate: dismissUpdateNotice,
+    onDismiss: dismissUpdateNotice,
+  });
+  el.canvas.appendChild(updateNoticeEl);
+}
+
+function dismissUpdateNotice() {
+  clearTimeout(updateNoticeTimer);
+  updateNoticeTimer = null;
+  updateNoticeEl?.remove();
+  updateNoticeEl = null;
+}
 
 /*
 	Offer the update whatever the device is running.
@@ -835,6 +885,7 @@ function currentDevices() {
           : undefined,
       encoders: state === DeviceState.CONNECTED ? bankEncoders() : null,
       progress: isSelected && state === DeviceState.IDENTIFYING ? connectFraction : null,
+      updateAvailable: isSelected && state === DeviceState.CONNECTED && Boolean(pendingUpdate?.available),
     };
   });
 

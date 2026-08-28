@@ -252,6 +252,7 @@ button:focus-visible {
 #canvas {
 	flex: 1;
 	min-width: 0;
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	background: radial-gradient(circle at 50% -10%, #0f2a22 0%, #0a1210 45%, var(--ds-bg) 100%);

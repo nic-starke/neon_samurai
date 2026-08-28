@@ -54,11 +54,11 @@ const DOT_COLOR = {
 	off: "var(--ds-text-faint)",
 };
 
-function statusDot(state) {
+function statusDot(dotLevel) {
 	return elc("span", {
-		class: `ds-status-dot ds-status-dot--${state.dot}`,
+		class: `ds-status-dot ds-status-dot--${dotLevel}`,
 		attrs: { "aria-hidden": "true" },
-		text: state.dot === "warn" ? "!" : "",
+		text: dotLevel === "warn" ? "!" : "",
 	});
 }
 
@@ -125,6 +125,11 @@ function unitRow(unit, selected, onSelect) {
 	const isSelected = selected === unit.id;
 	const connectable = CONNECTABLE.has(unit.state);
 	const isConnected = unit.state === "connected";
+
+	// An available firmware update overrides the ordinary connection colour -
+	// something needs attention here regardless of how the connection itself
+	// is going, and amber is what "needs attention" already means on this row.
+	const dotLevel = unit.updateAvailable ? "warn" : state.dot;
 
 	const name = elc("span", {
 		style:
@@ -198,11 +203,11 @@ function unitRow(unit, selected, onSelect) {
 		],
 	});
 
-	const children = [mini, right, statusDot(state)];
+	const children = [mini, right, statusDot(dotLevel)];
 
 	const row = elc("button", {
 		class: `ds-unit-row${connectable ? " ds-unit-row--connectable" : ""}`,
-		title: state.label,
+		title: unit.updateAvailable ? `${state.label} - firmware update available` : state.label,
 		attrs: {
 			type: "button",
 			"aria-pressed": String(isSelected),
@@ -211,7 +216,7 @@ function unitRow(unit, selected, onSelect) {
 		style:
 			"position:relative; display:flex; align-items:center; gap:9px; width:100%; padding:10px 9px 12px; " +
 			"border-radius:6px; cursor:pointer; text-align:left; font:inherit; " +
-			`border:1px solid ${isSelected ? DOT_COLOR[state.dot] : "var(--ds-border)"}; ` +
+			`border:1px solid ${unit.updateAvailable || isSelected ? DOT_COLOR[dotLevel] : "var(--ds-border)"}; ` +
 			`background:${isSelected ? "var(--ds-bg-panel)" : "var(--ds-bg-raised)"};`,
 		// A connected row disconnects only via the hold gesture wired below -
 		// see attachHold(). Every other clickable state still connects on a
@@ -235,7 +240,7 @@ function emptyState() {
 }
 
 /**
- * @param p.units     [{id, name, state, meta, encoders, progress}]
+ * @param p.units     [{id, name, state, meta, encoders, progress, updateAvailable}]
  *                     progress is 0-1 while connecting, otherwise null.
  * @param p.selected  id of the selected unit, or null
  * @param p.onSelect  called with a unit id - on click to connect, or once a
