@@ -1,34 +1,3 @@
-/* Firmware update: the button in the header, and the dialog.
-   Uses the tokens from tokens.css so it reads as part of the same surface. */
-
-.fw-update-btn {
-	background: var(--ds-bg-raised);
-	color: var(--ds-text-dim);
-	border: 1px solid var(--ds-border);
-	border-radius: var(--ds-radius);
-	padding: 0.45rem 0.9rem;
-	font: inherit;
-	font-size: 0.88rem;
-	cursor: default;
-}
-
-/* Only looks clickable when it is. An enabled-looking button that does
-   nothing is worse than one that plainly says it has nothing to offer. */
-.fw-update-btn--available {
-	color: var(--ds-accent);
-	border-color: var(--ds-accent-dim);
-	cursor: pointer;
-}
-
-.fw-update-btn--available:hover {
-	box-shadow: var(--ds-glow-soft);
-}
-
-.fw-update-btn:focus-visible {
-	outline: none;
-	box-shadow: var(--ds-focus-ring);
-}
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Dialog ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 .fw-backdrop {

@@ -35,8 +35,6 @@ import {
   buildBankSelector,
   buildDeviceList,
   buildInspector,
-  buildMiniDevice,
-  MINI_SIZE,
   computeLitMask,
   computeLedBrightness,
   computeDetentColorOverride,
@@ -59,26 +57,15 @@ let viewingBank = 0;
 let pendingBank = null;
 let chassis = null;
 let renderPending = false;
-let fwLabel = "";
 let inspectorTab = "device";
-// 0-1 while the selected device is connecting, otherwise null. Shown as the
-// progress bar under that device's row in the sidebar - see currentDevices().
-// Monotonic by construction: each stage below owns a fixed slice of the
-// range, so the bar only ever moves right, never jumps back to restart at
-// the top of the next stage.
+let bootloaderInfo = null;
 let connectFraction = null;
+let expandedId = null;
 const signatures = new Array(NUM_ENCODERS).fill(null);
 
 const el = {
   unsupportedBanner: byId("unsupported-banner"),
   chassis: byId("twin-chassis"),
-  // Absent until the device component is built - see setStatus() below.
-  statusDot: byId("status-dot"),
-  statusText: byId("status-text"),
-  fwVersion: byId("fw-version"),
-  btnConnect: byId("btn-connect"),
-  btnUpdate: byId("btn-update"),
-  btnDisconnect: byId("btn-disconnect"),
   bankSelector: byId("bank-selector"),
   deviceList: byId("device-list"),
   inspector: byId("inspector"),
@@ -97,11 +84,7 @@ function byId(id) {
 async function init() {
   if (!midi.isSupported()) {
     el.unsupportedBanner.hidden = false;
-    setConnectButtons({ canConnect: false });
   }
-  el.btnConnect?.addEventListener("click", onConnectClick);
-  el.btnUpdate?.addEventListener("click", onUpdateClick);
-  el.btnDisconnect?.addEventListener("click", onDisconnectClick);
   bankFade.onFrame = scheduleRender;
   buildChassisOnce();
   renderShell();
@@ -153,6 +136,8 @@ function scheduleRender() {
  * DFU - can have it until this page lets go.
  */
 async function onDeviceRowClick(id) {
+  if (id.startsWith(MOCK_ID_PREFIX)) return;
+
   if (connected && registry.selectedId === id) {
     await onDisconnectClick();
     return;
@@ -163,14 +148,14 @@ async function onDeviceRowClick(id) {
   // otherwise go on pointing at it after it is destroyed.
   if (connected) await releaseCurrentDevice();
 
-  setConnectFraction(0.05);
+  connectFraction = 0.05;
 
   try {
     const dev = await registry.connect(id);
     if (dev) await loadDevice(dev);
   } catch (e) {
     connected = false;
-    setConnectFraction(null);
+    connectFraction = null;
     toast("error", e.message);
     renderShell();
   }
@@ -191,10 +176,7 @@ async function loadDevice(dev) {
     setConnectFraction(0.15);
     const info = await protocol.getDeviceInfo();
     model.deviceInfo = info;
-    setFirmwareVersion(`fw ${info.fwVersion}`);
 
-    // Config loading gets the rest of the bar - it is the one stage with a
-    // real, reportable length.
     const LOAD_START = 0.2;
     const LOAD_SPAN = 0.75;
     setConnectFraction(LOAD_START);
@@ -212,10 +194,9 @@ async function loadDevice(dev) {
     await protocol.setLivePositionStreaming(true);
 
     connected = true;
-    setStatus("connected", `Connected: ${device.name}`);
-    setConnectButtons({ connected: true, label: "Reconnect" });
+    expandedId = registry.selectedId;
 
-    await refreshUpdateButton(info.fwVersion);
+    await refreshPendingUpdate(info.fwVersion);
     scheduleUpdateNotice();
 
     if (info.numEncoders !== NUM_ENCODERS || info.numBanks !== NUM_BANKS) {
@@ -232,11 +213,9 @@ async function loadDevice(dev) {
     // ports already open, leaving the previous Device's listeners and
     // heartbeat orphaned on the same port rather than replaced.
     await releaseCurrentDevice();
-    setStatus("error", "Could not read the configuration");
     toast("error", e.message);
   } finally {
-    setConnectFraction(null);
-    setConnectButtons({ connected });
+    connectFraction = null;
     scheduleRender();
     renderShell();
   }
@@ -251,29 +230,20 @@ async function loadDevice(dev) {
  * releases it.
  */
 async function onDisconnectClick() {
-  setConnectButtons({ connected: false });
   await releaseCurrentDevice();
-
-  setStatus("disconnected", "Not connected");
-  setConnectButtons({ connected: false, label: "Connect" });
-  setFirmwareVersion("");
-  setUpdateButton("Update", false);
-
   scheduleRender();
   renderShell();
 }
 
 function onDeviceDisconnected(reason) {
   connected = false;
-  setConnectButtons({ connected: false });
-  setUpdateButton("Update", false);
+  if (expandedId === registry.selectedId) expandedId = null;
   dismissUpdateNotice();
   pendingBank = null;
   livePosition.detach();
   liveVmapActive.detach();
   liveActiveBank.detach();
   bankFade.stop();
-  setStatus("error", "Disconnected");
   toast("error", `Device disconnected (${reason}). Reconnect to resume.`);
   scheduleRender();
   renderShell();
@@ -291,6 +261,7 @@ async function releaseCurrentDevice() {
   }
 
   connected = false;
+  if (expandedId === registry.selectedId) expandedId = null;
   dismissUpdateNotice();
   pendingBank = null;
   livePosition.detach();
@@ -327,7 +298,7 @@ let updateNoticeEl = null;
 
 /**
  * Announce an available update a few seconds after connecting, if
- * refreshUpdateButton() found one.
+ * refreshPendingUpdate() found one.
  *
  * Not wired to the real flash flow yet - both buttons on the notice just
  * close it. That flow is its own piece of work; this is the UI that leads
@@ -374,6 +345,28 @@ function isForced() {
 	return new URLSearchParams(location.search).has("forceUpdate");
 }
 
+const MOCK_ID_PREFIX = "mock-";
+
+function mockDevicesEnabled() {
+  return new URLSearchParams(location.search).has("mockDevices");
+}
+
+function mockDevices() {
+  return [
+    { id: `${MOCK_ID_PREFIX}detected`, name: "MOCK OFFLINE", state: "detected" },
+    { id: `${MOCK_ID_PREFIX}busy`, name: "MOCK BUSY", state: "busy" },
+    { id: `${MOCK_ID_PREFIX}failed`, name: "MOCK FAILED", state: "failed" },
+    { id: `${MOCK_ID_PREFIX}identifying`, name: "MOCK CONNECTING", state: "identifying", progress: 0.4 },
+    {
+      id: `${MOCK_ID_PREFIX}connected`,
+      name: "MOCK CONNECTED",
+      state: "connected",
+      firmwareVersion: "9.9.9",
+      updateAvailable: true,
+    },
+  ];
+}
+
 /**
  * A bootloader turned up.
  *
@@ -386,14 +379,9 @@ async function onBootloaderPresent(dev) {
   if (updateRunning) return;
 
   const manifest = await fetchManifest();
-  if (!manifest?.version) {
-    setUpdateButton("Bootloader mode - no firmware available", false);
-    return;
-  }
+  if (!manifest?.version) return;
 
   pendingUpdate = { available: true, version: manifest.version, manifest };
-  setUpdateButton(`Finish update: v${manifest.version}`, true);
-  setStatus("connecting", "Device is in bootloader mode");
 
   // A device in DFU has no MIDI interface to ask, so the only way to say what
   // is on it is to read the record the firmware leaves in flash.
@@ -402,36 +390,17 @@ async function onBootloaderPresent(dev) {
 }
 
 function describeBootloader(info) {
-  if (!info) {
-    setStatus("connecting", "Device is in bootloader mode - its firmware is not recognised");
-    setFirmwareVersion("");
-    return;
-  }
-
-  const build = info.dirty ? `${info.version}, modified build` : info.version;
-  setStatus("connecting", `Device is in bootloader mode - it has ${info.id} ${build}`);
-  setFirmwareVersion(
-    `fw ${info.version}`,
-    info.commit ? `built from ${info.commit}${info.dirty ? " with uncommitted changes" : ""}` : ""
-  );
+  bootloaderInfo = info
+    ? `${info.id} ${info.dirty ? `${info.version}, modified build` : info.version}`
+    : "not recognised";
+  renderSidebar();
 }
 
 function onBootloaderGone() {
   bootloaderPresent = false;
+  bootloaderInfo = null;
   if (updateRunning) return;
-
-  // The build tooltip described the bootloader, which has gone.
-  setFirmwareVersion(fwLabel);
-
-  // Leave the normal connected/disconnected handling to say what is true now.
-  if (!connected) setUpdateButton("Update", false);
-}
-
-function setUpdateButton(text, available) {
-  if (!el.btnUpdate) return;
-  el.btnUpdate.textContent = text;
-  el.btnUpdate.disabled = !available;
-  el.btnUpdate.classList.toggle("fw-update-btn--available", available);
+  renderSidebar();
 }
 
 /**
@@ -441,27 +410,10 @@ function setUpdateButton(text, available) {
  * asset downloads carry no CORS headers, so a browser cannot read one however
  * the request is framed.
  */
-async function refreshUpdateButton(deviceVersion) {
-  setUpdateButton("Checking…", false);
-
+async function refreshPendingUpdate(deviceVersion) {
   const manifest = await fetchManifest();
   const result = checkForUpdate(deviceVersion, manifest, { force: isForced() });
-
-  if (result.available) {
-    pendingUpdate = result;
-    setUpdateButton(
-      result.forced
-        ? `Reflash v${result.version}`
-        : `Firmware update: v${result.version}`,
-      true
-    );
-  } else {
-    pendingUpdate = null;
-    setUpdateButton(
-      result.reason === "no-manifest" ? "No firmware available" : "Firmware up to date",
-      false
-    );
-  }
+  pendingUpdate = result.available ? result : null;
 }
 
 async function onUpdateClick() {
@@ -506,7 +458,6 @@ async function startUpdate(dialog) {
         device = null;
         protocol = null;
 
-        setStatus("connecting", "Device is in bootloader mode…");
         scheduleRender();
       },
 
@@ -539,7 +490,6 @@ async function startUpdate(dialog) {
     await onConnectClick();
   } catch (e) {
     dialog.showFailure(e.message);
-    setStatus("error", "Firmware update failed");
   } finally {
     updateRunning = false;
   }
@@ -585,40 +535,6 @@ async function switchBank(bank) {
     toast("error", `Could not switch to bank ${bank + 1}: ${e.message}`);
     renderShell();
   }
-}
-
-/*
-  The connection chrome lives behind these four functions.
-
-  The loose buttons that used to carry it have been taken out of the sidebar,
-  and one device component replaces them. Until it exists the elements are
-  absent, so each of these does nothing rather than throwing - and when the
-  component arrives it is these four that get rewired, not the call sites.
-*/
-
-function setStatus(state, text) {
-  if (el.statusDot) el.statusDot.className = `status-dot status-dot--${state}`;
-  if (el.statusText) el.statusText.textContent = text;
-}
-
-function setFirmwareVersion(text, title = "") {
-  fwLabel = text;
-  if (!el.fwVersion) return;
-  el.fwVersion.textContent = text;
-  el.fwVersion.title = title;
-}
-
-/**
- * @param p.canConnect  whether connecting is possible right now
- * @param p.connected   whether a unit is attached
- * @param p.label       text for the connect action
- */
-function setConnectButtons(p) {
-  if (el.btnConnect) {
-    el.btnConnect.disabled = p.canConnect === false;
-    if (p.label) el.btnConnect.textContent = p.label;
-  }
-  if (el.btnDisconnect) el.btnDisconnect.disabled = !p.connected;
 }
 
 function toast(kind, message) {
@@ -732,14 +648,11 @@ function buildChassisOnce() {
 }
 
 function renderChassis() {
-  let moved = false;
-
   for (let position = 0; position < NUM_ENCODERS; position++) {
     const props = encoderPropsFor(position);
     const signature = encoderSignature(props);
     if (signature === signatures[position]) continue;
     signatures[position] = signature;
-    moved = true;
     const light = chassis.knurlLights[position];
     chassis.encoderCells[position].replaceChildren(
       buildEncoder({
@@ -750,35 +663,6 @@ function renderChassis() {
       })
     );
   }
-
-  if (moved) renderMiniDevice();
-}
-
-/**
- * Keep the sidebar's miniature in step with the hardware.
- *
- * It shows the same LED state as the big device, so it has to be redrawn on
- * the same frames. Rebuilding the whole list that often would throw away and
- * recreate every row, so only the one element is replaced - and only when an
- * encoder actually changed, which renderChassis() already knows.
- */
-function renderMiniDevice() {
-  const id = registry.selectedId;
-  if (!connected || !id) return;
-
-  const current = el.deviceList.querySelector(`[data-mini="${CSS.escape(id)}"]`);
-  if (!current) return;
-
-  current.replaceWith(
-    buildMiniDevice({
-      size: MINI_SIZE,
-      key: id,
-      encoders: bankEncoders(),
-      // The only device with a live miniature is the connected one, and a
-      // connected row is always the selected row.
-      accent: "var(--ds-accent)",
-    })
-  );
 }
 
 function renderBankSelector() {
@@ -814,18 +698,6 @@ function renderDevicePresence() {
   if (connected) fitDevice();
 }
 
-/** Drives the connecting row's progress bar - see currentDevices(). */
-/**
- * Drives the connecting row's progress bar - see currentDevices().
- *
- * loadFromDevice() reports progress once per request - easily 100+ times
- * over one connect - and a full renderSidebar() on every tick was tearing
- * the fill element down and rebuilding it each time, which restarted its
- * CSS stripe animation from frame zero before a single cycle could
- * complete. The element persists across ticks instead, and only its width
- * changes; renderSidebar() still runs when there is nothing to update
- * directly, such as the very first tick of a connect.
- */
 function setConnectFraction(fraction) {
   connectFraction = fraction;
 
@@ -836,23 +708,10 @@ function setConnectFraction(fraction) {
     return;
   }
 
-  fill.style.width = fraction === null ? "0" : `${Math.round(fraction * 100)}%`;
-  fill.parentElement.classList.toggle("ds-unit-progress--active", fraction !== null);
+  fill.style.width = fraction === null ? "0%" : `${Math.round(fraction * 100)}%`;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ The regions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-/**
- * Encoder props for the bank being viewed, in grid order.
- *
- * The same objects the chassis is built from, so the miniature in the sidebar
- * shows the same LED pattern, arc colour and knob angle as the big one rather
- * than an approximation of them.
- */
-function bankEncoders() {
-  if (!connected) return null;
-  return Array.from({ length: NUM_ENCODERS }, (_, position) => encoderPropsFor(position));
-}
 
 /**
  * The devices to list.
@@ -868,24 +727,21 @@ function currentDevices() {
     // registry marks a device CONNECTED as soon as its MIDI port opens - long
     // before loadDevice() has actually read the configuration off it. Left
     // alone, the row would jump to "connected" for the whole of that real
-    // work, and the progress bar below would never see a state to attach to.
-    // The editor's own `connected` flag only goes true once loading has
+    // work. The editor's own `connected` flag only goes true once loading has
     // actually finished, so it - not the registry's state - decides whether
     // the row still reads as busy.
     const stillLoading = isSelected && !connected && d.state === DeviceState.CONNECTED;
     const state = stillLoading ? DeviceState.IDENTIFYING : d.state;
 
+    const isUpdateCandidate = isSelected && state === DeviceState.CONNECTED;
+
     return {
       id: d.id,
       name: d.name,
       state,
-      meta:
-        state === DeviceState.CONNECTED && model.deviceInfo?.fwVersion
-          ? `fw ${model.deviceInfo.fwVersion}`
-          : undefined,
-      encoders: state === DeviceState.CONNECTED ? bankEncoders() : null,
+      firmwareVersion: state === DeviceState.CONNECTED ? model.deviceInfo?.fwVersion : undefined,
+      updateAvailable: isUpdateCandidate && Boolean(pendingUpdate?.available),
       progress: isSelected && state === DeviceState.IDENTIFYING ? connectFraction : null,
-      updateAvailable: isSelected && state === DeviceState.CONNECTED && Boolean(pendingUpdate?.available),
     };
   });
 
@@ -894,19 +750,31 @@ function currentDevices() {
       id: "bootloader",
       name: "Unrecognised device",
       state: "bootloader",
-      meta: "bootloader",
+      firmwareVersion: bootloaderInfo ?? undefined,
+      updateAvailable: Boolean(pendingUpdate?.available),
     });
   }
 
+  if (mockDevicesEnabled()) rows.push(...mockDevices());
+
   return rows;
+}
+
+function onDeviceRowExpand(id) {
+  if (expandedId === id) return;
+  expandedId = id;
+  renderSidebar();
 }
 
 function renderSidebar() {
   el.deviceList.replaceChildren(
     buildDeviceList({
       units: currentDevices(),
-      selected: registry.selectedId,
+      expandedId,
       onSelect: onDeviceRowClick,
+      onExpand: onDeviceRowExpand,
+      onUpdate: onUpdateClick,
+      onRescan: () => registry.rescan(),
     })
   );
 }

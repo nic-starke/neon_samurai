@@ -52,7 +52,7 @@ button {
 	cursor: pointer;
 }
 
-button:hover:not(:disabled) {
+:where(button:hover:not(:disabled)) {
 	border-color: var(--ds-accent);
 }
 
@@ -131,53 +131,6 @@ button:focus-visible {
 .sidebar__links a:hover {
 	color: var(--ds-accent-bright);
 }
-
-.status-dot {
-	width: 0.7em;
-	height: 0.7em;
-	border-radius: 50%;
-	display: inline-block;
-	flex: none;
-}
-
-.status-dot--disconnected {
-	background: var(--ds-text-faint);
-}
-
-/* Connecting is a multi-second, ~205-round-trip state. It gets its own
-   colour rather than reusing "disconnected", which was previously showing
-   a dead-looking dot for the whole of a successful connect. */
-.status-dot--connecting {
-	background: var(--ds-warning);
-	box-shadow: 0 0 6px var(--ds-warning);
-	animation: status-pulse 1.2s ease-in-out infinite;
-}
-
-.status-dot--connected {
-	background: var(--ds-accent);
-	box-shadow: var(--ds-glow);
-}
-
-.status-dot--error {
-	background: var(--ds-danger);
-	box-shadow: 0 0 6px var(--ds-danger);
-}
-
-@keyframes status-pulse {
-	50% {
-		opacity: 0.35;
-	}
-}
-
-.fw-version {
-	color: var(--ds-text-faint);
-	font-family: var(--ds-font-mono);
-	font-size: 11px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
 
 /* --- Toasts --- */
 
@@ -333,12 +286,3 @@ button:focus-visible {
 	color: var(--ds-text-faint);
 }
 
-/* The bank-change flicker reproduces the firmware's animation: a full-white
-   RGB LED toggling every ~31ms, which is a ~16Hz flash - inside the range
-   associated with photosensitive seizures. Suppressed entirely under
-   reduced-motion, along with the status pulse. */
-@media (prefers-reduced-motion: reduce) {
-	.status-dot--connecting {
-		animation: none;
-	}
-}

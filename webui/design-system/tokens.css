@@ -15,6 +15,7 @@
 	--ds-bg-raised: #0a1210;
 	--ds-bg-panel: #0c1613;
 	--ds-bg-inset: #050807;
+	--ds-bg-selected: color-mix(in srgb, var(--ds-text) 4%, var(--ds-bg-raised));
 
 	/* Text */
 	--ds-text: #cdf5e4;
@@ -48,12 +49,12 @@
 	--ds-font: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 	--ds-font-mono: ui-monospace, "SF Mono", Consolas, monospace;
 
-	--ds-focus-ring: 0 0 0 2px var(--ds-bg), 0 0 0 4px var(--ds-accent);
+	--ds-text-title: 600 12px/1 var(--ds-font-mono);
+	--ds-text-heading: 600 9px/1 var(--ds-font-mono);
+	--ds-text-body: 400 11px/1.5 var(--ds-font);
+	--ds-text-body-mono: 400 11px/1.5 var(--ds-font-mono);
 
-	/* A light neutral ring for the mini device when its row is connected -
-	   deliberately not the accent, which read as a second selection colour
-	   sitting right next to the row's own. */
-	--ds-mini-connected-ring: #b0bdb8;
+	--ds-focus-ring: 0 0 0 2px var(--ds-bg), 0 0 0 4px var(--ds-accent);
 }
 
 /* Components build their own inline styles, so the one thing that cannot
@@ -129,151 +130,192 @@
 	}
 }
 
-/* --- Device row status dot (components/device-list.js) --- */
-
-.ds-status-dot {
-	position: absolute;
-	top: 7px;
-	right: 7px;
-	z-index: 2;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 11px;
-	height: 11px;
-	border-radius: 50%;
-	font: 700 8px/1 var(--ds-font-mono);
-	color: var(--ds-bg);
+.ds-unit-row {
+	min-height: 43px;
 }
 
-/* Flat grey: nothing connected, nothing to report yet. */
-.ds-status-dot--off {
+.ds-unit-row-header {
+	min-height: 43px;
+	background: none;
+}
+
+.ds-unit-row-header:not([aria-expanded="true"]):hover {
+	background: var(--ds-bg-selected);
+}
+
+.ds-unit-bar {
+	position: absolute;
+	left: 7px;
+	top: 50%;
+	height: 12px;
+	transform: translateY(-50%);
+	width: 2.5px;
+	border-radius: 2px;
 	background: var(--ds-text-faint);
 }
 
-/* A steady glow would read as "on"; a live MIDI connection is a process, not
-   a fixed state, so it breathes instead - the one animation on this dot that
-   is not a one-off transition. */
-.ds-status-dot--ok {
+.ds-unit-bar--ok {
 	background: var(--ds-accent);
-	animation: ds-dot-live 2.4s ease-in-out infinite;
 }
 
-.ds-status-dot--warn {
+.ds-unit-bar--warn {
 	background: var(--ds-amber);
-	box-shadow: var(--ds-glow-amber);
 }
 
-@keyframes ds-dot-live {
-	0%, 100% { box-shadow: var(--ds-glow); }
-	50% { box-shadow: 0 0 2px rgba(77, 255, 176, 0.25); }
+.ds-unit-bar--danger {
+	background: var(--ds-danger);
+}
+
+.ds-unit-bar--identifying {
+	animation: ds-bar-live 1s ease-in-out infinite;
+}
+
+@keyframes ds-bar-live {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.25; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.ds-status-dot--ok {
+	.ds-unit-bar--identifying {
 		animation: none;
-		box-shadow: var(--ds-glow);
 	}
 }
 
-/* --- Row banner (components/device-list.js) --- */
+@keyframes ds-detail-in {
+	from { opacity: 0; transform: translateY(-3px); }
+	to { opacity: 1; transform: none; }
+}
 
-/* One message at a time, in one place: a rounded bar across the row's own
-   centre. Replaces what used to be two different popups - a pill by the
-   status dot and a circle over the mini device - each only telling half of
-   what the row could say. */
-/* Confined to .ds-unit-right, its parent - never draws over the mini
-   device, which shows live state a banner would otherwise obscure. */
-.ds-unit-row__banner {
-	position: absolute;
-	top: 50%;
-	left: 0;
-	right: 0;
-	transform: translateY(-50%) translateY(4px);
+.ds-unit-detail {
+	padding: 11px 12px 14px 18px;
+	border-top: 1px solid var(--ds-border);
+	animation: ds-detail-in 0.14s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ds-unit-detail {
+		animation: none;
+	}
+}
+
+.ds-unit-fact {
 	display: flex;
-	justify-content: center;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.12s ease, transform 0.12s ease;
-	pointer-events: none;
-	z-index: 5;
+	align-items: baseline;
+	gap: 9px;
+	padding: 3px 0;
 }
 
-.ds-unit-row__banner .ds-tooltip {
-	width: 100%;
-	justify-content: center;
-	background: color-mix(in srgb, var(--ds-bg-panel) 88%, transparent);
+.ds-unit-fact__key {
+	flex: none;
+	width: 60px;
+	font: var(--ds-text-heading);
+	letter-spacing: 0.08em;
+	color: var(--ds-text-faint);
 }
 
-.ds-unit-row:hover .ds-unit-row__banner {
-	opacity: 1;
-	visibility: visible;
-	transform: translateY(-50%);
+.ds-unit-fact__value {
+	font: var(--ds-text-body-mono);
+	color: var(--ds-text-dim);
 }
 
-/* --- Mini device + per-row progress bar (components/device-list.js) --- */
+.ds-unit-fact__update {
+	margin-left: auto;
+	padding: 3px 8px;
+	border: 1px solid var(--ds-amber);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--ds-amber) 14%, transparent);
+	color: var(--ds-amber);
+	font: var(--ds-text-heading);
+	letter-spacing: 0.03em;
+	cursor: pointer;
+}
 
-.ds-unit-mini {
-	position: relative;
+.ds-unit-fact__update:hover {
+	background: color-mix(in srgb, var(--ds-amber) 24%, transparent);
+}
+
+.ds-unit-actions {
+	margin-top: 10px;
+	display: flex;
+	gap: 6px;
+}
+
+.ds-unit-actions__link {
+	flex: none;
+	padding: 6px 10px;
+	border-radius: var(--ds-radius);
+	font: var(--ds-text-heading);
+	letter-spacing: 0.09em;
+	cursor: pointer;
+}
+
+.ds-unit-actions__link--connect {
+	width: 74px;
+	height: 23px;
+	padding: 0;
 	display: inline-flex;
-}
-
-/* A normal flex child of .ds-unit-right's column - stretches to the full
-   column width under the column's default align-items:stretch, and sits at
-   the column's bottom via margin-top:auto on the fill's own rule below.
-   The track has no background of its own: an always-visible empty strip
-   under every row when nothing is happening looked like clutter, so the
-   track is only ever as visible as its fill - see .ds-unit-progress--active. */
-.ds-unit-progress {
-	width: 100%;
-	margin-top: auto;
-	height: 4px;
+	align-items: center;
+	justify-content: center;
+	position: relative;
 	overflow: hidden;
-	border-radius: 4px;
-	background: transparent;
+	border: 1px solid var(--ds-accent);
+	background: color-mix(in srgb, var(--ds-accent) 14%, transparent);
+	color: var(--ds-accent);
 }
 
-.ds-unit-progress--active {
-	background: color-mix(in srgb, var(--ds-bg-inset) 80%, transparent);
+.ds-unit-actions__link--connect:has(.ds-unit-actions__link-fill) {
+	cursor: default;
 }
 
-.ds-unit-progress__fill {
-	display: block;
-	height: 100%;
+.ds-unit-actions__link-fill {
+	position: absolute;
+	inset: 0;
 	width: 0;
-	background-color: var(--ds-accent);
-	/* Darkening the stripe rather than lightening it: the accent fill is
-	   already close to white, so a light overlay barely shows against it even
-	   though the same overlay reads clearly against the darker danger red -
-	   the exact mismatch reported. Darkening drops the luma of both fills by
-	   a comparable amount, so the stripe reads the same way on either. */
-	background-image: repeating-linear-gradient(
-		-45deg,
-		rgba(0, 0, 0, 0.3) 0 4px,
-		transparent 4px 8px
-	);
-	background-size: 11.3px 11.3px;
-	animation: ds-progress-stripes 0.6s linear infinite;
-	transition: width 0.2s ease;
+	background: color-mix(in srgb, var(--ds-accent) 40%, transparent);
+	transition: width 0.15s ease;
 }
 
-/* The hold-to-disconnect gesture times itself against this transition rather
-   than a poll, so its duration has to match HOLD_TO_DISCONNECT_MS exactly. */
-.ds-unit-progress__fill--hold {
-	transition: width 500ms linear;
+.ds-unit-actions__link--disconnect {
+	border: 1px solid var(--ds-border-bright);
+	background: none;
+	color: var(--ds-text-dim);
 }
 
-.ds-unit-progress__fill--danger {
-	background-color: var(--ds-danger);
+.ds-unit-actions__link--disconnect:hover {
+	border-color: var(--ds-danger);
+	color: var(--ds-danger);
 }
 
-@keyframes ds-progress-stripes {
-	from { background-position: 0 0; }
-	to { background-position: 11.3px 0; }
+.ds-unit-attn {
+	padding: 2px 6px;
+	border-radius: 9px;
+	background: color-mix(in srgb, var(--ds-amber) 16%, transparent);
+	color: var(--ds-amber);
+	font: var(--ds-text-heading);
+	line-height: 1.5;
 }
 
-@media (prefers-reduced-motion: reduce) {
-	.ds-unit-progress__fill {
-		animation: none;
-	}
+.ds-unit-rescan {
+	padding: 5px 9px;
+	border: 1px solid var(--ds-border);
+	border-radius: var(--ds-radius);
+	background: none;
+	color: var(--ds-text-dim);
+	font: var(--ds-text-heading);
+	letter-spacing: 0.09em;
+	cursor: pointer;
+}
+
+.ds-unit-rescan:hover {
+	border-color: var(--ds-border-bright);
+	color: var(--ds-text);
+}
+
+.ds-unit-legend {
+	flex: none;
+	padding: 8px 13px;
+	border-top: 1px solid var(--ds-border);
+	font: var(--ds-text-heading);
+	letter-spacing: 0.05em;
+	color: var(--ds-text-faint);
 }
